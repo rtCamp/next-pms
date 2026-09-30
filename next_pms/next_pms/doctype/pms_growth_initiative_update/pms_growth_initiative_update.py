@@ -15,6 +15,7 @@ class PMSGrowthInitiativeUpdate(Document):
         from frappe.types import DF
 
         billable_outcome: DF.Currency
+        client_priority: DF.Literal["", "Low", "Medium", "High"]
         closed_status: DF.Link | None
         note: DF.TextEditor | None
         parent: DF.Data

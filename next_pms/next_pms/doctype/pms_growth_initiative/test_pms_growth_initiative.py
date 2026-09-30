@@ -123,39 +123,62 @@ class IntegrationTestPMSGrowthInitiative(IntegrationTestCase):
             initiative.save(ignore_permissions=True)
 
     def test_insert_seeds_initial_update_log(self):
-        initiative = self._make_initiative(status="Closed", closed_status="Won", billable_outcome=5000)
+        initiative = self._make_initiative(
+            status="Closed", closed_status="Won", client_priority="High", billable_outcome=5000
+        )
         self.assertEqual(len(initiative.update_log), 1)
         row = initiative.update_log[0]
-        self.assertEqual((row.status, row.closed_status, row.billable_outcome), ("Closed", "Won", 5000))
+        self.assertEqual(
+            (row.status, row.closed_status, row.client_priority, row.billable_outcome), ("Closed", "Won", "High", 5000)
+        )
         self.assertEqual(row.updated_by, frappe.session.user)
         self.assertEqual(str(row.updated_at), str(initiative.creation))
 
     def test_direct_edits_revert_to_latest_update(self):
-        initiative = self._make_initiative(billable_outcome=1000)
+        initiative = self._make_initiative(client_priority="Low", billable_outcome=1000)
         initiative.status = "On Hold"
+        initiative.client_priority = "High"
         initiative.billable_outcome = 9999
         initiative.save(ignore_permissions=True)
         initiative.reload()
         self.assertEqual(initiative.status, "Ideation")
+        self.assertEqual(initiative.client_priority, "Low")
         self.assertEqual(initiative.billable_outcome, 1000)
         self.assertEqual(len(initiative.update_log), 1)
 
+    def test_priority_set_outside_update_log_reverts_when_created_without_one(self):
+        initiative = self._make_initiative()
+        initiative.client_priority = "High"
+        initiative.save(ignore_permissions=True)
+        initiative.reload()
+        self.assertFalse(initiative.client_priority)
+
     def test_parent_fields_follow_new_update_row(self):
-        initiative = self._make_initiative(billable_outcome=1000)
-        initiative.append("update_log", {"status": "In Progress", "billable_outcome": 2500, "note": "Kick-off"})
+        initiative = self._make_initiative(client_priority="Low", billable_outcome=1000)
+        initiative.append(
+            "update_log",
+            {"status": "In Progress", "client_priority": "Medium", "billable_outcome": 2500, "note": "Kick-off"},
+        )
         initiative.save(ignore_permissions=True)
         initiative.reload()
         self.assertEqual(initiative.status, "In Progress")
+        self.assertEqual(initiative.client_priority, "Medium")
         self.assertEqual(initiative.billable_outcome, 2500)
         self.assertEqual(len(initiative.update_log), 2)
 
     def test_note_only_update_carries_forward_fields(self):
-        initiative = self._make_initiative(status="Closed", closed_status="Won", billable_outcome=1000)
+        initiative = self._make_initiative(
+            status="Closed", closed_status="Won", client_priority="High", billable_outcome=1000
+        )
         initiative.append("update_log", {"note": "Signed the SOW"})
         initiative.save(ignore_permissions=True)
         initiative.reload()
         latest = initiative.update_log[-1]
-        self.assertEqual((latest.status, latest.closed_status, latest.billable_outcome), ("Closed", "Won", 1000))
+        self.assertEqual(
+            (latest.status, latest.closed_status, latest.client_priority, latest.billable_outcome),
+            ("Closed", "Won", "High", 1000),
+        )
+        self.assertEqual(initiative.client_priority, "High")
         self.assertEqual((initiative.status, initiative.closed_status), ("Closed", "Won"))
         self.assertEqual(initiative.billable_outcome, 1000)
 

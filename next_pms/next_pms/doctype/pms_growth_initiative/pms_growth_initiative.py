@@ -46,7 +46,9 @@ class PMSGrowthInitiative(Document):
         self._ensure_initial_update_log()
         self._carry_forward_unset_update_fields()
         stamp_new_update_rows(self.update_log)
-        prevent_changing_others_update_rows(self, "update_log", ("note", "status", "closed_status", "billable_outcome"))
+        prevent_changing_others_update_rows(
+            self, "update_log", ("note", "status", "closed_status", "client_priority", "billable_outcome")
+        )
         self._sync_fields_from_latest_update()
 
         self._validate_status_type("status", "Status")
@@ -63,6 +65,7 @@ class PMSGrowthInitiative(Document):
             {
                 "status": self.status,
                 "closed_status": self.closed_status,
+                "client_priority": self.client_priority or "",
                 "billable_outcome": self.billable_outcome,
                 "updated_at": self.creation,
             },
@@ -74,6 +77,8 @@ class PMSGrowthInitiative(Document):
                 continue
             if not row.status:
                 row.status, row.closed_status = previous.status, previous.closed_status
+            if not row.client_priority:
+                row.client_priority = previous.client_priority
             if row.billable_outcome is None:
                 row.billable_outcome = previous.billable_outcome
 
@@ -83,6 +88,8 @@ class PMSGrowthInitiative(Document):
         latest = self.update_log[-1]
         if latest.status:
             self.status, self.closed_status = latest.status, latest.closed_status
+        if latest.client_priority is not None:
+            self.client_priority = latest.client_priority
         if latest.billable_outcome is not None:
             self.billable_outcome = latest.billable_outcome
 

@@ -6,7 +6,7 @@ def execute():
     with_updates = set(frappe.get_all("PMS Growth Initiative Update", pluck="parent", distinct=True))
     for initiative in frappe.get_all(
         "PMS Growth Initiative",
-        fields=["name", "status", "closed_status", "billable_outcome", "creation", "owner"],
+        fields=["name", "status", "closed_status", "client_priority", "billable_outcome", "creation", "owner"],
     ):
         if initiative.name in with_updates:
             continue
@@ -19,6 +19,7 @@ def execute():
                 "idx": 1,
                 "status": initiative.status,
                 "closed_status": initiative.closed_status,
+                "client_priority": initiative.client_priority or "",
                 "billable_outcome": initiative.billable_outcome,
                 "updated_at": initiative.creation,
                 "updated_by": initiative.owner,
