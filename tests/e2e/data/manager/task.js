@@ -3,7 +3,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC17 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -29,7 +29,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC19 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -58,7 +58,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC22 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -96,7 +96,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC24 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -116,7 +116,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC25 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -142,7 +142,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC26 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -158,6 +158,9 @@ module.exports = {
       subject: "TC26 Non-Billable Task",
       project: "filled-automatically-from-createProjects",
       description: "Task for TC26 created through automation",
+      // Set explicitly rather than leaning on the Check field's default, so the
+      // test states what it is asserting.
+      custom_is_billable: 0,
     },
     payloadDeleteTask: {
       taskID: "filled-automatically-from-createTasks",
