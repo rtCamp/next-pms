@@ -3,7 +3,6 @@
 
 import frappe
 from frappe import _
-from frappe.model.utils.mask import mask_version_data
 from frappe.utils import cstr, strip_html_tags
 
 from next_pms.next_projects.api.utils import get_user_details_map
@@ -50,7 +49,7 @@ def get_version_items(doc) -> list[dict]:
     readable_permlevels = doc.get_permlevel_access("read")
 
     items = []
-    for version in mask_version_data(versions, doc.doctype):
+    for version in versions:
         data = frappe.parse_json(version.data) or {}
         changes = [
             change
