@@ -44,14 +44,3 @@ PMS View Setting, extra Employees (Active / Inactive / Left / Suspended +
 reviewees), ToDo.
 
 Creating them by hand produces duplicates the teardown will not clean up.
-
-## Two code fixes still needed
-
-Independent of the seed script — a fresh site fails these until they are
-parameterised:
-
-- `specs/manager/team.spec.js:182` hardcodes `EMP-00519` to choose between the
-  QE and staging expected rosters.
-- `data/manager/team.js` TC53 hardcodes five real colleague names that will not
-  exist on a new site, so TC53 fails until the list points at the employees the
-  seed script creates.
