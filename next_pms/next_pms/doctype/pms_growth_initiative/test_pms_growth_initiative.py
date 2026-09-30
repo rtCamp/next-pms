@@ -101,8 +101,7 @@ class IntegrationTestPMSGrowthInitiative(IntegrationTestCase):
 
     def test_closing_records_closed_status(self):
         initiative = self._make_initiative()
-        initiative.status = "Closed"
-        initiative.closed_status = "Won"
+        initiative.append("update_log", {"status": "Closed", "closed_status": "Won"})
         initiative.save(ignore_permissions=True)
         initiative.reload()
         self.assertEqual(initiative.is_closed, 1)
@@ -110,11 +109,100 @@ class IntegrationTestPMSGrowthInitiative(IntegrationTestCase):
 
     def test_reopening_clears_closed_status(self):
         initiative = self._make_initiative(status="Closed", closed_status="Lost")
-        initiative.status = "In Progress"
+        initiative.append("update_log", {"status": "In Progress", "closed_status": "Lost"})
         initiative.save(ignore_permissions=True)
         initiative.reload()
         self.assertEqual(initiative.is_closed, 0)
         self.assertIsNone(initiative.closed_status)
+        self.assertIsNone(initiative.update_log[-1].closed_status)
+
+    def test_closing_update_requires_closed_status(self):
+        initiative = self._make_initiative()
+        initiative.append("update_log", {"status": "Closed"})
+        with self.assertRaises(frappe.ValidationError):
+            initiative.save(ignore_permissions=True)
+
+    def test_insert_seeds_initial_update_log(self):
+        initiative = self._make_initiative(status="Closed", closed_status="Won", billable_outcome=5000)
+        self.assertEqual(len(initiative.update_log), 1)
+        row = initiative.update_log[0]
+        self.assertEqual((row.status, row.closed_status, row.billable_outcome), ("Closed", "Won", 5000))
+        self.assertEqual(row.updated_by, frappe.session.user)
+        self.assertEqual(str(row.updated_at), str(initiative.creation))
+
+    def test_direct_edits_revert_to_latest_update(self):
+        initiative = self._make_initiative(billable_outcome=1000)
+        initiative.status = "On Hold"
+        initiative.billable_outcome = 9999
+        initiative.save(ignore_permissions=True)
+        initiative.reload()
+        self.assertEqual(initiative.status, "Ideation")
+        self.assertEqual(initiative.billable_outcome, 1000)
+        self.assertEqual(len(initiative.update_log), 1)
+
+    def test_parent_fields_follow_new_update_row(self):
+        initiative = self._make_initiative(billable_outcome=1000)
+        initiative.append("update_log", {"status": "In Progress", "billable_outcome": 2500, "note": "Kick-off"})
+        initiative.save(ignore_permissions=True)
+        initiative.reload()
+        self.assertEqual(initiative.status, "In Progress")
+        self.assertEqual(initiative.billable_outcome, 2500)
+        self.assertEqual(len(initiative.update_log), 2)
+
+    def test_note_only_update_carries_forward_fields(self):
+        initiative = self._make_initiative(status="Closed", closed_status="Won", billable_outcome=1000)
+        initiative.append("update_log", {"note": "Signed the SOW"})
+        initiative.save(ignore_permissions=True)
+        initiative.reload()
+        latest = initiative.update_log[-1]
+        self.assertEqual((latest.status, latest.closed_status, latest.billable_outcome), ("Closed", "Won", 1000))
+        self.assertEqual((initiative.status, initiative.closed_status), ("Closed", "Won"))
+        self.assertEqual(initiative.billable_outcome, 1000)
+
+    def test_author_can_edit_own_update_row(self):
+        initiative = self._make_initiative()
+        frappe.set_user(PROJECTS_MANAGER_USER)
+        doc = frappe.get_doc(DOCTYPE, initiative.name)
+        doc.append("update_log", {"status": "In Progress", "note": "Mine"})
+        doc.save()
+        doc.update_log[-1].note = "Mine, edited"
+        doc.save()
+        doc.reload()
+        self.assertEqual(doc.update_log[-1].note, "Mine, edited")
+
+    def test_cannot_edit_or_delete_others_update_rows(self):
+        initiative = self._make_initiative()
+        frappe.set_user(PROJECTS_MANAGER_USER)
+        doc = frappe.get_doc(DOCTYPE, initiative.name)
+        doc.append("update_log", {"status": "In Progress", "note": "PM note"})
+        doc.save()
+
+        frappe.set_user(DELIVERY_MANAGER_USER)
+        doc = frappe.get_doc(DOCTYPE, initiative.name)
+        doc.update_log[-1].note = "Rewritten"
+        with self.assertRaises(frappe.PermissionError):
+            doc.save()
+
+        doc = frappe.get_doc(DOCTYPE, initiative.name)
+        doc.update_log = doc.update_log[:1]
+        with self.assertRaises(frappe.PermissionError):
+            doc.save()
+
+    def test_system_manager_can_delete_others_update_rows(self):
+        initiative = self._make_initiative()
+        frappe.set_user(PROJECTS_MANAGER_USER)
+        doc = frappe.get_doc(DOCTYPE, initiative.name)
+        doc.append("update_log", {"status": "In Progress"})
+        doc.save()
+
+        frappe.set_user("Administrator")
+        doc = frappe.get_doc(DOCTYPE, initiative.name)
+        self.assertEqual(doc.update_log[-1].updated_by, PROJECTS_MANAGER_USER)
+        doc.update_log = doc.update_log[:1]
+        doc.save()
+        doc.reload()
+        self.assertEqual(len(doc.update_log), 1)
+        self.assertEqual(doc.status, "Ideation")
 
     def test_status_must_be_of_status_type(self):
         with self.assertRaises(frappe.ValidationError):
