@@ -72,8 +72,7 @@ class IntegrationTestActivity(IntegrationTestCase):
     def test_field_change_is_reported_with_label_and_values(self):
         initiative = self._make_initiative()
         frappe.set_user(EDITOR_USER)
-        initiative.client_priority = "High"
-        initiative.billable_outcome = 123
+        initiative.append("update_log", {"client_priority": "High", "billable_outcome": 123})
         initiative.save(ignore_version=False)
 
         result = get_activity(DOCTYPE, initiative.name)
@@ -88,15 +87,14 @@ class IntegrationTestActivity(IntegrationTestCase):
                 {"label": "Billable Outcome", "old": "0", "new": "₹ 123.00"},
             ],
         )
-        self.assertEqual(changed["table_changes"], [])
+        self.assertEqual(changed["table_changes"], [{"label": "Update Log", "added": 1, "removed": 0, "changed": 0}])
         self.assertIsNone(changed["impersonated_by"])
         self.assertEqual(result["items"][1]["user"], EDITOR_USER)
         self.assertIn(EDITOR_USER, result["users"])
 
     def test_hidden_fields_are_not_reported(self):
         initiative = self._make_initiative()
-        initiative.status = "Closed"
-        initiative.closed_status = "Won"
+        initiative.append("update_log", {"status": "Closed", "closed_status": "Won"})
         initiative.save(ignore_permissions=True, ignore_version=False)
 
         labels = {
