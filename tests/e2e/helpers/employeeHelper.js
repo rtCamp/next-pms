@@ -82,18 +82,11 @@ export const createEmployees = async (testCaseIDs, jsonDir) => {
       const res = await addEmployee(payload, "admin");
       const fullName = `${payload.first_name} ${payload.last_name}`;
 
-      // If Active, update TC39/TC53 in‑memory
+      // If Active, update TC39 in‑memory
       if (status === "Active") {
         if (sideData["TC39.json"]) {
           const arr = (sideData["TC39.json"].TC39.employees ||= []);
           if (!arr.includes(fullName)) arr.push(fullName);
-        }
-        if (sideData["TC53.json"]) {
-          const data53 = sideData["TC53.json"].TC53;
-          const inQE = (data53.employeesInQE ||= []);
-          const inStg = (data53.employeesInStaging ||= []);
-          if (!inQE.includes(fullName)) inQE.push(fullName);
-          if (!inStg.includes(fullName)) inStg.push(fullName);
         }
       }
 
@@ -251,16 +244,12 @@ export const createRevieweeForTestCases = async (testCaseIDs = [], jsonDir) => {
  * Runs after createTaskForTestCases, which is what supplies the task id.
  */
 /**
- * Registers every reviewee this run created in TC53's expected roster.
+ * Writes TC53's expected team roster by asking who reports to the manager.
  *
- * Reviewees report to the manager, so TC53 sees them for the length of the run.
- * Must run after the seeding loop, not inside createRevieweeForTestCases:
- * TC53's own turn rewrites its stub, wiping anything registered before it.
+ * Derived rather than listed so it holds on any site. Must run after the
+ * seeding loop, so seeded employees and reviewees are already in place.
  */
-export const registerRevieweesInTeamRoster = async (
-  testCaseIDs = [],
-  jsonDir,
-) => {
+export const buildTeamRosterForTestCases = async (jsonDir) => {
   const rosterPath = path.join(jsonDir, "TC53.json");
 
   let roster;
@@ -269,31 +258,27 @@ export const registerRevieweesInTeamRoster = async (
   } catch {
     return; // TC53 is not in this run
   }
-  const block = roster?.TC53;
-  if (!block) return;
+  if (!roster?.TC53) return;
 
-  const names = [];
-  for (const tcId of testCaseIDs) {
-    try {
-      const entry = (await readJSONFile(path.join(jsonDir, `${tcId}.json`)))?.[
-        tcId
-      ];
-      if (entry?.revieweeName) names.push(entry.revieweeName);
-    } catch {
-      // no stub for this TC - nothing to register
-    }
-  }
-  if (names.length === 0) return;
-
-  for (const listName of ["employeesInQE", "employeesInStaging"]) {
-    const list = (block[listName] ||= []);
-    for (const n of names) if (!list.includes(n)) list.push(n);
-  }
-
-  await writeDataToFile(rosterPath, roster);
-  console.log(
-    `👥 Registered ${names.length} reviewee(s) in TC53's expected roster: ${names.join(", ")}`,
+  const reportees = await getDocList(
+    "Employee",
+    [
+      ["reports_to", "=", process.env.REP_MAN_ID],
+      ["status", "=", "Active"],
+    ],
+    { fields: ["employee_name"] },
   );
+
+  const names = reportees.map((e) => e.employee_name).filter(Boolean);
+  if (names.length === 0) {
+    console.warn(
+      `⚠️ No active employees report to ${process.env.REP_MAN_ID} - TC53 will fail.`,
+    );
+  }
+
+  roster.TC53.expectedEmployees = names;
+  await writeDataToFile(rosterPath, roster);
+  console.log(`👥 TC53 expected roster: ${names.length} employee(s)`);
 };
 
 // ------------------------------------------------------------------------------------------

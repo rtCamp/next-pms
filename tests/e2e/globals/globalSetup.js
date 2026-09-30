@@ -19,7 +19,7 @@ import {
   createEmployees,
   createRevieweeForTestCases,
   createTimeEntriesForSeededEmployees,
-  registerRevieweesInTeamRoster,
+  buildTeamRosterForTestCases,
 } from "../helpers/employeeHelper";
 import { createUserGroupForEmployee } from "../helpers/teamTabHelper";
 import { createAllocationsForTestCases } from "../helpers/resourceManagementHelpers";
@@ -125,10 +125,9 @@ const globalSetup = async () => {
     await createUserGroupForEmployee([tcId], jsonDir);
   }
 
-  // After the loop, not inside it: seeding walks the TC ids in order and TC53's
-  // own turn rewrites its stub from the static data module, wiping any reviewee
-  // registered before that point.
-  await registerRevieweesInTeamRoster(allTCIds, jsonDir);
+  // After the loop, not inside it: the roster is read back from the site, so
+  // every seeded employee and reviewee must already exist.
+  await buildTeamRosterForTestCases(jsonDir);
 
   console.log(
     "✅ Data generation completed for all TC IDs! Global setup done.",
