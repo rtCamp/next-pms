@@ -24,7 +24,9 @@
   "billable_outcome",
   "description_section",
   "description",
-  "desired_outcome"
+  "desired_outcome",
+  "update_log_section",
+  "update_log"
  ],
  "fields": [
   {
@@ -147,12 +149,24 @@
    "fieldname": "desired_outcome",
    "fieldtype": "Text Editor",
    "label": "Desired Outcome/ROI"
+  },
+  {
+   "fieldname": "update_log_section",
+   "fieldtype": "Section Break",
+   "label": "Update Log"
+  },
+  {
+   "description": "The bottom row of Update Log is the latest update.",
+   "fieldname": "update_log",
+   "fieldtype": "Table",
+   "label": "Update Log",
+   "options": "PMS Growth Initiative Update"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-24 12:00:00.000000",
+ "modified": "2026-09-30 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "PMS Growth Initiative",
@@ -226,6 +240,68 @@
    "role": "Delivery User",
    "share": 1,
    "write": 1
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "permlevel": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "permlevel": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "permlevel": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Timesheet Manager",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "permlevel": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "permlevel": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Delivery Manager",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "permlevel": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Delivery User",
+   "share": 1
   }
  ],
  "row_format": "Dynamic",
