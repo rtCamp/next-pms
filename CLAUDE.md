@@ -57,6 +57,7 @@ When every section is implemented, **spawn one browser-check subagent** using th
 - The design screenshots from the issue to compare against.
 - What to verify per section: layout matches the design, interactive states work, empty/loading states, no console errors, only the expected network calls.
 - Instructions to return a structured report: what passed, what failed, screenshots, console errors, network errors.
+- The login rule: if the site asks for login, never enter credentials. Follow the *Browser login flow* in `CLAUDE.local.md` (hand the tab to the user on the bench login page, wait for confirmation, then return to the dev-server URL).
 
 Fix everything the subagent surfaces, then re-run the check until it reports green. The main agent keeps the feature context; the subagent only verifies. This keeps giant screenshots and DOM dumps out of the main context. Mark subtasks completed (TaskUpdate) as acceptance criteria are met.
 
@@ -229,45 +230,72 @@ Inside the container the bench root is `/workspace/frappe-bench/`. After `fm` cr
 
 ```
 apps/next_pms/
-├── next_pms/                  # Python / Frappe module
-│   ├── hooks.py               # SPA route rules, doc_events, scheduler, fixtures
-│   ├── api/                   # whitelisted endpoints: dashboard.py, audit.py, customer.py, generate_pm_report.py, ...
-│   ├── timesheet/             # timesheet feature (api/, doctypes, employee.py incl. leave/time-off)
-│   ├── resource_management/   # allocations: resource_allocation doctypes, api/, report/, tasks/
-│   ├── next_projects/         # project extensions: project_phase, project_timeline_item(+category), project_contact
-│   ├── project_currency/      # currency / exchange-rate handling
-│   ├── tasks/                 # scheduled jobs (scheduled_audit.py)
-│   ├── tests/                 # Frappe unit tests (test_*.py) — run by the Unit Tests CI job
-│   ├── utils/
-│   ├── public/                # built frontend assets served from here (frontend/ writes public/frontend/)
-│   ├── www/                   # next-pms SPA entry page
-│   └── patches.txt
-├── frontend/                  # React SPA (npm workspaces, Vite 6, React 19, Tailwind 4)
-│   ├── .env.sample            # copy to .env to point the Vite dev server at your site
-│   ├── vite.config.ts         # dev server :5173 + proxy; build → next_pms/public/frontend
+├── next_pms/                      # Python / Frappe app (module list in modules.txt); each module keeps its own api/, doctype/, report/
+│   ├── hooks.py                   # SPA route rules + redirects, doc_events, scheduler, fixtures, overrides
+│   ├── install.py · patches.txt · modules.txt
+│   ├── api/                       # cross-module whitelisted endpoints: dashboard.py, audit.py, customer.py,
+│   │                              #   designation.py, generate_pm_report.py, utils.py
+│   ├── next_pms/                  # "Next PMS" module: doctypes risk + risk_* , project_status_update (+templates),
+│   │   ├── doctype/               #   project_report, project_comments, pms_growth_initiative*, pms_user_setting,
+│   │   ├── report/                #   nextpms_notifications; reports client_profitability, profit_report
+│   │   └── notifications.py, workspace/, form_tour/, module_onboarding/, patches/
+│   ├── timesheet/                 # "Timesheet" module
+│   │   ├── api/                   #   app.py, employee.py (incl. leave / time-off), project.py, task.py, team.py,
+│   │   │                          #   timesheet.py, project_status_update.py, utils.py
+│   │   ├── doctype/               #   timesheet_settings, timesheet_role, timesheet_department, pms_view_setting
+│   │   └── doc_events/ report/ tasks/ utils/ patches/   (reports: timesheet_overview, employee_billable_hour)
+│   ├── resource_management/       # "Resource Management" module (allocations)
+│   │   ├── api/                   #   allocation.py, project.py, team.py, permission.py, utils/
+│   │   ├── doctype/               #   resource_allocation, resource_allocation_extra_entry, employee_department
+│   │   └── report/                #   capacity_planning, spare_capacity_report, over_capacity, employee_billability, appraisal_evaluation_report
+│   ├── next_projects/             # project extensions: doctypes project_phase, project_timeline_item(+_category), project_contact;
+│   │                              #   api/ project.py, project_timeline_item.py, feedback.py, email.py
+│   ├── project_currency/          # billing / currency: doctypes project_budget, project_billing_team, host;
+│   │                              #   billing_rate.py, overrides/, background_jobs/, helpers/
+│   ├── tasks/                     # scheduled jobs (scheduled_audit.py)
+│   ├── utils/                     # shared helpers (employee.py)
+│   ├── tests/                     # Frappe unit tests test_*.py — run by the Unit Tests CI job
+│   ├── fixtures/                  # custom_field.json, property_setter.json, custom_docperm.json
+│   ├── templates/                 # Jinja: notification / email templates per module
+│   ├── public/                    # static assets; frontend build writes public/frontend/
+│   └── www/next-pms/              # SPA entry page (served for every /next-pms/* route)
+├── frontend/                      # React SPA — npm workspaces, Vite 6, React 19, Tailwind 4, TypeScript
+│   ├── .env.sample                # copy to .env to point the Vite dev server at your site
+│   ├── vite.config.ts             # dev server :5173 + API proxy; build → next_pms/public/frontend
+│   ├── eslint.config.js · .prettierrc · .nvmrc · tsconfig.json
 │   └── packages/
-│       ├── app/src/           # @next-pms/app
-│       │   ├── pages/         # one folder per route: dashboard/ (leadership, manager, widget), timesheet/ (personal, team, project),
-│       │   │                  #   projects/ (list, kanban), project-details/ (about, tabs/), tasks/, allocations/ (team, project)
-│       │   ├── layout/ providers/ components/ hooks/ lib/
-│       ├── design-system/     # shared UI primitives (shadcn-style, cva); no Storybook stories — read src/
-│       └── hooks/             # shared hooks
-├── frappe-ui-react/           # git submodule — rtCamp UI kit (pnpm workspace) + Storybook; branch develop
-├── tests/                     # Playwright e2e (tests/e2e) + visual (tests/visualAutomation)
-├── .pre-commit-config.yaml    # ruff, prettier, ESLint, semgrep — same hooks CI runs
-├── commitlint.config.cjs      # Conventional Commits enforcement (Semantic Commits CI)
-├── package.json               # top-level scripts (build, e2e:tests, visual:test, allure:*)
-└── pyproject.toml
+│       ├── app/src/               # @next-pms/app
+│       │   ├── main.tsx · app.tsx · route.tsx · global.css
+│       │   ├── pages/             # one folder per URL segment (kebab-case), index.tsx as entry; mirrors the SPA routes:
+│       │   │   ├── dashboard/     #   manager/, leadership/, widget/ (kpi-cards, utilization, heatmap, upcoming-time-off, ...)
+│       │   │   ├── timesheet/     #   personal/, team/, project/, layout.tsx, hooks/, components/
+│       │   │   ├── projects/      #   list/, kanban/, views.tsx, components/
+│       │   │   ├── project-details/  # header.tsx, provider.tsx, about/, tabs/ (overview, tracking, to-do, calendar,
+│       │   │   │                  #   notes, reports, rag-stats, risks, feedback, email)
+│       │   │   ├── tasks/         #   list/, useTaskFilters.ts, components/
+│       │   │   ├── allocations/   #   team/, project/, unsavedChanges/, useAllocationModal.ts, useEmployeeAvailability.ts
+│       │   │   └── 404.tsx · noEmployee.tsx
+│       │   ├── layout/            # header.tsx, sidebar/
+│       │   ├── providers/         # frappe, user, theme, views, notifications
+│       │   ├── components/        # cross-page UI: filters/, create-view/, edit-view/, settings/, task-log/, timesheet-row/, ...
+│       │   ├── hooks/             # app-level hooks, mostly use<Doctype>Lookup.ts + useDebounce / useThrottledCallback
+│       │   ├── store/ · schema/ · types/   # per-domain (project, task, timesheet, resource) state, zod schemas, TS types
+│       │   └── lib/               # utils.ts (check here first), constant.ts, storage.ts, preload-route.ts, lazy-preload.ts
+│       ├── design-system/src/     # shared primitives (shadcn-style, cva): components/ (table, dialog, dropdown-menu, tooltip,
+│       │                          #   gantt-view, calendar-timeline, comments, globalSearch, notificationTray, timesheet, ...), utils/date.ts
+│       └── hooks/src/             # shared hooks: useInfiniteScroll, usePagination, useQueryParam, useSavedState,
+│                                  #   useGetFrappeDoctypeMeta, useGetFrappeDocTypeCount, useProjectPhase, useDocumentTitle, ...
+├── frappe-ui-react/               # git submodule — rtCamp UI kit (pnpm workspace, branch develop) + Storybook (`pnpm storybook`)
+│   └── packages/frappe-ui-react/  # the published package; app imports @rtcamp/frappe-ui-react and .../icons
+├── tests/
+│   ├── e2e/                       # Playwright e2e: specs/ (employee*, manager), pageObjects/, helpers/, data/, playwright.config.js
+│   └── visualAutomation/          # Playwright visual regression: specs/, helpers/, playwright.config.js
+├── .github/workflows/             # CI — see §6 for which checks block
+├── .pre-commit-config.yaml        # ruff, prettier, ESLint React/JS, semgrep — the same hooks CI runs
+├── commitlint.config.cjs          # Conventional Commits enforcement (Semantic Commits CI)
+├── eslint.config.js · pyproject.toml · package.json (build, e2e:tests, visual:test, allure:*)
+└── CLAUDE.md · CLAUDE.local.md (gitignored) · .claude/skills/
 ```
-
-**Feature areas to know (2026):**
-
-- **Dashboard + leave approvals** — `pages/dashboard/` (manager / leadership views, widgets) backed by `next_pms/api/dashboard.py`; managers approve/reject leave applications from here (issue #1558).
-- **Growth initiatives, risks, activity log** — project-detail tabs under `pages/project-details/tabs/` (`growth/`, `risks/`), with an activity component and update log; landing via the `feat/issue-2155*` branch stack (issues #2155, #2156).
-- **AI resource planning** — AI-suggested allocations with approval/share flow in `pages/allocations/` plus a `gantt-view` primitive in `design-system/`; in flight on `feat/ai-resource-planning`.
-- **PM report / audit** — `next_pms/api/generate_pm_report.py`, `api/audit.py`, `tasks/scheduled_audit.py`.
-
-Before touching one of these, `git fetch origin` and check whether the relevant branch has merged; if not, decide with the user whether to stack on it (§5 rule 7).
 
 ## Build & dev flow
 
@@ -311,7 +339,7 @@ There is no Figma MCP. Designs arrive as screenshots or image attachments on the
 
 - **Next PMS SPA mount**: `/next-pms/` (see `website_route_rules` in `next_pms/hooks.py`). Default landing: `/next-pms/timesheet`.
 - Redirect: `/timesheet` → `/next-pms/timesheet` (`website_redirects`).
-- Site URL, dev login user, and DB name are per-machine — see `CLAUDE.local.md`. Never store passwords in either file; ask the user each session.
+- Site URL, dev login user, and DB name are per-machine — see `CLAUDE.local.md`. Never store or type passwords: when a browser check hits a login page, the user logs in themselves (see the login flow in `CLAUDE.local.md`).
 
 ## GitHub access
 
