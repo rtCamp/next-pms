@@ -44,6 +44,7 @@ export interface ProjectSummaryBar {
   barOffset: number;
   width: number;
   tentative: boolean;
+  isAiCreated: boolean;
 }
 
 export interface MemberProject extends SourceProject {
@@ -207,7 +208,10 @@ function prepareProjectSummaryBars(
   showWeekend: boolean,
   columnWidth: number,
 ) {
-  const dayTotals = new Map<number, { hours: number; tentative: boolean }>();
+  const dayTotals = new Map<
+    number,
+    { hours: number; tentative: boolean; isAiCreated: boolean }
+  >();
 
   for (const allocation of allocations) {
     for (const day of eachDayOfInterval({
@@ -226,16 +230,20 @@ function prepareProjectSummaryBars(
       dayTotals.set(key, {
         hours: (previousDay?.hours ?? 0) + allocation.hours,
         tentative: Boolean(previousDay?.tentative || allocation.tentative),
+        isAiCreated: Boolean(
+          previousDay?.isAiCreated || allocation.isAiCreated,
+        ),
       });
     }
   }
 
   const sortedDays = [...dayTotals.entries()]
     .sort(([leftTs], [rightTs]) => leftTs - rightTs)
-    .map(([timestamp, { hours, tentative }]) => ({
+    .map(([timestamp, { hours, tentative, isAiCreated }]) => ({
       date: new Date(timestamp),
       hours,
       tentative,
+      isAiCreated,
     }));
 
   const segments: Array<{
@@ -243,9 +251,10 @@ function prepareProjectSummaryBars(
     endDate: Date;
     hours: number;
     tentative: boolean;
+    isAiCreated: boolean;
   }> = [];
 
-  for (const { date, hours, tentative } of sortedDays) {
+  for (const { date, hours, tentative, isAiCreated } of sortedDays) {
     const lastSegment = segments[segments.length - 1];
 
     if (
@@ -255,6 +264,7 @@ function prepareProjectSummaryBars(
         (getNumDays(lastSegment.endDate, lastSegment.startDate, true) + 1) ===
         hours &&
       lastSegment.tentative === tentative &&
+      lastSegment.isAiCreated === isAiCreated &&
       isSameDay(addDays(lastSegment.endDate, 1), date)
     ) {
       lastSegment.endDate = date;
@@ -267,6 +277,7 @@ function prepareProjectSummaryBars(
       endDate: date,
       hours,
       tentative,
+      isAiCreated,
     });
   }
 
@@ -284,6 +295,7 @@ function prepareProjectSummaryBars(
       endDate: segment.endDate,
       hours: segment.hours,
       tentative: segment.tentative,
+      isAiCreated: segment.isAiCreated,
       ...metrics,
     };
   });

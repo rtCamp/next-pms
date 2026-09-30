@@ -47,13 +47,13 @@ const ganttBarVariants = cva(
 );
 
 const trailingLabelVariants = cva(
-  "min-w-0 flex-1 shrink-0 text-end text-[13px] font-medium tracking-[0.02em] truncate",
+  "min-w-0 flex-1 shrink-0 text-end font-medium tracking-[0.02em] truncate",
   {
     variants: {
       variant: {
-        amber: "text-ink-amber-4",
-        violet: "text-ink-violet-1",
-        ai: "text-ink-amber-4 font-semibold text-xs ml-auto shrink-0",
+        amber: "text-ink-amber-4 text-[13px]",
+        violet: "text-ink-violet-1 text-[13px]",
+        ai: "text-ink-amber-4 font-semibold text-[10px] leading-[1.15] ml-auto shrink-0",
       },
     },
   },

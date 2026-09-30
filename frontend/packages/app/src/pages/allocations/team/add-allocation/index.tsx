@@ -41,6 +41,7 @@ import {
 } from "./constants";
 import { OverAllocationWarning } from "./overAllocationWarning";
 import { addAllocationFormSchema } from "./schema";
+import type { AddAllocationFormValues } from "./schema";
 import type { AddAllocationModalProps } from "./types";
 import { useOverAllocation } from "./useOverAllocation";
 import { useProjectEmployeeAccess } from "./useProjectEmployeeAccess";
@@ -63,19 +64,8 @@ function AddAllocationModal({
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [teamAddConfirmOpen, setTeamAddConfirmOpen] = useState(false);
-  const [pendingApprovalValues, setPendingApprovalValues] = useState<null | {
-    employeeId: string;
-    projectId: string;
-    customer: string;
-    fromDate: string;
-    toDate: string;
-    hoursPerDay: number;
-    isBillable: boolean;
-    isTentative: boolean;
-    note?: string;
-    includeWeekends: boolean;
-    includeHolidays: boolean;
-  }>(null);
+  const [pendingApprovalValues, setPendingApprovalValues] =
+    useState<AddAllocationFormValues | null>(null);
   const [employeeSelectionCache, setEmployeeSelectionCache] = useState<{
     id: string;
     label: string;

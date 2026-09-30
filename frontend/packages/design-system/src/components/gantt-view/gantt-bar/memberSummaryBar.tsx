@@ -146,6 +146,8 @@ export function GanttMemberSummaryBar({
               left={left}
               width={width}
               billable={summary.billable}
+              trailingLabel={summary.isAiCreated ? "Ai" : undefined}
+              trailingLabelVariant={summary.isAiCreated ? "ai" : undefined}
             />
           )
         }

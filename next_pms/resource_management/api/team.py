@@ -389,7 +389,7 @@ def _get_resource_management_team_view_data(
         if is_ai_created is not None:
             allocation_filters["is_ai_created"] = is_ai_created
 
-        if no_allocation and (is_billable or allocation_status):
+        if no_allocation and (is_billable or allocation_status or is_ai_created is not None):
             # `no_allocation` is an independent leg of the allocation-type multi-select,
             # so it unions with the others instead of inverting them: keep the employees
             # matching the billable/status options PLUS the employees with no allocation
