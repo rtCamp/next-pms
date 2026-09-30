@@ -235,6 +235,25 @@ class IntegrationTestPMSGrowthInitiative(IntegrationTestCase):
         with self.assertRaises(frappe.ValidationError):
             self._make_initiative(status="Closed", closed_status="Ideation")
 
+    def test_update_row_status_must_be_of_status_type(self):
+        initiative = self._make_initiative()
+        initiative.append("update_log", {"status": "In Progress"})
+        initiative.save(ignore_permissions=True)
+        initiative.reload()
+        initiative.update_log[0].status = "Won"
+        with self.assertRaises(frappe.ValidationError):
+            initiative.save(ignore_permissions=True)
+
+    def test_update_row_closing_requires_closed_status(self):
+        initiative = self._make_initiative()
+        initiative.append("update_log", {"status": "In Progress"})
+        initiative.save(ignore_permissions=True)
+        initiative.reload()
+        initiative.update_log[0].status = "Closed"
+        initiative.update_log[0].closed_status = None
+        with self.assertRaises(frappe.ValidationError):
+            initiative.save(ignore_permissions=True)
+
     def test_custom_closed_status_is_honoured(self):
         self._make_status("Test Archived", status_type="Status", is_closed=1)
         with self.assertRaises(frappe.ValidationError):
