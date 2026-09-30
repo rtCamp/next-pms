@@ -305,6 +305,12 @@ doc_events = {
             "next_pms.next_pms.notifications.risk_owner_on_update",
         ],
     },
+    "PMS Growth Initiative": {
+        "on_update": [
+            "next_pms.next_pms.notifications.growth_on_update",
+            "next_pms.next_pms.notifications.growth_owner_on_update",
+        ],
+    },
     "Customer Feedback": {
         "on_submit": "next_pms.next_pms.notifications.customer_feedback_on_submit",
     },
