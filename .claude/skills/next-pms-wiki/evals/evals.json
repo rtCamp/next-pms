@@ -1,0 +1,40 @@
+{
+  "skill_name": "next-pms-wiki",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "document the Allocations Team page for the next-pms wiki — capture the member table with the allocation bars, the Add allocation modal and the over-allocation warning, box the controls with numbered legends, and author the page.",
+      "expected_output": "A Team-Allocations wiki page built end to end: annotated screenshots of the member/bars view, the Add allocation modal and the over-allocation warning captured at 1440x900 from erp-stage under the PM login, boxes drawn from live getBoundingClientRect coords via a per-slug JSON config + scripts/annotate.py, and a six-section page (Introduction / What you can do / How to use / Behaviour & states / Roles & permissions / Screenshots) whose numbered legend shares one numbering with the boxes. QA'd across at least two independent rounds. Not pushed (sign-off gated).",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 2,
+      "prompt": "the next-pms Projects page changed — refresh its wiki page with fresh annotated screenshots. New list columns and the kanban view need re-shooting.",
+      "expected_output": "The Projects List & Kanban wiki page refreshed: the route re-navigated and re-captured (list columns, view-switch dropdown, kanban board, filters row, Add project modal), the per-slug annotate JSON re-tuned from fresh live rects and re-rendered, the page prose and numbered legends updated to match the current UI with verbatim labels, and both QA lenses re-run. Stale captures replaced, not appended.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 3,
+      "prompt": "add a wiki page for the Manager Dashboard",
+      "expected_output": "A new Manager Dashboard wiki page captured under the PM login at /next-pms/dashboard/manager (greeting, ManagerStatCards, Managed projects, Timesheets summary, Upcoming time-offs, Heatmap, Calendar timeline, Notifications), annotated with numbered boxes/legend from a per-slug JSON config, authored from the six-section template, and QA'd across at least two independent rounds. RAG stats and Reports references omitted as excluded.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 4,
+      "prompt": "the wiki screenshots show real client names and staff emails — refresh the next-pms wiki with privacy-safe screenshots seeded on fake data.",
+      "expected_output": "The privacy-safe pipeline runs before any capture: recon reads the app's API/query code to classify each view's isolation class (USER-SCOPED / USER-PERMISSION / UI-FILTER / LEAKS-ALL); a coherent fictional 'family' (people in a reports-to hierarchy -> customers -> projects -> tasks -> timesheets -> allocations -> billing) is seeded via the chrome-devtools MCP browser using evaluate_script + frappe.client.insert as Administrator (never scripted curl, which the classifier blocks), with each doctype live-meta-checked and every record logged to a teardown manifest; isolation is verified by logging in as each fictional user; screenshots are re-captured at 1440x900 dpr=1 on the family and re-annotated (coords re-tuned for the shifted layout); a blocking privacy scan clears every image and caption of real client/staff/financial data; and the result is packaged as a private preview, not a public push. LEAKS-ALL aggregates that can't be scoped are deferred and documented in prose.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 5,
+      "prompt": "before I seed demo data on the shared staging site, which Next PMS views can actually be isolated to a fake-data family and which will leak the whole site?",
+      "expected_output": "A per-view isolation map derived from reading the app's API/query code, classifying each documented view as USER-SCOPED (capture as a fictional user), USER-PERMISSION (add a User Permission, heeding the blank-link bypass), UI-FILTER (apply the family filter), or LEAKS-ALL (no lever -> clean instance or defer). Calls out the Frappe traps: no company-based scoping; a Customer User Permission does not hide blank-customer records (Strict User Permissions is site-wide/risky); Tasks are bounded by readable Projects not Customer; Timesheet Manager/User read timesheets with ignore_permissions so Team/Project Timesheet need the UI filter; dashboard aggregate widgets (at-risk counts, members-without-allocation, utilisation heatmap, Leadership KPIs) leak the whole site and need a clean instance.",
+      "files": [],
+      "expectations": []
+    }
+  ]
+}
