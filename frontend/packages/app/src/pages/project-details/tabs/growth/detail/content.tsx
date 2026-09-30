@@ -11,6 +11,7 @@ import {
   formatProjectDate,
   getDefaultCurrency,
 } from "@/lib/utils";
+import { ActivitySection } from "@/pages/project-details/components/activity/activitySection";
 import { DocumentUploadButton } from "@/pages/project-details/components/documentUploadButton";
 import { FileCard } from "@/pages/project-details/components/fileCard";
 import { useProjectDetail } from "@/pages/project-details/context";
@@ -109,7 +110,7 @@ export function GrowthDetailContent({
         )}
       </section>
 
-      <section>
+      <section className="mb-4.5">
         <h3 className="mb-2 text-lg font-medium text-ink-gray-7">Details</h3>
         <div className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-base">
           {details.map(({ label, value }) => (
@@ -120,6 +121,12 @@ export function GrowthDetailContent({
           ))}
         </div>
       </section>
+
+      <ActivitySection
+        doctype={GROWTH_DOCTYPE}
+        name={growth.name}
+        modified={growth.modified}
+      />
     </div>
   );
 }
