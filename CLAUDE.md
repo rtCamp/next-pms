@@ -168,12 +168,10 @@ Every code-level convention lives in `.claude/skills/next-pms-conventions/SKILL.
 - **Comment discipline** — default to zero comments; rationale belongs in commit messages and PR bodies, not files.
 - **Page file layout** — folder follows URL segment; per-folder `constants.ts` + `types.ts`; `index.tsx` for main component; per-cell files; camelCase file names, kebab-case folder names; `.ts` for no-JSX files.
 - **UI details** — design-system Tailwind tokens (extend `global.css` `@theme` block when a stop is missing); cva co-located with its component; Tailwind v4 trailing `!` modifier; `text-base` + `truncate` on cell text; `@rtcamp/frappe-ui-react/icons` (`SolidDotLg`, `SolidStatus`) before hand-rolling SVGs; `<Button>` icon props take a `ComponentType`, not a rendered element.
-- **Reading Figma** — historical (Figma MCP is no longer used); the drill-to-leaf advice still applies when a human shares a frame.
-- **Formatting + utility reuse** — `date-fns` for dates; check `lib/utils.ts` first; no helper infra for fake/placeholder data.
+- **Reading designs** — drill to the leaf element when a human shares a frame; designs are the visual spec, AC is the behavioral spec.
+- **Formatting + utility reuse** — `date-fns` for dates; check `lib/utils.ts` first.
 - **Interaction patterns** — per-cell click handlers (not `onRowClick`); `Button variant="ghost"` for inside-SPA targets; `<base>/desk/user/<email>` for employee cells; complete the adjacent route in the same PR.
-- **Workaround discipline** — ping the maintainer before a workaround grows defensive; check upstream PRs first.
-- **Reading review comments** — path anchor wins over body text; reviewer fix commits trump earlier comments (always `git fetch` before a round of fixes).
-- **Review-round retrospectives** for PR #1208, #1212, #1220.
+- **Recurring anti-patterns** — the five failure shapes the scan is designed to prevent.
 
 The auto-memory index at `~/.claude/projects/<project-slug>/memory/MEMORY.md` mirrors the highest-leverage rules as standalone entries. The `<project-slug>` is the working-directory path with slashes turned into dashes — Claude Code resolves it automatically; no need to hardcode it.
 
