@@ -270,26 +270,7 @@ module.exports = {
       max_week: "1",
     },
   },
-  TC53: {
-    // Aishwarrya Pande was moved under this manager in the org chart; she shows
-    // in the team view for real, so the expected roster has to carry her.
-    employeesInQE: [
-      process.env.EMP_NAME,
-      process.env.EMP3_NAME,
-      "Aishwarrya Pande",
-    ],
-    employeesInStaging: [
-      process.env.EMP_NAME,
-      process.env.EMP3_NAME,
-      process.env.REP_MAN_NAME,
-      "Aishwarrya Pande",
-      "Juhi Saxena",
-      process.env.EMP2_NAME,
-      "Pavan Patil",
-      "Renish Vimalbhai Surani",
-      "Shraddha Gore",
-    ],
-  },
+  TC53: {},
   TC60: {
     cell: {
       rowName: "TC60 Project",

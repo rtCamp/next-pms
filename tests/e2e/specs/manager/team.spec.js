@@ -178,10 +178,7 @@ test.describe("Manager: Team Tab", () => {
     const TC53data = data.TC53;
     const employees = await teamPage.getEmployees();
 
-    const expectedEmployees =
-      process.env.REP_MAN_ID !== "EMP-00519"
-        ? TC53data.employeesInQE
-        : TC53data.employeesInStaging;
+    const expectedEmployees = TC53data.expectedEmployees;
 
     // Normalize function to trim and collapse multiple spaces
     const normalize = (name) => name.replace(/\s+/g, " ").trim();
