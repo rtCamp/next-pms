@@ -870,16 +870,17 @@ class TestTrackingCurrentVsProjectedProfit(IntegrationTestCase):
         cls.customer = TestCostForecastedProration._get_customer()
         cls.employee = cls._make_employee()
 
-        # suffix -> (billing type, billable amount)
+        # suffix -> (billing type, sales amount, billable amount)
         specs = {
-            "FIXED": ("Fixed Cost", cls.BILLABLE),
-            "RETAINER": ("Retainer", cls.BILLABLE),
-            "TNM": ("Time and Material", cls.BILLABLE),
-            "TNM_NOTHING_BILLED": ("Time and Material", 0),
-            "NONBILL": ("Non-Billable", cls.BILLABLE),
+            "FIXED": ("Fixed Cost", cls.SALES, cls.BILLABLE),
+            "FIXED_NOTHING_SOLD": ("Fixed Cost", 0, cls.BILLABLE),
+            "RETAINER": ("Retainer", cls.SALES, cls.BILLABLE),
+            "TNM": ("Time and Material", cls.SALES, cls.BILLABLE),
+            "TNM_NOTHING_BILLED": ("Time and Material", cls.SALES, 0),
+            "NONBILL": ("Non-Billable", cls.SALES, cls.BILLABLE),
         }
         cls.projects = {}
-        for suffix, (billing_type, billable) in specs.items():
+        for suffix, (billing_type, sales, billable) in specs.items():
             name = (
                 frappe.get_doc(
                     {
@@ -900,7 +901,7 @@ class TestTrackingCurrentVsProjectedProfit(IntegrationTestCase):
                 "Project",
                 name,
                 {
-                    "total_sales_amount": cls.SALES,
+                    "total_sales_amount": sales,
                     "total_billable_amount": billable,
                     "total_costing_amount": cls.COSTING,
                 },
@@ -996,6 +997,12 @@ class TestTrackingCurrentVsProjectedProfit(IntegrationTestCase):
         self.assertEqual(tracking["current_project_value"], 0)
         self.assertEqual(tracking["current_profit"], -self.COSTING)
         self.assertIsNone(tracking["current_profit_margin"])
+
+    def test_projected_margin_is_none_when_nothing_is_sold(self):
+        tracking = self.tracking("FIXED_NOTHING_SOLD")
+        self.assertEqual(tracking["total_project_value"], 0)
+        self.assertEqual(tracking["project_profit"], -self.COSTING - ALLOCATION_COST)
+        self.assertIsNone(tracking["projected_profit_margin"])
 
     def test_non_billable_reports_neither_pair(self):
         tracking = self.tracking("NONBILL")

@@ -8,7 +8,6 @@ from typing import Literal
 import frappe
 from erpnext.setup.utils import get_exchange_rate
 from frappe import get_list, only_for, whitelist
-from frappe.query_builder import Case
 from frappe.query_builder.functions import Coalesce, Count, Sum
 from frappe.utils import cint, flt, getdate, today
 
@@ -944,39 +943,33 @@ def _get_project_billing_team(project_name: str) -> list[dict]:
     ]
 
 
-def _get_invoice_burn(project_name: str, currency: str | None) -> dict:
+def _get_invoice_burn(project_name: str) -> dict:
     """
-    Aggregate paid and unpaid amounts from submitted Sales Invoices in the invoiced currency.
+    Aggregate paid and unpaid amounts from submitted Sales Invoices in project currency.
 
     Parameters
     ----------
     project_name : str
         The name of the Project document.
-    currency : str or None
-        Project currency, which is the currency the project is invoiced in.
 
     Returns
     -------
     dict
         currency : str or None
-            The given project currency.
+            Project currency, which is the currency the project is invoiced in.
         invoiced_and_paid : float
-            Sum of (grand_total - outstanding) across submitted invoices.
+            Sum of (grand_total - outstanding_amount) across submitted invoices.
         invoiced_but_not_paid : float
-            Sum of outstanding, in invoice currency, across submitted invoices.
+            Sum of outstanding_amount across submitted invoices.
     """
+    currency = frappe.db.get_value("Project", project_name, "custom_currency")
+
     SalesInvoice = frappe.qb.DocType("Sales Invoice")
-    # outstanding_amount is in company currency when the party account currency differs
-    outstanding = (
-        Case()
-        .when(SalesInvoice.party_account_currency == SalesInvoice.currency, SalesInvoice.outstanding_amount)
-        .else_(SalesInvoice.outstanding_amount / SalesInvoice.conversion_rate)
-    )
     rows = (
         frappe.qb.from_(SalesInvoice)
         .select(
-            Coalesce(Sum(SalesInvoice.grand_total - outstanding), 0).as_("paid"),
-            Coalesce(Sum(outstanding), 0).as_("unpaid"),
+            Coalesce(Sum(SalesInvoice.grand_total - SalesInvoice.outstanding_amount), 0).as_("paid"),
+            Coalesce(Sum(SalesInvoice.outstanding_amount), 0).as_("unpaid"),
         )
         .where(SalesInvoice.project == project_name)
         .where(SalesInvoice.docstatus == 1)
@@ -1170,7 +1163,7 @@ def get_project_tracking(project: str):
     is_billable = bool(billing_type) and billing_type != "Non-Billable"
     shows_billing_tables = billing_type in ("Fixed Cost", "Retainer", "Time and Material")
 
-    invoice_burn = _get_invoice_burn(project, p.custom_currency) if is_billable else None
+    invoice_burn = _get_invoice_burn(project) if is_billable else None
     task_counts = _get_task_counts(project)
     actual_cost_incurred = flt(p.total_costing_amount)
     forecast = get_project_forecast(project, p)
