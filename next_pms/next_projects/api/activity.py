@@ -56,7 +56,7 @@ def get_version_items(doc) -> list[dict]:
             for entry in data.get("changed") or []
             if (change := build_field_change(doc.meta, entry, readable_permlevels))
         ]
-        table_changes = build_table_changes(doc.meta, data)
+        table_changes = build_table_changes(doc.meta, data, readable_permlevels)
         if not changes and not table_changes:
             continue
         items.append(
@@ -75,9 +75,7 @@ def get_version_items(doc) -> list[dict]:
 def build_field_change(meta, entry: list, readable_permlevels: list[int]) -> dict | None:
     fieldname, old, new = entry
     df = meta.get_field(fieldname)
-    if not df or df.permlevel not in readable_permlevels:
-        return None
-    if df.hidden and not df.get("show_on_timeline"):
+    if not is_visible_on_timeline(df, readable_permlevels):
         return None
     return {
         "label": _(df.label),
@@ -86,16 +84,22 @@ def build_field_change(meta, entry: list, readable_permlevels: list[int]) -> dic
     }
 
 
-def build_table_changes(meta, data: dict) -> list[dict]:
+def build_table_changes(meta, data: dict, readable_permlevels: list[int]) -> list[dict]:
     counts: dict[str, dict] = {}
     for key, counter in ROW_CHANGE_KEYS.items():
         for entry in data.get(key) or []:
             df = meta.get_field(entry[0])
-            if not df:
+            if not is_visible_on_timeline(df, readable_permlevels):
                 continue
             label = _(df.label)
             counts.setdefault(label, {"added": 0, "removed": 0, "changed": 0})[counter] += 1
     return [{"label": label, **count} for label, count in counts.items()]
+
+
+def is_visible_on_timeline(df, readable_permlevels: list[int]) -> bool:
+    if not df or df.permlevel not in readable_permlevels:
+        return False
+    return not df.hidden or bool(df.get("show_on_timeline"))
 
 
 def format_for_timeline(value) -> str:

@@ -42,7 +42,8 @@
    "fieldname": "billable_outcome",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Billable Outcome"
+   "label": "Billable Outcome",
+   "non_negative": 1
   },
   {
    "fieldname": "note",
@@ -69,7 +70,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-30 13:00:00.000000",
+ "modified": "2026-10-01 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "PMS Growth Initiative Update",

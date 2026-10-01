@@ -265,15 +265,30 @@ class IntegrationTestPMSGrowthInitiative(IntegrationTestCase):
         status = self._make_status("Test Outcome", status_type="Closed Status", is_closed=1)
         self.assertEqual(status.is_closed, 0)
 
-    def test_toggling_is_closed_on_status_propagates(self):
-        self._make_status("Test Paused", status_type="Status")
-        initiative = self._make_initiative(status="Test Paused")
-        self.assertEqual(initiative.is_closed, 0)
-
-        status = frappe.get_doc(STATUS_DOCTYPE, "Test Paused")
+    def test_status_in_use_cannot_be_flagged_closed(self):
+        status = self._make_status("Test Paused", status_type="Status")
+        self._make_initiative(status="Test Paused")
         status.is_closed = 1
+        with self.assertRaises(frappe.ValidationError):
+            status.save(ignore_permissions=True)
+
+    def test_reopening_status_propagates(self):
+        self._make_status("Test Archived", status_type="Status", is_closed=1)
+        initiative = self._make_initiative(status="Test Archived", closed_status="Not Pursued")
+        self.assertEqual(initiative.is_closed, 1)
+
+        status = frappe.get_doc(STATUS_DOCTYPE, "Test Archived")
+        status.is_closed = 0
         status.save(ignore_permissions=True)
-        self.assertEqual(frappe.db.get_value(DOCTYPE, initiative.name, "is_closed"), 1)
+        self.assertEqual(frappe.db.get_value(DOCTYPE, initiative.name, "is_closed"), 0)
+
+    def test_negative_billable_outcome_is_rejected(self):
+        with self.assertRaises(frappe.NonNegativeError):
+            self._make_initiative(billable_outcome=-1)
+        initiative = self._make_initiative()
+        initiative.append("update_log", {"billable_outcome": -1})
+        with self.assertRaises(frappe.NonNegativeError):
+            initiative.save(ignore_permissions=True)
 
     def test_gated_roles_can_read_any_initiative(self):
         initiative = self._make_initiative()

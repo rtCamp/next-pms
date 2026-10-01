@@ -1,11 +1,13 @@
 # Copyright (c) 2026, rtCamp and Contributors
 # See license.txt
 
+from unittest.mock import patch
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
 from next_pms.install import create_default_growth_masters
-from next_pms.next_projects.api.activity import get_activity
+from next_pms.next_projects.api.activity import build_table_changes, get_activity
 
 DOCTYPE = "PMS Growth Initiative"
 EDITOR_USER = "test.activity.editor@example.com"
@@ -106,6 +108,16 @@ class IntegrationTestActivity(IntegrationTestCase):
         self.assertIn("Status", labels)
         self.assertIn("Closed Status", labels)
         self.assertNotIn("Is Closed", labels)
+
+    def test_inaccessible_table_changes_are_not_reported(self):
+        meta = frappe.get_meta(DOCTYPE)
+        data = {"added": [["update_log", {}]]}
+        self.assertEqual(
+            build_table_changes(meta, data, [0]), [{"label": "Update Log", "added": 1, "removed": 0, "changed": 0}]
+        )
+        self.assertEqual(build_table_changes(meta, data, []), [])
+        with patch.object(meta.get_field("update_log"), "hidden", 1):
+            self.assertEqual(build_table_changes(meta, data, [0]), [])
 
     def test_user_without_read_permission_is_rejected(self):
         initiative = self._make_initiative()
