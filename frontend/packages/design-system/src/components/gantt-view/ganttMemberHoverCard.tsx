@@ -4,7 +4,6 @@
 import { Avatar } from "@rtcamp/frappe-ui-react";
 import {
   AgentAlt,
-  ArrowUpRight,
   Payments,
   People,
   Time,
@@ -13,7 +12,9 @@ import {
 /**
  * Internal dependencies.
  */
+import { GanttOpenLink } from "./ganttOpenLink";
 import type { Member, ProjectMember } from "./types";
+import { getEmployeeHref } from "./utils";
 import { mergeClassNames as cn } from "../../utils";
 
 interface GanttMemberHoverCardProps {
@@ -28,15 +29,13 @@ function GanttMemberHoverCard({
   const hasDetails =
     member.department || member.rate || member.capacity || member.manager;
   const employeeHref =
-    canOpenEmployee && member.id
-      ? `/desk/employee/${encodeURIComponent(member.id)}`
-      : undefined;
+    canOpenEmployee && member.id ? getEmployeeHref(member.id) : undefined;
 
   return (
     <div className="flex flex-col gap-3 p-3 w-60 rounded-xl shadow-2xl bg-surface-modal animate-fade-in">
       {/* Header */}
       <div
-        className={cn("flex items-start", {
+        className={cn("flex items-start gap-2", {
           "justify-between": employeeHref,
         })}
       >
@@ -61,16 +60,7 @@ function GanttMemberHoverCard({
           </div>
         </div>
         {employeeHref && (
-          <a
-            href={employeeHref}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Open employee"
-            className="ml-2 shrink-0 rounded-sm text-ink-gray-8 hover:text-ink-gray-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ArrowUpRight className="size-4 text-ink-gray-8 shrink-0" />
-          </a>
+          <GanttOpenLink href={employeeHref} label="Open employee" />
         )}
       </div>
 

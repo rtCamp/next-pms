@@ -44,7 +44,7 @@ def get_api_key() -> str | None:
     return api_key
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def generate_pm_report(
     project: str,
     from_date: str | None = None,
