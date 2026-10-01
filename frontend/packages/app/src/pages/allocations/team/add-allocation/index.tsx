@@ -122,10 +122,25 @@ function AddAllocationModal({
       setSubmitting(true);
 
       try {
-        if (initialValues?.isAiCreated && isProjectEmployeeMismatch) {
-          setPendingApprovalValues(value);
-          setTeamAddConfirmOpen(true);
-          return;
+        if (initialValues?.isAiCreated) {
+          if (isProjectEmployeeAccessPending) {
+            toast.error(
+              "Project access is still being checked. Please wait and try again.",
+            );
+            return;
+          }
+          if (!hasProjectEmployeeAccess) {
+            toast.error(
+              "Unable to verify project access. Please retry the access check.",
+            );
+            void retryProjectEmployeeAccess();
+            return;
+          }
+          if (isProjectEmployeeMismatch) {
+            setPendingApprovalValues(value);
+            setTeamAddConfirmOpen(true);
+            return;
+          }
         }
 
         await submitAllocation(value);
@@ -343,6 +358,8 @@ function AddAllocationModal({
     isValid: isProjectEmployeePairValid,
     hasAnswer: hasProjectEmployeeAccess,
     isLoading: isProjectEmployeeAccessLoading,
+    isValidating: isProjectEmployeeAccessValidating,
+    retry: retryProjectEmployeeAccess,
   } = useProjectEmployeeAccess({
     projectId,
     employeeId,
@@ -360,6 +377,12 @@ function AddAllocationModal({
     Boolean(employeeId) &&
     hasProjectEmployeeAccess &&
     !isProjectEmployeePairValid;
+  const isProjectEmployeeAccessPending =
+    isProjectEmployeeAccessLoading || isProjectEmployeeAccessValidating;
+  const isAiProjectAccessUnavailable =
+    initialValues?.isAiCreated &&
+    !isProjectEmployeeAccessPending &&
+    !hasProjectEmployeeAccess;
 
   const projectEmployeeMismatchError = isProjectEmployeeMismatch ? (
     <p className="flex flex-wrap gap-1 text-sm text-ink-red-4" role="alert">
@@ -372,6 +395,18 @@ function AddAllocationModal({
       >
         Add them to the team
       </Link>
+    </p>
+  ) : null;
+  const projectEmployeeAccessError = isAiProjectAccessUnavailable ? (
+    <p className="flex items-center gap-2 text-sm text-ink-red-4" role="alert">
+      <span>Unable to verify project access.</span>
+      <button
+        type="button"
+        className="underline"
+        onClick={() => void retryProjectEmployeeAccess()}
+      >
+        Retry
+      </button>
     </p>
   ) : null;
 
@@ -509,6 +544,7 @@ function AddAllocationModal({
             <ErrorMessage message={field.state.meta.errors[0]?.message} />
           )}
           {projectEmployeeMismatchError}
+          {projectEmployeeAccessError}
         </>
       )}
     />
@@ -797,6 +833,9 @@ function AddAllocationModal({
                   submitting ||
                   deleting ||
                   isLockedAllocationMetadataEdit ||
+                  (initialValues?.isAiCreated &&
+                    (isProjectEmployeeAccessPending ||
+                      !hasProjectEmployeeAccess)) ||
                   (isProjectEmployeeMismatch && !initialValues?.isAiCreated)
                 }
                 loading={submitting}
