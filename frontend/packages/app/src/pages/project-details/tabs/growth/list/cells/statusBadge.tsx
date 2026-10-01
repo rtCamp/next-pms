@@ -1,15 +1,16 @@
 /**
  * External dependencies.
  */
+import { SolidDotLg } from "@rtcamp/frappe-ui-react/icons";
 import { cva, type VariantProps } from "class-variance-authority";
 
-const statusDotVariants = cva("relative size-3.5 shrink-0 rounded-full", {
+const statusDotVariants = cva("size-4 shrink-0", {
   variants: {
     status: {
-      Ideation: "bg-gray-500",
-      "In Progress": "bg-amber-500",
-      "On Hold": "bg-blue-500",
-      Closed: "bg-green-500",
+      Ideation: "text-ink-gray-4",
+      "In Progress": "text-ink-amber-3",
+      "On Hold": "text-ink-blue-3",
+      Closed: "text-ink-green-3",
     },
   },
   defaultVariants: { status: "Ideation" },
@@ -37,9 +38,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     : undefined;
   return (
     <div className="flex min-w-0 items-center gap-2">
-      <span className={statusDotVariants({ status: variant })}>
-        <span className="absolute inset-0 m-auto size-1.5 rounded-full bg-white" />
-      </span>
+      <SolidDotLg className={statusDotVariants({ status: variant })} />
       <span className="truncate">{status}</span>
     </div>
   );

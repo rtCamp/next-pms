@@ -25,7 +25,7 @@ export const buildGrowthSchema = (
         .string()
         .trim()
         .refine((value) => value === "" || Number(value) >= 0, {
-          message: "Billable outcome must be a positive number.",
+          message: "Billable outcome must be zero or greater.",
         }),
     })
     .superRefine((values, ctx) => {
