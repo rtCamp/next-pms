@@ -124,9 +124,10 @@ function AllocationItem({
           {entry.isAiCreated ? (
             <div className="flex flex-1 gap-2 items-center">
               <span className="text-sm truncate text-ink-gray-6 mr-10">
+                <span className="text-ink-amber-4">Ai</span>
                 {entry.createdOn
-                  ? `Ai created on ${format(entry.createdOn, "MMM d")}`
-                  : "Ai created"}
+                  ? ` created on ${format(entry.createdOn, "MMM d")}`
+                  : " created"}
               </span>
             </div>
           ) : entry.createdOn || entry.updatedOn ? (
