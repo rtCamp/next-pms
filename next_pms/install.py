@@ -17,6 +17,7 @@ def after_install():
     setup_timesheet_rejection_reason_field()
     setup_timesheet_weekly_rejection_reason_field()
     setup_timesheet_rejected_hours_field()
+    setup_leave_rejection_reason_field()
     setup_task_permissions()
     setup_todo_permissions()
     setup_time_report_frequency()
@@ -56,6 +57,27 @@ def setup_timesheet_rejected_hours_field():
                     "read_only": 1,
                     "no_copy": 1,
                     "module": "Timesheet",
+                },
+            ]
+        }
+    )
+
+
+def setup_leave_rejection_reason_field():
+    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+    create_custom_fields(
+        {
+            "Leave Application": [
+                {
+                    "fieldname": "custom_rejection_reason",
+                    "fieldtype": "Small Text",
+                    "label": "Rejection Reason",
+                    "insert_after": "description",
+                    "depends_on": 'eval:doc.status=="Rejected"',
+                    "read_only": 1,
+                    "no_copy": 1,
+                    "module": "Next PMS",
                 },
             ]
         }

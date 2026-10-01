@@ -161,9 +161,10 @@ The auto-memory index at `~/.claude/projects/<project-slug>/memory/MEMORY.md` mi
 - **`next-pms-conventions`** — **load FIRST for any manual coding task** (tasks not entered via `/next-pms-task`, which handles this automatically). The full reference described above.
 - **`next-pms-slack-poll`** — `/next-pms-slack-poll <thread_ts>`. Read-only 15-min poll of the task's Slack thread; surfaces gate state (`WAITING` / `RESOLVED` / `BLOCK`) and free-form maintainer replies. Armed by `/next-pms-task` step 6.7a.
 - **`next-pms-pr-poll`** — `/next-pms-pr-poll <pr_number> <thread_ts>`. Write-capable 15-min poll of PR inline comments; runs the auto-fix-and-notify-Slack cycle when unaddressed comments exist. Armed by `/next-pms-task` step 6.7b in parallel with the slack-poll cron. Both crons self-cancel on terminal Slack state.
+- **`next-pms-e2e`** — **load FIRST for anything touching the Playwright suite in `tests/e2e/`**, including a one-line selector fix. Architecture map, the `TC<n>:`-driven seeding contract, post-redesign DOM contract, failure playbook, plus `scripts/probe.mjs` (inspect the live app in ~1s instead of paying 5–7 min of seeding), `scripts/results.py` (parse `results.json`), `scripts/cleanup.mjs` (delete strays; handles the Frappe CSRF handshake). The suite's failure modes — `slowMo: 500` against a 30s default timeout, auth state cached with no validity check, `disabled` fields that make `fill()` hang — are not visible from the code in front of you, so reasoning from first principles reliably produces a wrong theory.
 - **`react-agents-review`** — run before closing any FE section (step 4). Rules of Hooks, stale closures, missing deps, a11y, TypeScript safety.
 - **`advanced-react-patterns`** — consult when a section adds `useMemo`/`useCallback`/`React.memo` or global state.
-- **`webapp-testing`** — Playwright e2e suite in `tests/e2e/` (NOT the step-2 live browser-check, which uses Claude-in-Chrome MCP).
+- **`webapp-testing`** — generic upstream Playwright toolkit. For this repo's own e2e suite prefer `next-pms-e2e` above; this one is for ad-hoc local web-app driving (and is NOT the step-2 live browser-check, which uses Claude-in-Chrome MCP).
 
 Provenance and refresh instructions: `.claude/skills/README.md`.
 

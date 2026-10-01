@@ -1,6 +1,14 @@
 import path from "path";
-import { getWeekdayName, getDateForWeekday, getFormattedDate } from "../utils/dateUtils";
-import { getLeaves, getLeaveDetails, actOnLeave } from "../utils/api/leaveRequests";
+import {
+  getWeekdayName,
+  getDateForWeekday,
+  getFormattedDate,
+} from "../utils/dateUtils";
+import {
+  getLeaves,
+  getLeaveDetails,
+  actOnLeave,
+} from "../utils/api/leaveRequests";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 
 // ------------------------------------------------------------------------------------------
@@ -36,7 +44,6 @@ export const updateLeaveEntries = async (testCaseIDs = [], jsonDir) => {
 
     // 4) Write back wrapped under the same TC key
     await writeDataToFile(stubPath, { [tcId]: entry });
-    //console.log(`✅ Updated leave filter for ${tcId} in ${stubPath}`);
   }
 };
 // ------------------------------------------------------------------------------------------
@@ -85,8 +92,6 @@ export const rejectLeaveEntries = async (testCaseIDs = [], jsonDir) => {
       // 4) Get leave details and reject
       const detailsRes = await getLeaveDetails(firstLeave.name);
       await actOnLeave({ action: "Reject", leaveDetails: detailsRes.data });
-
-      //console.log(`✅ Rejected leave for ${tcId} (leave name: ${firstLeave.name})`);
     } catch (err) {
       console.error(`❌ Failed to reject leave for ${tcId}: ${err.message}`);
     }
