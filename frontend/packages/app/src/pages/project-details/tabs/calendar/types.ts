@@ -15,7 +15,10 @@ export type ProjectTimelineItem = {
   title: string;
   project: string;
   type: TimelineItemType;
+  category?: string;
+  categoryLabel?: string;
   isComplete: boolean;
+  isInternal: boolean;
   startDate?: string;
   plannedEndDate: string;
   actualEndDate?: string;
@@ -34,7 +37,10 @@ export interface ApiTimelineItem {
   title: string;
   project: string;
   type: TimelineItemType;
+  category: string | null;
+  category_label: string | null;
   is_complete: 0 | 1;
+  is_internal: 0 | 1;
   start_date: string | null;
   planned_end_date: string | null;
   actual_end_date: string | null;
@@ -46,4 +52,9 @@ export interface ApiTimelineItemsResponse {
   data: ApiTimelineItem[];
   total_count: number;
   has_more: boolean;
+}
+
+export interface TimelineItemCategory {
+  name: string;
+  category_name: string;
 }

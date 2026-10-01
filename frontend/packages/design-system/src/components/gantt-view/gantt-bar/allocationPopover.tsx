@@ -20,10 +20,14 @@ import { format } from "date-fns";
  * Internal dependencies.
  */
 import { mergeClassNames as cn } from "../../../utils";
+import { GanttOpenLink } from "../ganttOpenLink";
 import type { DeleteAllocationMode, GanttGridVariant } from "../types";
+import { getEmployeeHref, getProjectHref } from "../utils";
 
 export interface AllocationEntry {
+  projectId?: string;
   projectName: string;
+  employeeId?: string;
   memberName?: string;
   memberImage?: string;
   dateRange: string;
@@ -62,7 +66,14 @@ function AllocationItem({
   const canManageEntry = entry.isAiCreated
     ? canManageAiAllocations
     : hasRoleAccess;
-
+  const employeeHref =
+    hasRoleAccess && entry.employeeId
+      ? getEmployeeHref(entry.employeeId)
+      : undefined;
+  const projectHref =
+    hasRoleAccess && entry.projectId
+      ? getProjectHref(entry.projectId)
+      : undefined;
   return (
     <div className="flex flex-col gap-3">
       {variant === "project" ? (
@@ -79,6 +90,9 @@ function AllocationItem({
           <span className="flex-1 min-w-0 text-base font-medium truncate text-ink-gray-7">
             {entry.memberName}
           </span>
+          {employeeHref && (
+            <GanttOpenLink href={employeeHref} label="Open employee" />
+          )}
         </div>
       ) : (
         /* Project name */
@@ -87,6 +101,9 @@ function AllocationItem({
           <span className="flex-1 min-w-0 text-base font-medium truncate text-ink-gray-7">
             {entry.projectName}
           </span>
+          {projectHref && (
+            <GanttOpenLink href={projectHref} label="Open project" />
+          )}
         </div>
       )}
 

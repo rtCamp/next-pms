@@ -1,15 +1,14 @@
 /**
  * External dependencies.
  */
-import { useRef } from "react";
-import { Tooltip } from "@rtcamp/frappe-ui-react";
-import { Sparkle, Zap } from "@rtcamp/frappe-ui-react/icons";
+import { Lock, Sparkle, Zap } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
 import { MIN_BAR_WIDTH } from "./constants";
 import { FloatingChip } from "./floatingChip";
+import { ItemHoverCard } from "./itemHoverCard";
 import type { ProjectTimelineItem } from "./types";
 
 type ItemPosition = { left: number; width: number };
@@ -21,7 +20,6 @@ type GanttBarProps = {
 };
 
 export function GanttBar({ item, pos, totalWidth }: GanttBarProps) {
-  const titleRef = useRef<HTMLSpanElement>(null);
   if (item.type === "Milestone") {
     if (pos.width <= MIN_BAR_WIDTH) {
       return (
@@ -37,20 +35,20 @@ export function GanttBar({ item, pos, totalWidth }: GanttBarProps) {
     }
 
     return (
-      <Tooltip text={item.title} showWhen="truncated" truncationRef={titleRef}>
+      <ItemHoverCard item={item}>
         <div
           className="absolute top-1/2 -translate-y-1/2 z-1 flex items-center gap-1.5 px-2.5 rounded-md overflow-hidden mx-0.5 bg-surface-blue-2 text-blue-700"
           style={{ left: pos.left, width: pos.width, height: 32 }}
         >
           <Sparkle className="size-3.5 shrink-0" />
           <span
-            ref={titleRef}
             className={`truncate text-sm${item.isComplete ? " line-through opacity-60" : ""}`}
           >
             {item.title}
           </span>
+          {item.isInternal && <Lock className="size-3.5 shrink-0 ml-auto" />}
         </div>
-      </Tooltip>
+      </ItemHoverCard>
     );
   }
 

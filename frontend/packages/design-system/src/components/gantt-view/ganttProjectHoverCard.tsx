@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import {
-  ArrowUpRight,
   Calendar,
   Folder,
   People,
@@ -13,8 +12,9 @@ import {
 /**
  * Internal dependencies.
  */
+import { GanttOpenLink } from "./ganttOpenLink";
 import type { Project } from "./types";
-import { formatHours } from "./utils";
+import { formatHours, getProjectHref } from "./utils";
 import { mergeClassNames as cn } from "../../utils";
 
 interface GanttProjectHoverCardProps {
@@ -37,9 +37,7 @@ function GanttProjectHoverCard({
     remainingHoursLabel ||
     project.projectManager;
   const projectHref =
-    canOpenProject && project.id
-      ? `/next-pms/projects/${encodeURIComponent(project.id)}`
-      : undefined;
+    canOpenProject && project.id ? getProjectHref(project.id) : undefined;
 
   return (
     <div className="flex flex-col gap-3 p-3 w-72 rounded-xl shadow-2xl bg-surface-modal animate-fade-in">
@@ -55,16 +53,7 @@ function GanttProjectHoverCard({
           </span>
         </div>
         {projectHref && (
-          <a
-            href={projectHref}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Open project"
-            className="shrink-0 rounded-sm text-ink-gray-6 hover:text-ink-gray-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <ArrowUpRight className="size-4 text-ink-gray-8 shrink-0" />
-          </a>
+          <GanttOpenLink href={projectHref} label="Open project" />
         )}
       </div>
 

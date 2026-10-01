@@ -12,6 +12,7 @@ import {
 /**
  * Internal dependencies.
  */
+import { PinnedEdgeAutoScroller, RestrictToColumnGroup } from "./utils";
 import type { ProjectListColumn } from "../../types";
 
 export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
@@ -114,8 +115,6 @@ export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
   },
 ];
 
-export const IS_COLUMN_LAYOUT_ENABLED = false;
-
 /**
  * Configuration for the column drag sensors used in the project list.
  */
@@ -137,9 +136,15 @@ export const COLUMN_PARAM_KEYS = {
   pinnedColumns: "pinned",
 } as const;
 
-export const COLUMN_DRAG_MODIFIERS = [RestrictToHorizontalAxis];
+export const MAX_PINNED_COLUMNS = 3;
+
+export const COLUMN_DRAG_MODIFIERS = [
+  RestrictToHorizontalAxis,
+  RestrictToColumnGroup,
+];
 
 export const COLUMN_DRAG_PLUGINS = (defaults: Plugins) => [
   ...defaults,
   Feedback.configure({ dropAnimation: null }),
+  PinnedEdgeAutoScroller,
 ];

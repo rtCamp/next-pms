@@ -620,8 +620,8 @@ export const calculateLeaveHours = (
   daily_working_hours: number,
   holiday: HolidayProp | undefined,
 ) => {
-  // Holidays are already removed from the week's expected hours, so counting
-  // them here would count the day twice.
+  // A weekly off is not a working day and a named holiday is already counted
+  // as time off, so leave on either day is ignored.
   if (holiday) {
     return 0;
   }
@@ -636,6 +636,29 @@ export const calculateLeaveHours = (
     }
     return total;
   }, 0);
+};
+
+/**
+ * Calculates the time off hours for a given date, counting a named holiday as
+ * a full working day and ignoring weekly offs.
+ *
+ * @param leaves Array of LeaveProps containing leave data.
+ * @param date Date string for which to calculate time off hours.
+ * @param daily_working_hours Number of working hours in a day.
+ * @param holiday HolidayProp object for the given date (if any).
+ * @returns Total time off hours for the given date.
+ */
+export const calculateTimeOffHours = (
+  leaves: LeaveProps[],
+  date: string,
+  daily_working_hours: number,
+  holiday: HolidayProp | undefined,
+) => {
+  if (holiday && !holiday.weekly_off) {
+    return daily_working_hours;
+  }
+
+  return calculateLeaveHours(leaves, date, daily_working_hours, holiday);
 };
 
 /** Returns true when the operator does not require a value. */
