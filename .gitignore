@@ -61,3 +61,5 @@ scripts/bench_project_timesheet_http.py
 tsconfig.tsbuildinfo
 
 /.agents
+
+CLAUDE.local.md

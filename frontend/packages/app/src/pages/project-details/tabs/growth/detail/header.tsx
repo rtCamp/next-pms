@@ -49,6 +49,7 @@ export function GrowthDetailHeader({
           onClick={handleBack}
           className="p-0 hover:bg-transparent focus-visible:bg-transparent"
           icon={ArrowLeft}
+          aria-label="Back to growth initiatives"
         />
         <h2 className="text-xl font-semibold text-ink-gray-7 truncate max-w-125">
           {growth.activity}
