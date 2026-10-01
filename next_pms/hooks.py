@@ -135,6 +135,7 @@ after_install = "next_pms.install.after_install"
 
 has_permission = {
     "Risk": "next_pms.next_pms.doctype.risk.risk.has_permission",
+    "Resource Allocation": "next_pms.resource_management.doctype.resource_allocation.resource_allocation.has_permission",
 }
 
 

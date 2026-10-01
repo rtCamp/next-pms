@@ -1,5 +1,7 @@
 export type DeleteAllocationMode =
-  "only_this" | "this_and_future" | "all_in_series";
+  | "only_this"
+  | "this_and_future"
+  | "all_in_series";
 
 export interface Allocation {
   /** Unique identifier for the allocation. */
@@ -198,6 +200,8 @@ export interface GanttGridProps {
   showWeekend?: boolean;
   /** Whether current user can manage member projects. */
   hasRoleAccess?: boolean;
+  /** Whether current user can manage AI-created allocations only. */
+  canManageAiAllocations?: boolean;
   /** Optional custom classes for the root wrapper. */
   className?: string;
   /** Stretch the grid to fill the scroll viewport's height when the content is shorter. */

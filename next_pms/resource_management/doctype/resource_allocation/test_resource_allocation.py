@@ -8,6 +8,9 @@ from erpnext import get_default_company
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase
 
+from next_pms.resource_management.api.allocation import AllocationPayload, delete_allocation, edit_allocation
+from next_pms.resource_management.doctype.resource_allocation.resource_allocation import has_permission
+
 # All fixtures are created manually in setUpClass; skip the auto test-recordx.
 IGNORE_TEST_RECORD_DEPENDENCIES = ["Employee", "Project", "Customer", "Currency"]
 
@@ -116,6 +119,12 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         return frappe.get_doc(data)
 
     def tearDown(self):
+        frappe.set_user("Administrator")
+        for allocation in frappe.get_all(
+            "Resource Allocation", filters={"project": self.project}, fields=["name", "is_ai_created"]
+        ):
+            frappe.set_user(self.delivery_manager if allocation.is_ai_created else "Administrator")
+            frappe.delete_doc("Resource Allocation", allocation.name, force=1, ignore_permissions=True)
         frappe.set_user("Administrator")
         for notif in frappe.get_all("NextPMS Notifications", filters={"user": self.delivery_manager}, pluck="name"):
             frappe.delete_doc("NextPMS Notifications", notif, force=1, ignore_permissions=True)
@@ -323,6 +332,105 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         self.assertEqual(notif.title, project_name)
         self.assertEqual(notif.label, "You have AI-generated allocations that need to be reviewed.")
         self.assertEqual(notif.url, f"/next-pms/allocations/project?{urlencode({'search': project_name})}")
+
+    def test_delivery_manager_can_approve_ai_allocation_without_project_write(self):
+        doc = self._make_allocation_doc(
+            project=self.project,
+            is_ai_created=1,
+            status="Tentative",
+        )
+        doc.insert(ignore_permissions=True)
+
+        frappe.set_user(self.delivery_manager)
+        self.assertFalse(frappe.has_permission("Project", ptype="write", doc=doc.project))
+        edit_allocation(
+            name=doc.name,
+            edit_mode="only_this",
+            allocation=AllocationPayload(
+                doctype="Resource Allocation",
+                employee=doc.employee,
+                project=doc.project,
+                customer=doc.customer,
+                allocation_start_date=str(doc.allocation_start_date),
+                allocation_end_date=str(doc.allocation_end_date),
+                hours_allocated_per_day=doc.hours_allocated_per_day,
+                include_weekends=bool(doc.include_weekends),
+                include_holidays=bool(doc.include_holidays),
+                is_billable=doc.is_billable,
+                is_ai_created=0,
+                status="Confirmed",
+                name=doc.name,
+            ),
+        )
+
+        self.assertEqual(frappe.db.get_value("Resource Allocation", doc.name, "is_ai_created"), 0)
+        self.assertEqual(frappe.db.get_value("Resource Allocation", doc.name, "status"), "Confirmed")
+
+    def test_delivery_manager_can_delete_ai_allocation_without_project_write(self):
+        doc = self._make_allocation_doc(
+            project=self.project,
+            is_ai_created=1,
+            status="Tentative",
+        )
+        doc.insert(ignore_permissions=True)
+
+        frappe.set_user(self.delivery_manager)
+        self.assertFalse(frappe.has_permission("Project", ptype="write", doc=doc.project))
+        delete_allocation(name=doc.name, delete_mode="only_this")
+
+        self.assertFalse(frappe.db.exists("Resource Allocation", doc.name))
+
+    def test_delivery_manager_without_projects_role_cannot_manage_regular_allocation(self):
+        doc = self._make_allocation_doc(project=self.project)
+        doc.insert(ignore_permissions=True)
+
+        frappe.set_user(self.delivery_manager)
+        self.assertFalse(frappe.has_permission("Project", ptype="write", doc=doc.project))
+        stored_doc = frappe.get_doc("Resource Allocation", doc.name)
+        self.assertFalse(stored_doc.has_permission("write"))
+        self.assertFalse(stored_doc.has_permission("delete"))
+        self.assertTrue(has_permission(stored_doc, ptype="write", user=self.projects_user))
+        self.assertTrue(has_permission(stored_doc, ptype="delete", user=self.projects_user))
+
+    def test_delivery_manager_cannot_change_regular_allocation_in_ai_series(self):
+        series_id = frappe.generate_hash(length=12)
+        ai_doc = self._make_allocation_doc(
+            project=self.project, recurrence_id=series_id, is_ai_created=1, status="Tentative"
+        )
+        ai_doc.insert(ignore_permissions=True)
+        regular_doc = self._make_allocation_doc(
+            project=self.project,
+            recurrence_id=series_id,
+            allocation_start_date="2026-06-22",
+            allocation_end_date="2026-06-26",
+        )
+        regular_doc.insert(ignore_permissions=True)
+
+        frappe.set_user(self.delivery_manager)
+        self.assertFalse(frappe.has_permission("Project", ptype="write", doc=self.project))
+        with self.assertRaises(frappe.PermissionError):
+            edit_allocation(
+                name=ai_doc.name,
+                edit_mode="whole_series",
+                allocation=AllocationPayload(
+                    doctype="Resource Allocation",
+                    employee=ai_doc.employee,
+                    customer=ai_doc.customer,
+                    project=ai_doc.project,
+                    allocation_start_date=str(ai_doc.allocation_start_date),
+                    allocation_end_date=str(ai_doc.allocation_end_date),
+                    hours_allocated_per_day=ai_doc.hours_allocated_per_day,
+                    include_weekends=bool(ai_doc.include_weekends),
+                    is_ai_created=0,
+                    status="Confirmed",
+                ),
+            )
+        self.assertEqual(frappe.db.get_value("Resource Allocation", ai_doc.name, "status"), "Tentative")
+
+        with self.assertRaises(frappe.PermissionError):
+            delete_allocation(name=ai_doc.name, delete_mode="all_in_series")
+        self.assertTrue(frappe.db.exists("Resource Allocation", ai_doc.name))
+        self.assertTrue(frappe.db.exists("Resource Allocation", regular_doc.name))
 
     def test_multiple_ai_allocations_use_one_grouped_notification(self):
         project = self._make_project("Multiple AI Project", self.customer)

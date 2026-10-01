@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import flt, getdate, today
+from frappe.utils import cint, flt, getdate, today
 from frappe.utils.background_jobs import is_job_enqueued
 
 from next_pms.resource_management.api.project import (
@@ -14,6 +14,29 @@ from next_pms.resource_management.api.team import _get_resource_management_team_
 from next_pms.resource_management.api.utils import leave_sync
 from next_pms.resource_management.api.utils.helpers import allocation_hours_for_date, override_hours_by_date
 from next_pms.resource_management.api.utils.query import attach_extra_entries
+
+
+def _is_delivery_manager(user):
+    return user != "Administrator" and "Delivery Manager" in frappe.get_roles(user)
+
+
+def has_permission(doc, ptype=None, user=None, debug=False):
+    if ptype not in {"write", "delete"} or not doc or not doc.name:
+        return True
+
+    user = user or frappe.session.user
+    roles = set(frappe.get_roles(user))
+    is_ai_created = bool(cint(doc.is_ai_created)) or bool(
+        cint(frappe.db.get_value("Resource Allocation", doc.name, "is_ai_created"))
+    )
+
+    if is_ai_created:
+        return _is_delivery_manager(user)
+
+    if _is_delivery_manager(user) and not roles.intersection({"Projects Manager", "Projects User", "System Manager"}):
+        return False
+
+    return True
 
 
 class ResourceAllocation(Document):
@@ -54,6 +77,8 @@ class ResourceAllocation(Document):
     # end: auto-generated types
 
     def validate(self):
+        self.validate_ai_allocation_access()
+
         if self.allocation_end_date < self.allocation_start_date:
             frappe.throw(frappe._("End date should be greater than or equal to start date"))
 
@@ -64,6 +89,14 @@ class ResourceAllocation(Document):
         self.apply_leave_availability()
         self.validate_no_overlap()
         self.calculate_cost()
+
+    def validate_ai_allocation_access(self):
+        previous_doc = self.get_doc_before_save()
+        if previous_doc and cint(previous_doc.is_ai_created) and not _is_delivery_manager(frappe.session.user):
+            frappe.throw(
+                frappe._("Only Delivery Managers can edit AI-created allocations."),
+                exc=frappe.PermissionError,
+            )
 
     def set_project_currency(self):
         if not self.project:
@@ -234,6 +267,12 @@ class ResourceAllocation(Document):
         clear_cache()
 
     def on_trash(self):
+        if cint(self.is_ai_created) and not _is_delivery_manager(frappe.session.user):
+            frappe.throw(
+                frappe._("Only Delivery Managers can delete AI-created allocations."),
+                exc=frappe.PermissionError,
+            )
+
         # Clear all type of allocation related chache if something is deleted in allocation
         clear_cache()
 

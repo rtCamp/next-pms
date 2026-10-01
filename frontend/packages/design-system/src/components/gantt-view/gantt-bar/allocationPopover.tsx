@@ -45,6 +45,7 @@ export interface AllocationEntry {
 interface AllocationItemProps {
   entry: AllocationEntry;
   hasRoleAccess: boolean;
+  canManageAiAllocations: boolean;
   variant: GanttGridVariant;
 }
 
@@ -54,9 +55,13 @@ interface AllocationItemProps {
 function AllocationItem({
   entry,
   hasRoleAccess,
+  canManageAiAllocations,
   variant,
 }: AllocationItemProps) {
   const StatusIcon = entry.status === "confirmed" ? Check : Tentative;
+  const canManageEntry = entry.isAiCreated
+    ? canManageAiAllocations
+    : hasRoleAccess;
 
   return (
     <div className="flex flex-col gap-3">
@@ -154,7 +159,7 @@ function AllocationItem({
             </div>
           ) : null}
 
-          {hasRoleAccess && (entry.onEdit || entry.onDelete) && (
+          {canManageEntry && (entry.onEdit || entry.onDelete) && (
             <div className="flex gap-2 items-center shrink-0">
               {entry.onEdit && (
                 <button
@@ -189,6 +194,7 @@ interface GanttAllocationPopoverProps {
   variant: GanttGridVariant;
   onAdd?: () => void;
   hasRoleAccess?: boolean;
+  canManageAiAllocations?: boolean;
   dayOff?: { label: string; isHoliday: boolean };
 }
 
@@ -197,6 +203,7 @@ export function GanttAllocationPopover({
   variant,
   onAdd,
   hasRoleAccess = false,
+  canManageAiAllocations = false,
   dayOff,
 }: GanttAllocationPopoverProps) {
   const DayOffIcon = dayOff?.isHoliday ? Holiday : TimeOff;
@@ -221,6 +228,7 @@ export function GanttAllocationPopover({
             <AllocationItem
               entry={entry}
               hasRoleAccess={hasRoleAccess}
+              canManageAiAllocations={canManageAiAllocations}
               variant={variant}
             />
           </div>

@@ -31,6 +31,7 @@ export function GanttMemberSummaryBar({
     headerWidth,
     members,
     hasRoleAccess,
+    canManageAiAllocations,
     onAddAllocation,
     onEditAllocation,
     onDeleteAllocation,
@@ -40,6 +41,7 @@ export function GanttMemberSummaryBar({
     headerWidth: s.headerWidth,
     members: s.members,
     hasRoleAccess: s.hasRoleAccess,
+    canManageAiAllocations: s.canManageAiAllocations,
     onAddAllocation: s.onAddAllocation,
     onEditAllocation: s.onEditAllocation,
     onDeleteAllocation: s.onDeleteAllocation,
@@ -160,6 +162,7 @@ export function GanttMemberSummaryBar({
               variant={variant}
               onAdd={handleAdd}
               hasRoleAccess={hasRoleAccess}
+              canManageAiAllocations={canManageAiAllocations}
               dayOff={dayOff}
             />
           </Popover.Popup>

@@ -46,6 +46,20 @@ VALID_DELETE_MODES = frozenset({"only_this", "this_and_future", "all_in_series"}
 VALID_EDIT_MODES = frozenset({"only_this", "whole_series", "this_and_future"})
 
 
+def _require_delivery_manager_for_ai_allocation(name: str) -> bool:
+    is_ai_created = cint(frappe.db.get_value("Resource Allocation", name, "is_ai_created"))
+    if not is_ai_created:
+        return False
+
+    if frappe.session.user == "Administrator" or "Delivery Manager" not in frappe.get_roles():
+        frappe.throw(
+            frappe._("Only Delivery Managers can manage AI-created allocations."),
+            exc=frappe.PermissionError,
+        )
+
+    return True
+
+
 @dataclass
 class AllocationPayload:
     """
@@ -526,8 +540,10 @@ def edit_allocation(
     if not permission["write"]:
         frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
 
+    is_ai_created = _require_delivery_manager_for_ai_allocation(name)
+    existing_project = frappe.db.get_value("Resource Allocation", name, "project")
     target_project = getattr(allocation, "project", None) or frappe.db.get_value("Resource Allocation", name, "project")
-    if target_project:
+    if target_project and (not is_ai_created or target_project != existing_project):
         frappe.has_permission("Project", doc=target_project, ptype="write", user=frappe.session.user, throw=True)
 
     if edit_mode not in VALID_EDIT_MODES:
@@ -596,10 +612,13 @@ def edit_allocation(
             filters=filters,
             fields=["name", "allocation_start_date", "allocation_end_date"],
         )
+        series_docs = [frappe.get_doc("Resource Allocation", meta.name) for meta in series]
+        for series_doc in series_docs:
+            series_doc.check_permission("write")
+
         update_fields = {k: v for k, v in asdict(allocation).items() if k in NON_DATE_FIELDS and v is not None}
         new_hours = update_fields.get("hours_allocated_per_day")
-        for series_doc_meta in series:
-            series_doc = frappe.get_doc("Resource Allocation", series_doc_meta.name)
+        for series_doc in series_docs:
             doc_hours_changed = new_hours is not None and float(new_hours) != float(
                 series_doc.hours_allocated_per_day or 0
             )
@@ -712,8 +731,9 @@ def delete_allocation(name: str, delete_mode: str):
     if not permission["write"]:
         frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
 
+    is_ai_created = _require_delivery_manager_for_ai_allocation(name)
     target_project = frappe.db.get_value("Resource Allocation", name, "project")
-    if target_project:
+    if target_project and not is_ai_created:
         frappe.has_permission("Project", doc=target_project, ptype="write", user=frappe.session.user, throw=True)
 
     if delete_mode not in VALID_DELETE_MODES:
@@ -745,6 +765,9 @@ def delete_allocation(name: str, delete_mode: str):
         filters["allocation_start_date"] = [">=", this_start]
 
     names = frappe.db.get_all("Resource Allocation", filters=filters, pluck="name")
+    for doc_name in names:
+        frappe.get_doc("Resource Allocation", doc_name).check_permission("delete")
+
     for doc_name in names:
         frappe.delete_doc("Resource Allocation", doc_name)
     return {"success": True}

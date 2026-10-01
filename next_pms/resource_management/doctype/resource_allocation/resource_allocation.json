@@ -263,6 +263,13 @@
    "write": 1
   },
   {
+   "delete": 1,
+   "read": 1,
+   "role": "Delivery Manager",
+   "select": 1,
+   "write": 1
+  },
+  {
    "read": 1,
    "role": "Employee"
   },

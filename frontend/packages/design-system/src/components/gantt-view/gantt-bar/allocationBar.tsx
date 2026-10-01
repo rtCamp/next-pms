@@ -51,6 +51,7 @@ export function GanttAllocationBar({
     weekStart,
     showWeekend,
     hasRoleAccess,
+    canManageAiAllocations,
     onEditAllocation,
     onDeleteAllocation,
     setPendingDeleteEntry,
@@ -64,6 +65,7 @@ export function GanttAllocationBar({
     weekStart: s.weekStart,
     showWeekend: s.showWeekend,
     hasRoleAccess: s.hasRoleAccess,
+    canManageAiAllocations: s.canManageAiAllocations,
     onEditAllocation: s.onEditAllocation,
     onDeleteAllocation: s.onDeleteAllocation,
     setPendingDeleteEntry: s.setPendingDeleteEntry,
@@ -375,6 +377,7 @@ export function GanttAllocationBar({
               entries={entries}
               variant={variant}
               hasRoleAccess={hasRoleAccess}
+              canManageAiAllocations={canManageAiAllocations}
             />
           </Popover.Popup>
         </Popover.Positioner>

@@ -23,6 +23,7 @@ export function GanttProjectSummaryBar({
     variant,
     headerWidth,
     hasRoleAccess,
+    canManageAiAllocations,
     onAddAllocation,
     onEditAllocation,
     onDeleteAllocation,
@@ -31,6 +32,7 @@ export function GanttProjectSummaryBar({
     variant: state.variant,
     headerWidth: state.headerWidth,
     hasRoleAccess: state.hasRoleAccess,
+    canManageAiAllocations: state.canManageAiAllocations,
     onAddAllocation: state.onAddAllocation,
     onEditAllocation: state.onEditAllocation,
     onDeleteAllocation: state.onDeleteAllocation,
@@ -100,6 +102,7 @@ export function GanttProjectSummaryBar({
               variant={variant}
               onAdd={handleAdd}
               hasRoleAccess={hasRoleAccess}
+              canManageAiAllocations={canManageAiAllocations}
             />
           </Popover.Popup>
         </Popover.Positioner>
