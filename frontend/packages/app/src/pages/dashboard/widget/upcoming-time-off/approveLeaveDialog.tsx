@@ -52,6 +52,7 @@ export function ApproveLeaveDialog({
             size="md"
             loading={isApproving}
             onClick={handleApprove}
+            className="bg-surface-green-5"
           >
             Approve leave
           </Button>
