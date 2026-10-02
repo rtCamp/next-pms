@@ -4,9 +4,10 @@ from typing import Any
 
 import frappe
 from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
-from erpnext.setup.utils import get_exchange_rate
 from frappe import log_error
 from frappe.utils import flt, getdate
+
+from next_pms.utils.currency import require_exchange_rate
 
 
 def transform_google_events(events: dict[str, Any]) -> list[dict[str, Any]]:
@@ -169,9 +170,7 @@ def sum_to_usd(rows: list, cur_key: str, prev_key: str) -> tuple[float, float]:
     current = 0.0
     previous = 0.0
     for row in rows:
-        rate = 1.0
-        if row.currency != "USD":
-            rate = get_exchange_rate(row.currency, "USD", row.transaction_date) or 1
+        rate = require_exchange_rate(row.currency, "USD", row.transaction_date)
         current += flt(row[cur_key]) * rate
         previous += flt(row[prev_key]) * rate
     return current, previous
