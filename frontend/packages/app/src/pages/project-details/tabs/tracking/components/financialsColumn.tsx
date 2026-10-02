@@ -33,7 +33,11 @@ export function FinancialsColumn({ layout }: { layout: WidgetLayout }) {
       <div className={cn("flex shrink-0", layout === "row" && "lg:flex-1")}>
         <KnowledgePoint
           title="Total project value"
-          value={currencyFormat(currency).format(totalProjectValue ?? 0)}
+          value={
+            totalProjectValue === null
+              ? "N/A"
+              : currencyFormat(currency).format(totalProjectValue)
+          }
           href={salesOrderHref}
         />
       </div>

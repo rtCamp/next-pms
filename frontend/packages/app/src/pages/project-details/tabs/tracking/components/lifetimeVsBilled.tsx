@@ -15,7 +15,7 @@ export function LifetimeVsBilledCell() {
   return (
     <KnowledgePoint
       title="Lifetime value vs billed amount"
-      value={currencyFormat(currency).format(value ?? 0)}
+      value={value == null ? "N/A" : currencyFormat(currency).format(value)}
     />
   );
 }

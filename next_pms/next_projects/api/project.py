@@ -945,7 +945,7 @@ def _get_project_billing_team(project_name: str) -> list[dict]:
 
 def _get_invoice_burn(project_name: str) -> dict:
     """
-    Aggregate paid and unpaid amounts from submitted Sales Invoices in company currency.
+    Aggregate paid and unpaid amounts from submitted Sales Invoices in project currency.
 
     Parameters
     ----------
@@ -956,24 +956,20 @@ def _get_invoice_burn(project_name: str) -> dict:
     -------
     dict
         currency : str or None
-            Company default currency for the project. None when the project has no company.
+            Project currency, which is the currency the project is invoiced in.
         invoiced_and_paid : float
-            Sum of (base_grand_total - outstanding in base) across submitted invoices.
+            Sum of (grand_total - outstanding_amount) across submitted invoices.
         invoiced_but_not_paid : float
-            Sum of outstanding_amount * conversion_rate across submitted invoices.
+            Sum of outstanding_amount across submitted invoices.
     """
-    company = frappe.db.get_value("Project", project_name, "company")
-    currency = frappe.db.get_value("Company", company, "default_currency") if company else None
+    currency = frappe.db.get_value("Project", project_name, "custom_currency")
 
     SalesInvoice = frappe.qb.DocType("Sales Invoice")
-    base_outstanding = (
-        SalesInvoice.outstanding_amount * SalesInvoice.conversion_rate
-    )  # since base_outstanding may not be in company currency
     rows = (
         frappe.qb.from_(SalesInvoice)
         .select(
-            Coalesce(Sum(SalesInvoice.base_grand_total - base_outstanding), 0).as_("paid"),
-            Coalesce(Sum(base_outstanding), 0).as_("unpaid"),
+            Coalesce(Sum(SalesInvoice.grand_total - SalesInvoice.outstanding_amount), 0).as_("paid"),
+            Coalesce(Sum(SalesInvoice.outstanding_amount), 0).as_("unpaid"),
         )
         .where(SalesInvoice.project == project_name)
         .where(SalesInvoice.docstatus == 1)
@@ -1085,12 +1081,12 @@ def get_project_tracking(project: str):
         hours_utilised_non_billable : float
             Non-billable hours logged via Timesheets.
         hours_remaining : float
-            Contracted hours (total hours purchased for hours-pool projects,
-            target hours otherwise) minus utilised hours (may be negative).
+            Contracted hours (total hours purchased for Retainer, target hours
+            otherwise) minus utilised hours (may be negative).
         tasks : dict
             total, open, completed task counts.
         invoice_burn : dict
-            currency (company default), invoiced_and_paid, invoiced_but_not_paid,
+            currency (project currency), invoiced_and_paid, invoiced_but_not_paid,
             total_project_amount. Omitted for Non-Billable projects.
         budget_burn : dict or None
             actual (amount billed to date), forecasted (remaining allocation hours priced
@@ -1100,16 +1096,18 @@ def get_project_tracking(project: str):
             Total budget/value for the project. Also the projected project value.
         project_profit : float
             Projected profit: total project value minus actual and forecasted costs.
-        projected_profit_margin : float
-            Projected profit as a percentage of total project value.
+        projected_profit_margin : float or None
+            Projected profit as a percentage of total project value. None when
+            total project value is 0.
         current_project_value : float
             Value earned so far, with no forecast in it. For Time and Material this is
             the billable hours logged priced at each member's billing rate; for every
             other billable type it is total_project_value, which forecast never moved.
         current_profit : float
             Current project value minus the cost of the hours logged.
-        current_profit_margin : float
-            Current profit as a percentage of current project value.
+        current_profit_margin : float or None
+            Current profit as a percentage of current project value. None when
+            current project value is 0.
         actual_cost_incurred : float
             Actual cost incurred from Timesheet Detail costing amounts.
         forecasted_cost_to_completion : float
@@ -1162,8 +1160,7 @@ def get_project_tracking(project: str):
     )
 
     billing_type = p.custom_billing_type
-    is_billable = billing_type != "Non-Billable"
-    has_hours_pool = billing_type in ("Fixed Cost", "Retainer")
+    is_billable = bool(billing_type) and billing_type != "Non-Billable"
     shows_billing_tables = billing_type in ("Fixed Cost", "Retainer", "Time and Material")
 
     invoice_burn = _get_invoice_burn(project) if is_billable else None
@@ -1174,18 +1171,20 @@ def get_project_tracking(project: str):
 
     total_project_value = flt(p.total_sales_amount)
     projected_profit = total_project_value - (actual_cost_incurred + forecasted_cost_to_completion)
-    projected_profit_margin = (projected_profit / total_project_value * 100) if total_project_value else 0
+    projected_profit_margin = (projected_profit / total_project_value * 100) if total_project_value else None
 
     # Current figures ignore forecast entirely and read only what has been logged:
     # Time and Material earns per billable hour logged, every other billable type is
     # sold for a fixed value regardless of hours.
     current_project_value = flt(p.total_billable_amount) if billing_type == "Time and Material" else total_project_value
     current_profit = current_project_value - actual_cost_incurred
-    current_profit_margin = (current_profit / current_project_value * 100) if current_project_value else 0
+    current_profit_margin = (current_profit / current_project_value * 100) if current_project_value else None
 
     hours_utilised_billable, hours_utilised_non_billable = _get_hours_split(project)
     hours_utilised = hours_utilised_billable + hours_utilised_non_billable
-    total_contracted_hours = flt(p.custom_total_hours_purchased) if has_hours_pool else flt(p.custom_target_hours)
+    total_contracted_hours = (
+        flt(p.custom_total_hours_purchased) if billing_type == "Retainer" else flt(p.custom_target_hours)
+    )
 
     contracts = None
     if shows_billing_tables:
