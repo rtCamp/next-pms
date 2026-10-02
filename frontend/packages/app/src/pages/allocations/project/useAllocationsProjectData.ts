@@ -74,12 +74,14 @@ export function useAllocationsProjectData({
   const hasTentative = allocationsType.includes("Tentative");
   const hasBillable = allocationsType.includes("billable");
   const hasNonBillable = allocationsType.includes("non-billable");
+  const hasAiCreated = allocationsType.includes("ai-created");
   const allocationStatusParam =
     hasConfirmed === hasTentative
       ? null
       : JSON.stringify([hasConfirmed ? "Confirmed" : "Tentative"]);
   const isBillableParam =
     hasBillable === hasNonBillable ? null : JSON.stringify(hasBillable ? 1 : 0);
+  const isAiCreatedParam = hasAiCreated ? 1 : null;
   const querySignature = useMemo(
     () =>
       `${QUERY_SIGNATURE_PREFIX}${hashString(
@@ -89,12 +91,14 @@ export function useAllocationsProjectData({
           search,
           allocationStatusParam ?? "",
           isBillableParam ?? "",
+          String(isAiCreatedParam ?? ""),
           filtersParam ?? "",
         ].join(":"),
       )}`,
     [
       allocationStatusParam,
       filtersParam,
+      isAiCreatedParam,
       isBillableParam,
       maxWeek,
       requestDate,
@@ -109,11 +113,13 @@ export function useAllocationsProjectData({
       project_name: search || null,
       allocation_status: allocationStatusParam,
       is_billable: isBillableParam,
+      is_ai_created: isAiCreatedParam,
       filters: filtersParam,
     }),
     [
       allocationStatusParam,
       filtersParam,
+      isAiCreatedParam,
       isBillableParam,
       maxWeek,
       requestDate,

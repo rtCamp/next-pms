@@ -30,11 +30,34 @@ from next_pms.resource_management.report.utils import get_employee_allocations_f
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 
 NON_DATE_FIELDS = frozenset(
-    {"project", "customer", "is_billable", "status", "note", "hours_allocated_per_day", "include_holidays"}
+    {
+        "project",
+        "customer",
+        "is_billable",
+        "is_ai_created",
+        "status",
+        "note",
+        "hours_allocated_per_day",
+        "include_holidays",
+    }
 )
 RECURRING_IMMUTABLE_FIELDS = ("employee", "project", "customer")
 VALID_DELETE_MODES = frozenset({"only_this", "this_and_future", "all_in_series"})
 VALID_EDIT_MODES = frozenset({"only_this", "whole_series", "this_and_future"})
+
+
+def _require_delivery_manager_for_ai_allocation(name: str) -> bool:
+    is_ai_created = cint(frappe.db.get_value("Resource Allocation", name, "is_ai_created"))
+    if not is_ai_created:
+        return False
+
+    if frappe.session.user == "Administrator" or "Delivery Manager" not in frappe.get_roles():
+        frappe.throw(
+            frappe._("Only Delivery Managers can manage AI-created allocations."),
+            exc=frappe.PermissionError,
+        )
+
+    return True
 
 
 @dataclass
@@ -54,6 +77,7 @@ class AllocationPayload:
     project: str | None = None
     total_allocated_hours: float | None = None
     is_billable: int | None = None  # 1 or 0
+    is_ai_created: int | None = None  # 1 or 0
     status: str | None = None  # "Confirmed" or "Tentative"
     note: str | None = None
     name: str | None = None  # present only in the edit flow
@@ -250,6 +274,27 @@ def update_allocation(allocation: AllocationPayload):
     allocation_doc.update(_to_doc_dict(allocation, include_name=True))
     allocation_doc.save()
     return allocation_doc
+
+
+def _share_project_with_approved_ai_employee(allocation_doc, was_ai_created: bool, was_confirmed: bool):
+    if not was_ai_created or was_confirmed or allocation_doc.status != "Confirmed" or not allocation_doc.project:
+        return
+
+    import frappe.share
+
+    user = frappe.db.get_value("Employee", allocation_doc.employee, "user_id")
+    if not user or frappe.db.exists(
+        "DocShare",
+        {"user": user, "share_name": allocation_doc.project, "share_doctype": "Project"},
+    ):
+        return
+
+    frappe.share.add_docshare(
+        "Project",
+        allocation_doc.project,
+        user=user,
+        flags={"ignore_share_permission": True},
+    )
 
 
 def _normalise_override_fields(override_fields: dict) -> dict:
@@ -495,8 +540,10 @@ def edit_allocation(
     if not permission["write"]:
         frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
 
+    is_ai_created = _require_delivery_manager_for_ai_allocation(name)
+    existing_project = frappe.db.get_value("Resource Allocation", name, "project")
     target_project = getattr(allocation, "project", None) or frappe.db.get_value("Resource Allocation", name, "project")
-    if target_project:
+    if target_project and (not is_ai_created or target_project != existing_project):
         frappe.has_permission("Project", doc=target_project, ptype="write", user=frappe.session.user, throw=True)
 
     if edit_mode not in VALID_EDIT_MODES:
@@ -525,6 +572,8 @@ def edit_allocation(
             "hours_allocated_per_day",
             "allocation_start_date",
             "include_weekends",
+            "is_ai_created",
+            "status",
         ),
         as_dict=True,
     )
@@ -563,10 +612,13 @@ def edit_allocation(
             filters=filters,
             fields=["name", "allocation_start_date", "allocation_end_date"],
         )
+        series_docs = [frappe.get_doc("Resource Allocation", meta.name) for meta in series]
+        for series_doc in series_docs:
+            series_doc.check_permission("write")
+
         update_fields = {k: v for k, v in asdict(allocation).items() if k in NON_DATE_FIELDS and v is not None}
         new_hours = update_fields.get("hours_allocated_per_day")
-        for series_doc_meta in series:
-            series_doc = frappe.get_doc("Resource Allocation", series_doc_meta.name)
+        for series_doc in series_docs:
             doc_hours_changed = new_hours is not None and float(new_hours) != float(
                 series_doc.hours_allocated_per_day or 0
             )
@@ -574,12 +626,14 @@ def edit_allocation(
             if doc_hours_changed:
                 series_doc.override = []
             series_doc.save()
+            _share_project_with_approved_ai_employee(series_doc, stored.is_ai_created, stored.status == "Confirmed")
 
         if edit_mode == "this_and_future":
             _propagate_day_overrides_to_series(series, day_overrides, deleted_day_overrides)
         return frappe.get_doc("Resource Allocation", name)
 
     result = update_allocation(allocation)
+    _share_project_with_approved_ai_employee(result, stored.is_ai_created, stored.status == "Confirmed")
     if hours_changed:
         clear_day_overrides(name)
     apply_day_overrides(name, day_overrides, deleted_day_overrides)
@@ -677,8 +731,9 @@ def delete_allocation(name: str, delete_mode: str):
     if not permission["write"]:
         frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
 
+    is_ai_created = _require_delivery_manager_for_ai_allocation(name)
     target_project = frappe.db.get_value("Resource Allocation", name, "project")
-    if target_project:
+    if target_project and not is_ai_created:
         frappe.has_permission("Project", doc=target_project, ptype="write", user=frappe.session.user, throw=True)
 
     if delete_mode not in VALID_DELETE_MODES:
@@ -710,6 +765,9 @@ def delete_allocation(name: str, delete_mode: str):
         filters["allocation_start_date"] = [">=", this_start]
 
     names = frappe.db.get_all("Resource Allocation", filters=filters, pluck="name")
+    for doc_name in names:
+        frappe.get_doc("Resource Allocation", doc_name).check_permission("delete")
+
     for doc_name in names:
         frappe.delete_doc("Resource Allocation", doc_name)
     return {"success": True}

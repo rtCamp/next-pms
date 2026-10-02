@@ -43,9 +43,14 @@ export const AllocationsTeamTable = () => {
   const ganttRef = useUnsavedChangesSource();
   const guardAction = useGuardedAction();
 
-  const roles = useUser(({ state }) => state.roles);
+  const { roles, userId } = useUser(({ state }) => ({
+    roles: state.roles,
+    userId: state.userId,
+  }));
   const canManageAllocations =
     roles.includes("Projects Manager") || roles.includes("Projects User");
+  const canManageAiAllocations =
+    userId !== "Administrator" && roles.includes("Delivery Manager");
 
   const {
     openAddAllocationDialog,
@@ -85,6 +90,7 @@ export const AllocationsTeamTable = () => {
               weekCount={weekCount}
               fillHeight={!hasMore}
               hasRoleAccess={canManageAllocations}
+              canManageAiAllocations={canManageAiAllocations}
               guardAction={guardAction}
               showWeekend={showWeekend}
               onAddAllocation={openAddAllocationDialog}

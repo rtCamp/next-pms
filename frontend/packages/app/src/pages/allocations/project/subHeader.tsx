@@ -66,7 +66,9 @@ export function SubHeader() {
   const guard = useGuardedAction();
   const roles = useUser(({ state }) => state.roles);
   const showFilters =
-    roles.includes("Projects Manager") || roles.includes("Projects User");
+    roles.includes("Projects Manager") ||
+    roles.includes("Projects User") ||
+    roles.includes("Delivery Manager");
 
   const externalFilterCount =
     (search !== "" ? 1 : 0) +

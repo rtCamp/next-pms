@@ -77,7 +77,9 @@ export function SubHeader() {
     hasBuField: state.hasBuField,
   }));
   const showFilters =
-    roles.includes("Projects Manager") || roles.includes("Projects User");
+    roles.includes("Projects Manager") ||
+    roles.includes("Projects User") ||
+    roles.includes("Delivery Manager");
 
   const externalFilterCount =
     (search !== "" ? 1 : 0) +

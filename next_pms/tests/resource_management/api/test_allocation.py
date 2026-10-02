@@ -558,6 +558,65 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
         self.assertEqual(self._overrides(allocation)[PUBLIC_HOLIDAY].cancelled, 1)
         self.assertEqual(allocation.total_allocated_hours, 14 * DAILY_HOURS)
 
+    def test_approving_ai_allocation_shares_project_with_employee(self):
+        user_email = "leave-aware-allocation-user@example.com"
+        user = frappe.db.get_value("User", {"email": user_email}, "name")
+        previous_user = frappe.db.get_value("Employee", self.employee, "user_id")
+        if not user:
+            user = (
+                frappe.get_doc(
+                    {
+                        "doctype": "User",
+                        "email": user_email,
+                        "first_name": "Leave Aware Allocation",
+                        "enabled": 1,
+                        "send_welcome_email": 0,
+                    }
+                )
+                .insert(ignore_permissions=True)
+                .name
+            )
+        share_filters = {"user": user, "share_name": self.project, "share_doctype": "Project"}
+        try:
+            frappe.db.set_value("Employee", self.employee, "user_id", user)
+            frappe.db.delete("DocShare", share_filters)
+            allocation = frappe.get_doc(
+                {
+                    "doctype": "Resource Allocation",
+                    "employee": self.employee,
+                    "project": self.project,
+                    "customer": self.customer,
+                    "allocation_start_date": MON,
+                    "allocation_end_date": FRI,
+                    "hours_allocated_per_day": DAILY_HOURS,
+                    "include_weekends": 0,
+                    "status": "Tentative",
+                    "is_ai_created": 1,
+                }
+            ).insert(ignore_permissions=True)
+
+            edit_allocation(
+                name=allocation.name,
+                edit_mode="only_this",
+                allocation=AllocationPayload(
+                    doctype="Resource Allocation",
+                    employee=self.employee,
+                    customer=self.customer,
+                    project=self.project,
+                    allocation_start_date=MON,
+                    allocation_end_date=FRI,
+                    hours_allocated_per_day=DAILY_HOURS,
+                    include_weekends=False,
+                    status="Confirmed",
+                    is_ai_created=0,
+                ),
+            )
+
+            self.assertEqual(frappe.db.count("DocShare", share_filters), 1)
+        finally:
+            frappe.db.delete("DocShare", share_filters)
+            frappe.db.set_value("Employee", self.employee, "user_id", previous_user)
+
     def test_whole_series_edit_persists_include_holidays(self):
         """`include_holidays` is a non-date field, so a series edit has to carry it to every doc."""
         first = handle_allocation(

@@ -51,6 +51,7 @@ export function GanttAllocationBar({
     weekStart,
     showWeekend,
     hasRoleAccess,
+    canManageAiAllocations,
     onEditAllocation,
     onDeleteAllocation,
     setPendingDeleteEntry,
@@ -64,6 +65,7 @@ export function GanttAllocationBar({
     weekStart: s.weekStart,
     showWeekend: s.showWeekend,
     hasRoleAccess: s.hasRoleAccess,
+    canManageAiAllocations: s.canManageAiAllocations,
     onEditAllocation: s.onEditAllocation,
     onDeleteAllocation: s.onDeleteAllocation,
     setPendingDeleteEntry: s.setPendingDeleteEntry,
@@ -211,6 +213,8 @@ export function GanttAllocationBar({
         hoursPerDay: getEditableHoursPerDay(allocation),
         billable: allocation.billable,
         tentative: allocation.tentative,
+        isAiCreated: allocation.isAiCreated,
+        aiReason: allocation.aiReason,
         note: allocation.note,
         override: allocation.override,
         allocationStartDate: allocation.allocationStartDate,
@@ -323,17 +327,33 @@ export function GanttAllocationBar({
         render={
           <GanttBar
             ref={allocationBarRef}
-            variant={allocation.fullyReduced ? "empty" : "allocation"}
-            theme={allocation.tentative ? "crosshatch" : "default"}
+            variant={
+              allocation.fullyReduced
+                ? "empty"
+                : allocation.isAiCreated
+                  ? "aiAllocation"
+                  : "allocation"
+            }
+            theme={
+              allocation.isAiCreated || allocation.tentative
+                ? "crosshatch"
+                : "default"
+            }
             label={dayCountLabel}
             renderLabel={renderLabel}
             trailingLabel={
-              showCapacityStatus ? capacityStatus.trailingLabel : undefined
+              allocation.isAiCreated
+                ? "Ai"
+                : showCapacityStatus
+                  ? capacityStatus.trailingLabel
+                  : undefined
             }
             trailingLabelVariant={
-              showCapacityStatus
-                ? capacityStatus.trailingLabelVariant
-                : undefined
+              allocation.isAiCreated
+                ? "ai"
+                : showCapacityStatus
+                  ? capacityStatus.trailingLabelVariant
+                  : undefined
             }
             left={previewGeometry.left}
             width={previewGeometry.width}
@@ -357,6 +377,7 @@ export function GanttAllocationBar({
               entries={entries}
               variant={variant}
               hasRoleAccess={hasRoleAccess}
+              canManageAiAllocations={canManageAiAllocations}
             />
           </Popover.Popup>
         </Popover.Positioner>

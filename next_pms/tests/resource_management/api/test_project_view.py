@@ -131,6 +131,8 @@ class _ProjectViewBase(IntegrationTestCase):
         is_billable=0,
         status="Confirmed",
         include_weekends=0,
+        is_ai_created=0,
+        ai_allocation_reason=None,
         override=(),
     ):
         doc = frappe.get_doc(
@@ -144,6 +146,8 @@ class _ProjectViewBase(IntegrationTestCase):
                 "status": status,
                 "is_billable": is_billable,
                 "include_weekends": include_weekends,
+                "is_ai_created": is_ai_created,
+                "ai_allocation_reason": ai_allocation_reason,
             }
         )
         for date, hours, cancelled in override:
@@ -296,7 +300,14 @@ class TestProjectViewAllocationFilters(_ProjectViewBase):
         # In-window allocations. Kept disjoint per employee+project so the
         # overlap guard on Resource Allocation doesn't reject the fixtures.
         cls.a_billable = cls._make_allocation(
-            cls.employee, cls.project, "2026-06-16", "2026-06-19", is_billable=1, status="Confirmed"
+            cls.employee,
+            cls.project,
+            "2026-06-16",
+            "2026-06-19",
+            is_billable=1,
+            status="Confirmed",
+            is_ai_created=1,
+            ai_allocation_reason="Selected for project-relevant experience.",
         )
         cls.a_nonbillable = cls._make_allocation(
             cls.employee, cls.project, "2026-06-20", "2026-06-24", is_billable=0, status="Tentative"
@@ -324,6 +335,14 @@ class TestProjectViewAllocationFilters(_ProjectViewBase):
         self.assertEqual(names, {self.a_billable, self.a_nonbillable, self.a_boundary})
         self.assertNotIn(self.a_before, names)
         self.assertNotIn(self.a_after, names)
+
+    def test_ai_allocation_reason_is_returned(self):
+        result = self._call(project_id=json.dumps([self.project]))
+        allocations = self._entry(result, self.project)["project_allocations"]
+        self.assertEqual(
+            allocations[self.a_billable]["ai_allocation_reason"],
+            "Selected for project-relevant experience.",
+        )
 
     def test_is_billable_one_keeps_only_billable(self):
         names = self._allocation_names(is_billable="1")
