@@ -424,6 +424,12 @@ export const formatHours = (hours: number) => {
   return String(roundedHours);
 };
 
+export const getProjectHref = (projectId: string) =>
+  `/next-pms/projects/${encodeURIComponent(projectId)}`;
+
+export const getEmployeeHref = (employeeId: string) =>
+  `/desk/employee/${encodeURIComponent(employeeId)}`;
+
 /**
  * Converts a visible column index into a calendar date.
  */

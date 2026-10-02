@@ -9,6 +9,7 @@ import { Check, Close } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
+import { ApproveLeaveDialog } from "./approveLeaveDialog";
 import { useUpcomingTimeOff } from "./context";
 import { RejectLeaveDialog } from "./rejectLeaveDialog";
 import { UpcomingTimeOffSkeleton } from "./skeleton";
@@ -19,7 +20,9 @@ export function UpcomingTimeOffContent() {
   const leaves = useUpcomingTimeOff((state) => state.leaves);
   const pendingCount = useUpcomingTimeOff((state) => state.pendingCount);
   const isLoading = useUpcomingTimeOff((state) => state.isLoading);
-  const approveLeave = useUpcomingTimeOff((state) => state.approveLeave);
+  const [approvingLeave, setApprovingLeave] = useState<EmployeeOnLeave | null>(
+    null,
+  );
   const [rejectingLeave, setRejectingLeave] = useState<EmployeeOnLeave | null>(
     null,
   );
@@ -90,7 +93,7 @@ export function UpcomingTimeOffContent() {
                       icon={() => (
                         <Check size={16} className="text-ink-white" />
                       )}
-                      onClick={() => approveLeave(leave.name)}
+                      onClick={() => setApprovingLeave(leave)}
                       className="bg-surface-green-5"
                     />
                     <Button
@@ -108,6 +111,10 @@ export function UpcomingTimeOffContent() {
           ))}
         </ul>
       )}
+      <ApproveLeaveDialog
+        leave={approvingLeave}
+        onClose={() => setApprovingLeave(null)}
+      />
       <RejectLeaveDialog
         leave={rejectingLeave}
         onClose={() => setRejectingLeave(null)}

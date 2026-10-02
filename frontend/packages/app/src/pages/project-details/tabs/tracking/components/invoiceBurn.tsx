@@ -14,8 +14,11 @@ import { LegendItem } from "./legendItem";
 
 export function InvoiceBurnCell() {
   const projectId = useProjectDetail((state) => state.projectId);
-  const currency = useProjectDetail((state) => state.project?.custom_currency);
+  const projectCurrency = useProjectDetail(
+    (state) => state.project?.custom_currency,
+  );
   const invoiceBurn = useTracking((state) => state.tracking.invoice_burn);
+  const currency = invoiceBurn.currency ?? projectCurrency;
   const invoicedPaid = invoiceBurn.invoiced_and_paid ?? 0;
   const invoicedUnpaid = invoiceBurn.invoiced_but_not_paid ?? 0;
   const totalAmount = invoiceBurn.total_project_amount;
@@ -62,7 +65,11 @@ export function InvoiceBurnCell() {
           className="bg-surface-gray-3"
           label="Total project value"
           labelTooltipText="Total Sales Order Value"
-          value={currencyFormat(currency).format(totalAmount ?? 0)}
+          value={
+            totalAmount === null
+              ? "N/A"
+              : currencyFormat(currency).format(totalAmount)
+          }
           labelClassName="text-ink-gray-6"
           valueClassName="font-medium"
         />

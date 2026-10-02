@@ -996,7 +996,8 @@ def get_employees_on_leave() -> list:
     -------
     list of dict
         name, employee, employee_name, from_date, to_date, status,
-        leave_type, total_leave_days, half_day, custom_first_halfsecond_half, user_image.
+        leave_type, total_leave_days, half_day, custom_first_halfsecond_half,
+        description, user_image.
         Empty list if the user has no employee record or no direct reports.
         Ordered by from_date ascending.
     """
@@ -1035,6 +1036,7 @@ def _get_employees_on_leave(manager_employee: str) -> list:
         LeaveApplication.leave_type,
         LeaveApplication.total_leave_days,
         LeaveApplication.half_day,
+        LeaveApplication.description,
         User.user_image,
     ]
     if has_first_half_column:

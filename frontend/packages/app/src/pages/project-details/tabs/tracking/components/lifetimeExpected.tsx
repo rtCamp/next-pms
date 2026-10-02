@@ -15,7 +15,7 @@ export function LifetimeExpectedCell() {
   return (
     <KnowledgePoint
       title="Expected lifetime value"
-      value={currencyFormat(currency).format(value ?? 0)}
+      value={value == null ? "N/A" : currencyFormat(currency).format(value)}
     />
   );
 }

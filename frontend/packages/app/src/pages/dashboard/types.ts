@@ -51,6 +51,7 @@ export interface EmployeeOnLeave {
   total_leave_days: number;
   half_day: 0 | 1;
   custom_first_halfsecond_half: string | null;
+  description: string | null;
   user_image: string | null;
 }
 

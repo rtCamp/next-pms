@@ -232,7 +232,7 @@ export function CreateTouchpointModal({
                 Type
               </FormLabel>
               <Select
-                className="text-ink-gray-7"
+                className="text-ink-gray-7 h-8"
                 variant="outline"
                 options={categoryOptions}
                 value={field.state.value}
@@ -260,12 +260,12 @@ export function CreateTouchpointModal({
                 placeholder="Scheduled date"
               >
                 {({ displayValue }) => (
-                  <div className="flex relative items-center py-1 w-full rounded-lg border border-outline-gray-2 px-2.5">
+                  <div className="flex relative items-center w-full rounded border border-outline-gray-2 px-2.5">
                     <input
                       readOnly
                       type="text"
                       value={displayValue}
-                      className="flex-1 text-base text-ink-gray-7"
+                      className="flex-1 h-7.5 min-w-0 text-base text-ink-gray-7"
                     />
                     <Calendar className="size-4" />
                   </div>

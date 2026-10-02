@@ -12,7 +12,7 @@ export interface UpcomingTimeOffContextProps {
   leaves: EmployeeOnLeave[];
   pendingCount: number;
   isLoading: boolean;
-  approveLeave: (name: string) => Promise<void>;
+  approveLeave: (name: string) => Promise<boolean>;
   rejectLeave: (name: string, reason: string) => Promise<boolean>;
 }
 
@@ -21,7 +21,7 @@ export const UpcomingTimeOffContext =
     leaves: [],
     pendingCount: 0,
     isLoading: true,
-    approveLeave: async () => undefined,
+    approveLeave: async () => false,
     rejectLeave: async () => false,
   });
 
