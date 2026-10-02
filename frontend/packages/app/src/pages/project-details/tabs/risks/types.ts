@@ -1,24 +1,6 @@
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
+import type { UserDetails } from "@/pages/project-details/types";
 import type { RiskStatus } from "./constants";
-
-export interface UserDetails {
-  name: string;
-  full_name: string;
-  user_image: string | null;
-}
-
-export interface Follower {
-  user: string;
-  full_name: string | null;
-  user_image: string | null;
-}
-
-export interface FileAttachment {
-  name: string;
-  file_name: string;
-  file_url: string;
-  file_size: number;
-}
 
 export interface ApiRiskItem {
   name: string;

@@ -14,7 +14,8 @@ import {
   normalizeLikeFilterValue,
 } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
-import type { RiskFilters, RiskItem, RiskSort, UserDetails } from "./types";
+import type { UserDetails } from "@/pages/project-details/types";
+import type { RiskFilters, RiskItem, RiskSort } from "./types";
 
 export function useRisksData(filters: RiskFilters, sort: RiskSort | null) {
   const projectId = useProjectDetail((s) => s.projectId);
