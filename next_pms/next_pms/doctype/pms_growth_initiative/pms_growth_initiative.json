@@ -26,7 +26,9 @@
   "description",
   "desired_outcome",
   "update_log_section",
-  "update_log"
+  "update_log",
+  "todos_section",
+  "linked_todos"
  ],
  "fields": [
   {
@@ -162,12 +164,23 @@
    "fieldtype": "Table",
    "label": "Update Log",
    "options": "PMS Growth Initiative Update"
+  },
+  {
+   "fieldname": "todos_section",
+   "fieldtype": "Section Break",
+   "label": "ToDos"
+  },
+  {
+   "fieldname": "linked_todos",
+   "fieldtype": "Table",
+   "label": "ToDos",
+   "options": "PMS Linked ToDo"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-01 12:00:00.000000",
+ "modified": "2026-10-05 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "PMS Growth Initiative",

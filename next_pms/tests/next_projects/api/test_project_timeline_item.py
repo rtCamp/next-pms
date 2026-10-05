@@ -201,3 +201,50 @@ class TestProjectTimelineItemCategory(IntegrationTestCase):
         self.create(is_internal="1")
         for item in get_project_timeline_items(self.project)["data"]:
             self.assertIsInstance(item["is_internal"], int)
+
+
+class TestProjectTimelineItemLinkedTodos(IntegrationTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.project = (
+            frappe.get_doc(
+                {"doctype": "Project", "project_name": "Timeline Linked ToDos", "company": get_default_company()}
+            )
+            .insert(ignore_permissions=True)
+            .name
+        )
+        frappe.set_user("Administrator")
+
+    def make_todo(self):
+        return (
+            frappe.get_doc(
+                {"doctype": "ToDo", "description": "Prep", "reference_type": "Project", "reference_name": self.project}
+            )
+            .insert(ignore_permissions=True)
+            .name
+        )
+
+    def test_items_list_their_linked_todos_in_both_modes(self):
+        todos = [self.make_todo(), self.make_todo()]
+        linked = frappe.get_doc(
+            {
+                "doctype": "Project Timeline Item",
+                "title": "Linked",
+                "project": self.project,
+                "type": "Touchpoint",
+                "planned_end_date": nowdate(),
+                "item_owner": "Administrator",
+                "linked_todos": [{"todo": todo} for todo in todos],
+            }
+        ).insert(ignore_permissions=True)
+        bare = create_project_timeline_item(
+            self.project, "Milestone", "Bare", "Administrator", nowdate(), add_days(nowdate(), 1)
+        )
+
+        for is_calendar in (0, 1):
+            items = {
+                item["name"]: item for item in get_project_timeline_items(self.project, is_calendar=is_calendar)["data"]
+            }
+            self.assertEqual(items[linked.name]["linked_todos"], todos)
+            self.assertEqual(items[bare["name"]]["linked_todos"], [])

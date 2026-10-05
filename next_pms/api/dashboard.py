@@ -1497,7 +1497,7 @@ def _get_calendar_timeline_items(range_start, range_end, project: str | None) ->
 
     data = []
     for item in items:
-        enriched = enrich_timeline_item(item, {}, {})
+        enriched = enrich_timeline_item(item, {}, {}, {})
         enriched["project_name"] = project_name_map.get(item.get("project"))
         data.append(enriched)
 
