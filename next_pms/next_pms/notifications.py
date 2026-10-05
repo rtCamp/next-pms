@@ -320,6 +320,10 @@ def sync_ai_allocation_notifications(project=None, new_doc=None):
     if not linked_document:
         return
 
+    # Serialize concurrent AI inserts for the same project so they share one notification.
+    if project:
+        frappe.db.get_value("Project", project, "name", for_update=True)
+
     # Resolve project title
     project_name = None
     if project:
@@ -344,6 +348,7 @@ def sync_ai_allocation_notifications(project=None, new_doc=None):
                 "viewed": 0,
             },
             fieldname="name",
+            for_update=True,
         )
         if existing:
             frappe.db.set_value(
