@@ -3,7 +3,7 @@ from copy import deepcopy
 
 from erpnext.setup.utils import get_exchange_rate
 from frappe import _, _dict, throw
-from frappe.utils import getdate
+from frappe.utils import flt, getdate
 
 BU_FIELD_NAME = "custom_business_unit"
 
@@ -12,7 +12,7 @@ def convert_currency(value, from_currency, to_currency, date=None):
     if not date:
         date = getdate()
     exchange_rate = get_exchange_rate(from_currency, to_currency, transaction_date=date)
-    return value * (exchange_rate or 1)
+    return value * flt(exchange_rate)
 
 
 def get_employee_fields(has_bu_field=False):

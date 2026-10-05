@@ -435,7 +435,7 @@ def calculate_revenue_batch(
 
                 # Apply exchange rate
                 if proj.custom_currency and proj.custom_currency != CURRENCY:
-                    rate *= exchange_rates.get(proj.custom_currency, 1)
+                    rate *= exchange_rates.get(proj.custom_currency, 0)
 
                 total_revenue += allocation.hours_allocated_per_day * rate
 
