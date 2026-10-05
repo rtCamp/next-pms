@@ -57,7 +57,16 @@ jobs:
       - name: Bench cache key
         id: bench-key
         run: |
-          [ -n "$RTBOT_TOKEN" ] && scope=full || scope=public
+          if [ -n "$RTBOT_TOKEN" ]; then
+            scope=full
+            echo "PRIVATE_APPS=telephony helpdesk crm frappe_appointment india_compliance rtcamp" >> "$GITHUB_ENV"
+          else
+            scope=public
+            echo "RTBOT_TOKEN unavailable (fork PR) — skipping private rtcamp app; rtcamp-gated tests will skip"
+            echo "> [!WARNING]" >> "$GITHUB_STEP_SUMMARY"
+            echo "> RTBOT_TOKEN unavailable (fork PR) — private apps were not installed; rtcamp-gated tests will skip." >> "$GITHUB_STEP_SUMMARY"
+            echo "PRIVATE_APPS=" >> "$GITHUB_ENV"
+          fi
           echo "key=bench-${{ runner.os }}-py${{ steps.py.outputs.python-version }}-$scope-${{ hashFiles('.github/workflows/unit-tests.yml') }}-$(date +%F)" >> "$GITHUB_OUTPUT"
         env:
           RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
@@ -113,23 +122,43 @@ jobs:
           path: ~/frappe-bench
           key: ${{ steps.bench-key.outputs.key }}
 
-      - name: Install
+      # Installing erpnext/hrms/... into the site is ~100s and independent of next_pms,
+      # so cache a DB dump taken before next_pms is installed (same key as the bench).
+      - uses: actions/cache/restore@v6
+        id: site-cache
+        with:
+          path: ~/site-cache
+          key: site-${{ steps.bench-key.outputs.key }}
+
+      - name: Create site
         working-directory: /home/runner/frappe-bench
         run: |
-          if [ -n "$RTBOT_TOKEN" ]; then
-            PRIVATE_APPS="telephony helpdesk crm frappe_appointment india_compliance rtcamp"
-          else
-            echo "RTBOT_TOKEN unavailable (fork PR) — skipping private rtcamp app; rtcamp-gated tests will skip"
-            echo "> [!WARNING]" >> "$GITHUB_STEP_SUMMARY"
-            echo "> RTBOT_TOKEN unavailable (fork PR) — private apps were not installed; rtcamp-gated tests will skip." >> "$GITHUB_STEP_SUMMARY"
-            PRIVATE_APPS=""
-          fi
           bench get-app next_pms "$GITHUB_WORKSPACE" --skip-assets
           bench new-site --db-root-password root --admin-password admin --no-mariadb-socket test_site
-          bench --site test_site install-app erpnext hrms frappe_gmail_thread frappe_comment_xt frappe_slack_connector $PRIVATE_APPS next_pms
+          if [ "$SITE_CACHE_HIT" = "true" ]; then
+            bench --site test_site --force restore ~/site-cache/db.sql.gz --db-root-password root
+          else
+            bench --site test_site install-app erpnext hrms frappe_gmail_thread frappe_comment_xt frappe_slack_connector $PRIVATE_APPS
+            mkdir -p ~/site-cache
+            bench --site test_site backup --backup-path ~/site-cache
+            mv ~/site-cache/*-database.sql.gz ~/site-cache/db.sql.gz
+            find ~/site-cache -type f ! -name db.sql.gz -delete
+          fi
         env:
           CI: "Yes"
-          RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
+          SITE_CACHE_HIT: ${{ steps.site-cache.outputs.cache-hit }}
+
+      - uses: actions/cache/save@v6
+        if: steps.site-cache.outputs.cache-hit != 'true'
+        with:
+          path: ~/site-cache
+          key: site-${{ steps.bench-key.outputs.key }}
+
+      - name: Install next_pms
+        working-directory: /home/runner/frappe-bench
+        run: bench --site test_site install-app next_pms
+        env:
+          CI: "Yes"
 
       - name: Run tests
         working-directory: /home/runner/frappe-bench
