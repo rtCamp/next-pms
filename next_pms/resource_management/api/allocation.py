@@ -9,6 +9,7 @@ from frappe.utils import cint, flt, getdate, strip_html_tags
 
 from next_pms.resource_management.api.utils.helpers import (
     RESOURCE_MANAGER_ROLES,
+    can_manage_ai_allocations,
     is_on_leave,
     override_hours_by_date,
     resource_api_permissions_check,
@@ -51,7 +52,7 @@ def _require_delivery_manager_for_ai_allocation(name: str) -> bool:
     if not is_ai_created:
         return False
 
-    if frappe.session.user == "Administrator" or "Delivery Manager" not in frappe.get_roles():
+    if not can_manage_ai_allocations():
         frappe.throw(
             frappe._("Only Delivery Managers can manage AI-created allocations."),
             exc=frappe.PermissionError,

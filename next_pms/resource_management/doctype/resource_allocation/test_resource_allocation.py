@@ -380,6 +380,45 @@ class TestResourceAllocationValidation(IntegrationTestCase):
 
         self.assertFalse(frappe.db.exists("Resource Allocation", doc.name))
 
+    def test_administrator_can_approve_and_delete_ai_allocations(self):
+        doc = self._make_allocation_doc(
+            project=self.project,
+            is_ai_created=1,
+            status="Tentative",
+        )
+        doc.insert(ignore_permissions=True)
+
+        frappe.set_user("Administrator")
+        edit_allocation(
+            name=doc.name,
+            edit_mode="only_this",
+            allocation=AllocationPayload(
+                doctype="Resource Allocation",
+                employee=doc.employee,
+                customer=doc.customer,
+                project=doc.project,
+                allocation_start_date=str(doc.allocation_start_date),
+                allocation_end_date=str(doc.allocation_end_date),
+                hours_allocated_per_day=doc.hours_allocated_per_day,
+                include_weekends=bool(doc.include_weekends),
+                is_ai_created=0,
+                status="Confirmed",
+            ),
+        )
+        self.assertEqual(frappe.db.get_value("Resource Allocation", doc.name, "status"), "Confirmed")
+        self.assertEqual(frappe.db.get_value("Resource Allocation", doc.name, "is_ai_created"), 0)
+
+        ai_doc = self._make_allocation_doc(
+            project=self.project,
+            is_ai_created=1,
+            status="Tentative",
+            allocation_start_date="2026-06-22",
+            allocation_end_date="2026-06-26",
+        )
+        ai_doc.insert(ignore_permissions=True)
+        delete_allocation(name=ai_doc.name, delete_mode="only_this")
+        self.assertFalse(frappe.db.exists("Resource Allocation", ai_doc.name))
+
     def test_delivery_manager_without_projects_role_cannot_manage_regular_allocation(self):
         doc = self._make_allocation_doc(project=self.project)
         doc.insert(ignore_permissions=True)

@@ -12,12 +12,12 @@ from next_pms.resource_management.api.project import (
 )
 from next_pms.resource_management.api.team import _get_resource_management_team_view_data
 from next_pms.resource_management.api.utils import leave_sync
-from next_pms.resource_management.api.utils.helpers import allocation_hours_for_date, override_hours_by_date
+from next_pms.resource_management.api.utils.helpers import (
+    allocation_hours_for_date,
+    can_manage_ai_allocations,
+    override_hours_by_date,
+)
 from next_pms.resource_management.api.utils.query import attach_extra_entries
-
-
-def _is_delivery_manager(user):
-    return user != "Administrator" and "Delivery Manager" in frappe.get_roles(user)
 
 
 def has_permission(doc, ptype=None, user=None, debug=False):
@@ -31,9 +31,9 @@ def has_permission(doc, ptype=None, user=None, debug=False):
     )
 
     if is_ai_created:
-        return _is_delivery_manager(user)
+        return can_manage_ai_allocations(user)
 
-    if _is_delivery_manager(user) and not roles.intersection({"Projects Manager", "Projects User", "System Manager"}):
+    if "Delivery Manager" in roles and not roles.intersection({"Projects Manager", "Projects User", "System Manager"}):
         return False
 
     return True
@@ -92,7 +92,7 @@ class ResourceAllocation(Document):
 
     def validate_ai_allocation_access(self):
         previous_doc = self.get_doc_before_save()
-        if previous_doc and cint(previous_doc.is_ai_created) and not _is_delivery_manager(frappe.session.user):
+        if previous_doc and cint(previous_doc.is_ai_created) and not can_manage_ai_allocations():
             frappe.throw(
                 frappe._("Only Delivery Managers can edit AI-created allocations."),
                 exc=frappe.PermissionError,
@@ -267,7 +267,7 @@ class ResourceAllocation(Document):
         clear_cache()
 
     def on_trash(self):
-        if cint(self.is_ai_created) and not _is_delivery_manager(frappe.session.user):
+        if cint(self.is_ai_created) and not can_manage_ai_allocations():
             frappe.throw(
                 frappe._("Only Delivery Managers can delete AI-created allocations."),
                 exc=frappe.PermissionError,

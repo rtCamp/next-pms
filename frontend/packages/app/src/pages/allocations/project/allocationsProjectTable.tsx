@@ -46,13 +46,12 @@ export const AllocationsProjectTable = () => {
   const ganttRef = useUnsavedChangesSource();
   const guardAction = useGuardedAction();
 
-  const { roles, userId } = useUser(({ state }) => ({
-    roles: state.roles,
-    userId: state.userId,
-  }));
+  const roles = useUser(({ state }) => state.roles);
   const canManageAllocations = hasAnyRole(roles, ROLE_ACCESS.manageAllocations);
-  const canManageAiAllocations =
-    userId !== "Administrator" && roles.includes("Delivery Manager");
+  const canManageAiAllocations = hasAnyRole(
+    roles,
+    ROLE_ACCESS.manageAiAllocations,
+  );
 
   const {
     openAddAllocationDialog,

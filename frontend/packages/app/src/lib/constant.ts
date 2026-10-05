@@ -51,6 +51,7 @@ export const ROLE_ACCESS = {
     "Delivery Manager",
     "System Manager",
   ],
+  manageAiAllocations: ["Delivery Manager"],
   notifications: [
     "Delivery Manager",
     "Delivery User",
