@@ -37,8 +37,10 @@ export function UpcomingTimeOffProvider({ children }: PropsWithChildren) {
         await approveLeaveApplication({ name });
         toast.success("Leave application approved");
         await mutate();
+        return true;
       } catch (error) {
         toast.error(parseFrappeErrorMsg(error as FrappeError));
+        return false;
       }
     },
     [approveLeaveApplication, mutate, toast],

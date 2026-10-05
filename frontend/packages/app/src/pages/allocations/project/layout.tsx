@@ -10,6 +10,8 @@ import { SWRConfig } from "swr";
  * Internal dependencies.
  */
 import { Header } from "@/layout/header";
+import { ROLE_ACCESS } from "@/lib/constant";
+import { hasAnyRole } from "@/lib/utils";
 import { AllocationsBreadcrumbs } from "@/pages/allocations/components/allocationsBreadcrumbs";
 import AddAllocationModal from "@/pages/allocations/team/add-allocation";
 import EditScheduleModal from "@/pages/allocations/team/edit-schedule";
@@ -24,8 +26,7 @@ function ProjectAllocationsLayoutContent() {
   const { openAddDialog, outletContext, modalProps, editScheduleModalProps } =
     useAllocationModal(refresh);
   const roles = useUser(({ state }) => state.roles);
-  const canManageAllocations =
-    roles.includes("Projects Manager") || roles.includes("Projects User");
+  const canManageAllocations = hasAnyRole(roles, ROLE_ACCESS.manageAllocations);
 
   return (
     <>

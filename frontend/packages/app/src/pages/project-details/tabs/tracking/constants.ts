@@ -26,7 +26,7 @@ export const ROW_COLUMNS: Record<number, string> = {
  * Returns the default layout for the tracking tab based on the billing type.
  */
 export function getDefaultLayout(billingType: string): TrackingLayout {
-  const isBillable = billingType !== "Non-Billable";
+  const isBillable = !!billingType && billingType !== "Non-Billable";
 
   return [
     isBillable ? ["financials", "task_completion"] : ["task_completion"],

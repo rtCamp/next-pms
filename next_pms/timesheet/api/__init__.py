@@ -1,6 +1,8 @@
 import frappe
 from frappe import get_all, get_list, get_value, whitelist
 
+from next_pms.timesheet.utils.constant import GLOBAL_TIMESHEET_ROLES
+
 
 @whitelist(methods=["GET"])
 def get_approver_details():
@@ -116,7 +118,7 @@ def filter_employees(
 
     user_roles = frappe.get_roles()
     if not ignore_permissions:
-        if set(user_roles).intersection(["Timesheet Manager", "Projects Manager"]):
+        if set(user_roles).intersection([*GLOBAL_TIMESHEET_ROLES, "Projects Manager"]):
             ignore_permissions = True
         elif has_membership_filter and set(user_roles).intersection(["Timesheet User", "Projects User"]):
             ignore_permissions = True

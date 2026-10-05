@@ -25,6 +25,9 @@ DELIVERY_MANAGER_USER = "test.dm.dashboard@example.com"
 DELIVERY_USER_USER = "test.du.dashboard@example.com"
 PROJECTS_MANAGER_USER = "test.pm.dashboard@example.com"
 PROJECTS_USER_USER = "test.pu.dashboard@example.com"
+TIMESHEET_MANAGER_USER = "test.tm.dashboard@example.com"
+TIMESHEET_USER_USER = "test.tu.dashboard@example.com"
+SYSTEM_MANAGER_USER = "test.sm.dashboard@example.com"
 NO_ROLE_USER = "test.norole.dashboard@example.com"
 
 SAMPLE_DATE_FROM = "2026-01-01"
@@ -38,11 +41,11 @@ KPI_PREV_END = "2025-12-31"
 class TestDashboardPermissions(IntegrationTestCase):
     """Verify the role-based access rules on every dashboard endpoint.
 
-    Restricted (Delivery Manager / Delivery User only):
+    Restricted (Delivery Manager / Delivery User / Timesheet Manager / System Manager):
         get_leadership_kpis, get_active_projects_count, get_non_billable_hours,
         get_time_utilisation, get_forecast_breakdown.
 
-    All four roles (Delivery Manager, Delivery User, Projects Manager, Projects User):
+    All roles (the restricted set plus Projects Manager / Projects User):
         all remaining dashboard endpoints.
     """
 
@@ -53,6 +56,9 @@ class TestDashboardPermissions(IntegrationTestCase):
         cls._make_user(DELIVERY_USER_USER, ["Delivery User"])
         cls._make_user(PROJECTS_MANAGER_USER, ["Projects Manager"])
         cls._make_user(PROJECTS_USER_USER, ["Projects User"])
+        cls._make_user(TIMESHEET_MANAGER_USER, ["Timesheet Manager"])
+        cls._make_user(TIMESHEET_USER_USER, ["Timesheet User"])
+        cls._make_user(SYSTEM_MANAGER_USER, ["System Manager"])
         cls._make_user(NO_ROLE_USER, [])
         frappe.clear_cache()
 
@@ -96,7 +102,7 @@ class TestDashboardPermissions(IntegrationTestCase):
             f"{func.__name__} should have been blocked by only_for() for user {frappe.session.user}",
         )
 
-    # Restricted endpoints - Delivery Manager and Delivery User only
+    # Restricted endpoints - leadership dashboard roles only
 
     def test_restricted_endpoints_deny_projects_manager(self):
         frappe.set_user(PROJECTS_MANAGER_USER)
@@ -128,7 +134,25 @@ class TestDashboardPermissions(IntegrationTestCase):
             with self.subTest(endpoint=func.__name__):
                 self._assert_permitted(func, *args)
 
-    # All-roles endpoints — any of the four PMS roles
+    def test_restricted_endpoints_allow_timesheet_manager(self):
+        frappe.set_user(TIMESHEET_MANAGER_USER)
+        for func, args in self._restricted_cases():
+            with self.subTest(endpoint=func.__name__):
+                self._assert_permitted(func, *args)
+
+    def test_restricted_endpoints_allow_system_manager(self):
+        frappe.set_user(SYSTEM_MANAGER_USER)
+        for func, args in self._restricted_cases():
+            with self.subTest(endpoint=func.__name__):
+                self._assert_permitted(func, *args)
+
+    def test_restricted_endpoints_deny_timesheet_user(self):
+        frappe.set_user(TIMESHEET_USER_USER)
+        for func, args in self._restricted_cases():
+            with self.subTest(endpoint=func.__name__):
+                self._assert_forbidden(func, *args)
+
+    # All-roles endpoints — any dashboard role
 
     def test_all_roles_endpoints_deny_no_role_user(self):
         frappe.set_user(NO_ROLE_USER)
@@ -159,6 +183,24 @@ class TestDashboardPermissions(IntegrationTestCase):
         for func, args in self._all_roles_cases():
             with self.subTest(endpoint=func.__name__):
                 self._assert_permitted(func, *args)
+
+    def test_all_roles_endpoints_allow_timesheet_manager(self):
+        frappe.set_user(TIMESHEET_MANAGER_USER)
+        for func, args in self._all_roles_cases():
+            with self.subTest(endpoint=func.__name__):
+                self._assert_permitted(func, *args)
+
+    def test_all_roles_endpoints_allow_system_manager(self):
+        frappe.set_user(SYSTEM_MANAGER_USER)
+        for func, args in self._all_roles_cases():
+            with self.subTest(endpoint=func.__name__):
+                self._assert_permitted(func, *args)
+
+    def test_all_roles_endpoints_deny_timesheet_user(self):
+        frappe.set_user(TIMESHEET_USER_USER)
+        for func, args in self._all_roles_cases():
+            with self.subTest(endpoint=func.__name__):
+                self._assert_forbidden(func, *args)
 
     # Helpers
 

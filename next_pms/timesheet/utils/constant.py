@@ -11,6 +11,12 @@ DEFAULT_DAILY_WORKING_HOURS = 8
 # Assumed when an Employee has no custom_work_schedule set.
 DEFAULT_WORKING_FREQUENCY = "Per Day"
 
+# Roles that review every employee's timesheets, not only their reports'.
+GLOBAL_TIMESHEET_ROLES = ["Timesheet Manager", "Delivery Manager", "System Manager"]
+
+# Roles that open the Team and Project timesheet pages.
+TIMESHEET_REVIEWER_ROLES = [*GLOBAL_TIMESHEET_ROLES, "Timesheet User", "Projects Manager"]
+
 # The one approval status that is an absence of data rather than a stored value: a week
 # with no Timesheet, or a Timesheet whose weekly status was never set.
 NOT_SUBMITTED_STATUS = "Not Submitted"

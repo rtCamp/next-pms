@@ -13,6 +13,7 @@ from next_pms.timesheet.utils.constant import (
     ALLOWED_FILTER_FIELDS,
     ALLOWED_TIMESHET_DETAIL_FIELDS,
     FILTER_LOOKBACK_WEEKS,
+    GLOBAL_TIMESHEET_ROLES,
     NOT_SUBMITTED_STATUS,
     WORK_FILTER_DOCTYPES,
 )
@@ -20,7 +21,7 @@ from next_pms.timesheet.utils.constant import (
 from . import filter_employees
 
 READ_ONLY_ROLE = ["Timesheet User", "Projects User"]
-READ_WRITE_ROLE = ["Timesheet Manager", "Projects Manager"]
+READ_WRITE_ROLE = [*GLOBAL_TIMESHEET_ROLES, "Projects Manager"]
 
 # Stands in for a day whose projects do not agree on one status. Never stored - it only
 # keeps such a day out of the whole-week totals in update_weekly_status_of_timesheet.
@@ -282,7 +283,7 @@ def employee_has_higher_access(employee: str, ptype: str = "read") -> bool:
     if (
         set(roles).intersection(["Projects Manager", "Projects User"])
         and ptype == "write"
-        and not set(roles).intersection(["Timesheet Manager"])
+        and not set(roles).intersection(GLOBAL_TIMESHEET_ROLES)
     ):
         if employee == session_employee:
             return True
@@ -301,7 +302,7 @@ def employee_has_higher_access(employee: str, ptype: str = "read") -> bool:
 
 
 # Roles that may decide any project's timesheets, regardless of who manages the project.
-GLOBAL_APPROVER_ROLES = ("System Manager", "Timesheet Manager", "Projects Manager")
+GLOBAL_APPROVER_ROLES = (*GLOBAL_TIMESHEET_ROLES, "Projects Manager")
 
 
 def can_approve_project_timesheets(project: str, employee: str) -> bool:
