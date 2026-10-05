@@ -11,7 +11,8 @@ import type { FrappeError } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { usePMSSettings, usePMSSystemSettings } from "@/hooks/usePMSSettings";
-import { parseFrappeErrorMsg } from "@/lib/utils";
+import { ROLE_ACCESS } from "@/lib/constant";
+import { hasAnyRole, parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import { SETTINGS_SECTIONS } from "./constants";
 import { ProfilePage } from "./pages/profile";
@@ -41,7 +42,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
       roles: state.roles,
     }),
   );
-  const isSystemManager = roles.includes("System Manager");
+  const canManageSystemSettings = hasAnyRole(roles, ROLE_ACCESS.systemSettings);
 
   const {
     error: settingsError,
@@ -58,9 +59,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     mutate: mutateSystem,
     systemSettings,
     updateSystemSettings,
-  } = usePMSSystemSettings(open && isSystemManager);
+  } = usePMSSystemSettings(open && canManageSystemSettings);
 
-  const sections = isSystemManager
+  const sections = canManageSystemSettings
     ? SETTINGS_SECTIONS
     : SETTINGS_SECTIONS.filter(({ tabs }) =>
         tabs.some(({ id }) => !id.startsWith("system-")),
