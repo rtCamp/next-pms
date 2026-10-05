@@ -28,12 +28,25 @@ import {
 /**
  * Internal dependencies.
  */
-import { parseFrappeErrorMsg } from "@/lib/utils";
+import {
+  currencyFormat,
+  getDefaultCurrency,
+  parseFrappeErrorMsg,
+} from "@/lib/utils";
+import { DisabledField } from "@/pages/project-details/components/disabledField";
+import { UpdateLogNote } from "@/pages/project-details/components/updateLogNote";
 import { useProjectDetail } from "@/pages/project-details/context";
-import { CLIENT_PRIORITIES, GROWTH_DOCTYPE } from "../constants";
+import {
+  CLIENT_PRIORITY_OPTIONS,
+  FORM_EDITOR_CLASS,
+  FORM_INPUT_CLASS,
+  GROWTH_DOCTYPE,
+} from "../constants";
 import { useGrowth } from "../context";
+import { PriorityBadge } from "../list/cells/priorityBadge";
+import { StatusBadge } from "../list/cells/statusBadge";
 import type { ApiGrowthDetail } from "../types";
-import { EDITOR_CLASS, EMPTY_GROWTH_VALUES, INPUT_CLASS } from "./constants";
+import { EMPTY_GROWTH_VALUES } from "./constants";
 import { EmployeeField } from "./employeeField";
 import { buildGrowthSchema, type GrowthFormValues } from "./schema";
 import type { CreateGrowthModalProps } from "./types";
@@ -43,25 +56,23 @@ const emptyCreateValues = (): GrowthFormValues => ({
   ideation_date: format(new Date(), "yyyy-MM-dd"),
 });
 
-const PRIORITY_OPTIONS = CLIENT_PRIORITIES.map((p) => ({
-  label: p,
-  value: p,
-}));
-
 const toNameOptions = (docs: { name: string }[]) =>
   docs.map((doc) => ({ label: doc.name, value: doc.name }));
 
-const toPayload = (value: GrowthFormValues, isClosed: boolean) => ({
+const toPayload = (value: GrowthFormValues) => ({
   activity: value.activity,
   category: value.category || null,
   description: value.description,
-  client_priority: value.client_priority,
-  status: value.status,
-  closed_status: isClosed ? value.closed_status : null,
   desired_outcome: value.desired_outcome,
   ideation_date: value.ideation_date,
   activity_owner: value.activity_owner || null,
   ideation_owner: value.ideation_owner || null,
+});
+
+const toUpdateLogPayload = (value: GrowthFormValues, isClosed: boolean) => ({
+  client_priority: value.client_priority,
+  status: value.status,
+  closed_status: isClosed ? value.closed_status : null,
   billable_outcome: value.billable_outcome ? Number(value.billable_outcome) : 0,
 });
 
@@ -71,6 +82,9 @@ export function CreateGrowthModal({
   growthName,
 }: CreateGrowthModalProps) {
   const projectId = useProjectDetail((s) => s.projectId);
+  const currency = useProjectDetail(
+    (s) => s.project?.custom_currency || getDefaultCurrency(),
+  );
   const refresh = useGrowth((c) => c.actions.refresh);
   const statuses = useGrowth((c) => c.state.statuses);
   const closedStatuses = useGrowth((c) => c.state.closedStatuses);
@@ -113,14 +127,17 @@ export function CreateGrowthModal({
     onSubmit: async ({ value, meta }) => {
       setSubmittingAction(meta.keepOpen ? "createAnother" : "close");
       setSubmitError(null);
-      const payload = toPayload(value, isClosedStatus(value.status));
       try {
         if (isEditMode && growthName) {
-          await updateDoc(GROWTH_DOCTYPE, growthName, payload);
+          await updateDoc(GROWTH_DOCTYPE, growthName, toPayload(value));
           void mutateExisting();
           toast.success("Growth initiative updated");
         } else {
-          await createDoc(GROWTH_DOCTYPE, { project: projectId, ...payload });
+          await createDoc(GROWTH_DOCTYPE, {
+            project: projectId,
+            ...toPayload(value),
+            ...toUpdateLogPayload(value, isClosedStatus(value.status)),
+          });
           toast.success("Growth initiative created");
         }
         refresh();
@@ -241,7 +258,7 @@ export function CreateGrowthModal({
                   placeholder="Enter activity"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  className={INPUT_CLASS}
+                  className={FORM_INPUT_CLASS}
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />
@@ -258,7 +275,7 @@ export function CreateGrowthModal({
                   Category
                 </label>
                 <Combobox
-                  inputClassName={`h-8 ${INPUT_CLASS}`}
+                  inputClassName={`h-8 ${FORM_INPUT_CLASS}`}
                   loading={mastersLoading}
                   options={toNameOptions(categories)}
                   placeholder="Select category"
@@ -283,87 +300,112 @@ export function CreateGrowthModal({
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}
                   fixedMenu={false}
-                  editorClass={EDITOR_CLASS}
+                  editorClass={FORM_EDITOR_CLASS}
                 />
               </div>
             )}
           />
 
-          <form.Field
-            name="client_priority"
-            children={(field) => (
-              <div className="flex flex-col gap-1.5">
-                <label className="block text-base text-ink-gray-5">
-                  Priority for Client
-                </label>
-                <Select
-                  className="text-ink-gray-7 **:data-placeholder:text-ink-gray-4"
-                  variant="outline"
-                  options={PRIORITY_OPTIONS}
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Select priority"
-                />
-              </div>
-            )}
-          />
-
-          <form.Field
-            name="status"
-            children={(field) => (
-              <div className="flex flex-col gap-1.5">
-                <FormLabel size="md" required>
-                  Status
-                </FormLabel>
-                <Select
-                  className="text-ink-gray-7 **:data-placeholder:text-ink-gray-4"
-                  variant="outline"
-                  options={toNameOptions(statuses)}
-                  value={field.state.value}
-                  onChange={(e) => {
-                    field.handleChange(e.target.value);
-                    if (!isClosedStatus(e.target.value)) {
-                      form.setFieldValue("closed_status", "");
-                    }
-                  }}
-                  placeholder="Select status"
-                />
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+          {isEditMode ? (
+            <>
+              <DisabledField label="Priority for Client">
+                {existing?.client_priority ? (
+                  <PriorityBadge priority={existing.client_priority} />
+                ) : (
+                  <span>—</span>
                 )}
-              </div>
-            )}
-          />
+              </DisabledField>
+              <DisabledField label="Status">
+                <StatusBadge status={existing?.status} />
+              </DisabledField>
+              {existing?.closed_status && (
+                <DisabledField label="Closed status">
+                  {existing.closed_status}
+                </DisabledField>
+              )}
+              <UpdateLogNote message="To change status, priority or billable outcome, add a new update instead." />
+            </>
+          ) : (
+            <>
+              <form.Field
+                name="client_priority"
+                children={(field) => (
+                  <div className="flex flex-col gap-1.5">
+                    <label className="block text-base text-ink-gray-5">
+                      Priority for Client
+                    </label>
+                    <Select
+                      className="text-ink-gray-7 **:data-placeholder:text-ink-gray-4"
+                      variant="outline"
+                      options={CLIENT_PRIORITY_OPTIONS}
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="Select priority"
+                    />
+                  </div>
+                )}
+              />
 
-          <form.Subscribe selector={(state) => state.values.status}>
-            {(status) =>
-              isClosedStatus(status) && (
-                <form.Field
-                  name="closed_status"
-                  children={(field) => (
-                    <div className="flex flex-col gap-1.5">
-                      <FormLabel size="md" required>
-                        Closed status
-                      </FormLabel>
-                      <Select
-                        className="text-ink-gray-7 **:data-placeholder:text-ink-gray-4"
-                        variant="outline"
-                        options={toNameOptions(closedStatuses)}
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        placeholder="Select closed status"
+              <form.Field
+                name="status"
+                children={(field) => (
+                  <div className="flex flex-col gap-1.5">
+                    <FormLabel size="md" required>
+                      Status
+                    </FormLabel>
+                    <Select
+                      className="text-ink-gray-7 **:data-placeholder:text-ink-gray-4"
+                      variant="outline"
+                      options={toNameOptions(statuses)}
+                      value={field.state.value}
+                      onChange={(e) => {
+                        field.handleChange(e.target.value);
+                        if (!isClosedStatus(e.target.value)) {
+                          form.setFieldValue("closed_status", "");
+                        }
+                      }}
+                      placeholder="Select status"
+                    />
+                    {!field.state.meta.isValid && (
+                      <ErrorMessage
+                        message={field.state.meta.errors[0]?.message}
                       />
-                      {!field.state.meta.isValid && (
-                        <ErrorMessage
-                          message={field.state.meta.errors[0]?.message}
-                        />
+                    )}
+                  </div>
+                )}
+              />
+
+              <form.Subscribe selector={(state) => state.values.status}>
+                {(status) =>
+                  isClosedStatus(status) && (
+                    <form.Field
+                      name="closed_status"
+                      children={(field) => (
+                        <div className="flex flex-col gap-1.5">
+                          <FormLabel size="md" required>
+                            Closed status
+                          </FormLabel>
+                          <Select
+                            className="text-ink-gray-7 **:data-placeholder:text-ink-gray-4"
+                            variant="outline"
+                            options={toNameOptions(closedStatuses)}
+                            value={field.state.value}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            placeholder="Select closed status"
+                          />
+                          {!field.state.meta.isValid && (
+                            <ErrorMessage
+                              message={field.state.meta.errors[0]?.message}
+                            />
+                          )}
+                        </div>
                       )}
-                    </div>
-                  )}
-                />
-              )
-            }
-          </form.Subscribe>
+                    />
+                  )
+                }
+              </form.Subscribe>
+            </>
+          )}
 
           <form.Field
             name="desired_outcome"
@@ -377,7 +419,7 @@ export function CreateGrowthModal({
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}
                   fixedMenu={false}
-                  editorClass={EDITOR_CLASS}
+                  editorClass={FORM_EDITOR_CLASS}
                 />
               </div>
             )}
@@ -441,29 +483,37 @@ export function CreateGrowthModal({
             )}
           />
 
-          <form.Field
-            name="billable_outcome"
-            children={(field) => (
-              <div className="flex flex-col gap-1.5">
-                <label className="block text-base text-ink-gray-5">
-                  Billable outcome
-                </label>
-                <TextInput
-                  type="number"
-                  size="md"
-                  variant="outline"
-                  min={0}
-                  placeholder="0"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  className={INPUT_CLASS}
-                />
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
-                )}
-              </div>
-            )}
-          />
+          {isEditMode ? (
+            <DisabledField label="Billable outcome">
+              {currencyFormat(currency).format(existing?.billable_outcome ?? 0)}
+            </DisabledField>
+          ) : (
+            <form.Field
+              name="billable_outcome"
+              children={(field) => (
+                <div className="flex flex-col gap-1.5">
+                  <label className="block text-base text-ink-gray-5">
+                    Billable outcome
+                  </label>
+                  <TextInput
+                    type="number"
+                    size="md"
+                    variant="outline"
+                    min={0}
+                    placeholder="0"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    className={FORM_INPUT_CLASS}
+                  />
+                  {!field.state.meta.isValid && (
+                    <ErrorMessage
+                      message={field.state.meta.errors[0]?.message}
+                    />
+                  )}
+                </div>
+              )}
+            />
+          )}
 
           {submitError ? <ErrorMessage message={submitError} /> : null}
         </div>

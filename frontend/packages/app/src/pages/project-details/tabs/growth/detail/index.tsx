@@ -21,8 +21,10 @@ export function GrowthDetailView({ growthId }: GrowthDetailViewProps) {
     isLoading,
     attachments,
     followers,
+    mutate,
     mutateAttachments,
     mutateFollowers,
+    deleteUpdateEntry,
   } = useGrowthDetail(growthId);
   const { canEdit } = useOwnerGatedPermissions(growth?.activity_owner);
 
@@ -54,6 +56,8 @@ export function GrowthDetailView({ growthId }: GrowthDetailViewProps) {
         attachments={attachments}
         canEdit={canEdit}
         onAttachmentsChange={() => void mutateAttachments()}
+        onUpdateLogChange={() => void mutate()}
+        onDeleteUpdateEntry={deleteUpdateEntry}
       />
     </div>
   );

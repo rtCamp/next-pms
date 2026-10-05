@@ -1,5 +1,24 @@
 import { z } from "zod";
 
+export const billableOutcomeSchema = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || Number(value) >= 0, {
+    message: "Billable outcome must be zero or greater.",
+  });
+
+export const requireClosedStatus =
+  (isClosedStatus: (status: string) => boolean) =>
+  (values: { status: string; closed_status: string }, ctx: z.RefinementCtx) => {
+    if (isClosedStatus(values.status) && !values.closed_status) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["closed_status"],
+        message: "Please select a closed status.",
+      });
+    }
+  };
+
 export const buildGrowthSchema = (
   isClosedStatus: (status: string) => boolean,
 ) =>
@@ -21,21 +40,8 @@ export const buildGrowthSchema = (
         .min(1, { message: "Please pick an ideation date." }),
       activity_owner: z.string(),
       ideation_owner: z.string(),
-      billable_outcome: z
-        .string()
-        .trim()
-        .refine((value) => value === "" || Number(value) >= 0, {
-          message: "Billable outcome must be zero or greater.",
-        }),
+      billable_outcome: billableOutcomeSchema,
     })
-    .superRefine((values, ctx) => {
-      if (isClosedStatus(values.status) && !values.closed_status) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["closed_status"],
-          message: "Please select a closed status.",
-        });
-      }
-    });
+    .superRefine(requireClosedStatus(isClosedStatus));
 
 export type GrowthFormValues = z.infer<ReturnType<typeof buildGrowthSchema>>;

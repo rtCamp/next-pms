@@ -1,7 +1,10 @@
 /**
  * External dependencies.
  */
-import { StaticTextEditor } from "@rtcamp/frappe-ui-react";
+import { useState } from "react";
+import { DeleteActionDialog } from "@next-pms/design-system/components";
+import { Button, StaticTextEditor } from "@rtcamp/frappe-ui-react";
+import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -16,14 +19,20 @@ import { DocumentUploadButton } from "@/pages/project-details/components/documen
 import { FileCard } from "@/pages/project-details/components/fileCard";
 import { useProjectDetail } from "@/pages/project-details/context";
 import type { FileAttachment } from "@/pages/project-details/types";
+import { useUser } from "@/providers/user";
+import { AddUpdateModal } from "../add-update";
 import { GROWTH_DOCTYPE } from "../constants";
-import type { GrowthDetail } from "../types";
+import { useGrowth } from "../context";
+import type { EnrichedGrowthUpdateEntry, GrowthDetail } from "../types";
+import { UpdateEntry } from "./updateEntry";
 
 interface GrowthDetailContentProps {
   growth: GrowthDetail;
   attachments: FileAttachment[];
   canEdit: boolean;
   onAttachmentsChange: () => void;
+  onUpdateLogChange: () => void;
+  onDeleteUpdateEntry: (entry: EnrichedGrowthUpdateEntry) => Promise<void>;
 }
 
 const EDITOR_CLASS =
@@ -34,10 +43,33 @@ export function GrowthDetailContent({
   attachments,
   canEdit,
   onAttachmentsChange,
+  onUpdateLogChange,
+  onDeleteUpdateEntry,
 }: GrowthDetailContentProps) {
   const currency = useProjectDetail(
     (s) => s.project?.custom_currency || getDefaultCurrency(),
   );
+  const refreshList = useGrowth((c) => c.actions.refresh);
+  const { userId, roles } = useUser(({ state }) => ({
+    userId: state.userId,
+    roles: state.roles,
+  }));
+  const [isAddUpdateOpen, setIsAddUpdateOpen] = useState(false);
+  const [editEntry, setEditEntry] = useState<EnrichedGrowthUpdateEntry | null>(
+    null,
+  );
+  const [deleteEntry, setDeleteEntry] =
+    useState<EnrichedGrowthUpdateEntry | null>(null);
+
+  const isSystemManager = roles.includes("System Manager");
+  const canManageEntry = (entry: EnrichedGrowthUpdateEntry) =>
+    canEdit && (isSystemManager || entry.updated_by === userId);
+  const updates = [...(growth.update_log ?? [])].reverse();
+
+  const handleUpdateLogChange = () => {
+    onUpdateLogChange();
+    refreshList();
+  };
 
   const details = [
     { label: "Category", value: growth.category ?? "—" },
@@ -59,6 +91,26 @@ export function GrowthDetailContent({
 
   return (
     <div>
+      <AddUpdateModal
+        open={isAddUpdateOpen || !!editEntry}
+        onClose={() => {
+          setIsAddUpdateOpen(false);
+          setEditEntry(null);
+        }}
+        growth={growth}
+        onSuccess={handleUpdateLogChange}
+        editEntry={editEntry ?? undefined}
+      />
+
+      {deleteEntry && (
+        <DeleteActionDialog
+          title="Delete update"
+          description="Are you sure you want to delete this update? This action cannot be undone."
+          onClose={() => setDeleteEntry(null)}
+          onConfirm={() => onDeleteUpdateEntry(deleteEntry).then(refreshList)}
+        />
+      )}
+
       <section className="mb-5">
         {growth.description ? (
           <StaticTextEditor
@@ -120,6 +172,37 @@ export function GrowthDetailContent({
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="mb-4.5">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-lg font-medium text-ink-gray-7">Updates</h3>
+          {canEdit && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setIsAddUpdateOpen(true)}
+              aria-label="Add update"
+              icon={AddSm}
+            />
+          )}
+        </div>
+        {updates.length > 0 ? (
+          <div>
+            {updates.map((entry) => (
+              <UpdateEntry
+                key={entry.name}
+                entry={entry}
+                currency={currency}
+                canEdit={canManageEntry(entry)}
+                onEdit={() => setEditEntry(entry)}
+                onDelete={() => setDeleteEntry(entry)}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-ink-gray-5">No updates yet.</p>
+        )}
       </section>
 
       <ActivitySection

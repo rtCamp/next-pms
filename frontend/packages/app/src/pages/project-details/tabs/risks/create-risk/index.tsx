@@ -13,7 +13,6 @@ import {
   TextEditor,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
-import { AlertTriangle } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
 import {
   FrappeError,
@@ -28,12 +27,13 @@ import {
  */
 import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { DisabledField } from "@/pages/project-details/components/disabledField";
+import { UpdateLogNote } from "@/pages/project-details/components/updateLogNote";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { toEmployeeUserOptions } from "@/pages/project-details/utils";
 import { RISK_LEVELS, RISK_STATUSES } from "../constants";
 import { useRisks } from "../context";
 import { EMPTY_RISK_VALUES } from "./constants";
-import { DisabledRiskField } from "./disabledRiskField";
 import { createRiskSchema, editRiskSchema } from "./schema";
 import type { CreateRiskModalProps } from "./types";
 import { RiskLevelBadge } from "../riskLevelBadge";
@@ -247,7 +247,7 @@ export function CreateRiskModal({
 
           {/* Risk level */}
           {isEditMode ? (
-            <DisabledRiskField label="Risk level">
+            <DisabledField label="Risk level">
               {existingRisk?.risk_level ? (
                 <RiskLevelBadge
                   className="bg-transparent p-0"
@@ -256,7 +256,7 @@ export function CreateRiskModal({
               ) : (
                 <span>—</span>
               )}
-            </DisabledRiskField>
+            </DisabledField>
           ) : (
             <form.Field
               name="risk_level"
@@ -285,7 +285,7 @@ export function CreateRiskModal({
 
           {/* Status */}
           {isEditMode ? (
-            <DisabledRiskField label="Status">
+            <DisabledField label="Status">
               {existingRisk?.status ? (
                 <RiskStatusBadge
                   className="text-base text-ink-gray-7"
@@ -294,7 +294,7 @@ export function CreateRiskModal({
               ) : (
                 <span>—</span>
               )}
-            </DisabledRiskField>
+            </DisabledField>
           ) : (
             <form.Field
               name="status"
@@ -322,12 +322,7 @@ export function CreateRiskModal({
           )}
 
           {isEditMode && (
-            <div className="flex items-center gap-2 rounded-lg bg-surface-violet-1 px-2.5 py-2">
-              <AlertTriangle className="size-4 shrink-0 text-ink-violet-4" />
-              <p className="min-w-0 flex-1 text-left text-xs text-ink-gray-8">
-                To change status or risk level, add a new risk update instead.
-              </p>
-            </div>
+            <UpdateLogNote message="To change status or risk level, add a new risk update instead." />
           )}
 
           {/* Risk owner */}
