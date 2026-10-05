@@ -241,18 +241,21 @@ def setup_todo_permissions():
 
 
 def setup_role_permissions():
-    """Let Delivery Manager pick roles in the System Configuration settings."""
+    """Let Delivery Manager pick roles in the System Configuration settings, and let the
+    allocation managers beyond Projects Manager pick a customer in the allocation dialogs."""
     import frappe
     from frappe.permissions import add_permission, update_permission_property
 
-    doctype = "Role"
-    role = "Delivery Manager"
     permlevel = 0
+    for doctype, role in (
+        ("Role", "Delivery Manager"),
+        ("Customer", "Delivery Manager"),
+        ("Customer", "System Manager"),
+    ):
+        if not frappe.db.exists("Custom DocPerm", {"parent": doctype, "role": role, "permlevel": permlevel}):
+            add_permission(doctype, role, permlevel)
 
-    if not frappe.db.exists("Custom DocPerm", {"parent": doctype, "role": role, "permlevel": permlevel}):
-        add_permission(doctype, role, permlevel)
-
-    update_permission_property(doctype, role, permlevel, "select", 1)
+        update_permission_property(doctype, role, permlevel, "select", 1)
 
 
 def add_project_manager_perm():
