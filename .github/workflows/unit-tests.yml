@@ -12,8 +12,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  Tests:
+  Shard:
+    name: Tests (shard ${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
 
     services:
       redis-cache:
@@ -164,4 +169,12 @@ jobs:
         working-directory: /home/runner/frappe-bench
         run: |
           bench --site test_site set-config allow_tests true
-          bench --site test_site run-tests --app next_pms
+          bench --site test_site run-parallel-tests --app next_pms --total-builds 3 --build-number ${{ matrix.shard }}
+
+  # Keeps the single "Tests" check name for branch protection.
+  Tests:
+    needs: Shard
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "${{ needs.Shard.result }}" = success
