@@ -19,6 +19,8 @@ export function TimelineCell({ item, column }: TimelineCellProps) {
   switch (column.key) {
     case "title":
       return <TitleCell item={item} />;
+    case "category":
+      return <span className="truncate">{item.categoryLabel}</span>;
     case "startDate":
       return <DateCell date={item.startDate} />;
     case "plannedEndDate":

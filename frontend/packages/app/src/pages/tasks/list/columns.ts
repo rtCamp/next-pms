@@ -5,7 +5,13 @@ export const TASK_LIST_COLUMNS = [
   { key: "expected_time", label: "Expected time", width: "140px" },
   { key: "priority", label: "Priority", width: "120px" },
   { key: "exp_end_date", label: "Due date", width: "140px" },
+];
+
+/** Trailing per-row controls; always shown and never offered in the selector. */
+export const TASK_ACTION_COLUMNS = [
   { key: "add_time", label: "", width: "48px" },
   { key: "like", label: "", width: "48px" },
   { key: "actions", label: "", width: "48px" },
 ];
+
+export const TASK_COLUMN_PARAM = "columnOrder";

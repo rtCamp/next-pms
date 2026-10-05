@@ -1,37 +1,56 @@
-import { getDayDiff, getUTCDateTime } from "@next-pms/design-system/date";
+/**
+ * External dependencies.
+ */
+import { addDays, format, isWeekend, parseISO } from "date-fns";
 
 /**
- * Returns inclusive day count for a YYYY-MM-DD range.
- * When includeWeekends is false, only Mon–Fri days are counted.
+ * Internal dependencies.
  */
-export const getRangeDayCount = (
-  fromDate: string,
-  toDate: string,
-  includeWeekends = true,
-): number => {
-  if (!fromDate || !toDate || fromDate > toDate) {
-    return 0;
-  }
+import type { AvailabilityByDate } from "@/pages/allocations/types";
+import { getReducingFactor } from "@/pages/allocations/utils";
 
-  if (includeWeekends) {
-    return Math.floor(getDayDiff(fromDate, toDate)) + 1;
-  }
+/**
+ * Sums how much of a working day each booked date is worth, across every weekly copy.
+ */
+const getEffectiveDayCount = ({
+  fromDate,
+  toDate,
+  includeWeekends,
+  includeHolidays,
+  copies,
+  availability,
+}: {
+  fromDate: string;
+  toDate: string;
+  includeWeekends: boolean;
+  includeHolidays: boolean;
+  copies: number;
+  availability: AvailabilityByDate;
+}): number => {
+  const end = parseISO(toDate);
+  let total = 0;
 
-  let count = 0;
-  const end = getUTCDateTime(toDate);
+  for (let copy = 0; copy < copies; copy++) {
+    for (let day = parseISO(fromDate); day <= end; day = addDays(day, 1)) {
+      const booked = addDays(day, copy * 7);
 
-  for (let d = getUTCDateTime(fromDate); d <= end; d.setDate(d.getDate() + 1)) {
-    const day = d.getDay();
-    if (day !== 0 && day !== 6) {
-      count++;
+      if (!includeWeekends && isWeekend(booked)) {
+        continue;
+      }
+
+      total += getReducingFactor(
+        availability[format(booked, "yyyy-MM-dd")],
+        includeHolidays,
+      );
     }
   }
 
-  return count;
+  return total;
 };
 
 /**
- * Computes total allocated hours for both one-time and recurring modes and respects the includeWeekends flag.
+ * Computes total allocated hours for both one-time and recurring modes, reduced on the
+ * days the employee is away the same way the allocation is reduced on save.
  */
 export const computeTotalHours = ({
   hoursPerDay,
@@ -40,6 +59,8 @@ export const computeTotalHours = ({
   toDate,
   repeatFor = 0,
   includeWeekends = true,
+  includeHolidays = false,
+  availability = {},
 }: {
   hoursPerDay?: number;
   recurrence: "one-time" | "recurring";
@@ -47,6 +68,8 @@ export const computeTotalHours = ({
   toDate?: string;
   repeatFor?: number;
   includeWeekends?: boolean;
+  includeHolidays?: boolean;
+  availability?: AvailabilityByDate;
 }): number => {
   const safeHoursPerDay = Number.isFinite(hoursPerDay)
     ? Number(hoursPerDay)
@@ -55,15 +78,16 @@ export const computeTotalHours = ({
   const safeFromDate = fromDate ?? "";
   const safeToDate = toDate ?? "";
 
-  if (!safeFromDate || !safeToDate) return 0;
+  if (!safeFromDate || !safeToDate || safeFromDate > safeToDate) return 0;
 
-  const dayCount =
-    recurrence === "recurring"
-      ? (Math.max(0, safeRepeatFor) + 1) *
-        getRangeDayCount(safeFromDate, safeToDate, includeWeekends)
-      : includeWeekends
-        ? Math.max(1, getRangeDayCount(safeFromDate, safeToDate, true))
-        : getRangeDayCount(safeFromDate, safeToDate, false);
+  const dayCount = getEffectiveDayCount({
+    fromDate: safeFromDate,
+    toDate: safeToDate,
+    includeWeekends,
+    includeHolidays,
+    copies: recurrence === "recurring" ? Math.max(0, safeRepeatFor) + 1 : 1,
+    availability,
+  });
 
   return Number((safeHoursPerDay * dayCount).toFixed(2));
 };

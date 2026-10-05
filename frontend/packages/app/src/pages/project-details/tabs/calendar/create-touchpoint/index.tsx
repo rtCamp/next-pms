@@ -6,23 +6,30 @@ import { getTodayDate } from "@next-pms/design-system/date";
 import {
   Avatar,
   Button,
+  Checkbox,
   Combobox,
   DatePicker,
   Dialog,
   ErrorMessage,
   FormLabel,
+  Select,
   TextInput,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { Calendar } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
-import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
+import {
+  FrappeError,
+  useFrappeGetDocList,
+  useFrappePostCall,
+} from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { useUserLookup } from "@/hooks/useUserLookup";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import type { TimelineItemCategory } from "../types";
 import { createTouchpointSchema } from "./schema";
 import type { CreateTouchpointModalProps } from "./types";
 
@@ -30,6 +37,8 @@ const defaultValues = {
   title: "",
   scheduledDate: getTodayDate(),
   owner: "",
+  category: "Other - Touchpoint",
+  isInternal: false,
 };
 
 export function CreateTouchpointModal({
@@ -75,6 +84,22 @@ export function CreateTouchpointModal({
     [ownerOptions],
   );
 
+  const { data: categories } = useFrappeGetDocList<TimelineItemCategory>(
+    "Project Timeline Item Category",
+    {
+      fields: ["name", "category_name"],
+      filters: [["applies_to", "=", "Touchpoint"]],
+      orderBy: { field: "position", order: "asc" },
+      limit: 100,
+    },
+    open ? undefined : null,
+  );
+
+  const categoryOptions = (categories ?? []).map((c) => ({
+    label: c.category_name,
+    value: c.name,
+  }));
+
   const form = useForm({
     defaultValues,
     validators: {
@@ -88,6 +113,8 @@ export function CreateTouchpointModal({
             name: item.id,
             title: value.title,
             item_owner: value.owner,
+            category: value.category,
+            is_internal: value.isInternal ? 1 : 0,
             planned_end_date: value.scheduledDate,
           });
           toast.success("Touchpoint updated successfully");
@@ -97,6 +124,8 @@ export function CreateTouchpointModal({
             type: "Touchpoint",
             title: value.title,
             item_owner: value.owner,
+            category: value.category,
+            is_internal: value.isInternal ? 1 : 0,
             planned_end_date: value.scheduledDate,
           });
           toast.success("Touchpoint created successfully");
@@ -137,6 +166,8 @@ export function CreateTouchpointModal({
         item.plannedEndDate ?? getTodayDate(),
       );
       form.setFieldValue("owner", item.owner?.name ?? "");
+      form.setFieldValue("category", item.category ?? defaultValues.category);
+      form.setFieldValue("isInternal", item.isInternal);
     } else {
       form.reset();
     }
@@ -194,6 +225,28 @@ export function CreateTouchpointModal({
         />
 
         <form.Field
+          name="category"
+          children={(field) => (
+            <div className="flex flex-col gap-1.5">
+              <FormLabel size="md" required>
+                Type
+              </FormLabel>
+              <Select
+                className="text-ink-gray-7 h-8"
+                variant="outline"
+                options={categoryOptions}
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder="Select type"
+              />
+              {!field.state.meta.isValid && (
+                <ErrorMessage message={field.state.meta.errors[0]?.message} />
+              )}
+            </div>
+          )}
+        />
+
+        <form.Field
           name="scheduledDate"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
@@ -207,12 +260,12 @@ export function CreateTouchpointModal({
                 placeholder="Scheduled date"
               >
                 {({ displayValue }) => (
-                  <div className="flex relative items-center py-1 w-full rounded-lg border border-outline-gray-2 px-2.5">
+                  <div className="flex relative items-center w-full rounded border border-outline-gray-2 px-2.5">
                     <input
                       readOnly
                       type="text"
                       value={displayValue}
-                      className="flex-1 text-base text-ink-gray-7"
+                      className="flex-1 h-7.5 min-w-0 text-base text-ink-gray-7"
                     />
                     <Calendar className="size-4" />
                   </div>
@@ -247,6 +300,19 @@ export function CreateTouchpointModal({
                 <ErrorMessage message={field.state.meta.errors[0]?.message} />
               )}
             </div>
+          )}
+        />
+
+        <form.Field
+          name="isInternal"
+          children={(field) => (
+            <label className="inline-flex items-center gap-2 text-base text-ink-gray-7">
+              <Checkbox
+                value={field.state.value}
+                onChange={(checked) => field.handleChange(Boolean(checked))}
+              />
+              Mark as internal
+            </label>
           )}
         />
       </div>

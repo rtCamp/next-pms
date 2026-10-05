@@ -69,7 +69,10 @@ def enrich_timeline_item(
         "title": item.get("title"),
         "project": item.get("project"),
         "type": item.get("type"),
+        "category": item.get("category"),
+        "category_label": item.get("category_label"),
         "is_complete": cint(item.get("is_complete")),
+        "is_internal": cint(item.get("is_internal")),
         "start_date": item.get("start_date"),
         "planned_end_date": item.get("planned_end_date"),
         "actual_end_date": item.get("actual_end_date"),
@@ -141,6 +144,7 @@ def get_project_timeline_items(
     is_calendar = bool(cint(is_calendar))
 
     PTI = frappe.qb.DocType("Project Timeline Item")
+    PTIC = frappe.qb.DocType("Project Timeline Item Category")
     query_base = frappe.qb.from_(PTI).where(PTI.project == project)
 
     if type:
@@ -157,7 +161,9 @@ def get_project_timeline_items(
         query_base = query_base.where(PTI.title.like(f"%{search}%"))
 
     items = (
-        query_base.select(*[PTI[field] for field in TIMELINE_ITEM_FIELDS])
+        query_base.left_join(PTIC)
+        .on(PTI.category == PTIC.name)
+        .select(*[PTI[field] for field in TIMELINE_ITEM_FIELDS], PTIC.category_name.as_("category_label"))
         .orderby(PTI.start_date)
         .orderby(PTI.planned_end_date)
         .offset(cint(start))
@@ -196,6 +202,8 @@ def create_project_timeline_item(
     item_owner: str,
     start_date: str | None = None,
     planned_end_date: str | None = None,
+    category: str | None = None,
+    is_internal: int = 0,
 ):
     """
     Create a new Project Timeline Item (Milestone or Touchpoint).
@@ -208,6 +216,9 @@ def create_project_timeline_item(
         item_owner: User name (email) of the owner
         start_date: Start date — optional; if not set, the item will be considered active immediately
         planned_end_date: Completion date
+        category: Project Timeline Item Category whose applies_to matches type — omit to
+            fall back to that type's catch-all category
+        is_internal: 1 to flag the item as internally focused — accepts "0"/"1" strings
 
     Returns:
         The created item's name, title, type, and dates.
@@ -246,7 +257,9 @@ def create_project_timeline_item(
     doc.item_owner = item_owner
     doc.start_date = start_date_val
     doc.planned_end_date = planned_end_date_val
+    doc.category = category
     doc.is_complete = 0
+    doc.is_internal = cint(is_internal)
     doc.insert()
 
     return {
@@ -254,10 +267,12 @@ def create_project_timeline_item(
         "title": doc.title,
         "project": doc.project,
         "type": doc.type,
+        "category": doc.category,
         "item_owner": doc.item_owner,
         "start_date": doc.start_date,
         "planned_end_date": doc.planned_end_date,
         "is_complete": cint(doc.is_complete),
+        "is_internal": cint(doc.is_internal),
     }
 
 
@@ -269,6 +284,8 @@ def edit_project_timeline_item(
     item_owner: str | None = None,
     start_date: str | None = None,
     planned_end_date: str | None = None,
+    category: str | None = None,
+    is_internal: int | None = None,
 ):
     """
     Edit an existing Project Timeline Item.
@@ -279,6 +296,9 @@ def edit_project_timeline_item(
         item_owner: New owner (User email) — must be non-empty if provided
         start_date: New start date (Milestone only); "" to clear
         planned_end_date: New planned end date; "" to clear
+        category: New category — must apply to the item's type; "" to fall back to
+            that type's catch-all category
+        is_internal: 1 or 0 — accepts "0"/"1" strings
 
     Returns:
         Dict : The updated item's key fields.
@@ -314,6 +334,12 @@ def edit_project_timeline_item(
     if planned_end_date is not None:
         doc.planned_end_date = getdate(planned_end_date) if planned_end_date else None
 
+    if category is not None:
+        doc.category = category
+
+    if is_internal is not None:
+        doc.is_internal = cint(is_internal)
+
     effective_start = doc.start_date
     effective_end = doc.planned_end_date
     if effective_start and effective_end and getdate(effective_start) > getdate(effective_end):
@@ -326,10 +352,12 @@ def edit_project_timeline_item(
         "title": doc.title,
         "project": doc.project,
         "type": doc.type,
+        "category": doc.category,
         "item_owner": doc.item_owner,
         "start_date": doc.start_date,
         "planned_end_date": doc.planned_end_date,
         "is_complete": cint(doc.is_complete),
+        "is_internal": cint(doc.is_internal),
     }
 
 

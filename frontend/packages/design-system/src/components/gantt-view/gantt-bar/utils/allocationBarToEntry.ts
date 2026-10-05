@@ -40,13 +40,16 @@ export function allocationBarToEntry(
     allocationEndDate: alloc.allocationEndDate,
     allocationHoursPerDay: alloc.allocationHoursPerDay,
     includeWeekends: alloc.includeWeekends,
+    includeHolidays: alloc.includeHolidays,
     segmentStartDate: alloc.startDate,
     segmentEndDate: alloc.endDate,
     segmentHoursPerDay: alloc.hours,
   };
 
   return {
+    projectId: alloc.projectId,
     projectName: alloc.projectName,
+    employeeId: alloc.employeeId,
     dateRange: `${format(alloc.startDate, "MMM d, yyyy")} – ${format(alloc.endDate, "MMM d, yyyy")}`,
     hoursPerDay: `${alloc.hours}h/day`,
     totalHours: `${alloc.hours * alloc.fullNumDays} hours`,

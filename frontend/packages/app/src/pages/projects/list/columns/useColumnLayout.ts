@@ -8,40 +8,31 @@ import { move } from "@dnd-kit/helpers";
 /**
  * Internal dependencies.
  */
-import { COLUMN_PARAM_KEYS, PROJECT_LIST_COLUMNS } from "./constants";
+import { parseColumnKeys } from "@/lib/utils";
+import {
+  COLUMN_PARAM_KEYS,
+  MAX_PINNED_COLUMNS,
+  PROJECT_LIST_COLUMNS,
+} from "./constants";
 import { useProjectViews } from "../../views";
 
-const DEFAULT_ORDER = PROJECT_LIST_COLUMNS.map((column) => column.key);
+const DEFAULT_ORDER = PROJECT_LIST_COLUMNS.filter(
+  (column) => !column.defaultHidden,
+).map((column) => column.key);
 const COLUMN_BY_KEY = new Map(
   PROJECT_LIST_COLUMNS.map((column) => [column.key, column]),
 );
+const KNOWN_KEYS = new Set(COLUMN_BY_KEY.keys());
 
-/**
- * Parses a comma-separated string of column keys into an array of valid, unique keys.
- */
 function parseKeys(value: unknown) {
-  const keys =
-    typeof value === "string"
-      ? value.split(",")
-      : Array.isArray(value)
-        ? value
-        : [];
-  const seen = new Set<string>();
-  return keys.filter((key) => {
-    if (!COLUMN_BY_KEY.has(key) || seen.has(key)) {
-      return false;
-    }
-    seen.add(key);
-    return true;
-  });
+  return parseColumnKeys(value, KNOWN_KEYS);
 }
 
 /**
- * Completes the given column order by appending any columns that are present in the default order but missing from the provided order.
+ * Falls back to the default order when no explicit column order is stored.
  */
-function completeOrder(order: string[]) {
-  const seen = new Set(order);
-  return [...order, ...DEFAULT_ORDER.filter((key) => !seen.has(key))];
+function resolveOrder(order: string[]) {
+  return order.length > 0 ? order : DEFAULT_ORDER;
 }
 
 /**
@@ -54,12 +45,30 @@ function isDefaultOrder(order: string[]) {
   );
 }
 
+/**
+ * Maps a layout onto its search params, leaving a default layout unsaid.
+ */
+function toLayoutParams(next: { order?: string[]; pinned?: string[] }) {
+  const params: Record<string, string | null> = {};
+  if (next.order) {
+    params[COLUMN_PARAM_KEYS.columns] = isDefaultOrder(next.order)
+      ? null
+      : next.order.join(",");
+  }
+  if (next.pinned) {
+    params[COLUMN_PARAM_KEYS.pinnedColumns] = next.pinned.length
+      ? next.pinned.join(",")
+      : null;
+  }
+  return params;
+}
+
 export function useColumnLayout() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeView = useProjectViews((state) => state.state.activeView);
 
   const savedOrder = useMemo(
-    () => completeOrder(parseKeys(activeView?.columns)),
+    () => resolveOrder(parseKeys(activeView?.columns)),
     [activeView],
   );
   const savedPinned = useMemo(
@@ -69,7 +78,7 @@ export function useColumnLayout() {
 
   // The search params hold the layout in use, the view holds the saved one.
   const baseOrder = useMemo(
-    () => completeOrder(parseKeys(searchParams.get(COLUMN_PARAM_KEYS.columns))),
+    () => resolveOrder(parseKeys(searchParams.get(COLUMN_PARAM_KEYS.columns))),
     [searchParams],
   );
 
@@ -94,22 +103,11 @@ export function useColumnLayout() {
     (next: { order?: string[]; pinned?: string[] }) => {
       setSearchParams(
         (params) => {
-          // A default layout is left unsaid rather than spelled out.
-          if (next.order) {
-            if (isDefaultOrder(next.order)) {
-              params.delete(COLUMN_PARAM_KEYS.columns);
+          for (const [key, value] of Object.entries(toLayoutParams(next))) {
+            if (value) {
+              params.set(key, value);
             } else {
-              params.set(COLUMN_PARAM_KEYS.columns, next.order.join(","));
-            }
-          }
-          if (next.pinned) {
-            if (next.pinned.length === 0) {
-              params.delete(COLUMN_PARAM_KEYS.pinnedColumns);
-            } else {
-              params.set(
-                COLUMN_PARAM_KEYS.pinnedColumns,
-                next.pinned.join(","),
-              );
+              params.delete(key);
             }
           }
           return params;
@@ -141,13 +139,24 @@ export function useColumnLayout() {
     [writeLayout],
   );
 
+  /**
+   * Replaces the visible columns and the pinned subset in one write.
+   */
+  const setColumns = useCallback(
+    (order: string[], pinned: string[]) => writeLayout({ order, pinned }),
+    [writeLayout],
+  );
+
   const togglePinned = useCallback(
-    (key: string) =>
-      writeLayout({
-        pinned: pinnedColumns.includes(key)
-          ? pinnedColumns.filter((pinnedKey) => pinnedKey !== key)
-          : [...pinnedColumns, key],
-      }),
+    (key: string) => {
+      if (pinnedColumns.includes(key)) {
+        writeLayout({
+          pinned: pinnedColumns.filter((pinned) => pinned !== key),
+        });
+      } else if (pinnedColumns.length < MAX_PINNED_COLUMNS) {
+        writeLayout({ pinned: [...pinnedColumns, key] });
+      }
+    },
     [pinnedColumns, writeLayout],
   );
 
@@ -181,6 +190,11 @@ export function useColumnLayout() {
   const reset = useCallback(
     () => writeLayout({ order: DEFAULT_ORDER, pinned: [] }),
     [writeLayout],
+  );
+
+  const savedParams = useMemo(
+    () => toLayoutParams({ order: savedOrder, pinned: savedPinned }),
+    [savedOrder, savedPinned],
   );
 
   /**
@@ -218,11 +232,13 @@ export function useColumnLayout() {
       pinnedColumns.join(",") !== savedPinned.join(","),
     /** The layout as it is saved onto the view. */
     layout: { columns: baseOrder, pinnedColumns: pinnedColumns },
+    /** The saved layout as search params, to restore it in someone else's update. */
+    savedParams,
     reorderScrolling,
     reorderPinned,
+    setColumns,
     togglePinned,
     handleDragEnd,
-    revert,
     reset,
   };
 }

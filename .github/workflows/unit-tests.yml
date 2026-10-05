@@ -4,7 +4,7 @@ permissions:
 
 on:
   push:
-    branches: [version-16, feat/redesign, version-16-hotfix]
+    branches: [version-16, feat/redesign, develop]
   pull_request:
 
 concurrency:
@@ -62,17 +62,17 @@ jobs:
         run: |
           bench get-app erpnext --branch version-16 --skip-assets
           bench get-app hrms --branch version-16 --skip-assets
-          bench get-app frappe_gmail_thread https://github.com/rtCamp/frappe-gmail-thread --branch version-16-hotfix --skip-assets
-          bench get-app frappe_comment_xt https://github.com/rtCamp/frappe-comment-xt --branch version-16-hotfix --skip-assets
-          bench get-app frappe_slack_connector https://github.com/rtCamp/frappe-slack-connector --branch version-16-hotfix --skip-assets
+          bench get-app frappe_gmail_thread https://github.com/rtCamp/frappe-gmail-thread --branch develop --skip-assets
+          bench get-app frappe_comment_xt https://github.com/rtCamp/frappe-comment-xt --branch develop --skip-assets
+          bench get-app frappe_slack_connector https://github.com/rtCamp/frappe-slack-connector --branch develop --skip-assets
           if [ -n "$RTBOT_TOKEN" ]; then
             git config --global "url.https://rtbot:${RTBOT_TOKEN}@github.com/rtCamp/.insteadOf" "https://github.com/rtCamp/"
             bench get-app telephony --branch develop --skip-assets
             bench get-app helpdesk --branch main --skip-assets
             bench get-app crm --branch main --skip-assets
-            bench get-app frappe_appointment https://github.com/rtCamp/frappe-appointment --branch version-16-hotfix --skip-assets
+            bench get-app frappe_appointment https://github.com/rtCamp/frappe-appointment --branch develop --skip-assets
             bench get-app india_compliance https://github.com/resilient-tech/india-compliance --branch version-16 --skip-assets
-            bench get-app rtcamp "https://${RTCAMP_APP}" --branch version-16-hotfix --skip-assets
+            bench get-app rtcamp "https://${RTCAMP_APP}" --branch develop --skip-assets
             git config --global --unset "url.https://rtbot:${RTBOT_TOKEN}@github.com/rtCamp/.insteadOf"
             PRIVATE_APPS="telephony helpdesk crm frappe_appointment india_compliance rtcamp"
           else

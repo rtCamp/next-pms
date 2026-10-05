@@ -34,7 +34,17 @@ export interface ViewsContextProps {
       fields?: Partial<View>;
     }) => void;
     /** Selects a view: syncs the `view`, filter and sort search params to it. */
-    applyView: (view: View, options?: { replace?: boolean }) => void;
+    applyView: (
+      view: View,
+      options?: {
+        /** Whether to replace the current history entry instead of pushing a new one. */
+        replace?: boolean;
+        /** Whether to reset the search params to match the view, clearing any that the view has no value for. */
+        reset?: boolean;
+        /** Additional search params to write in the same update. */
+        params?: Record<string, string | null>;
+      },
+    ) => void;
     /** Creates a private copy of the given view and refreshes the list. */
     duplicateView: (view: View) => Promise<void>;
     /** Opens the edit-view modal prefilled with the given saved view. */

@@ -30,6 +30,16 @@ export function FinancialsBlock({
   const [mode, setMode] = useState<"projected" | "current">("projected");
 
   const format = currencyFormat(currency);
+  const projectValue =
+    mode === "projected"
+      ? tracking.total_project_value
+      : tracking.current_project_value;
+  const profit =
+    mode === "projected" ? tracking.project_profit : tracking.current_profit;
+  const margin =
+    mode === "projected"
+      ? tracking.projected_profit_margin
+      : tracking.current_profit_margin;
 
   const rows = [
     ...(showProjectValue
@@ -37,22 +47,14 @@ export function FinancialsBlock({
           {
             key: "project-value",
             label: "Total project value",
-            value: format.format(
-              (mode === "projected"
-                ? tracking.total_project_value
-                : tracking.current_project_value) ?? 0,
-            ),
+            value: projectValue === null ? "N/A" : format.format(projectValue),
           },
         ]
       : []),
     {
       key: "profit",
       label: mode === "projected" ? "Projected profit" : "Current profit",
-      value: format.format(
-        (mode === "projected"
-          ? tracking.project_profit
-          : tracking.current_profit) ?? 0,
-      ),
+      value: profit === null ? "N/A" : format.format(profit),
     },
     {
       key: "margin",
@@ -60,11 +62,7 @@ export function FinancialsBlock({
         mode === "projected"
           ? "Projected profit margin"
           : "Current profit margin",
-      value: formatPercentage(
-        (mode === "projected"
-          ? tracking.projected_profit_margin
-          : tracking.current_profit_margin) ?? 0,
-      ),
+      value: margin === null ? "N/A" : formatPercentage(margin),
     },
   ];
 
