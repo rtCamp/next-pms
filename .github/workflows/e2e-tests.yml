@@ -1,0 +1,155 @@
+name: E2E Tests
+permissions:
+  contents: read
+
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  E2E:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    services:
+      redis-cache:
+        image: redis:alpine
+        ports: ["13000:6379"]
+      redis-queue:
+        image: redis:alpine
+        ports: ["11000:6379"]
+      mariadb:
+        image: mariadb:10.6
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports: ["3306:3306"]
+        options: --health-cmd="mysqladmin ping -uroot -proot" --health-interval=5s --health-timeout=2s --health-retries=3
+
+    env:
+      TZ: Asia/Kolkata # the suite and the seeded site both assume IST
+      CI: "true"
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: frontend/.nvmrc
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/uv
+          key: ${{ runner.os }}-pip-uv-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      # --- frontend: built in the workspace (has the frappe-ui-react submodule), artifacts copied into the bench copy
+      - name: Build frontend
+        run: |
+          (cd frappe-ui-react && pnpm install --frozen-lockfile && pnpm build)
+          (cd frontend && npm ci && npm run build:app)
+
+      # --- bench + site
+      - name: Setup bench
+        run: |
+          pip install frappe-bench
+          bench init --skip-redis-config-generation --skip-assets --frappe-branch v16.31.0 --python "$(which python)" ~/frappe-bench
+          mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
+          mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
+          mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL innodb_flush_log_at_trx_commit = 0"
+
+      - name: Install apps and create site
+        working-directory: /home/runner/frappe-bench
+        run: |
+          # throwaway CI-only credential, shared by every seeded user
+          E2E_PASSWORD="$(openssl rand -hex 12)"
+          echo "::add-mask::$E2E_PASSWORD"
+          echo "E2E_PASSWORD=$E2E_PASSWORD" >> "$GITHUB_ENV"
+
+          bench get-app erpnext --branch v16.32.1 --skip-assets
+          bench get-app hrms --branch v16.16.0 --skip-assets
+          bench get-app frappe_gmail_thread https://github.com/rtCamp/frappe-gmail-thread --branch develop --skip-assets
+          bench get-app frappe_comment_xt https://github.com/rtCamp/frappe-comment-xt --branch develop --skip-assets
+          bench get-app frappe_slack_connector https://github.com/rtCamp/frappe-slack-connector --branch develop --skip-assets
+          bench get-app next_pms "$GITHUB_WORKSPACE" --skip-assets
+
+          # get-app clones committed files only: copy the gitignored frontend build into the bench copy
+          mkdir -p apps/next_pms/next_pms/public
+          cp -r "$GITHUB_WORKSPACE/next_pms/public/frontend" apps/next_pms/next_pms/public/frontend
+          cp "$GITHUB_WORKSPACE/next_pms/www/next-pms/index.html" apps/next_pms/next_pms/www/next-pms/index.html
+
+          bench new-site --db-root-password root --admin-password "$E2E_PASSWORD" --no-mariadb-socket test_site
+          bench --site test_site install-app erpnext hrms frappe_gmail_thread frappe_comment_xt frappe_slack_connector next_pms
+          bench --site test_site set-config mute_emails true
+          bench --site test_site set-config host_name http://localhost:8000
+          bench build --app next_pms # links public/ into sites/assets
+
+      - name: Seed site
+        working-directory: /home/runner/frappe-bench
+        run: |
+          export E2E_ENV_OUT="$RUNNER_TEMP/e2e.env"
+          PYTHONPATH="$GITHUB_WORKSPACE/tests/e2e/ci" bench --site test_site execute seed.run
+          # *_PASS values are the masked E2E_PASSWORD; ids/names/emails are not secret
+          cat "$E2E_ENV_OUT" >> "$GITHUB_ENV"
+
+      - name: Start web server and worker
+        working-directory: /home/runner/frappe-bench
+        run: |
+          nohup bench --site test_site serve --port 8000 --noreload > "$RUNNER_TEMP/serve.log" 2>&1 &
+          # costing and timesheet approvals are enqueued; the suite asserts on the results
+          nohup bench --site test_site worker --queue short,default,long > "$RUNNER_TEMP/worker.log" 2>&1 &
+          for i in $(seq 1 60); do
+            curl -fsS http://localhost:8000/api/method/ping && break
+            sleep 2
+          done
+          curl -fsS http://localhost:8000/api/method/ping
+
+      - name: Install Playwright
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run e2e tests
+        # --max-failures=0: the config stops CI runs after 5 failures; we want the whole picture
+        run: npm run e2e:tests -- --max-failures=0
+
+      - name: Summary
+        if: always()
+        run: |
+          f=$(ls results.json tests/e2e/results.json 2>/dev/null | head -1)
+          [ -n "$f" ] || { echo "No results.json" >> "$GITHUB_STEP_SUMMARY"; exit 0; }
+          {
+            echo "### E2E results"
+            jq -r '.stats | "expected (passed): \(.expected)  unexpected (failed): \(.unexpected)  flaky: \(.flaky)  skipped: \(.skipped)"' "$f"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-report
+          if-no-files-found: ignore
+          path: |
+            playwright-report
+            test-results
+            results.json
+            tests/e2e/playwright-report
+            tests/e2e/test-results
+            tests/e2e/results.json
+            ${{ runner.temp }}/serve.log
+            ${{ runner.temp }}/worker.log
+            /home/runner/frappe-bench/logs
