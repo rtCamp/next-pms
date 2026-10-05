@@ -51,23 +51,22 @@ jobs:
           key: ${{ runner.os }}-pip-uv-${{ hashFiles('**/pyproject.toml') }}
           restore-keys: ${{ runner.os }}-pip-
 
-      # Bench with every dependency app (everything except next_pms) is slow to build and
-      # changes rarely. Cache it per day: the key carries the workflow hash (pinned versions),
-      # the exact Python (the venv symlinks into the toolcache) and whether private apps are in.
+      # Bench with the public dependency apps is slow to build and changes rarely. Cache it per
+      # day: the key carries the workflow hash (pinned versions) and the exact Python (the venv
+      # symlinks into the toolcache). Private apps are never cached: fork PRs can restore
+      # base-branch caches, so they are fetched and installed on every run after the restore.
       - name: Bench cache key
         id: bench-key
         run: |
           if [ -n "$RTBOT_TOKEN" ]; then
-            scope=full
             echo "PRIVATE_APPS=telephony helpdesk crm frappe_appointment india_compliance rtcamp" >> "$GITHUB_ENV"
           else
-            scope=public
             echo "RTBOT_TOKEN unavailable (fork PR) — skipping private rtcamp app; rtcamp-gated tests will skip"
             echo "> [!WARNING]" >> "$GITHUB_STEP_SUMMARY"
             echo "> RTBOT_TOKEN unavailable (fork PR) — private apps were not installed; rtcamp-gated tests will skip." >> "$GITHUB_STEP_SUMMARY"
             echo "PRIVATE_APPS=" >> "$GITHUB_ENV"
           fi
-          echo "key=bench-${{ runner.os }}-py${{ steps.py.outputs.python-version }}-$scope-${{ hashFiles('.github/workflows/unit-tests.yml') }}-$(date +%F)" >> "$GITHUB_OUTPUT"
+          echo "key=bench-${{ runner.os }}-py${{ steps.py.outputs.python-version }}-${{ hashFiles('.github/workflows/unit-tests.yml') }}-$(date +%F)" >> "$GITHUB_OUTPUT"
         env:
           RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
 
@@ -99,22 +98,8 @@ jobs:
           bench get-app frappe_gmail_thread https://github.com/rtCamp/frappe-gmail-thread --branch develop --skip-assets
           bench get-app frappe_comment_xt https://github.com/rtCamp/frappe-comment-xt --branch develop --skip-assets
           bench get-app frappe_slack_connector https://github.com/rtCamp/frappe-slack-connector --branch develop --skip-assets
-          if [ -n "$RTBOT_TOKEN" ]; then
-            git config --global "url.https://rtbot:${RTBOT_TOKEN}@github.com/rtCamp/.insteadOf" "https://github.com/rtCamp/"
-            bench get-app telephony --branch develop --skip-assets
-            bench get-app helpdesk --branch v1.29.0 --skip-assets
-            bench get-app crm --branch v1.83.0 --skip-assets
-            bench get-app frappe_appointment https://github.com/rtCamp/frappe-appointment --branch develop --skip-assets
-            bench get-app india_compliance https://github.com/resilient-tech/india-compliance --branch v16.8.4 --skip-assets
-            bench get-app rtcamp "https://${RTCAMP_APP}" --branch develop --skip-assets
-            git config --global --unset "url.https://rtbot:${RTBOT_TOKEN}@github.com/rtCamp/.insteadOf"
-            # RTCAMP_APP may embed credentials; do not persist them in the cached .git/config
-            git -C apps/rtcamp remote set-url origin https://github.com/rtCamp/erp-rtcamp
-          fi
         env:
           CI: "Yes"
-          RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
-          RTCAMP_APP: ${{ secrets.RTCAMP_APP }}
 
       - uses: actions/cache/save@v6
         if: steps.bench-cache.outputs.cache-hit != 'true'
@@ -122,8 +107,8 @@ jobs:
           path: ~/frappe-bench
           key: ${{ steps.bench-key.outputs.key }}
 
-      # Installing erpnext/hrms/... into the site is ~100s and independent of next_pms,
-      # so cache a DB dump taken before next_pms is installed (same key as the bench).
+      # Installing erpnext/hrms/... into the site is ~100s and independent of next_pms and the
+      # private apps, so cache a DB dump of the public apps only (same key as the bench).
       - uses: actions/cache/restore@v6
         id: site-cache
         with:
@@ -133,12 +118,11 @@ jobs:
       - name: Create site
         working-directory: /home/runner/frappe-bench
         run: |
-          bench get-app next_pms "$GITHUB_WORKSPACE" --skip-assets
           bench new-site --db-root-password root --admin-password admin --no-mariadb-socket test_site
           if [ "$SITE_CACHE_HIT" = "true" ]; then
             bench --site test_site --force restore ~/site-cache/db.sql.gz --db-root-password root
           else
-            bench --site test_site install-app erpnext hrms frappe_gmail_thread frappe_comment_xt frappe_slack_connector $PRIVATE_APPS
+            bench --site test_site install-app erpnext hrms frappe_gmail_thread frappe_comment_xt frappe_slack_connector
             mkdir -p ~/site-cache
             bench --site test_site backup --backup-path ~/site-cache
             mv ~/site-cache/*-database.sql.gz ~/site-cache/db.sql.gz
@@ -154,9 +138,29 @@ jobs:
           path: ~/site-cache
           key: site-${{ steps.bench-key.outputs.key }}
 
+      - name: Install private apps
+        if: env.PRIVATE_APPS != ''
+        working-directory: /home/runner/frappe-bench
+        run: |
+          git config --global "url.https://rtbot:${RTBOT_TOKEN}@github.com/rtCamp/.insteadOf" "https://github.com/rtCamp/"
+          bench get-app telephony --branch develop --skip-assets
+          bench get-app helpdesk --branch v1.29.0 --skip-assets
+          bench get-app crm --branch v1.83.0 --skip-assets
+          bench get-app frappe_appointment https://github.com/rtCamp/frappe-appointment --branch develop --skip-assets
+          bench get-app india_compliance https://github.com/resilient-tech/india-compliance --branch v16.8.4 --skip-assets
+          bench get-app rtcamp "https://${RTCAMP_APP}" --branch develop --skip-assets
+          git config --global --unset "url.https://rtbot:${RTBOT_TOKEN}@github.com/rtCamp/.insteadOf"
+          bench --site test_site install-app $PRIVATE_APPS
+        env:
+          CI: "Yes"
+          RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
+          RTCAMP_APP: ${{ secrets.RTCAMP_APP }}
+
       - name: Install next_pms
         working-directory: /home/runner/frappe-bench
-        run: bench --site test_site install-app next_pms
+        run: |
+          bench get-app next_pms "$GITHUB_WORKSPACE" --skip-assets
+          bench --site test_site install-app next_pms
         env:
           CI: "Yes"
 
