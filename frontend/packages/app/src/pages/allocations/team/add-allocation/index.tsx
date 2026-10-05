@@ -77,6 +77,8 @@ function AddAllocationModal({
   const hasExistingOverrides = (initialValues?.override?.length ?? 0) > 0;
   const isLockedAllocationMetadataEdit =
     variant === "edit" && (isRecurringEdit || hasExistingOverrides);
+  const canApproveLockedAllocation =
+    Boolean(initialValues?.isAiCreated) && !isRecurringEdit;
 
   const { call: handleAllocation } = useFrappePostCall(
     "next_pms.resource_management.api.allocation.handle_allocation",
@@ -832,7 +834,8 @@ function AddAllocationModal({
                 disabled={
                   submitting ||
                   deleting ||
-                  isLockedAllocationMetadataEdit ||
+                  (isLockedAllocationMetadataEdit &&
+                    !canApproveLockedAllocation) ||
                   (initialValues?.isAiCreated &&
                     (isProjectEmployeeAccessPending ||
                       !hasProjectEmployeeAccess)) ||

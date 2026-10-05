@@ -617,6 +617,46 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
             frappe.db.delete("DocShare", share_filters)
             frappe.db.set_value("Employee", self.employee, "user_id", previous_user)
 
+    def test_approving_ai_allocation_keeps_the_public_holiday_cancelled(self):
+        allocation = frappe.get_doc(
+            {
+                "doctype": "Resource Allocation",
+                "employee": self.employee,
+                "project": self.project,
+                "customer": self.customer,
+                "allocation_start_date": HOLIDAY_MON,
+                "allocation_end_date": HOLIDAY_FRI,
+                "hours_allocated_per_day": DAILY_HOURS,
+                "include_weekends": 0,
+                "status": "Tentative",
+                "is_ai_created": 1,
+            }
+        ).insert(ignore_permissions=True)
+        self.assertEqual(self._overrides(allocation)[PUBLIC_HOLIDAY].cancelled, 1)
+
+        edit_allocation(
+            name=allocation.name,
+            edit_mode="only_this",
+            allocation=AllocationPayload(
+                doctype="Resource Allocation",
+                employee=self.employee,
+                customer=self.customer,
+                project=self.project,
+                allocation_start_date=HOLIDAY_MON,
+                allocation_end_date=HOLIDAY_FRI,
+                hours_allocated_per_day=DAILY_HOURS,
+                include_weekends=False,
+                status="Confirmed",
+                is_ai_created=0,
+            ),
+        )
+
+        allocation.reload()
+        self.assertEqual(allocation.status, "Confirmed")
+        self.assertEqual(allocation.is_ai_created, 0)
+        self.assertEqual(self._overrides(allocation)[PUBLIC_HOLIDAY].cancelled, 1)
+        self.assertEqual(allocation.total_allocated_hours, 4 * DAILY_HOURS)
+
     def test_whole_series_edit_persists_include_holidays(self):
         """`include_holidays` is a non-date field, so a series edit has to carry it to every doc."""
         first = handle_allocation(

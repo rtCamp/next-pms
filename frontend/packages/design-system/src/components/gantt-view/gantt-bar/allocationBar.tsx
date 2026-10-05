@@ -76,7 +76,10 @@ export function GanttAllocationBar({
   const left = allocation.barOffset + headerWidth;
   const { width, fullNumDays } = allocation;
   const canResize =
-    resizable && !allocation.recurrenceId && !allocation.fullyReduced;
+    resizable &&
+    !allocation.recurrenceId &&
+    !allocation.fullyReduced &&
+    (!allocation.isAiCreated || Boolean(canManageAiAllocations));
   const [previewGeometry, setPreviewGeometry] = useState({ left, width });
   const [previewOpen, setPreviewOpen] = useState(false);
   const isModified =

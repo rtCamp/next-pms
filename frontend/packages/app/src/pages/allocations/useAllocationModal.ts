@@ -62,13 +62,13 @@ export function useAllocationModal(refresh: RefreshAllocations) {
   }, []);
 
   const openEditDialog = useCallback((data: AllocationCallbackData) => {
-    const isRecurringAllocation = Boolean(data.recurrenceId);
+    const editsWholeAllocation = Boolean(data.recurrenceId || data.isAiCreated);
     const formStartDate =
-      isRecurringAllocation && data.allocationStartDate
+      editsWholeAllocation && data.allocationStartDate
         ? data.allocationStartDate
         : data.startDate;
     const formEndDate =
-      isRecurringAllocation && data.allocationEndDate
+      editsWholeAllocation && data.allocationEndDate
         ? data.allocationEndDate
         : data.endDate;
 
@@ -86,7 +86,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       fromDate: formStartDate ? format(formStartDate, "yyyy-MM-dd") : undefined,
       toDate: formEndDate ? format(formEndDate, "yyyy-MM-dd") : undefined,
       hoursPerDay:
-        isRecurringAllocation && data.allocationHoursPerDay !== undefined
+        editsWholeAllocation && data.allocationHoursPerDay !== undefined
           ? data.allocationHoursPerDay
           : data.hoursPerDay,
       isBillable: data.billable,
@@ -95,7 +95,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       aiAllocationReason: data.aiReason,
       includeWeekends: Boolean(data.includeWeekends),
       includeHolidays: Boolean(data.includeHolidays),
-      note: data.note,
+      note: data.isAiCreated ? (data.note ?? "") : data.note,
       allocationStartDate: data.allocationStartDate
         ? format(data.allocationStartDate, "yyyy-MM-dd")
         : undefined,
