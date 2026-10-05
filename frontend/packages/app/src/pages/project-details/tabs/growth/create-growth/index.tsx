@@ -323,6 +323,11 @@ export function CreateGrowthModal({
                   {existing.closed_status}
                 </DisabledField>
               )}
+              <DisabledField label="Billable outcome">
+                {currencyFormat(currency).format(
+                  existing?.billable_outcome ?? 0,
+                )}
+              </DisabledField>
               <UpdateLogNote message="To change status, priority or billable outcome, add a new update instead." />
             </>
           ) : (
@@ -483,11 +488,7 @@ export function CreateGrowthModal({
             )}
           />
 
-          {isEditMode ? (
-            <DisabledField label="Billable outcome">
-              {currencyFormat(currency).format(existing?.billable_outcome ?? 0)}
-            </DisabledField>
-          ) : (
+          {!isEditMode && (
             <form.Field
               name="billable_outcome"
               children={(field) => (
