@@ -49,3 +49,4 @@ next_pms.next_pms.patches.setup_leave_rejection_reason_field
 next_pms.next_projects.patches.setup_timeline_item_categories
 next_pms.next_projects.patches.create_default_growth_masters
 next_pms.next_pms.patches.backfill_growth_initiative_update_log
+next_pms.timesheet.patches.setup_role_permissions
