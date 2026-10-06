@@ -31,6 +31,7 @@ import {
 import {
   currencyFormat,
   getDefaultCurrency,
+  mergeClassNames as cn,
   parseFrappeErrorMsg,
 } from "@/lib/utils";
 import { DisabledField } from "@/pages/project-details/components/disabledField";
@@ -275,7 +276,7 @@ export function CreateGrowthModal({
                   Category
                 </label>
                 <Combobox
-                  inputClassName={`h-8 ${FORM_INPUT_CLASS}`}
+                  inputClassName={cn("h-8", FORM_INPUT_CLASS)}
                   loading={mastersLoading}
                   options={toNameOptions(categories)}
                   placeholder="Select category"
