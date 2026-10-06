@@ -15,7 +15,7 @@ from next_pms.next_projects.api.todo import (
 PTI = "Project Timeline Item"
 GROWTH = "PMS Growth Initiative"
 MANAGER = "test.linked.todo.pm@example.com"
-GATED = "test.linked.todo.tm@example.com"
+GATED = "test.linked.todo.pu@example.com"
 OUTSIDER = "test.linked.todo.emp@example.com"
 
 
@@ -25,7 +25,7 @@ class LinkedTodoTestCase(IntegrationTestCase):
         super().setUpClass()
         create_default_growth_masters()
         cls.make_user(MANAGER, ["Projects Manager"])
-        cls.make_user(GATED, ["Timesheet Manager"])
+        cls.make_user(GATED, ["Projects User"])
         cls.make_user(OUTSIDER, ["Employee"])
         frappe.clear_cache()
         cls.project = cls.make_project("Linked ToDo Project")
@@ -188,6 +188,13 @@ class TestCreateLinkedTodo(LinkedTodoTestCase):
             self.assertEqual((todo["reference_type"], todo["reference_name"]), ("Project", self.project))
             self.assertEqual((todo["priority"], todo["allocated_to"]), ("High", MANAGER))
             self.assertEqual(self.linked_todos(owner), [todo["name"]])
+
+    def test_creator_can_assign_the_todo_to_someone_else(self):
+        initiative = self.make_initiative()
+        frappe.set_user(MANAGER)
+        todo = create_linked_todo(GROWTH, initiative.name, {"description": "Hand-off", "allocated_to": GATED})
+        self.assertEqual((todo["allocated_to"], todo["assigned_by"]), (GATED, MANAGER))
+        self.assertEqual(self.linked_todos(initiative), [todo["name"]])
 
     def test_accepts_json_and_ignores_reference_overrides(self):
         milestone = self.make_timeline_item()

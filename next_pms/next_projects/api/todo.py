@@ -30,7 +30,7 @@ def create_linked_todo(doctype: str, name: str, todo: str | dict):
         name: Owner document name
         todo: ToDo field values (description, status, priority, allocated_to, date and the
             optional custom_title / custom_from_time / custom_to_time); reference fields are
-            always set to the owner's project
+            always set to the owner's project and assigned_by to the current user
 
     Returns:
         The created ToDo.
@@ -43,6 +43,7 @@ def create_linked_todo(doctype: str, name: str, todo: str | dict):
         {
             **{field: values[field] for field in TODO_FIELDS if field in values},
             "doctype": "ToDo",
+            "assigned_by": frappe.session.user,
             "reference_type": "Project",
             "reference_name": owner.project,
         }
