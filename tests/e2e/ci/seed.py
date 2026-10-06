@@ -111,6 +111,9 @@ def site_settings():
 	ts.allow_backdated_entries_till_manager = 30
 	ts.save()
 
+	# The Add Leave dialog posts no leave_approver, so HRMS must not demand one.
+	frappe.db.set_single_value("HR Settings", "leave_approver_mandatory_in_leave_application", 0)
+
 	# Entries on the same day share identical from/to times.
 	ps = frappe.get_doc("Projects Settings")
 	ps.ignore_user_time_overlap = 1

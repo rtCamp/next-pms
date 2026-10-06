@@ -107,9 +107,11 @@ jobs:
           # *_PASS values are the masked E2E_PASSWORD; ids/names/emails are not secret
           cat "$E2E_ENV_OUT" >> "$GITHUB_ENV"
 
-      - name: Start web server and worker
+      - name: Start web server, realtime and workers
         working-directory: /home/runner/frappe-bench
         run: |
+          # the SPA refreshes approval status and lists from realtime events published by the workers
+          nohup node apps/frappe/socketio.js > "$RUNNER_TEMP/socketio.log" 2>&1 &
           nohup bench --site test_site serve --port 8000 --noreload > "$RUNNER_TEMP/serve.log" 2>&1 &
           # costing and timesheet approvals are enqueued and the suite asserts on the results within
           # seconds; seven parallel browsers outrun a single worker
@@ -156,4 +158,5 @@ jobs:
             tests/e2e/results.json
             ${{ runner.temp }}/serve.log
             ${{ runner.temp }}/worker-*.log
+            ${{ runner.temp }}/socketio.log
             /home/runner/frappe-bench/logs
