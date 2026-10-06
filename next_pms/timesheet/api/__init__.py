@@ -120,7 +120,7 @@ def filter_employees(
     if not ignore_permissions:
         if set(user_roles).intersection([*GLOBAL_TIMESHEET_ROLES, "Projects Manager"]):
             ignore_permissions = True
-        elif has_membership_filter and set(user_roles).intersection(["Timesheet User", "Projects User"]):
+        elif has_membership_filter and "Projects User" in user_roles:
             ignore_permissions = True
 
     if reports_to:
