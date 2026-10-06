@@ -35,6 +35,7 @@ function AddProjectModal({
 }: AddProjectModalProps) {
   const [companySearch, setCompanySearch] = useState("");
   const [customerSearch, setCustomerSearch] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
   const toast = useToasts();
   const { createDoc, loading } = useFrappeCreateDoc();
@@ -50,6 +51,7 @@ function AddProjectModal({
       onSubmit: addProjectFormSchema,
     },
     onSubmit: async ({ value }) => {
+      setSubmitError("");
       try {
         const doc = await createDoc("Project", {
           naming_series: "PROJ-.####",
@@ -62,8 +64,7 @@ function AddProjectModal({
         onSuccess?.(doc as { name: string } & Record<string, unknown>);
         closeModal();
       } catch (err) {
-        const error = parseFrappeErrorMsg(err as FrappeError);
-        toast.error(error);
+        setSubmitError(parseFrappeErrorMsg(err as FrappeError));
       }
     },
   });
@@ -83,6 +84,7 @@ function AddProjectModal({
   const closeModal = useCallback(() => {
     setCompanySearch("");
     setCustomerSearch("");
+    setSubmitError("");
     onOpenChange(false);
     form.reset();
   }, [form, onOpenChange]);
@@ -220,6 +222,8 @@ function AddProjectModal({
             </div>
           )}
         />
+
+        <ErrorMessage message={submitError} />
       </div>
     </Dialog>
   );
