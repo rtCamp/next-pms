@@ -106,9 +106,9 @@ class TimesheetOverwrite(Timesheet):
                 if billing_rate == "Take Costing Rate":
                     billing_rate = BILLING_RATE_COST_MULTIPLIER * costing_rate
 
-                if billing_rate or custom_billing_type == "Time and Material":
-                    data.billing_rate = billing_rate
-                    data.billing_amount = data.billing_rate * hours
+                # Store a zero rate too, e.g. from a failed exchange-rate lookup; an older rate would end up in the base amounts
+                data.billing_rate = flt(billing_rate)
+                data.billing_amount = data.billing_rate * hours
 
             if not data.is_billable:
                 data.billing_rate = 0

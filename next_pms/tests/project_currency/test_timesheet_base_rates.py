@@ -23,6 +23,7 @@ class TestTimesheetBaseRates(IntegrationTestCase):
         costing_rate=0.935,
         billing_rate=50,
         billing_type="Time and Material",
+        row_values=None,
     ):
         timesheet = TimesheetOverwrite(
             {
@@ -30,7 +31,12 @@ class TestTimesheetBaseRates(IntegrationTestCase):
                 "parent_project": PROJECT,
                 "start_date": "2026-10-05",
                 "time_logs": [
-                    {"hours": hours, "billing_hours": hours if is_billable else 0, "is_billable": is_billable}
+                    {
+                        "hours": hours,
+                        "billing_hours": hours if is_billable else 0,
+                        "is_billable": is_billable,
+                        **(row_values or {}),
+                    }
                     for hours, is_billable in rows
                 ],
             }
@@ -90,6 +96,18 @@ class TestTimesheetBaseRates(IntegrationTestCase):
         self.assertAlmostEqual(row.billing_rate, BILLING_RATE_COST_MULTIPLIER * 0.935)
         self.assertAlmostEqual(row.base_billing_rate, BILLING_RATE_COST_MULTIPLIER * 0.935 * 66.8)
         self.assertAlmostEqual(row.base_billing_amount, BILLING_RATE_COST_MULTIPLIER * 0.935 * 66.8 * 8)
+
+    def test_zero_billing_rate_replaces_stored_billing(self):
+        # A failed project-to-timesheet rate lookup gives a billing rate of 0
+        saved = {"billing_rate": 50, "billing_amount": 400, "base_billing_rate": 3340, "base_billing_amount": 26720}
+
+        for billing_type in ("Fixed Cost", "Retainer"):
+            with self.subTest(billing_type=billing_type):
+                timesheet, _, _ = self.update_cost(billing_rate=0, billing_type=billing_type, row_values=saved)
+                row = timesheet.time_logs[0]
+
+                self.assertEqual((row.billing_rate, row.billing_amount), (0, 0))
+                self.assertEqual((row.base_billing_rate, row.base_billing_amount), (0, 0))
 
     def test_non_billable_row_has_costing_but_no_billing(self):
         timesheet, _, _ = self.update_cost(rows=((8, 0),))
