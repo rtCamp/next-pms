@@ -1,4 +1,9 @@
 /**
+ * External dependencies.
+ */
+import { Tooltip } from "@rtcamp/frappe-ui-react";
+
+/**
  * Internal dependencies.
  */
 import { formatNumber } from "@/lib/utils";
@@ -7,8 +12,10 @@ import type { ProjectProgressHours } from "./types";
 
 export function ProgressHoursSection({
   progress,
+  notSetHint,
 }: {
   progress: ProjectProgressHours;
+  notSetHint: string;
 }) {
   const { consumed, total } = progress;
   const hasValidTotal = total > 0;
@@ -25,9 +32,17 @@ export function ProgressHoursSection({
           <span className="text-base font-medium text-ink-gray-7">
             {formatNumber(consumed)} hours
           </span>
-          <span className="text-base font-light text-ink-gray-5">
-            {formatNumber(total)} hours
-          </span>
+          {hasValidTotal ? (
+            <span className="text-base font-light text-ink-gray-5">
+              {formatNumber(total)} hours
+            </span>
+          ) : (
+            <Tooltip text={notSetHint}>
+              <span className="text-base font-light text-ink-gray-5">
+                Target not set
+              </span>
+            </Tooltip>
+          )}
         </div>
         <div
           role="progressbar"

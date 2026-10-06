@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import {
-  Avatar,
   Button,
   Dialog,
   ErrorMessage,
@@ -15,12 +14,8 @@ import { useForm } from "@tanstack/react-form";
  * Internal dependencies.
  */
 import { useUpcomingTimeOff } from "./context";
+import { LeaveSummaryCard } from "./leaveSummaryCard";
 import { rejectLeaveSchema, type RejectLeaveValues } from "./schema";
-import {
-  formatLeaveDateRange,
-  formatLeaveDayType,
-  formatLeaveDuration,
-} from "./utils";
 import type { EmployeeOnLeave } from "../../types";
 
 interface RejectLeaveDialogProps {
@@ -84,30 +79,7 @@ export function RejectLeaveDialog({ leave, onClose }: RejectLeaveDialogProps) {
     >
       {leave && (
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-3 rounded-lg border border-outline-gray-1 bg-surface-gray-1 p-3">
-            <Avatar
-              size="lg"
-              shape="circle"
-              image={leave.user_image ?? undefined}
-              label={leave.employee_name}
-            />
-            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="truncate text-base font-medium text-ink-gray-8">
-                {leave.employee_name}
-              </span>
-              <span className="truncate text-sm text-ink-gray-6">
-                {leave.leave_type} · {formatLeaveDayType(leave)}
-              </span>
-            </div>
-            <div className="flex shrink-0 flex-col items-end gap-0.5 text-right">
-              <span className="text-base text-ink-gray-8">
-                {formatLeaveDateRange(leave)}
-              </span>
-              <span className="text-sm text-ink-gray-6">
-                {formatLeaveDuration(leave.total_leave_days)}
-              </span>
-            </div>
-          </div>
+          <LeaveSummaryCard leave={leave} />
           <form.Field
             name="reason"
             children={(field) => (

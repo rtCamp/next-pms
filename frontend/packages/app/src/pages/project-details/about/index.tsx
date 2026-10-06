@@ -37,15 +37,27 @@ export function AboutThisProject(props: { className: string }) {
 function AboutThisProjectContent({ className }: { className: string }) {
   const projectId = useProjectDetail((state) => state.projectId);
   const currency = useProjectDetail((state) => state.project?.custom_currency);
+  const billingType = useProjectDetail(
+    (state) => state.project?.custom_billing_type,
+  );
   const sidebar = useSidebar((state) => state.sidebar);
   const risk = useSidebar((state) => state.risk);
 
   const costAccrued = currencyFormat(currency).format(
     sidebar.burn.cost_accrued,
   );
+  const hasBudget = sidebar.burn.total_budget > 0;
   const totalBudget = currencyFormat(currency).format(
     sidebar.burn.total_budget,
   );
+  const budgetNotSetHint =
+    billingType && billingType !== "Non-Billable"
+      ? "No submitted Sales Order is linked to this project"
+      : "Estimated Cost is not set on this project";
+  const targetNotSetHint =
+    billingType === "Retainer"
+      ? "Total Hours Purchased is not set on this project"
+      : "Target Hours is not set on this project";
 
   return (
     <section className={mergeClassNames("flex h-full flex-col", className)}>
@@ -141,11 +153,19 @@ function AboutThisProjectContent({ className }: { className: string }) {
                   {costAccrued}
                 </span>
               </Tooltip>
-              <Tooltip text={totalBudget} showWhen="truncated">
-                <span className="text-base text-ink-gray-5 truncate">
-                  {totalBudget}
-                </span>
-              </Tooltip>
+              {hasBudget ? (
+                <Tooltip text={totalBudget} showWhen="truncated">
+                  <span className="text-base text-ink-gray-5 truncate">
+                    {totalBudget}
+                  </span>
+                </Tooltip>
+              ) : (
+                <Tooltip text={budgetNotSetHint}>
+                  <span className="text-base text-ink-gray-5 truncate">
+                    Budget not set
+                  </span>
+                </Tooltip>
+              )}
             </div>
             <BudgetBurnBar
               value={sidebar.burn.cost_accrued}
@@ -164,6 +184,7 @@ function AboutThisProjectContent({ className }: { className: string }) {
             consumed: sidebar.progress.actual_time,
             total: sidebar.progress.total_hours_purchased,
           }}
+          notSetHint={targetNotSetHint}
         />
 
         <MemberSection />

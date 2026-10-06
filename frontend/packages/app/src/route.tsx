@@ -8,8 +8,9 @@ import { useDocumentTitle } from "@next-pms/hooks";
 /**
  * Internal dependencies.
  */
-import { ROUTES } from "@/lib/constant";
+import { ROLE_ACCESS, ROUTES } from "@/lib/constant";
 import ReactLazyPreload from "@/lib/lazy-preload";
+import { hasAnyRole } from "@/lib/utils";
 import type { RouteConfig, RouteKey } from "@/types";
 import LayoutWithSidebar from "./layout";
 import { useUser } from "./providers/user";
@@ -53,17 +54,17 @@ export const routeConfig: Record<
 > = {
   "dashboard-leadership": {
     Component: ReactLazyPreload(() => import("@/pages/dashboard/leadership")),
-    allowedRoles: ["Delivery Manager", "Delivery User"],
+    allowedRoles: ROLE_ACCESS.leadershipDashboard,
     title: "Leadership Dashboard",
   },
   "dashboard-manager": {
     Component: ReactLazyPreload(() => import("@/pages/dashboard/manager")),
-    allowedRoles: ["Projects Manager", "Projects User"],
+    allowedRoles: ROLE_ACCESS.managerDashboard,
     title: "Manager Dashboard",
   },
   project: {
     Component: ReactLazyPreload(() => import("@/pages/projects")),
-    allowedRoles: ["Projects Manager", "Timesheet Manager", "Projects User"],
+    allowedRoles: ROLE_ACCESS.projects,
     title: "Projects",
   },
   task: {
@@ -78,12 +79,12 @@ export const routeConfig: Record<
   },
   "timesheet-team": {
     Component: ReactLazyPreload(() => import("@/pages/timesheet/team")),
-    allowedRoles: ["Timesheet Manager", "Timesheet User", "Projects Manager"],
+    allowedRoles: ROLE_ACCESS.reviewTimesheets,
     title: "Team Timesheet",
   },
   "timesheet-project": {
     Component: ReactLazyPreload(() => import("./pages/timesheet/project")),
-    allowedRoles: ["Timesheet Manager", "Timesheet User", "Projects Manager"],
+    allowedRoles: ROLE_ACCESS.reviewTimesheets,
     title: "Project Timesheet",
   },
   "allocations-team": {
@@ -347,9 +348,7 @@ const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: Role[] }) => {
     return <Outlet />;
   }
 
-  const hasAccess = roles.some((role) => allowedRoles.includes(role));
-
-  if (!hasAccess) {
+  if (!hasAnyRole(roles, allowedRoles)) {
     return <Navigate to={ROUTES["not-found"]} replace />;
   }
 

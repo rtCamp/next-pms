@@ -59,3 +59,7 @@ scripts/bench_project_timesheet_http.py
 /yarn.lock
 
 tsconfig.tsbuildinfo
+
+/.agents
+
+CLAUDE.local.md
