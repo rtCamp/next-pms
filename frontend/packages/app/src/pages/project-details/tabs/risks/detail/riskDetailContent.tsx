@@ -9,11 +9,14 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import { DocumentUploadButton } from "@/pages/project-details/components/documentUploadButton";
-import { FileCard } from "@/pages/project-details/components/fileCard";
-import type { FileAttachment } from "@/pages/project-details/types";
 import { AddUpdateModal } from "../add-update";
-import type { EnrichedRiskUpdateEntry, RiskDetail } from "../types";
+import type {
+  EnrichedRiskUpdateEntry,
+  RiskDetail,
+  FileAttachment,
+} from "../types";
+import { DocumentUploadButton } from "./documentUploadButton";
+import { FileCard } from "./fileCard";
 import { UpdateEntry } from "./updateEntry";
 
 interface RiskDetailContentProps {
@@ -103,8 +106,7 @@ export function RiskDetailContent({
             </h3>
             {canEditRisk && (
               <DocumentUploadButton
-                doctype="Risk"
-                docname={risk.name}
+                riskName={risk.name}
                 onSuccess={() => {
                   mutate();
                   mutateAttachments();

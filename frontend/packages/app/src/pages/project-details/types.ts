@@ -177,22 +177,3 @@ export interface ProjectDoc {
   custom_project_drive_link?: string;
   custom_project_reports?: ProjectReportRow[];
 }
-
-export interface UserDetails {
-  name: string;
-  full_name: string;
-  user_image: string | null;
-}
-
-export interface Follower {
-  user: string;
-  full_name: string | null;
-  user_image: string | null;
-}
-
-export interface FileAttachment {
-  name: string;
-  file_name: string;
-  file_url: string;
-  file_size: number;
-}
