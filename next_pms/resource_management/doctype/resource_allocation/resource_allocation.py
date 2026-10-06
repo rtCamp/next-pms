@@ -25,16 +25,12 @@ def has_permission(doc, ptype=None, user=None, debug=False):
         return True
 
     user = user or frappe.session.user
-    roles = set(frappe.get_roles(user))
     is_ai_created = bool(cint(doc.is_ai_created)) or bool(
         cint(frappe.db.get_value("Resource Allocation", doc.name, "is_ai_created"))
     )
 
     if is_ai_created:
         return can_manage_ai_allocations(user)
-
-    if "Delivery Manager" in roles and not roles.intersection({"Projects Manager", "Projects User", "System Manager"}):
-        return False
 
     return True
 
