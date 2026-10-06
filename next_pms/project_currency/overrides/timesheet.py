@@ -87,7 +87,6 @@ class TimesheetOverwrite(Timesheet):
             )
 
         custom_billing_type = frappe.db.get_value("Project", self.parent_project, "custom_billing_type")
-        exchange_rate = flt(self.exchange_rate)
 
         for data in self.time_logs:
             costing_rate = self.get_activity_costing_rate(currency=self.currency)
@@ -96,8 +95,6 @@ class TimesheetOverwrite(Timesheet):
             if costing_rate:
                 data.costing_rate = costing_rate
                 data.costing_amount = data.costing_rate * costing_hours
-                data.base_costing_rate = data.costing_rate * exchange_rate
-                data.base_costing_amount = data.base_costing_rate * costing_hours
 
             if data.activity_type or data.is_billable:
                 hours = data.billing_hours or 0
@@ -112,14 +109,21 @@ class TimesheetOverwrite(Timesheet):
                 if billing_rate or custom_billing_type == "Time and Material":
                     data.billing_rate = billing_rate
                     data.billing_amount = data.billing_rate * hours
-                    data.base_billing_rate = data.billing_rate * exchange_rate
-                    data.base_billing_amount = data.base_billing_rate * hours
 
             if not data.is_billable:
                 data.billing_rate = 0
                 data.billing_amount = 0
-                data.base_billing_rate = 0
-                data.base_billing_amount = 0
+
+        self.set_base_rates()
+
+    def set_base_rates(self):
+        exchange_rate = flt(self.exchange_rate)
+
+        for data in self.time_logs:
+            data.base_costing_rate = flt(data.costing_rate) * exchange_rate
+            data.base_costing_amount = flt(data.costing_amount) * exchange_rate
+            data.base_billing_rate = flt(data.billing_rate) * exchange_rate
+            data.base_billing_amount = flt(data.billing_amount) * exchange_rate
 
     def get_activity_costing_rate(self, currency=None):
         if not self.parent_project:

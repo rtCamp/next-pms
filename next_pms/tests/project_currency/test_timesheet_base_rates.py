@@ -99,6 +99,23 @@ class TestTimesheetBaseRates(IntegrationTestCase):
         self.assertEqual((row.billing_rate, row.billing_amount), (0, 0))
         self.assertEqual((row.base_billing_rate, row.base_billing_amount), (0, 0))
 
+    def test_set_base_rates_uses_the_stored_rates(self):
+        timesheet = TimesheetOverwrite(
+            {
+                "doctype": "Timesheet",
+                "exchange_rate": 84.5,
+                "time_logs": [{"costing_rate": 10, "costing_amount": 80, "billing_rate": 30, "billing_amount": 240}],
+            }
+        )
+
+        with patch.object(timesheet_override, "get_exchange_rate") as get_rate:
+            timesheet.set_base_rates()
+
+        get_rate.assert_not_called()
+        row = timesheet.time_logs[0]
+        self.assertEqual((row.base_costing_rate, row.base_costing_amount), (845, 6760))
+        self.assertEqual((row.base_billing_rate, row.base_billing_amount), (2535, 20280))
+
     def test_rates_are_looked_up_once_per_row_in_the_timesheet_currency(self):
         _, costing, billing = self.update_cost(rows=((8, 1), (4, 1)))
 
