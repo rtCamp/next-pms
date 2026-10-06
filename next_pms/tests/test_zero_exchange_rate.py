@@ -6,6 +6,7 @@ from frappe.tests import IntegrationTestCase
 from next_pms.api import utils as api_utils
 from next_pms.next_projects.api import project as next_projects_project
 from next_pms.project_currency.overrides import timesheet as timesheet_override
+from next_pms.resource_management.report.capacity_planning import capacity_planning
 from next_pms.resource_management.report.spare_capacity_report import utils as spare_capacity_utils
 from next_pms.timesheet.api.project import convert
 from next_pms.utils import employee as employee_utils
@@ -68,6 +69,13 @@ class TestZeroExchangeRate(IntegrationTestCase):
         for rate in MISSING_RATES:
             with self.subTest(rate=rate), patch.object(spare_capacity_utils, "get_exchange_rate", return_value=rate):
                 self.assertEqual(spare_capacity_utils.convert_currency(500, "INR", "USD", "2026-10-05"), 0)
+
+    def test_capacity_planning_exchange_rates(self):
+        projects = {"PROJ-0001": frappe._dict(custom_currency="INR")}
+
+        for rate in MISSING_RATES:
+            with self.subTest(rate=rate), patch.object(capacity_planning, "get_exchange_rate", return_value=rate):
+                self.assertEqual(capacity_planning.batch_fetch_exchange_rates(projects), {"INR": 0})
 
     def test_project_list_currency_conversion(self):
         for rate in MISSING_RATES:
