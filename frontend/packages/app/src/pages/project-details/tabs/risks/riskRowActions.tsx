@@ -14,8 +14,8 @@ import type { FrappeError } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { useOwnerGatedPermissions } from "@/pages/project-details/useOwnerGatedPermissions";
 import { useRisks } from "./context";
+import { useRiskPermissions } from "./useRiskPermissions";
 
 interface RiskRowActionsProps {
   riskName: string;
@@ -34,8 +34,7 @@ export function RiskRowActions({
 }: RiskRowActionsProps) {
   const openEditRisk = useRisks((c) => c.actions.openEditRisk);
   const openDeleteRisk = useRisks((c) => c.actions.openDeleteRisk);
-  const { canEdit: canEditRisk, canDelete: canDeleteRisk } =
-    useOwnerGatedPermissions(riskOwner);
+  const { canEditRisk, canDeleteRisk } = useRiskPermissions(riskOwner);
   const toast = useToasts();
 
   const { call: updateFollow } = useFrappePostCall(
