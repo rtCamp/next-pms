@@ -20,7 +20,7 @@ from next_pms.timesheet.utils.constant import (
 
 from . import filter_employees
 
-READ_ONLY_ROLE = ["Timesheet User", "Projects User"]
+READ_ONLY_ROLE = ["Projects User"]
 READ_WRITE_ROLE = [*GLOBAL_TIMESHEET_ROLES, "Projects Manager"]
 
 # Stands in for a day whose projects do not agree on one status. Never stored - it only
