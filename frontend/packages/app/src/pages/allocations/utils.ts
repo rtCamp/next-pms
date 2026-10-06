@@ -51,6 +51,7 @@ export type AllocationApiRecord = {
   creation?: string | null;
   modified?: string | null;
   modified_by?: string | null;
+  modified_by_full_name?: string | null;
   modified_by_avatar?: string | null;
   override?: AllocationOverrideEntry[];
 };
@@ -258,7 +259,7 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
       : undefined,
     updatedBy: allocation.modified_by
       ? {
-          name: allocation.modified_by,
+          name: allocation.modified_by_full_name || allocation.modified_by,
           image: allocation.modified_by_avatar || undefined,
         }
       : undefined,
