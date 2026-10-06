@@ -6,8 +6,7 @@ import { createContext, useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
-import type { UserDetails } from "@/pages/project-details/types";
-import type { RiskFilters, RiskItem, RiskSort } from "./types";
+import type { RiskFilters, RiskItem, RiskSort, UserDetails } from "./types";
 
 export interface RisksContextProps {
   state: {
