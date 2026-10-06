@@ -69,4 +69,15 @@ export const GROWTH_SORT_FIELDS = [
 
 export const CLIENT_PRIORITIES = ["Low", "Medium", "High"] as const;
 
+export const CLIENT_PRIORITY_OPTIONS = CLIENT_PRIORITIES.map((p) => ({
+  label: p,
+  value: p,
+}));
+
+export const FORM_INPUT_CLASS =
+  "bg-surface-white border-outline-gray-2 text-ink-gray-7";
+
+export const FORM_EDITOR_CLASS =
+  "px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-surface-white border rounded-md border-outline-gray-2 text-ink-gray-7";
+
 export const GROWTH_DETAIL_PARAM = "growth";

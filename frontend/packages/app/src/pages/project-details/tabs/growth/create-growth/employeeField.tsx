@@ -8,8 +8,9 @@ import { Combobox } from "@rtcamp/frappe-ui-react";
  * Internal dependencies.
  */
 import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
+import { mergeClassNames as cn } from "@/lib/utils";
 import { toEmployeeUserOptions } from "@/pages/project-details/utils";
-import { INPUT_CLASS } from "./constants";
+import { FORM_INPUT_CLASS } from "../constants";
 
 interface EmployeeFieldProps {
   label: string;
@@ -37,7 +38,7 @@ export function EmployeeField({
     <div className="flex flex-col gap-1.5">
       <label className="block text-base text-ink-gray-5">{label}</label>
       <Combobox
-        inputClassName={`h-8 ${INPUT_CLASS}`}
+        inputClassName={cn("h-8", FORM_INPUT_CLASS)}
         loading={isLoading}
         options={toEmployeeUserOptions(options, value || undefined)}
         placeholder={placeholder}

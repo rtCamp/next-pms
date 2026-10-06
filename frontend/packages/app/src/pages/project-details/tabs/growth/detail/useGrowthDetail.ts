@@ -1,22 +1,36 @@
 /**
  * External dependencies.
  */
-import { useMemo } from "react";
-import { useFrappeGetDoc, useFrappeGetDocList } from "frappe-react-sdk";
+import { useCallback, useMemo } from "react";
+import { useToasts } from "@rtcamp/frappe-ui-react";
+import {
+  FrappeError,
+  useFrappeGetDoc,
+  useFrappeGetDocList,
+  useFrappeUpdateDoc,
+} from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { useUserDetails } from "@/hooks/useUserDetails";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import type { FileAttachment, Follower } from "@/pages/project-details/types";
+import { toUpdateLogRows } from "../add-update/payload";
 import { GROWTH_DOCTYPE } from "../constants";
-import type { ApiGrowthDetail, GrowthDetail } from "../types";
+import type {
+  ApiGrowthDetail,
+  GrowthDetail,
+  GrowthUpdateEntry,
+} from "../types";
 
 export function useGrowthDetail(growthId: string) {
-  const { data, isLoading, error } = useFrappeGetDoc<ApiGrowthDetail>(
+  const { data, isLoading, error, mutate } = useFrappeGetDoc<ApiGrowthDetail>(
     GROWTH_DOCTYPE,
     growthId,
   );
+  const { updateDoc } = useFrappeUpdateDoc();
+  const toast = useToasts();
 
   const { data: attachments, mutate: mutateAttachments } =
     useFrappeGetDocList<FileAttachment>("File", {
@@ -44,9 +58,15 @@ export function useGrowthDetail(growthId: string) {
       [
         data?.activity_owner,
         data?.ideation_owner,
+        ...(data?.update_log ?? []).map((entry) => entry.updated_by),
         ...(followersData ?? []).map((f) => f.user),
       ].filter(Boolean) as string[],
-    [data?.activity_owner, data?.ideation_owner, followersData],
+    [
+      data?.activity_owner,
+      data?.ideation_owner,
+      data?.update_log,
+      followersData,
+    ],
   );
 
   const { data: usersData } = useUserDetails(userEmails);
@@ -59,6 +79,10 @@ export function useGrowthDetail(growthId: string) {
       ...data,
       activity_owner_details: findUser(data.activity_owner),
       ideation_owner_details: findUser(data.ideation_owner),
+      update_log: (data.update_log ?? []).map((entry) => ({
+        ...entry,
+        updated_by_details: findUser(entry.updated_by),
+      })),
     };
   }, [data, usersData]);
 
@@ -75,13 +99,34 @@ export function useGrowthDetail(growthId: string) {
     [followersData, usersData],
   );
 
+  const deleteUpdateEntry = useCallback(
+    async (entry: GrowthUpdateEntry) => {
+      if (!data) return;
+      try {
+        await updateDoc(GROWTH_DOCTYPE, data.name, {
+          modified: data.modified,
+          update_log: toUpdateLogRows(
+            (data.update_log ?? []).filter((e) => e.name !== entry.name),
+          ),
+        });
+        toast.success("Update deleted");
+        await mutate();
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+      }
+    },
+    [data, updateDoc, toast, mutate],
+  );
+
   return {
     growth,
     isLoading,
     error,
     attachments: attachments ?? [],
     followers,
+    mutate,
     mutateAttachments,
     mutateFollowers,
+    deleteUpdateEntry,
   };
 }
