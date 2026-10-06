@@ -111,8 +111,11 @@ jobs:
         working-directory: /home/runner/frappe-bench
         run: |
           nohup bench --site test_site serve --port 8000 --noreload > "$RUNNER_TEMP/serve.log" 2>&1 &
-          # costing and timesheet approvals are enqueued; the suite asserts on the results
-          nohup bench --site test_site worker --queue short,default,long > "$RUNNER_TEMP/worker.log" 2>&1 &
+          # costing and timesheet approvals are enqueued and the suite asserts on the results within
+          # seconds; seven parallel browsers outrun a single worker
+          for i in 1 2 3; do
+            nohup bench --site test_site worker --queue short,default,long > "$RUNNER_TEMP/worker-$i.log" 2>&1 &
+          done
           for i in $(seq 1 60); do
             curl -fsS http://localhost:8000/api/method/ping && break
             sleep 2
@@ -152,5 +155,5 @@ jobs:
             tests/e2e/test-results
             tests/e2e/results.json
             ${{ runner.temp }}/serve.log
-            ${{ runner.temp }}/worker.log
+            ${{ runner.temp }}/worker-*.log
             /home/runner/frappe-bench/logs

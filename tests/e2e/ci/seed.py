@@ -149,6 +149,20 @@ def holiday_list():
 			}
 		).insert()
 	frappe.db.set_value("Company", COMPANY, "default_holiday_list", name)
+	# HRMS v16 resolves an employee's holiday list from assignments only (Employee.holiday_list and the
+	# Company default are ignored): without this, Leave Application inserts fail with "No Holiday List was found".
+	if not frappe.db.exists(
+		"Holiday List Assignment", {"applicable_for": "Company", "assigned_to": COMPANY, "docstatus": 1}
+	):
+		frappe.get_doc(
+			{
+				"doctype": "Holiday List Assignment",
+				"applicable_for": "Company",
+				"assigned_to": COMPANY,
+				"holiday_list": name,
+				"from_date": "2020-01-01",
+			}
+		).insert().submit()
 
 
 def masters():
