@@ -2,6 +2,8 @@ import frappe
 from frappe.deferred_insert import save_to_db
 from frappe.tests import IntegrationTestCase
 
+from next_pms.install import create_default_growth_masters
+
 FOLLOWER_USER = "notification-url-follower@example.com"
 
 RISK_STATUS_OPEN = "URL Test Open"
@@ -90,6 +92,39 @@ class TestNotificationUrls(IntegrationTestCase):
         self.assertEqual(
             self._get_notification_urls("Risk update"),
             [f"/next-pms/projects/{self.project.name}?tab=risks&risk={risk.name}"],
+        )
+
+    def test_growth_notification_links_to_project_growth_tab(self):
+        create_default_growth_masters()
+        initiative = frappe.get_doc(
+            {
+                "doctype": "PMS Growth Initiative",
+                "project": self.project.name,
+                "activity": "Notification URL initiative",
+                "status": "Ideation",
+            }
+        ).insert(ignore_permissions=True)
+        self.addCleanup(
+            frappe.delete_doc, "PMS Growth Initiative", initiative.name, force=True, ignore_permissions=True
+        )
+
+        follow = frappe.get_doc(
+            {
+                "doctype": "Document Follow",
+                "ref_doctype": "PMS Growth Initiative",
+                "ref_docname": initiative.name,
+                "user": FOLLOWER_USER,
+            }
+        ).insert(ignore_permissions=True)
+        self.addCleanup(frappe.delete_doc, "Document Follow", follow.name, force=True, ignore_permissions=True)
+
+        initiative.append("update_log", {"status": "In Progress"})
+        initiative.save(ignore_permissions=True)
+        save_to_db()
+
+        self.assertEqual(
+            self._get_notification_urls("Growth initiative update"),
+            [f"/next-pms/projects/{self.project.name}?tab=growth&growth={initiative.name}"],
         )
 
     def test_project_rag_notification_links_to_rag_stats_tab(self):
