@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Avatar, Button } from "@rtcamp/frappe-ui-react";
+import { Avatar } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -9,7 +9,6 @@ import { Avatar, Button } from "@rtcamp/frappe-ui-react";
 import { formatProjectDate } from "@/lib/utils";
 import { PriorityBadge } from "./priorityBadge";
 import { StatusBadge } from "./statusBadge";
-import { useGrowth } from "../../context";
 import type { GrowthInitiativeItem, GrowthListColumn } from "../../types";
 
 interface GrowthCellProps {
@@ -18,17 +17,12 @@ interface GrowthCellProps {
 }
 
 export function GrowthCell({ column, item }: GrowthCellProps) {
-  const openDetail = useGrowth((c) => c.actions.openDetail);
-
   switch (column.key) {
     case "activity":
       return (
-        <Button
-          variant="ghost"
-          label={item.activity}
-          onClick={() => openDetail(item.name)}
-          className="min-w-0 max-w-full justify-start px-0 font-medium text-ink-gray-8"
-        />
+        <span className="truncate font-medium text-ink-gray-8">
+          {item.activity}
+        </span>
       );
     case "category":
       return <span className="truncate">{item.category ?? "—"}</span>;
