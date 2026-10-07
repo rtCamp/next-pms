@@ -12,12 +12,6 @@ export const RISK_LEVELS = ["Low", "Medium", "High"] as const;
 
 export type RiskStatus = (typeof RISK_STATUSES)[number];
 
-export const CREATE_RISK_ROLES = [
-  "Projects Manager",
-  "Delivery Manager",
-  "Delivery User",
-] as const;
-
 export const RISK_LIST_COLUMNS = [
   { key: "risk_category", label: "Risk category", width: "128px", flex: 1 },
   { key: "summary", label: "Risk Summary", width: "264px", flex: 4 },

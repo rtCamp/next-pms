@@ -8,7 +8,8 @@ import { Folder, People, Time, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import { ROUTES } from "@/lib/constant";
+import { ROLE_ACCESS, ROUTES } from "@/lib/constant";
+import { hasAnyRole } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 
 export const TimesheetBreadcrumbs = () => {
@@ -19,10 +20,7 @@ export const TimesheetBreadcrumbs = () => {
     roles: state.roles,
   }));
 
-  const hasRoleAccess =
-    roles.includes("Projects Manager") ||
-    roles.includes("Timesheet User") ||
-    roles.includes("Timesheet Manager");
+  const hasRoleAccess = hasAnyRole(roles, ROLE_ACCESS.reviewTimesheets);
 
   const timesheetViews = [
     {

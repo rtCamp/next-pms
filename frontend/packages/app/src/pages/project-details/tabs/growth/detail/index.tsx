@@ -19,6 +19,7 @@ export function GrowthDetailView({ growthId }: GrowthDetailViewProps) {
   const {
     growth,
     isLoading,
+    error,
     attachments,
     followers,
     mutate,
@@ -32,6 +33,14 @@ export function GrowthDetailView({ growthId }: GrowthDetailViewProps) {
     return (
       <div className="flex items-center justify-center flex-1 h-full">
         <Spinner isFull />
+      </div>
+    );
+  }
+
+  if (!growth && error && error.httpStatus !== 404) {
+    return (
+      <div className="flex items-center justify-center flex-1 h-full text-sm text-ink-red-4">
+        Could not load growth initiative.
       </div>
     );
   }

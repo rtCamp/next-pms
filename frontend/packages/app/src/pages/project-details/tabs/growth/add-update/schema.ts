@@ -1,3 +1,4 @@
+import { stripTags } from "@next-pms/design-system/utils";
 import { z } from "zod";
 import {
   billableOutcomeSchema,
@@ -13,7 +14,13 @@ export const buildAddUpdateSchema = (
       closed_status: z.string(),
       client_priority: z.string(),
       billable_outcome: billableOutcomeSchema,
-      note: z.string().trim().min(1, { message: "Note is required." }),
+      note: z
+        .string({
+          required_error: "Note is required.",
+        })
+        .refine((value) => stripTags(value).trim().length > 0, {
+          message: "Note is required.",
+        }),
     })
     .superRefine(requireClosedStatus(isClosedStatus));
 

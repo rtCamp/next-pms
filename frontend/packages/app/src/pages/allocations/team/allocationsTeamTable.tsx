@@ -12,7 +12,8 @@ import {
  * Internal dependencies.
  */
 import { InfiniteScroll } from "@/components/infiniteScroll";
-import { isWeekendEntryAllowed } from "@/lib/utils";
+import { ROLE_ACCESS } from "@/lib/constant";
+import { hasAnyRole, isWeekendEntryAllowed } from "@/lib/utils";
 import { useAllocationOutletContext } from "@/pages/allocations/allocationOutletContext";
 import {
   useGuardedAction,
@@ -44,8 +45,7 @@ export const AllocationsTeamTable = () => {
   const guardAction = useGuardedAction();
 
   const roles = useUser(({ state }) => state.roles);
-  const canManageAllocations =
-    roles.includes("Projects Manager") || roles.includes("Projects User");
+  const canManageAllocations = hasAnyRole(roles, ROLE_ACCESS.manageAllocations);
 
   const {
     openAddAllocationDialog,

@@ -12,14 +12,15 @@ IGNORE_TEST_RECORD_DEPENDENCIES = ["User", "Project"]
 DOCTYPE = "PMS Growth Initiative"
 STATUS_DOCTYPE = "PMS Growth Initiative Status"
 
-OWNER_USER = "test.growth.owner@example.com"
-OTHER_TM_USER = "test.growth.other.tm@example.com"
+OWNER_USER = "test.growth.gated.owner@example.com"
+OTHER_GATED_USER = "test.growth.other.gated@example.com"
+TIMESHEET_MANAGER_USER = "test.growth.tm@example.com"
 PROJECTS_USER = "test.growth.pu@example.com"
 PROJECTS_MANAGER_USER = "test.growth.pm@example.com"
 DELIVERY_MANAGER_USER = "test.growth.dm@example.com"
 DELIVERY_USER_USER = "test.growth.du@example.com"
 
-UNRESTRICTED_USERS = (PROJECTS_MANAGER_USER, DELIVERY_MANAGER_USER, DELIVERY_USER_USER)
+UNRESTRICTED_USERS = (PROJECTS_MANAGER_USER, DELIVERY_MANAGER_USER, DELIVERY_USER_USER, TIMESHEET_MANAGER_USER)
 
 
 class IntegrationTestPMSGrowthInitiative(IntegrationTestCase):
@@ -27,8 +28,9 @@ class IntegrationTestPMSGrowthInitiative(IntegrationTestCase):
     def setUpClass(cls):
         super().setUpClass()
         create_default_growth_masters()
-        cls._make_user(OWNER_USER, ["Timesheet Manager"])
-        cls._make_user(OTHER_TM_USER, ["Timesheet Manager"])
+        cls._make_user(OWNER_USER, ["Projects User"])
+        cls._make_user(OTHER_GATED_USER, ["Projects User"])
+        cls._make_user(TIMESHEET_MANAGER_USER, ["Timesheet Manager"])
         cls._make_user(PROJECTS_USER, ["Projects User"])
         cls._make_user(PROJECTS_MANAGER_USER, ["Projects Manager"])
         cls._make_user(DELIVERY_MANAGER_USER, ["Delivery Manager"])
@@ -292,7 +294,7 @@ class IntegrationTestPMSGrowthInitiative(IntegrationTestCase):
 
     def test_gated_roles_can_read_any_initiative(self):
         initiative = self._make_initiative()
-        for user in (OWNER_USER, OTHER_TM_USER, PROJECTS_USER):
+        for user in (OWNER_USER, OTHER_GATED_USER, PROJECTS_USER):
             with self.subTest(user=user):
                 self.assertTrue(frappe.has_permission(DOCTYPE, "read", doc=initiative, user=user))
 
@@ -309,7 +311,7 @@ class IntegrationTestPMSGrowthInitiative(IntegrationTestCase):
 
     def test_non_owner_gated_role_cannot_write(self):
         initiative = self._make_initiative()
-        for user in (OTHER_TM_USER, PROJECTS_USER):
+        for user in (OTHER_GATED_USER, PROJECTS_USER):
             with self.subTest(user=user):
                 self.assertFalse(frappe.has_permission(DOCTYPE, "write", doc=initiative, user=user))
                 frappe.set_user(user)
@@ -343,7 +345,7 @@ class IntegrationTestPMSGrowthInitiative(IntegrationTestCase):
         initiative = self._make_initiative()
         frappe.set_user(OWNER_USER)
         doc = frappe.get_doc(DOCTYPE, initiative.name)
-        doc.activity_owner = OTHER_TM_USER
+        doc.activity_owner = OTHER_GATED_USER
         with self.assertRaises(frappe.PermissionError):
             doc.save()
         initiative.reload()

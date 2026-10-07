@@ -119,6 +119,7 @@ def get_employee_working_hours(employee: str | None = None) -> dict:
     manager_roles = {
         "Projects Manager",
         "Timesheet Manager",
+        "Timesheet User",
         "Delivery Manager",
         "Delivery User",
         "HR Manager",
