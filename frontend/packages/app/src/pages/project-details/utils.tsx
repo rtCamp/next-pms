@@ -8,7 +8,7 @@ import { Avatar } from "@rtcamp/frappe-ui-react";
  */
 import type { EmployeeLookupOption } from "@/hooks/useEmployeeLookup";
 
-export function toRiskOwnerOptions(
+export function toEmployeeUserOptions(
   options: EmployeeLookupOption[],
   userId?: string,
   name?: string,
