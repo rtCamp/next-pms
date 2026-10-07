@@ -20,6 +20,10 @@ export interface Allocation {
   billable?: boolean;
   /** Whether the allocation is tentative. */
   tentative?: boolean;
+  /** Whether the allocation was created by AI. */
+  isAiCreated?: boolean;
+  /** AI-provided explanation for the allocation. */
+  aiReason?: string;
   /** Note for the allocation. */
   note?: string;
   /** Created on date. */
@@ -136,6 +140,10 @@ export interface AllocationCallbackData {
   billable?: boolean;
   /** Whether the allocation is tentative. */
   tentative?: boolean;
+  /** Whether the allocation was created by AI. */
+  isAiCreated?: boolean;
+  /** AI-provided explanation for the allocation. */
+  aiReason?: string;
   /** Note for the allocation. */
   note?: string;
   /** Existing day-level overrides attached to the allocation. */
@@ -190,6 +198,8 @@ export interface GanttGridProps {
   showWeekend?: boolean;
   /** Whether current user can manage member projects. */
   hasRoleAccess?: boolean;
+  /** Whether current user can manage AI-created allocations only. */
+  canManageAiAllocations?: boolean;
   /** Optional custom classes for the root wrapper. */
   className?: string;
   /** Stretch the grid to fill the scroll viewport's height when the content is shorter. */

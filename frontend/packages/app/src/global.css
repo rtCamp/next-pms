@@ -15,6 +15,7 @@
 
 @theme {
     --color-heatmap-red: #e75a5a;
+    --color-ai-allocation: #fef7da;
 
     --animate-fade-in: fade-in 0.2s ease;
     --animate-fade-left: fade-left 0.2s ease;

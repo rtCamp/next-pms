@@ -10,6 +10,8 @@
   "employee_name",
   "status",
   "is_billable",
+  "is_ai_created",
+  "ai_allocation_reason",
   "recurrence_id",
   "column_break_wngn",
   "project",
@@ -145,6 +147,17 @@
    "label": "Is Billable"
   },
   {
+   "default": "0",
+   "fieldname": "is_ai_created",
+   "fieldtype": "Check",
+   "label": "Is AI Created"
+  },
+  {
+   "fieldname": "ai_allocation_reason",
+   "fieldtype": "Small Text",
+   "label": "AI Allocation Reason"
+  },
+  {
    "fetch_from": "project.project_name",
    "fieldname": "project_name",
    "fieldtype": "Data",
@@ -204,7 +217,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-23 12:00:00.000000",
+ "modified": "2026-09-30 13:50:38.935009",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "Resource Allocation",

@@ -46,6 +46,10 @@ export const AllocationsTeamTable = () => {
 
   const roles = useUser(({ state }) => state.roles);
   const canManageAllocations = hasAnyRole(roles, ROLE_ACCESS.manageAllocations);
+  const canManageAiAllocations = hasAnyRole(
+    roles,
+    ROLE_ACCESS.manageAiAllocations,
+  );
 
   const {
     openAddAllocationDialog,
@@ -85,6 +89,7 @@ export const AllocationsTeamTable = () => {
               weekCount={weekCount}
               fillHeight={!hasMore}
               hasRoleAccess={canManageAllocations}
+              canManageAiAllocations={canManageAiAllocations}
               guardAction={guardAction}
               showWeekend={showWeekend}
               onAddAllocation={openAddAllocationDialog}

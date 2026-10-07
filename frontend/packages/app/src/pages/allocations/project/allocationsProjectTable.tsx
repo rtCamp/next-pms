@@ -48,6 +48,10 @@ export const AllocationsProjectTable = () => {
 
   const roles = useUser(({ state }) => state.roles);
   const canManageAllocations = hasAnyRole(roles, ROLE_ACCESS.manageAllocations);
+  const canManageAiAllocations = hasAnyRole(
+    roles,
+    ROLE_ACCESS.manageAiAllocations,
+  );
 
   const {
     openAddAllocationDialog,
@@ -85,6 +89,7 @@ export const AllocationsProjectTable = () => {
               weekCount={weekCount}
               fillHeight={!hasMore}
               hasRoleAccess={canManageAllocations}
+              canManageAiAllocations={canManageAiAllocations}
               guardAction={guardAction}
               showWeekend={showWeekend}
               onAddAllocation={openAddAllocationDialog}

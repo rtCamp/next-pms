@@ -37,6 +37,8 @@ const ganttBarVariants = cva(
         projectSummary: "bg-surface-blue-2 text-ink-blue-3",
         allocation:
           "bg-surface-white text-ink-gray-5 shadow-[0px_0px_1px_0px_rgba(0,0,0,0.14),0px_1px_3px_0px_rgba(0,0,0,0.14)]",
+        aiAllocation:
+          "bg-ai-allocation text-ink-gray-5 shadow-[0px_0px_1px_0px_rgba(0,0,0,0.14),0px_1px_3px_0px_rgba(0,0,0,0.14)]",
         draft: "bg-surface-gray-2 text-ink-gray-5",
         empty: "bg-surface-gray-2/60 text-ink-gray-4",
       },
@@ -45,12 +47,13 @@ const ganttBarVariants = cva(
 );
 
 const trailingLabelVariants = cva(
-  "min-w-0 flex-1 shrink-0 text-end text-[13px] font-medium tracking-[0.02em] truncate",
+  "min-w-0 flex-1 shrink-0 text-end font-medium tracking-[0.02em] truncate",
   {
     variants: {
       variant: {
-        amber: "text-ink-amber-4",
-        violet: "text-ink-violet-1",
+        amber: "text-ink-amber-4 text-[13px]",
+        violet: "text-ink-violet-1 text-[13px]",
+        ai: "text-ink-amber-4 font-semibold text-[10px] leading-[1.15] ml-auto shrink-0",
       },
     },
   },

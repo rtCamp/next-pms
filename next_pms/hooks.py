@@ -135,6 +135,7 @@ after_install = "next_pms.install.after_install"
 
 has_permission = {
     "Risk": "next_pms.next_pms.doctype.risk.risk.has_permission",
+    "Resource Allocation": "next_pms.resource_management.doctype.resource_allocation.resource_allocation.has_permission",
     "PMS Growth Initiative": "next_pms.next_pms.doctype.pms_growth_initiative.pms_growth_initiative.has_permission",
 }
 
@@ -302,6 +303,9 @@ doc_events = {
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
             "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.delete_project_views",
         ],
+    },
+    "Resource Allocation": {
+        "after_insert": "next_pms.next_pms.notifications.ai_allocation_after_insert",
     },
     "Risk": {
         "on_update": [

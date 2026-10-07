@@ -52,6 +52,7 @@ interface GanttProps {
   startDate: Date;
   weekCount: number;
   hasRoleAccess: boolean;
+  canManageAiAllocations: boolean;
   guardAction?: (action?: () => void) => void;
   onAddAllocation?: (data: AllocationCallbackData) => void;
   onEditAllocation?: (data: AllocationCallbackData) => void;

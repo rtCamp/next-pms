@@ -62,13 +62,13 @@ export function useAllocationModal(refresh: RefreshAllocations) {
   }, []);
 
   const openEditDialog = useCallback((data: AllocationCallbackData) => {
-    const isRecurringAllocation = Boolean(data.recurrenceId);
+    const editsWholeAllocation = Boolean(data.recurrenceId || data.isAiCreated);
     const formStartDate =
-      isRecurringAllocation && data.allocationStartDate
+      editsWholeAllocation && data.allocationStartDate
         ? data.allocationStartDate
         : data.startDate;
     const formEndDate =
-      isRecurringAllocation && data.allocationEndDate
+      editsWholeAllocation && data.allocationEndDate
         ? data.allocationEndDate
         : data.endDate;
 
@@ -86,14 +86,16 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       fromDate: formStartDate ? format(formStartDate, "yyyy-MM-dd") : undefined,
       toDate: formEndDate ? format(formEndDate, "yyyy-MM-dd") : undefined,
       hoursPerDay:
-        isRecurringAllocation && data.allocationHoursPerDay !== undefined
+        editsWholeAllocation && data.allocationHoursPerDay !== undefined
           ? data.allocationHoursPerDay
           : data.hoursPerDay,
       isBillable: data.billable,
-      isTentative: data.tentative,
+      isTentative: data.isAiCreated ? false : data.tentative,
+      isAiCreated: data.isAiCreated,
+      aiAllocationReason: data.aiReason,
       includeWeekends: Boolean(data.includeWeekends),
       includeHolidays: Boolean(data.includeHolidays),
-      note: data.note,
+      note: data.isAiCreated ? (data.note ?? "") : data.note,
       allocationStartDate: data.allocationStartDate
         ? format(data.allocationStartDate, "yyyy-MM-dd")
         : undefined,
@@ -183,6 +185,21 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       onOpenChange: handleOpenChange,
       initialValues,
       onSuccess: handleSuccess,
+      onDelete: initialValues?.allocationName
+        ? async () => {
+            await handleDelete(
+              {
+                allocationId: initialValues.allocationName,
+                employeeId: initialValues.employeeId,
+                projectId: initialValues.projectId,
+              },
+              "only_this",
+            );
+            setIsOpen(false);
+            setInitialValues(undefined);
+            setVariant("add");
+          }
+        : undefined,
       onEditScheduleClick: (values: AddAllocationFormValues) => {
         setIsOpen(false);
         setEditScheduleInitialValues({
@@ -213,7 +230,14 @@ export function useAllocationModal(refresh: RefreshAllocations) {
         setIsEditScheduleOpen(true);
       },
     }),
-    [variant, isOpen, handleOpenChange, initialValues, handleSuccess],
+    [
+      variant,
+      isOpen,
+      handleOpenChange,
+      initialValues,
+      handleSuccess,
+      handleDelete,
+    ],
   );
 
   const handleEditScheduleSuccess = useCallback(
