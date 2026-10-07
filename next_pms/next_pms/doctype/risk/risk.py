@@ -60,5 +60,5 @@ class Risk(Document):
 
 
 def has_permission(doc, ptype="read", user=None, debug=False):
-    """Timesheet Manager / Projects User may write only when they are risk_owner."""
+    """Projects User may write only when they are risk_owner."""
     return has_owner_gated_permission(doc.risk_owner, ptype, user or frappe.session.user)

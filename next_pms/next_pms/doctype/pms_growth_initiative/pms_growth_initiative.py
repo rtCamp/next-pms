@@ -123,5 +123,5 @@ class PMSGrowthInitiative(Document):
 
 
 def has_permission(doc, ptype="read", user=None, debug=False):
-    """Timesheet Manager / Projects User may write only when they are activity_owner."""
+    """Projects User may write only when they are activity_owner."""
     return has_owner_gated_permission(doc.activity_owner, ptype, user or frappe.session.user)

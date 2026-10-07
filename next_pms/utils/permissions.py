@@ -1,7 +1,9 @@
 import frappe
 
-OWNER_GATED_ROLES = frozenset({"Timesheet Manager", "Projects User"})
-UNRESTRICTED_ROLES = frozenset({"System Manager", "Projects Manager", "Delivery Manager", "Delivery User"})
+OWNER_GATED_ROLES = frozenset({"Projects User"})
+UNRESTRICTED_ROLES = frozenset(
+    {"System Manager", "Projects Manager", "Delivery Manager", "Delivery User", "Timesheet Manager"}
+)
 OWNER_REQUIRED_PTYPES = frozenset({"write", "delete", "share"})
 
 
