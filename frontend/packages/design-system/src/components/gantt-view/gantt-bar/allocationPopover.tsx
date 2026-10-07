@@ -145,8 +145,8 @@ function AllocationItem({
         <div className="flex gap-2 justify-between items-center">
           {entry.isAiCreated ? (
             <div className="flex flex-1 gap-2 items-center">
-              <span className="text-sm truncate text-ink-gray-6 mr-10">
-                <span className="text-ink-amber-4">Ai</span>
+              <span className="text-sm truncate text-ink-amber-4 mr-10 font-semibold">
+                Ai
                 {entry.createdOn
                   ? ` created on ${format(entry.createdOn, "MMM d")}`
                   : " created"}
