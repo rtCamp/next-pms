@@ -6,19 +6,21 @@ import { Button, FileUploader, useToasts } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 
 interface DocumentUploadButtonProps {
-  riskName: string;
+  doctype: string;
+  docname: string;
   onSuccess: () => void;
 }
 
 export function DocumentUploadButton({
-  riskName,
+  doctype,
+  docname,
   onSuccess,
 }: DocumentUploadButtonProps) {
   const toast = useToasts();
 
   return (
     <FileUploader
-      uploadArgs={{ doctype: "Risk", docname: riskName }}
+      uploadArgs={{ doctype, docname }}
       onSuccess={onSuccess}
       onFailure={(_, errorMessage) => {
         toast.error(errorMessage ?? "Failed to upload document");
