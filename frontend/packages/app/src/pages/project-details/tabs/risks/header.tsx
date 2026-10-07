@@ -7,21 +7,18 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import { useUser } from "@/providers/user";
-import { CREATE_RISK_ROLES } from "./constants";
+import { canCreate } from "@/lib/utils";
 import { useRisks } from "./context";
 import { RisksToolbar } from "./toolbar/toolbar";
 
 export function RisksHeader() {
   const openCreateRisk = useRisks((c) => c.actions.openCreateRisk);
-  const roles = useUser(({ state }) => state.roles);
-  const canCreateRisk = CREATE_RISK_ROLES.some((role) => roles.includes(role));
 
   return (
     <>
       <div className="flex items-center justify-between mb-3.5">
         <h1 className="text-xl font-semibold text-ink-gray-8">Risks</h1>
-        {canCreateRisk && (
+        {canCreate("Risk") && (
           <Button
             variant="solid"
             label="Create"
