@@ -167,6 +167,29 @@ class TestLinkedTodoValidation(LinkedTodoTestCase):
         with self.assertRaises(frappe.UniqueValidationError):
             row.db_insert()
 
+    def test_saving_owner_with_an_unreadable_todo_is_rejected(self):
+        initiative = self.make_initiative()
+        todo = self.make_todo(allocated_to=OUTSIDER)
+
+        frappe.set_user(MANAGER)
+        initiative = frappe.get_doc(GROWTH, initiative.name)
+        initiative.append("linked_todos", {"todo": todo.name})
+        with self.assertRaises(frappe.PermissionError):
+            initiative.save()
+
+    def test_reassigned_todo_does_not_block_unrelated_owner_edits(self):
+        initiative = self.make_initiative()
+        todo = self.make_todo()
+        initiative.append("linked_todos", {"todo": todo.name})
+        initiative.save(ignore_permissions=True)
+        frappe.db.set_value("ToDo", todo.name, "allocated_to", OUTSIDER)
+
+        frappe.set_user(MANAGER)
+        initiative = frappe.get_doc(GROWTH, initiative.name)
+        initiative.activity = "Expand to tablets"
+        initiative.save()
+        self.assertEqual(self.linked_todos(initiative), [todo.name])
+
     def test_moving_owner_to_another_project_with_links_is_rejected(self):
         initiative = self.make_initiative()
         initiative.append("linked_todos", {"todo": self.make_todo().name})

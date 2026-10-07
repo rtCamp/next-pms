@@ -33,6 +33,12 @@ def validate_linked_todos(doc):
                 _("ToDo {0} does not belong to project {1}.").format(frappe.bold(todo), frappe.bold(doc.project))
             )
 
+    if not doc.flags.ignore_permissions:
+        before = doc.get_doc_before_save()
+        already_linked = {row.todo for row in before.get("linked_todos")} if before else set()
+        for todo in set(todos) - already_linked:
+            frappe.has_permission("ToDo", "read", doc=todo, throw=True)
+
     for row in get_todo_owner_rows(todos):
         if (row.parenttype, row.parent) != (doc.doctype, doc.name):
             frappe.throw(
