@@ -95,6 +95,7 @@ export function CreateGrowthModal({
     "createAnother" | "close" | null
   >(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [editorKey, setEditorKey] = useState(0);
   const toast = useToasts();
   const { createDoc } = useFrappeCreateDoc();
   const { updateDoc } = useFrappeUpdateDoc();
@@ -179,6 +180,7 @@ export function CreateGrowthModal({
         },
         { keepDefaultValues: true },
       );
+      setEditorKey((key) => key + 1);
       return;
     }
     form.reset(emptyCreateValues(), { keepDefaultValues: true });
@@ -297,6 +299,7 @@ export function CreateGrowthModal({
                   Description
                 </label>
                 <TextEditor
+                  key={editorKey}
                   placeholder="Describe the initiative..."
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}
@@ -421,6 +424,7 @@ export function CreateGrowthModal({
                   Desired outcome / ROI
                 </label>
                 <TextEditor
+                  key={editorKey}
                   placeholder="Describe the desired outcome..."
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}
