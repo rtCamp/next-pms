@@ -4,9 +4,8 @@
 import frappe
 from frappe.model.document import Document
 
-OWNER_GATED_ROLES = frozenset({"Timesheet Manager", "Projects User"})
-UNRESTRICTED_ROLES = frozenset({"System Manager", "Projects Manager", "Delivery Manager", "Delivery User"})
-RISK_OWNER_REQUIRED_PTYPES = frozenset({"write", "delete", "share"})
+from next_pms.utils.permissions import has_owner_gated_permission
+from next_pms.utils.update_log import prevent_changing_others_update_rows, stamp_new_update_rows
 
 
 class Risk(Document):
@@ -32,9 +31,8 @@ class Risk(Document):
 
     def before_save(self):
         self._ensure_initial_update_log()
-        self._set_updated_by_on_new_rows()
-        self._prevent_deleting_others_rows()
-        self._prevent_editing_others_rows()
+        stamp_new_update_rows(self.risk_update_log)
+        prevent_changing_others_update_rows(self, "risk_update_log", ("note", "status", "risk_level"))
         self._sync_fields_from_latest_update()
 
     def _ensure_initial_update_log(self):
@@ -51,69 +49,6 @@ class Risk(Document):
             },
         )
 
-    def _set_updated_by_on_new_rows(self):
-        for row in self.risk_update_log:
-            if row.is_new():
-                row.updated_by = frappe.session.user
-
-    def _prevent_deleting_others_rows(self):
-        if "System Manager" in frappe.get_roles():
-            return
-
-        submitted_names = {row.name for row in self.risk_update_log if row.name}
-        existing_rows = frappe.get_all(
-            "Risk Update",
-            filters={"parent": self.name},
-            fields=["name", "updated_by"],
-        )
-        for row in existing_rows:
-            if row["name"] not in submitted_names and row["updated_by"] != frappe.session.user:
-                frappe.throw(
-                    frappe._("You can only delete rows you created. Row created by {0} cannot be removed.").format(
-                        row["updated_by"]
-                    ),
-                    frappe.PermissionError,
-                )
-
-    def _prevent_editing_others_rows(self):
-        if "System Manager" in frappe.get_roles():
-            return
-
-        existing_rows = {
-            row["name"]: row
-            for row in frappe.get_all(
-                "Risk Update",
-                filters={"parent": self.name},
-                fields=["name", "updated_by", "note", "status", "risk_level", "updated_at"],
-            )
-        }
-
-        for row in self.risk_update_log:
-            # if it is a new row, skip - it is the creation flow
-            if row.is_new() or not row.name:
-                continue
-
-            prev = existing_rows.get(row.name)
-            # the user who made the row can edit it
-            if prev["updated_by"] == frappe.session.user:
-                continue
-
-            fields_changed = (
-                (row.note or None) != (prev.get("note") or None)
-                or (row.status or None) != (prev.get("status") or None)
-                or (row.risk_level or None) != (prev.get("risk_level") or None)
-                or str(row.updated_at or "") != str(prev.get("updated_at") or "")
-                or (row.updated_by or None) != (prev.get("updated_by") or None)
-            )
-
-            if fields_changed:
-                frappe.throw(
-                    frappe._("You can only edit rows you created. Row created by {0} cannot be modified.").format(
-                        prev["updated_by"]
-                    ),
-                    frappe.PermissionError,
-                )
-
     def _sync_fields_from_latest_update(self):
         if not self.risk_update_log:
             return
@@ -125,16 +60,5 @@ class Risk(Document):
 
 
 def has_permission(doc, ptype="read", user=None, debug=False):
-    """Timesheet Manager / Projects User may write only when they are risk_owner."""
-    user = user or frappe.session.user
-    roles = frappe.get_roles(user)
-
-    for role in roles:
-        if role in UNRESTRICTED_ROLES:
-            return True
-    if ptype not in RISK_OWNER_REQUIRED_PTYPES:
-        return True
-    for role in roles:
-        if role in OWNER_GATED_ROLES:
-            return (doc.risk_owner or "").lower() == user.lower()
-    return True
+    """Projects User may write only when they are risk_owner."""
+    return has_owner_gated_permission(doc.risk_owner, ptype, user or frappe.session.user)

@@ -136,6 +136,7 @@ after_install = "next_pms.install.after_install"
 has_permission = {
     "Risk": "next_pms.next_pms.doctype.risk.risk.has_permission",
     "Resource Allocation": "next_pms.resource_management.doctype.resource_allocation.resource_allocation.has_permission",
+    "PMS Growth Initiative": "next_pms.next_pms.doctype.pms_growth_initiative.pms_growth_initiative.has_permission",
 }
 
 
@@ -310,6 +311,12 @@ doc_events = {
         "on_update": [
             "next_pms.next_pms.notifications.risk_on_update",
             "next_pms.next_pms.notifications.risk_owner_on_update",
+        ],
+    },
+    "PMS Growth Initiative": {
+        "on_update": [
+            "next_pms.next_pms.notifications.growth_on_update",
+            "next_pms.next_pms.notifications.growth_owner_on_update",
         ],
     },
     "Customer Feedback": {
