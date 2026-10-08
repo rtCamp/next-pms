@@ -266,7 +266,7 @@ def project_on_update(doc, method=None):
 
 
 def project_status_update_on_update(doc, method=None):
-    """Notify the project's note audience the first time a Project Status Update is published."""
+    """Notify the project's note audience when a Project Status Update moves into Publish."""
     if doc.status != "Publish":
         return
 
@@ -278,19 +278,23 @@ def project_status_update_on_update(doc, method=None):
         send_note_published_notifications,
         note=doc.name,
         actor=frappe.session.user,
+        subscribers=get_project_subscribers(doc.project),
         queue="short",
         enqueue_after_commit=True,
         job_name=f"Published Notifications for {doc.name}",
     )
 
 
-def send_note_published_notifications(note, actor):
-    """Notify the project's subscribers and Account Manager of a published note, once each."""
+def send_note_published_notifications(note, actor, subscribers):
+    """Notify the project's subscribers at publish time and its Account Manager of a published note, once each."""
     if not frappe.db.exists("Project Status Update", note):
         return
 
     doc = frappe.get_doc("Project Status Update", note)
-    recipients = get_note_audience(doc)
+    recipients = set(subscribers)
+    account_manager = get_project_account_manager(doc.project)
+    if account_manager:
+        recipients.add(account_manager)
     recipients.discard(actor)
     if not recipients:
         return
@@ -321,14 +325,6 @@ def send_note_published_notifications(note, actor):
             url=url,
             email=render_note_published_email(user, email_context),
         )
-
-
-def get_note_audience(doc):
-    audience = set(get_project_subscribers(doc.project))
-    account_manager = get_project_account_manager(doc.project)
-    if account_manager:
-        audience.add(account_manager)
-    return audience
 
 
 def note_deep_link(doc):

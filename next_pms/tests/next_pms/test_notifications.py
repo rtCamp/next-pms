@@ -12,7 +12,7 @@ from next_pms.tests.timesheet.api.test_project_status_update import make_project
 
 NOTIFICATIONS = "next_pms.next_pms.notifications"
 SENDMAIL = "next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications.frappe.sendmail"
-JOB_KWARGS = ("note", "actor")
+JOB_KWARGS = ("note", "actor", "subscribers")
 
 AUTHOR_USER = "note-notify-author@example.com"
 SUBSCRIBER_USER = "note-notify-subscriber@example.com"
@@ -147,3 +147,27 @@ class IntegrationTestNotePublishedNotification(IntegrationTestCase):
 
         self.assertEqual(len(self._note_jobs()), 1)
         self.assertEqual(len(self._notified_users(note.name)), 2)
+
+    def test_audience_is_the_subscribers_at_publish_time(self):
+        with patch(f"{NOTIFICATIONS}.frappe.enqueue") as enqueue:
+            note = self._post_note()
+        job_kwargs = {key: value for key, value in enqueue.call_args.kwargs.items() if key in JOB_KWARGS}
+
+        frappe.set_user("Administrator")
+        frappe.db.delete("PMS Project Update Subscription", {"project": self.project, "user": SUBSCRIBER_USER})
+        frappe.get_doc(
+            {"doctype": "PMS Project Update Subscription", "project": self.project, "user": BYSTANDER_USER}
+        ).insert(ignore_permissions=True)
+        self.addCleanup(
+            frappe.db.delete, "PMS Project Update Subscription", {"project": self.project, "user": BYSTANDER_USER}
+        )
+        self.addCleanup(
+            lambda: frappe.get_doc(
+                {"doctype": "PMS Project Update Subscription", "project": self.project, "user": SUBSCRIBER_USER}
+            ).insert(ignore_permissions=True)
+        )
+
+        send_note_published_notifications(**job_kwargs)
+        self._flush()
+
+        self.assertEqual(self._notified_users(note.name), sorted([SUBSCRIBER_USER, ACCOUNT_MANAGER_USER]))
