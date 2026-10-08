@@ -58,3 +58,8 @@ export type Note = {
   docstatus?: number;
   comments?: NoteComment[];
 };
+
+export type NoteSubscription = {
+  subscribed: boolean;
+  is_account_manager: boolean;
+};
