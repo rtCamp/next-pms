@@ -3,6 +3,10 @@
  */
 import { Button, Tooltip, useToasts } from "@rtcamp/frappe-ui-react";
 import {
+  NotificationBell,
+  NotificationOff,
+} from "@rtcamp/frappe-ui-react/icons";
+import {
   FrappeError,
   useFrappeGetCall,
   useFrappePostCall,
@@ -40,7 +44,13 @@ export function SubscribeButton() {
     return (
       <Tooltip text="Account managers are notified of every note">
         <span>
-          <Button size="sm" variant="subtle" label="Subscribed" disabled />
+          <Button
+            size="sm"
+            variant="subtle"
+            iconLeft={NotificationBell}
+            label="Subscribed"
+            disabled
+          />
         </span>
       </Tooltip>
     );
@@ -63,20 +73,12 @@ export function SubscribeButton() {
     }
   };
 
-  return subscribed ? (
+  return (
     <Button
       size="sm"
       variant="subtle"
-      label="Unsubscribe"
-      loading={isSaving}
-      onClick={toggle}
-    />
-  ) : (
-    <Button
-      size="sm"
-      variant="solid"
-      theme="blue"
-      label="Subscribe"
+      iconLeft={subscribed ? NotificationOff : NotificationBell}
+      label={subscribed ? "Unsubscribe" : "Subscribe"}
       loading={isSaving}
       onClick={toggle}
     />
