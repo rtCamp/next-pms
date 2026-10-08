@@ -7,17 +7,20 @@ import {
   DeleteActionDialog,
   Spinner,
 } from "@next-pms/design-system/components";
+import { useFrappeGetDoc } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import { GROWTH_DETAIL_PARAM } from "./constants";
+import { GROWTH_DETAIL_PARAM, GROWTH_DOCTYPE } from "./constants";
 import { useGrowth } from "./context";
 import { CreateGrowthModal } from "./create-growth";
 import { GrowthDetailView } from "./detail";
 import { GrowthHeader } from "./header";
 import { GrowthListView } from "./list/listView";
 import { GrowthProvider } from "./provider";
+import type { ApiGrowthDetail } from "./types";
+import { getDeleteDescription } from "../to-do/utils";
 
 function GrowthContent() {
   const [searchParams] = useSearchParams();
@@ -29,6 +32,11 @@ function GrowthContent() {
   const deleteName = useGrowth((c) => c.state.deleteName);
   const closeDelete = useGrowth((c) => c.actions.closeDelete);
   const deleteGrowth = useGrowth((c) => c.actions.deleteGrowth);
+  const { data: deleteTarget } = useFrappeGetDoc<ApiGrowthDetail>(
+    GROWTH_DOCTYPE,
+    deleteName ?? "",
+    deleteName ? undefined : null,
+  );
 
   const dialogs = (
     <>
@@ -40,7 +48,10 @@ function GrowthContent() {
       {deleteName && (
         <DeleteActionDialog
           title="Delete growth initiative"
-          description="Are you sure you want to delete this growth initiative? This action cannot be undone."
+          description={getDeleteDescription(
+            "growth initiative",
+            deleteTarget?.linked_todos?.length ?? 0,
+          )}
           onClose={closeDelete}
           onConfirm={() => deleteGrowth(deleteName)}
         />

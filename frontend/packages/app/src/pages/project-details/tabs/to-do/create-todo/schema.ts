@@ -42,6 +42,7 @@ export const buildCreateTodoSchema = (hasCustomFields: boolean) =>
         ? z.string().trim().min(1, { message: "End is required." })
         : z.string(),
       priority: z.enum(priorityValues),
+      linkedTo: z.string(),
     })
     .refine(
       (values) => {

@@ -1,7 +1,6 @@
 /**
  * External dependencies.
  */
-import { useCallback, useState } from "react";
 import { Spinner } from "@next-pms/design-system/components";
 import { Button } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
@@ -13,26 +12,15 @@ import { CreateTodoModal } from "./create-todo";
 import { TodosProvider } from "./provider";
 import { useTodos } from "./provider/context";
 import { TodoRow } from "./todoRow";
-import type { Todo } from "./types";
+import { useTodoModal } from "./useTodoModal";
 
 function TodoContent() {
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
+  const { isOpen, editingTodo, openCreate, openEdit, close } = useTodoModal();
   const todos = useTodos((s) => s.state.todos);
   const isLoading = useTodos((s) => s.state.isLoading);
   const error = useTodos((s) => s.state.error);
 
   if (error) throw error;
-
-  const handleEdit = useCallback((todo: Todo) => {
-    setEditingTodo(todo);
-  }, []);
-
-  const modalOpen = isCreateOpen || editingTodo !== null;
-  const closeModal = useCallback(() => {
-    setIsCreateOpen(false);
-    setEditingTodo(null);
-  }, []);
 
   return (
     <div className="flex flex-col gap-6">
@@ -42,7 +30,7 @@ function TodoContent() {
           variant="solid"
           label="New ToDo"
           iconLeft={() => <AddSm size={16} />}
-          onClick={() => setIsCreateOpen(true)}
+          onClick={openCreate}
         />
       </div>
 
@@ -57,16 +45,12 @@ function TodoContent() {
       ) : (
         <div className="flex flex-col">
           {todos.map((todo) => (
-            <TodoRow key={todo.name} todo={todo} onEdit={handleEdit} />
+            <TodoRow key={todo.name} todo={todo} onEdit={openEdit} />
           ))}
         </div>
       )}
 
-      <CreateTodoModal
-        open={modalOpen}
-        onClose={closeModal}
-        todo={editingTodo}
-      />
+      <CreateTodoModal open={isOpen} onClose={close} todo={editingTodo} />
     </div>
   );
 }

@@ -1,7 +1,14 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type PropsWithChildren,
+} from "react";
+import { useSearchParams } from "react-router";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { parseISO } from "date-fns";
 import {
@@ -16,6 +23,7 @@ import {
 import { useDebounce } from "@/hooks/useDebounce";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
+import { SEARCH_PARAM, TABLE_TAB_PARAM, VIEW_PARAM } from "./constants";
 import { CalendarContext, type CalendarContextProps } from "./context";
 import type { CalendarView, ProjectTimelineItem, TableTab } from "./types";
 import { useProjectTimelineItems } from "./useProjectTimelineItems";
@@ -46,15 +54,36 @@ export function CalendarProvider({
     const n = new Date();
     return new Date(n.getFullYear(), n.getMonth(), 1);
   });
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [activeView, setActiveView] = useState<CalendarView>("calendar");
+  const [activeView, setActiveView] = useState<CalendarView>(() =>
+    searchParams.get(VIEW_PARAM) === "list" ? "list" : "calendar",
+  );
   const [filterType, setFilterType] = useState("all");
-  const [tableTab, setTableTab] = useState<TableTab>("milestones");
+  const [tableTab, setTableTab] = useState<TableTab>(() =>
+    searchParams.get(TABLE_TAB_PARAM) === "touchpoints"
+      ? "touchpoints"
+      : "milestones",
+  );
   const [createMilestoneOpen, setCreateMilestoneOpen] = useState(false);
   const [createTouchpointOpen, setCreateTouchpointOpen] = useState(false);
   const [editItem, setEditItem] = useState<ProjectTimelineItem | null>(null);
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState(
+    () => searchParams.get(SEARCH_PARAM) ?? "",
+  );
   const search = useDebounce(searchInput, 400);
+
+  useEffect(() => {
+    const deepLinkParams = [VIEW_PARAM, TABLE_TAB_PARAM, SEARCH_PARAM];
+    if (!deepLinkParams.some((param) => searchParams.has(param))) return;
+    setSearchParams(
+      (prev) => {
+        deepLinkParams.forEach((param) => prev.delete(param));
+        return prev;
+      },
+      { replace: true },
+    );
+  }, [searchParams, setSearchParams]);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();

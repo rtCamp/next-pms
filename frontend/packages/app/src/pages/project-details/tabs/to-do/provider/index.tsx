@@ -7,6 +7,7 @@ import {
   type FrappeError,
   useFrappeCreateDoc,
   useFrappeDeleteDoc,
+  useFrappePostCall,
   useFrappeUpdateDoc,
 } from "frappe-react-sdk";
 
@@ -15,44 +16,83 @@ import {
  */
 import { hasTodoCustomFields, parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
+import { useUser } from "@/providers/user";
 import { TodosContext, type TodosContextProps } from "./context";
+import { TODO_API } from "../constants";
 import type { TodoStatus } from "../create-todo/schema";
-import type { CreateTodoInput, TodoDoc } from "../types";
+import type { CreateTodoInput, TodoDoc, TodoOwner } from "../types";
 import { useTodosData } from "../useTodosData";
+import { fromLinkKey, toLinkKey } from "../utils";
 
-const customFieldValues = (input: CreateTodoInput) =>
-  hasTodoCustomFields()
+const toTodoFields = (input: CreateTodoInput) => ({
+  description: input.description,
+  status: input.status,
+  allocated_to: input.assignee,
+  priority: input.priority,
+  ...(hasTodoCustomFields()
     ? {
         custom_title: input.title,
         custom_from_time: input.startAt,
         custom_to_time: input.endAt,
       }
-    : {};
+    : {}),
+});
 
-export function TodosProvider({ children }: PropsWithChildren) {
+interface TodosProviderProps extends PropsWithChildren {
+  owner?: TodoOwner;
+  onOwnerChange?: () => void;
+  enabled?: boolean;
+}
+
+export function TodosProvider({
+  children,
+  owner,
+  onOwnerChange,
+  enabled = true,
+}: TodosProviderProps) {
   const projectId = useProjectDetail((s) => s.projectId);
+  const userId = useUser(({ state }) => state.userId);
   const { createDoc, loading: isCreating } = useFrappeCreateDoc();
   const { updateDoc } = useFrappeUpdateDoc();
   const { deleteDoc } = useFrappeDeleteDoc();
+  const { call: createLinkedTodo } = useFrappePostCall<{ message: TodoDoc }>(
+    `${TODO_API}.create_linked_todo`,
+  );
+  const { call: linkTodo } = useFrappePostCall(`${TODO_API}.link_todo`);
+  const { call: unlinkTodoCall } = useFrappePostCall(`${TODO_API}.unlink_todo`);
   const toast = useToasts();
   const [pending, setPending] = useState(false);
-  const { todos, isLoading, error, mutate } = useTodosData();
+  const { todos, isLoading, error, mutate, mutateLinks } = useTodosData(
+    owner?.todos,
+    enabled,
+  );
+
+  const refresh = useCallback(async () => {
+    await Promise.all([mutate(), mutateLinks()]);
+    onOwnerChange?.();
+  }, [mutate, mutateLinks, onOwnerChange]);
 
   const createTodo = useCallback(
     async (input: CreateTodoInput) => {
       setPending(true);
       try {
-        const doc = (await createDoc("ToDo", {
-          description: input.description,
-          status: input.status,
-          allocated_to: input.assignee,
-          priority: input.priority,
-          reference_type: "Project",
-          reference_name: projectId,
-          ...customFieldValues(input),
-        })) as TodoDoc;
+        const target = owner ?? fromLinkKey(input.linkedTo);
+        const doc = target
+          ? (
+              await createLinkedTodo({
+                doctype: target.doctype,
+                name: target.name,
+                todo: toTodoFields(input),
+              })
+            ).message
+          : ((await createDoc("ToDo", {
+              ...toTodoFields(input),
+              assigned_by: userId,
+              reference_type: "Project",
+              reference_name: projectId,
+            })) as TodoDoc);
         toast.success("To-do created");
-        await mutate();
+        await refresh();
         return doc;
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
@@ -61,22 +101,29 @@ export function TodosProvider({ children }: PropsWithChildren) {
         setPending(false);
       }
     },
-    [createDoc, projectId, toast, mutate],
+    [owner, createLinkedTodo, createDoc, userId, projectId, toast, refresh],
   );
 
   const updateTodo = useCallback(
     async (name: string, input: CreateTodoInput) => {
       setPending(true);
       try {
-        const doc = (await updateDoc("ToDo", name, {
-          description: input.description,
-          status: input.status,
-          allocated_to: input.assignee,
-          priority: input.priority,
-          ...customFieldValues(input),
-        })) as TodoDoc;
+        const doc = (await updateDoc(
+          "ToDo",
+          name,
+          toTodoFields(input),
+        )) as TodoDoc;
+        const currentLink = toLinkKey(
+          todos.find((t) => t.name === name)?.linked,
+        );
+        if (!owner && input.linkedTo !== currentLink) {
+          const target = fromLinkKey(input.linkedTo);
+          await (target
+            ? linkTodo({ todo: name, ...target })
+            : unlinkTodoCall({ todo: name }));
+        }
         toast.success("To-do updated");
-        await mutate();
+        await refresh();
         return doc;
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
@@ -85,7 +132,7 @@ export function TodosProvider({ children }: PropsWithChildren) {
         setPending(false);
       }
     },
-    [updateDoc, mutate, toast],
+    [updateDoc, todos, owner, linkTodo, unlinkTodoCall, toast, refresh],
   );
 
   const updateTodoStatus = useCallback(
@@ -100,23 +147,37 @@ export function TodosProvider({ children }: PropsWithChildren) {
     [updateDoc, mutate, toast],
   );
 
+  const unlinkTodo = useCallback(
+    async (name: string) => {
+      try {
+        await unlinkTodoCall({ todo: name });
+        toast.success("To-do unlinked");
+        await refresh();
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+      }
+    },
+    [unlinkTodoCall, toast, refresh],
+  );
+
   const deleteTodo = useCallback(
     async (name: string) => {
       try {
         await deleteDoc("ToDo", name);
         toast.success("To-do deleted");
-        await mutate();
+        await refresh();
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
       }
     },
-    [deleteDoc, mutate, toast],
+    [deleteDoc, toast, refresh],
   );
 
   const value = useMemo<TodosContextProps>(
     () => ({
       state: {
         todos,
+        owner: owner ?? null,
         isLoading,
         error,
         isCreating: isCreating || pending,
@@ -125,12 +186,14 @@ export function TodosProvider({ children }: PropsWithChildren) {
         createTodo,
         updateTodo,
         updateTodoStatus,
+        unlinkTodo,
         deleteTodo,
-        refresh: mutate,
+        refresh,
       },
     }),
     [
       todos,
+      owner,
       isLoading,
       error,
       isCreating,
@@ -138,8 +201,9 @@ export function TodosProvider({ children }: PropsWithChildren) {
       createTodo,
       updateTodo,
       updateTodoStatus,
+      unlinkTodo,
       deleteTodo,
-      mutate,
+      refresh,
     ],
   );
 

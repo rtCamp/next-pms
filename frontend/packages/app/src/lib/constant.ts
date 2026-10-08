@@ -59,6 +59,12 @@ export const ROLE_ACCESS = {
     "System Manager",
   ],
   systemSettings: ["System Manager", "Delivery Manager"],
+  manageTimelineItems: [
+    "Projects Manager",
+    "Delivery Manager",
+    "Timesheet Manager",
+    "System Manager",
+  ],
 } satisfies Record<string, Role[]>;
 
 export const IMPORTED_TASKS_STORAGE_KEY = "next-pms:importedTasks";

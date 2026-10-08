@@ -2,25 +2,29 @@
  * External dependencies.
  */
 import { useMemo } from "react";
-import { useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { hasTodoCustomFields, hashString } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
-import type { Todo, TodoDoc, TodoUserDetails } from "./types";
+import { TODO_API } from "./constants";
+import type { Todo, TodoDoc, TodoLinksMap, TodoUserDetails } from "./types";
 
-export function useTodosData() {
+export function useTodosData(names?: string[], enabled = true) {
   const projectId = useProjectDetail((s) => s.projectId);
+  const isOwnerList = names !== undefined;
 
   const filters = useMemo(
     () =>
-      [
-        ["reference_type", "=", "Project"],
-        ["reference_name", "=", projectId],
-      ] as unknown,
-    [projectId],
+      (isOwnerList
+        ? [["name", "in", names]]
+        : [
+            ["reference_type", "=", "Project"],
+            ["reference_name", "=", projectId],
+          ]) as unknown,
+    [isOwnerList, names, projectId],
   );
 
   const fields = useMemo(
@@ -53,7 +57,18 @@ export function useTodosData() {
       orderBy: { field: "creation", order: "desc" },
       limit: 500,
     },
-    undefined,
+    !enabled || (isOwnerList && !names.length) ? null : undefined,
+    { keepPreviousData: true },
+  );
+
+  const todoNames = useMemo(() => (data ?? []).map((t) => t.name), [data]);
+
+  const { data: linksData, mutate: mutateLinks } = useFrappeGetCall<{
+    message: TodoLinksMap;
+  }>(
+    `${TODO_API}.get_todo_links`,
+    { todos: JSON.stringify(todoNames) },
+    !isOwnerList && todoNames.length ? undefined : null,
     { keepPreviousData: true },
   );
 
@@ -86,16 +101,18 @@ export function useTodosData() {
   );
 
   const todos = useMemo<Todo[]>(() => {
-    if (!data?.length) return [];
+    if (!data?.length || (isOwnerList && !names.length)) return [];
+    const links = linksData?.message ?? {};
     return data.map((t) => {
       const u = userMap[t.allocated_to];
       return {
         ...t,
         allocated_to_full_name: u?.full_name || t.allocated_to,
         allocated_to_image: u?.user_image ?? null,
+        linked: links[t.name],
       };
     });
-  }, [data, userMap]);
+  }, [data, isOwnerList, names, userMap, linksData]);
 
-  return { todos, isLoading, error, mutate };
+  return { todos, isLoading, error, mutate, mutateLinks };
 }

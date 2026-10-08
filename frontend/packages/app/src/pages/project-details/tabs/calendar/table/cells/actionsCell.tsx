@@ -17,6 +17,7 @@ import {
 /**
  * Internal dependencies.
  */
+import { getDeleteDescription } from "../../../to-do/utils";
 import { useCalendar } from "../../context";
 import type { ProjectTimelineItem } from "../../types";
 
@@ -86,7 +87,10 @@ export function ActionsCell({ item }: ActionsCellProps) {
       {confirmDelete && (
         <DeleteActionDialog
           title={`Delete ${item.type.toLowerCase()}`}
-          description={`Are you sure you want to delete this ${item.type.toLowerCase()}? This action cannot be undone.`}
+          description={getDeleteDescription(
+            item.type.toLowerCase(),
+            item.linkedTodos.length,
+          )}
           onClose={() => setConfirmDelete(false)}
           onConfirm={() => onDelete(item)}
         />

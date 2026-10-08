@@ -214,5 +214,6 @@ export function mapTimelineItem(raw: ApiTimelineItem): ProjectTimelineItem {
     actualEndDate: raw.actual_end_date ?? undefined,
     owner: raw.owner ? mapUserRef(raw.owner) : { name: "", fullName: "" },
     watchers: (raw.watchers ?? []).map(mapUserRef),
+    linkedTodos: raw.linked_todos ?? [],
   };
 }

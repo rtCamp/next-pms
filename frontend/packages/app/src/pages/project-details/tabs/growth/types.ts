@@ -74,6 +74,7 @@ export interface ApiGrowthDetail extends ApiGrowthInitiativeItem {
   desired_outcome: string | null;
   owner: string;
   update_log: GrowthUpdateEntry[];
+  linked_todos: { todo: string }[];
 }
 
 export interface GrowthDetail extends ApiGrowthDetail {

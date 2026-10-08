@@ -34,7 +34,8 @@ export function ActivityItem({ item, users }: ActivityItemProps) {
         {item.type === "edited" && `${displayName(item.user)} last edited this`}
         {item.type === "changed" && (
           <>
-            {`${displayName(item.user)} changed the value of `}
+            {`${displayName(item.user)} `}
+            {item.changes.length > 0 && "changed the value of "}
             {item.changes.map((change, index) => (
               <Fragment key={change.label}>
                 {index > 0 && ", "}

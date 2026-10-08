@@ -10,13 +10,13 @@ import { Tabs } from "@rtcamp/frappe-ui-react";
  */
 import { ROUTES } from "@/lib/constant";
 import { AboutThisProject } from "./about";
+import { TAB_PARAM } from "./constants";
 import { useProjectDetail } from "./context";
 import { ProjectDetailHeader } from "./header";
 import { ProjectDetailProvider } from "./provider";
 import { TAB_KEYS, TABS, type TabKey } from "./tabs";
 import { NotesProvider } from "./tabs/notes/provider";
 
-const TAB_PARAM = "tab";
 const DEFAULT_TAB: TabKey = TAB_KEYS[0];
 
 function ProjectDetail() {

@@ -38,7 +38,10 @@ import {
   type TodoStatus,
 } from "./schema";
 import type { CreateTodoModalProps } from "./types";
+import { LINKED_RECORD_GROUPS, LINKED_RECORD_ICON } from "../constants";
 import { useTodos } from "../provider/context";
+import { useLinkableRecords } from "../useLinkableRecords";
+import { toLinkKey } from "../utils";
 
 const STATUS_ICON: Record<
   TodoStatus,
@@ -82,6 +85,8 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
   const createTodo = useTodos((c) => c.actions.createTodo);
   const updateTodo = useTodos((c) => c.actions.updateTodo);
   const isCreating = useTodos((c) => c.state.isCreating);
+  const owner = useTodos((c) => c.state.owner);
+  const ownerKey = toLinkKey(owner);
   const [assigneeSearch, setAssigneeSearch] = useState("");
 
   const hasTodoCustomFields = Boolean(
@@ -98,8 +103,9 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
       startAt: "",
       endAt: "",
       priority: "Medium",
+      linkedTo: ownerKey,
     }),
-    [userId],
+    [userId, ownerKey],
   );
 
   const initialValues: CreateTodoValues = useMemo(() => {
@@ -112,8 +118,9 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
       startAt: todo.custom_from_time ?? "",
       endAt: todo.custom_to_time ?? "",
       priority: todo.priority,
+      linkedTo: ownerKey || toLinkKey(todo.linked),
     };
-  }, [todo, emptyValues]);
+  }, [todo, emptyValues, ownerKey]);
 
   const todoSchema = useMemo(
     () => buildCreateTodoSchema(hasTodoCustomFields),
@@ -154,6 +161,37 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
       pageSize: 20,
       query: assigneeSearch,
     });
+
+  const { records: linkableRecords, isLoading: isLinkableLoading } =
+    useLinkableRecords(open && !owner);
+  const currentLink = owner ?? todo?.linked ?? null;
+  const isCurrentLinkListed =
+    !currentLink ||
+    linkableRecords.some(
+      (record) => toLinkKey(record) === toLinkKey(currentLink),
+    );
+  const canChangeLink = !owner && (isLinkableLoading || isCurrentLinkListed);
+  const showLinkField = Boolean(currentLink) || linkableRecords.length > 0;
+
+  const linkOptions = useMemo(() => {
+    const records =
+      currentLink && !isCurrentLinkListed
+        ? [...linkableRecords, currentLink]
+        : linkableRecords;
+    return LINKED_RECORD_GROUPS.map(({ type, label }) => ({
+      group: label,
+      options: records
+        .filter((record) => record.type === type)
+        .map((record) => {
+          const Icon = LINKED_RECORD_ICON[record.type];
+          return {
+            label: record.title,
+            value: toLinkKey(record),
+            icon: <Icon className="size-4 text-ink-gray-6" />,
+          };
+        }),
+    })).filter((group) => group.options.length > 0);
+  }, [currentLink, isCurrentLinkListed, linkableRecords]);
 
   const assigneeOptionsWithAvatars = useMemo(
     () =>
@@ -366,6 +404,27 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
               />
             )}
           />
+
+          {showLinkField && (
+            <form.Field
+              name="linkedTo"
+              children={(field) => (
+                <div className="w-64">
+                  <Combobox
+                    inputClassName="bg-surface-gray-2 h-8 border-0"
+                    loading={isLinkableLoading}
+                    options={linkOptions}
+                    placeholder="Link to milestone, touchpoint…"
+                    value={field.state.value || null}
+                    onChange={(value) => field.handleChange(value ?? "")}
+                    disabled={!canChangeLink}
+                    clearable={canChangeLink}
+                    openOnFocus
+                  />
+                </div>
+              )}
+            />
+          )}
         </div>
       </div>
     </Dialog>

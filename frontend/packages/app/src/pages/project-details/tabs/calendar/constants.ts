@@ -15,3 +15,8 @@ export const DAY_HEADERS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 // List view constants
 export const TIMELINE_LIST_PAGE_SIZE = 20;
+
+// Deep-link params
+export const VIEW_PARAM = "view";
+export const TABLE_TAB_PARAM = "type";
+export const SEARCH_PARAM = "search";

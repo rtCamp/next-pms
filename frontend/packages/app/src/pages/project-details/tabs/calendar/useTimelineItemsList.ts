@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type PaginationKey, usePagination } from "@next-pms/hooks";
 
 /**
@@ -61,6 +61,16 @@ export function useTimelineItemsList(
         keepPreviousData: false,
       },
     );
+
+  // revalidateFirstPage is off, so a query served from cache is never
+  // refetched; its pages can predate edits made on other tabs (e.g. ToDo
+  // links). Refresh each query once when it is first shown in this mount.
+  const refreshedSignatureRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!everActive || refreshedSignatureRef.current === querySignature) return;
+    refreshedSignatureRef.current = querySignature;
+    if (data) void mutate();
+  }, [everActive, querySignature, data, mutate]);
 
   const items = useMemo(
     () =>

@@ -13,6 +13,7 @@ import {
   StatusInProgress,
   StatusOpen,
 } from "@rtcamp/frappe-ui-react/icons";
+import { cva } from "class-variance-authority";
 import { format, parseISO } from "date-fns";
 
 /**
@@ -20,6 +21,7 @@ import { format, parseISO } from "date-fns";
  */
 import { extractTextFromHTML, hasTodoCustomFields } from "@/lib/utils";
 import type { TodoPriority, TodoStatus } from "./create-todo/schema";
+import { LinkedChip } from "./linkedChip";
 import { useTodos } from "./provider/context";
 import type { Todo } from "./types";
 
@@ -48,6 +50,18 @@ const PRIORITY_DOT_CLASS: Record<TodoPriority, string> = {
   High: "bg-surface-red-5",
 };
 
+const rowVariants = cva(
+  "flex items-center gap-4 border-b border-outline-gray-2",
+  {
+    variants: {
+      condensed: {
+        true: "py-2 last:border-b-0",
+        false: "py-4",
+      },
+    },
+  },
+);
+
 function formatDateTime(value: string | null | undefined) {
   if (!value) return "—";
   try {
@@ -62,18 +76,21 @@ function formatDateTime(value: string | null | undefined) {
 type TodoRowProps = {
   todo: Todo;
   onEdit: (todo: Todo) => void;
+  condensed?: boolean;
 };
 
-export function TodoRow({ todo, onEdit }: TodoRowProps) {
+export function TodoRow({ todo, onEdit, condensed = false }: TodoRowProps) {
   const updateTodoStatus = useTodos((c) => c.actions.updateTodoStatus);
+  const unlinkTodo = useTodos((c) => c.actions.unlinkTodo);
   const deleteTodo = useTodos((c) => c.actions.deleteTodo);
+  const canUnlink = useTodos((c) => Boolean(c.state.owner?.canEdit));
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const assigneeHref = `/desk/user/${encodeURIComponent(todo.allocated_to)}`;
   const StatusIcon = STATUS_ICON[todo.status];
 
   return (
-    <div className="flex items-center gap-4 border-b border-outline-gray-2 py-4">
+    <div className={rowVariants({ condensed })}>
       <div className="min-w-0 flex-1">
         <h3 className="truncate text-base font-medium text-ink-gray-8">
           {todo.custom_title ||
@@ -93,7 +110,7 @@ export function TodoRow({ todo, onEdit }: TodoRowProps) {
             />
             <span className="truncate">{todo.allocated_to_full_name}</span>
           </a>
-          {hasTodoCustomFields() && (
+          {!condensed && hasTodoCustomFields() && (
             <>
               <span aria-hidden>·</span>
               <span className="flex items-center gap-1.5">
@@ -115,6 +132,12 @@ export function TodoRow({ todo, onEdit }: TodoRowProps) {
             />
             {todo.priority}
           </span>
+          {!condensed && todo.linked && (
+            <>
+              <span aria-hidden>·</span>
+              <LinkedChip record={todo.linked} />
+            </>
+          )}
         </div>
       </div>
 
@@ -136,13 +159,26 @@ export function TodoRow({ todo, onEdit }: TodoRowProps) {
 
       <Dropdown
         placement="right"
-        button={{ variant: "ghost", icon: DotHorizontal }}
+        button={{
+          variant: "ghost",
+          icon: DotHorizontal,
+          label: "ToDo actions",
+        }}
         options={[
           {
             label: "Edit",
             key: "edit",
             onClick: () => onEdit(todo),
           },
+          ...(canUnlink
+            ? [
+                {
+                  label: "Unlink",
+                  key: "unlink",
+                  onClick: () => void unlinkTodo(todo.name),
+                },
+              ]
+            : []),
           {
             label: "Delete",
             key: "delete",
