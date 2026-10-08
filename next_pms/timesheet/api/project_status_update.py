@@ -7,6 +7,10 @@ from frappe.utils import cint, now_datetime
 from frappe.utils.user import get_user_fullname
 
 from next_pms.api.utils import error_logger
+from next_pms.next_pms.doctype.pms_project_update_subscription.pms_project_update_subscription import (
+    SUBSCRIPTION_DOCTYPE,
+    get_project_account_manager,
+)
 from next_pms.next_pms.notifications import send_mention_notifications
 from next_pms.next_projects.api.constant import ALLOWED_ROLES
 
@@ -349,6 +353,67 @@ def delete_comment_from_project_status_update(name: str, comment_name: str) -> d
     doc.save()
 
     return get_project_status_update_details(doc.name)
+
+
+@frappe.whitelist(methods=["GET"])
+@error_logger
+def get_project_update_subscription(project: str) -> dict[str, bool]:
+    """
+    Get whether the current user is notified of new Project Status Updates on a project
+
+    Args:
+        project (str): Project ID
+
+    Returns:
+        Dict[str, bool]: ``subscribed`` (opted in) and ``is_account_manager`` (notified by default)
+    """
+    only_for(ALLOWED_ROLES, message=True)
+    _check_project_read_permission(project)
+
+    return _get_subscription_state(project)
+
+
+@frappe.whitelist(methods=["POST"])
+@error_logger
+def set_project_update_subscription(project: str, subscribed: DF.Check) -> dict[str, bool]:
+    """
+    Subscribe the current user to, or unsubscribe them from, new Project Status Updates on a project
+
+    Args:
+        project (str): Project ID
+        subscribed (DF.Check): 1 to subscribe, 0 to unsubscribe
+
+    Returns:
+        Dict[str, bool]: Subscription state after the change, as returned by ``get_project_update_subscription``
+    """
+    only_for(ALLOWED_ROLES, message=True)
+    _check_project_read_permission(project)
+
+    filters = {"project": project, "user": frappe.session.user}
+    if not cint(subscribed):
+        frappe.db.delete(SUBSCRIPTION_DOCTYPE, filters)
+    elif not frappe.db.exists(SUBSCRIPTION_DOCTYPE, filters):
+        try:
+            frappe.get_doc({"doctype": SUBSCRIPTION_DOCTYPE, **filters}).insert(ignore_permissions=True)
+        except frappe.UniqueValidationError:
+            # a concurrent request already subscribed this user; drop the "must be unique" toast
+            frappe.clear_last_message()
+
+    return _get_subscription_state(project)
+
+
+def _check_project_read_permission(project: str) -> None:
+    if not frappe.db.exists("Project", project):
+        frappe.throw(_("Project '{0}' does not exist").format(project))
+    frappe.has_permission("Project", doc=project, ptype="read", user=frappe.session.user, throw=True)
+
+
+def _get_subscription_state(project: str) -> dict[str, bool]:
+    user = frappe.session.user
+    return {
+        "subscribed": bool(frappe.db.exists(SUBSCRIPTION_DOCTYPE, {"project": project, "user": user})),
+        "is_account_manager": get_project_account_manager(project) == user,
+    }
 
 
 def _serialize_comment(comment, user_map: dict[str, tuple]) -> dict[str, Any]:
