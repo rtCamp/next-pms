@@ -44,8 +44,6 @@ def create_project_status_update(
     frappe.has_permission("Project", doc=project, ptype="write", user=frappe.session.user, throw=True)
 
     try:
-        should_enqueue_publish_notification = False
-
         doc = frappe.new_doc("Project Status Update")
         doc.project = project
         doc.title = title
@@ -54,20 +52,6 @@ def create_project_status_update(
         if pinned is not None:
             doc.pinned = cint(pinned)
         doc.insert(ignore_permissions=True)
-
-        if status == "Publish":
-            should_enqueue_publish_notification = True
-
-        if should_enqueue_publish_notification:
-            enqueue(
-                send_publish_notifications,
-                project=project,
-                title=title,
-                name=doc.name,
-                enqueue_after_commit=True,
-                queue="short",
-                job_name=f"Publish Notifications for Project Status Update {doc.name}",
-            )
 
         return get_project_status_update_details(doc.name)
 
@@ -584,60 +568,3 @@ def enqueue_note_mentions(content: str, doc) -> None:
         enqueue_after_commit=True,
         job_name=f"Mention Notifications for {doc.name}",
     )
-
-
-def send_publish_notifications(project: str, title: str, name: str):
-    """Send email notifications to employees with specified roles"""
-    # Disabling email notifications on project updates
-    return
-    users = get_users_with_roles(ALLOWED_ROLES)
-    if not users:
-        return
-    project_url = frappe.utils.get_url(f"/next-pms/project/{project}?tab=Project+Updates&puid={name}")
-
-    for user in users:
-        send_project_publish_email(user, title, project, project_url)
-
-
-def send_project_publish_email(user, title, project_name, project_url):
-    user_doc = frappe.get_doc("User", user)
-    if not user_doc.enabled or not user_doc.email:
-        return
-
-    subject = f"Project Status Update '{title}' has been published"
-
-    message = frappe.render_template(  # nosemgrep - trusted template file
-        "next_pms/timesheet/templates/project_status_update/publish_notification.html",
-        {
-            "user_doc": user_doc,
-            "project_name": project_name,
-            "project_url": project_url,
-            "title": title,
-        },
-    )
-
-    send_html_email(user_doc.email, subject, message)
-
-
-def send_html_email(recipient: str, subject: str, html_message: str) -> None:
-    if not recipient:
-        return
-    frappe.sendmail(
-        recipients=[recipient],
-        subject=subject,
-        message=html_message,
-        now=True,
-    )
-
-
-def get_users_with_roles(roles: set[str]) -> list[str]:
-    users = set()
-    for role in roles:
-        role_users = frappe.get_all(
-            "Has Role",
-            filters={"role": role, "parenttype": "User"},
-            fields=["parent"],
-        )
-        for role_user in role_users:
-            users.add(role_user.parent)
-    return list(users)

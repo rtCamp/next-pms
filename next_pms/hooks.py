@@ -320,6 +320,9 @@ doc_events = {
             "next_pms.next_pms.notifications.growth_owner_on_update",
         ],
     },
+    "Project Status Update": {
+        "on_update": "next_pms.next_pms.notifications.project_status_update_on_update",
+    },
     "Customer Feedback": {
         "on_submit": "next_pms.next_pms.notifications.customer_feedback_on_submit",
     },
