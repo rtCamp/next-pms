@@ -170,6 +170,7 @@ class IntegrationTestRiskOwnerNotification(IntegrationTestCase):
         self.assertEqual(kwargs["recipients"], [OWNER_USER])
         self.assertEqual(kwargs["reference_doctype"], "Risk")
         self.assertEqual(kwargs["reference_name"], risk.name)
+        self.assertTrue(kwargs["now"])
 
     def test_saving_a_risk_does_not_send_mail(self):
         # Patched globally, not just on the doctype: saving a Risk must not reach sendmail from

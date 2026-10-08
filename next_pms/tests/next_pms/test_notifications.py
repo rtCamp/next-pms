@@ -99,6 +99,7 @@ class IntegrationTestNotePublishedNotification(IntegrationTestCase):
         self.assertEqual(
             sorted(c.kwargs["recipients"][0] for c in sendmail.call_args_list), self._notified_users(note.name)
         )
+        self.assertTrue(all(c.kwargs["now"] for c in sendmail.call_args_list))
 
         notification = frappe.get_all(
             "NextPMS Notifications",
