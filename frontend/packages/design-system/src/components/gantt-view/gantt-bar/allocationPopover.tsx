@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Avatar, Button } from "@rtcamp/frappe-ui-react";
+import { Avatar, Button, Tooltip } from "@rtcamp/frappe-ui-react";
 import {
   AddMd,
   Calendar,
@@ -155,14 +155,16 @@ function AllocationItem({
           ) : entry.createdOn || entry.updatedOn ? (
             <div className="flex flex-1 gap-2 items-center">
               {entry.updatedByName && (
-                <div className="shrink-0 flex items-center">
-                  <Avatar
-                    size="xs"
-                    shape="circle"
-                    image={entry.updatedByImage}
-                    label={entry.updatedByName}
-                  />
-                </div>
+                <Tooltip text={entry.updatedByName}>
+                  <div className="shrink-0 flex items-center">
+                    <Avatar
+                      size="xs"
+                      shape="circle"
+                      image={entry.updatedByImage}
+                      label={entry.updatedByName}
+                    />
+                  </div>
+                </Tooltip>
               )}
               <span className="text-sm truncate text-ink-gray-6 mr-10">
                 {entry.updatedOn &&

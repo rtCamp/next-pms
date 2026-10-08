@@ -48,6 +48,7 @@ export interface ResourceAllocation {
   ai_allocation_reason?: string | null;
   note: string | null;
   modified_by: string;
+  modified_by_full_name: string | null;
   modified: string;
   creation: string;
   status: string;
