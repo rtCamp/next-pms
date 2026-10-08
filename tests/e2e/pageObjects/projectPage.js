@@ -506,13 +506,23 @@ export class ProjectPage {
       .click();
     await this.page.getByPlaceholder("Project Name").fill(payload.project_name);
 
-    // Company is a required field in the redesigned dialog.
+    // Company and customer are required fields in the redesigned dialog.
     if (payload.company) {
       const company = this.page.getByPlaceholder("Select company");
       await company.click();
       await company.fill(payload.company);
       await this.page
         .getByRole("option", { name: payload.company })
+        .first()
+        .click();
+    }
+
+    if (payload.customer) {
+      const customer = this.page.getByPlaceholder("Select customer");
+      await customer.click();
+      await customer.fill(payload.customer);
+      await this.page
+        .getByRole("option", { name: payload.customer })
         .first()
         .click();
     }
