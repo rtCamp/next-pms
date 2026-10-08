@@ -417,13 +417,23 @@ export class TeamPage {
       timeout: scaleTimeout(20000),
     });
 
-    // Wait until the row reports a rejected state. The status is the aria-label
-    // of the status column's button now - the old check read an svg's
-    // stroke-destructive class, which the icon no longer carries.
+    // The reject is queued, not applied inline - the toast says so, and the
+    // worker takes a second or two. The row keeps the status it was rendered
+    // with, so reload on each poll rather than re-reading a stale page. The
+    // status is the aria-label of the status column's button now; the old check
+    // read an svg's stroke-destructive class, which the icon no longer carries.
     await expect
-      .poll(async () => await this.getTimesheetStatus(employee), {
-        timeout: scaleTimeout(30000),
-      })
+      .poll(
+        async () => {
+          await this.page.reload({ waitUntil: "domcontentloaded" });
+
+          return await this.getTimesheetStatus(employee);
+        },
+        {
+          timeout: scaleTimeout(30000),
+          intervals: [2000, 3000, 5000],
+        },
+      )
       .toMatch(/rejected/i);
   }
 

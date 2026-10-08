@@ -526,6 +526,11 @@ export class ProjectPage {
     await expect(
       this.toastNotification("Project created successfully"),
     ).toBeVisible();
+
+    // Search for it rather than waiting on the unfiltered list: the new row is
+    // not always in the first page of results, and the list does not refetch on
+    // its own once the dialog closes.
+    await this.searchProject(payload.project_name);
     await expect(this.projectRow(payload.project_name)).toHaveCount(1);
   }
   /**
