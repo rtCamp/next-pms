@@ -2,6 +2,7 @@ import { expect } from "allure-playwright";
 import path from "path";
 import { readJSONFile } from "../utils/fileUtils.js";
 import { gotoWithRetry } from "../utils/navigation.js";
+import { scaleTimeout } from "../utils/timeouts";
 
 // Filter keys mapped to the labels the filter panel's "Field" dropdown offers.
 const FILTER_FIELD_LABELS = {
@@ -259,7 +260,7 @@ export class ProjectPage {
     // text alone could linger while rows are present.
     const emptyState = await this.noResultsCell
       .first()
-      .isVisible({ timeout: 10000 })
+      .isVisible({ timeout: scaleTimeout(10000) })
       .catch(() => false);
     const rowCount = await this.projectListItems.count();
 
@@ -329,12 +330,15 @@ export class ProjectPage {
       // for the page to be interactive first, then give the panel time to
       // render. Do not click twice as a retry - the trigger toggles, so a second
       // click closes the panel the first one opened.
-      await this.searchBar.waitFor({ state: "visible", timeout: 20000 });
+      await this.searchBar.waitFor({
+        state: "visible",
+        timeout: scaleTimeout(20000),
+      });
       await this.page.waitForTimeout(1500);
       await this.filterButton.click();
       await this.filterFieldInput
         .first()
-        .waitFor({ state: "visible", timeout: 20000 });
+        .waitFor({ state: "visible", timeout: scaleTimeout(20000) });
     }
     if (needsNewRow) {
       await this.addFilterButton.click();
@@ -387,7 +391,7 @@ export class ProjectPage {
   waitForProjectList() {
     return this.page
       .waitForResponse((resp) => resp.url().includes(PROJECTS_VIEW_METHOD), {
-        timeout: 15000,
+        timeout: scaleTimeout(15000),
       })
       .catch(() => {});
   }
@@ -430,7 +434,9 @@ export class ProjectPage {
 
     // The new view is listed as a menu item rather than a link.
     await this.openViewMenu();
-    await expect(this.viewMenuItem(viewName)).toBeVisible({ timeout: 15000 });
+    await expect(this.viewMenuItem(viewName)).toBeVisible({
+      timeout: scaleTimeout(15000),
+    });
   }
 
   /**
@@ -449,7 +455,7 @@ export class ProjectPage {
     await this.viewMenuButton.click({ force: true });
     await this.createViewButton
       .first()
-      .waitFor({ state: "visible", timeout: 15000 });
+      .waitFor({ state: "visible", timeout: scaleTimeout(15000) });
   }
 
   async closeViewMenu() {
@@ -473,14 +479,14 @@ export class ProjectPage {
     // Make Public / Delete) behind an unlabelled button that only renders while
     // the row is hovered, so hover before reaching for it.
     const row = this.viewMenuItem(viewName);
-    await row.waitFor({ state: "visible", timeout: 15000 });
+    await row.waitFor({ state: "visible", timeout: scaleTimeout(15000) });
     await row.hover();
     await this.page.waitForTimeout(600);
 
     await this.viewRowMenuButton(viewName).click({ force: true });
     await this.deleteViewButton
       .first()
-      .waitFor({ state: "visible", timeout: 10000 });
+      .waitFor({ state: "visible", timeout: scaleTimeout(10000) });
     await this.deleteViewButton.first().click();
     await this.page.waitForTimeout(1500);
 
@@ -493,7 +499,7 @@ export class ProjectPage {
     }
 
     await expect(this.toastNotification(notification)).toBeVisible({
-      timeout: 15000,
+      timeout: scaleTimeout(15000),
     });
   }
   /**
@@ -556,7 +562,7 @@ export class ProjectPage {
   async getViewRowActions(viewName) {
     await this.openViewMenu();
     const row = this.viewMenuItem(viewName);
-    await row.waitFor({ state: "visible", timeout: 15000 });
+    await row.waitFor({ state: "visible", timeout: scaleTimeout(15000) });
     await row.hover();
     await this.page.waitForTimeout(600);
     await this.viewRowMenuButton(viewName).click({ force: true });
@@ -577,7 +583,7 @@ export class ProjectPage {
   async openSavedView(viewName) {
     await this.openViewMenu();
     const view = this.viewMenuItem(viewName);
-    await view.waitFor({ state: "visible", timeout: 15000 });
+    await view.waitFor({ state: "visible", timeout: scaleTimeout(15000) });
     await view.click();
     await this.page
       .waitForLoadState("networkidle", { timeout: 5000 })

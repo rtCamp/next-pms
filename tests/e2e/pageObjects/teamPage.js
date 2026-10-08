@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 import { gotoWithRetry } from "../utils/navigation.js";
+import { scaleTimeout } from "../utils/timeouts";
 
 /**
  * TeamPage class handles interactions with the team page.
@@ -278,7 +279,7 @@ export class TeamPage {
    */
   async getApprovalStatusFromRow(employeeName) {
     const row = this.employeeRows.filter({ hasText: employeeName }).first();
-    await row.waitFor({ state: "visible", timeout: 20000 });
+    await row.waitFor({ state: "visible", timeout: scaleTimeout(20000) });
 
     const lines = ((await row.innerText()) || "")
       .split("\n")
@@ -303,7 +304,7 @@ export class TeamPage {
     // too early returns an empty list and callers end up with an undefined label.
     await this.weekButton("This week").waitFor({
       state: "visible",
-      timeout: 20000,
+      timeout: scaleTimeout(20000),
     });
 
     return await this.page
@@ -350,7 +351,7 @@ export class TeamPage {
     }
 
     const button = this.weekButton(label);
-    await button.waitFor({ state: "visible", timeout: 15000 });
+    await button.waitFor({ state: "visible", timeout: scaleTimeout(15000) });
 
     if (
       ((await button.getAttribute("aria-expanded")) === "true") !==
@@ -407,13 +408,13 @@ export class TeamPage {
 
     await this.rejectTimesheetModal.waitFor({
       state: "visible",
-      timeout: 20000,
+      timeout: scaleTimeout(20000),
     });
     await this.rejectReasonInput.fill(reason);
     await this.confirmRejectButton.click();
     await this.toastNotification(notification).waitFor({
       state: "visible",
-      timeout: 20000,
+      timeout: scaleTimeout(20000),
     });
 
     // Wait until the row reports a rejected state. The status is the aria-label
@@ -421,7 +422,7 @@ export class TeamPage {
     // stroke-destructive class, which the icon no longer carries.
     await expect
       .poll(async () => await this.getTimesheetStatus(employee), {
-        timeout: 30000,
+        timeout: scaleTimeout(30000),
       })
       .toMatch(/rejected/i);
   }
@@ -450,11 +451,11 @@ export class TeamPage {
       col: "status",
     });
     const trigger = cell.getByRole("button").first();
-    await trigger.waitFor({ state: "visible", timeout: 20000 });
+    await trigger.waitFor({ state: "visible", timeout: scaleTimeout(20000) });
     await trigger.click();
     await this.reviewTimesheetPane.waitFor({
       state: "visible",
-      timeout: 20000,
+      timeout: scaleTimeout(20000),
     });
   }
 
@@ -507,7 +508,7 @@ export class TeamPage {
       task: task,
       desc: desc,
     });
-    await row.waitFor({ state: "visible", timeout: 20000 });
+    await row.waitFor({ state: "visible", timeout: scaleTimeout(20000) });
 
     // Editing happens inline, and the pencil only exists on hover ("opacity-0
     // pointer-events-none" until then). It is also disabled for entries that
@@ -516,7 +517,10 @@ export class TeamPage {
     const editButton = row
       .getByRole("button", { name: "Edit time entry" })
       .first();
-    await editButton.waitFor({ state: "visible", timeout: 15000 });
+    await editButton.waitFor({
+      state: "visible",
+      timeout: scaleTimeout(15000),
+    });
 
     if (!(await editButton.isEnabled())) {
       throw new Error(
@@ -534,7 +538,7 @@ export class TeamPage {
     // still: it appends rather than replaces ("014500:30"), and Control+A does
     // not select inside the mask.
     const duration = row.getByPlaceholder("00:00");
-    await duration.waitFor({ state: "visible", timeout: 15000 });
+    await duration.waitFor({ state: "visible", timeout: scaleTimeout(15000) });
     await duration.fill(newDuration);
     await duration.blur();
     await this.page.waitForTimeout(800);
@@ -585,7 +589,7 @@ export class TeamPage {
   async getEmployeeRows() {
     await this.employeeRows
       .first()
-      .waitFor({ state: "visible", timeout: 15000 })
+      .waitFor({ state: "visible", timeout: scaleTimeout(15000) })
       .catch(() => {
         // no members matched the current filters
       });
@@ -600,8 +604,11 @@ export class TeamPage {
     const employees = [];
     // Wait up to 10s for spinner to appear and disappear (if it appears at all)
     try {
-      if (await this.spinner.isVisible({ timeout: 1000 })) {
-        await this.spinner.waitFor({ state: "hidden", timeout: 10000 });
+      if (await this.spinner.isVisible({ timeout: scaleTimeout(1000) })) {
+        await this.spinner.waitFor({
+          state: "hidden",
+          timeout: scaleTimeout(10000),
+        });
       }
     } catch {
       // Spinner never appeared – ignore
@@ -628,7 +635,7 @@ export class TeamPage {
     // is no nested table to look for any more.
     await this.employeeDetailRows
       .first()
-      .waitFor({ state: "visible", timeout: 15000 })
+      .waitFor({ state: "visible", timeout: scaleTimeout(15000) })
       .catch(() => {});
 
     return (await this.getEmployeeDetailRows()).length > 0;
@@ -646,11 +653,11 @@ export class TeamPage {
     // section listing the same members, so the old page-wide lookup now matches
     // the employee once per week (12 times for 12 weeks of history).
     const section = this.weekSectionFor(weekLabel);
-    await section.waitFor({ state: "visible", timeout: 20000 });
+    await section.waitFor({ state: "visible", timeout: scaleTimeout(20000) });
     await section
       .getByText(name, { exact: true })
       .first()
-      .waitFor({ state: "visible", timeout: 20000 });
+      .waitFor({ state: "visible", timeout: scaleTimeout(20000) });
 
     return section;
   }
@@ -717,7 +724,7 @@ export class TeamPage {
    */
   async getCell({ employee, rowName, col }) {
     const row = await this.getRow({ employee: employee, rowName: rowName });
-    await row.waitFor({ state: "visible", timeout: 20000 });
+    await row.waitFor({ state: "visible", timeout: scaleTimeout(20000) });
 
     const colIndex = this.dayIndexObj[col.toLowerCase()];
     if (colIndex === undefined) {
@@ -728,7 +735,7 @@ export class TeamPage {
     // Direct children only - the row's own flex columns.
     const cell = row.locator("> div").nth(colIndex);
 
-    await cell.waitFor({ state: "visible", timeout: 20000 });
+    await cell.waitFor({ state: "visible", timeout: scaleTimeout(20000) });
     return cell;
   }
 
@@ -795,7 +802,7 @@ export class TeamPage {
     // The task label is plain text inside the task row, so match the text
     // rather than a <span> XPath - the markup carries no stable element for it.
     const label = section.getByText(task, { exact: true }).first();
-    await label.waitFor({ state: "visible", timeout: 20000 });
+    await label.waitFor({ state: "visible", timeout: scaleTimeout(20000) });
     await label.click();
     await this.page.waitForTimeout(1500);
   }
@@ -809,7 +816,9 @@ export class TeamPage {
       .getByRole("dialog")
       .filter({ hasText: name })
       .first();
-    await dialog.waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
+    await dialog
+      .waitFor({ state: "visible", timeout: scaleTimeout(15000) })
+      .catch(() => {});
 
     return await dialog.isVisible().catch(() => false);
   }
@@ -908,7 +917,10 @@ export class TeamPage {
   async isFilterApplied() {
     // Per-field filter chips are gone; the toolbar button now carries the count
     // of active conditions ("Filter" with none, "Filter 1" with one).
-    await this.filterButton.waitFor({ state: "visible", timeout: 20000 });
+    await this.filterButton.waitFor({
+      state: "visible",
+      timeout: scaleTimeout(20000),
+    });
 
     return /\d/.test((await this.filterButton.innerText()) || "");
   }
@@ -982,7 +994,10 @@ export class TeamPage {
    * badge is absent when nothing is applied, which reads as 0.
    */
   async getAppliedFilterCount() {
-    await this.filterButton.waitFor({ state: "visible", timeout: 20000 });
+    await this.filterButton.waitFor({
+      state: "visible",
+      timeout: scaleTimeout(20000),
+    });
     const match = ((await this.filterButton.innerText()) || "").match(/(\d+)/);
 
     return match ? Number(match[1]) : 0;
@@ -1069,7 +1084,7 @@ export class TeamPage {
     if ((await option.count()) === 0) {
       option = this.page.getByRole("option", { name: value }).first();
     }
-    await option.waitFor({ state: "visible", timeout: 10000 });
+    await option.waitFor({ state: "visible", timeout: scaleTimeout(10000) });
     await option.click();
 
     // Bounded on purpose - as is every networkidle wait in the suite. The app
