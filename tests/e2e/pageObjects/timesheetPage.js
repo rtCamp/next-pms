@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 import { gotoWithRetry } from "../utils/navigation.js";
+import { scaleTimeout } from "../utils/timeouts";
 
 /**
  * TimesheetPage class handles interactions with the timesheet page.
@@ -288,7 +289,7 @@ export class TimesheetPage {
   async clickonTimesheetStatus() {
     await this.submitForApprovalButton.waitFor({
       state: "visible",
-      timeout: 30000,
+      timeout: scaleTimeout(30000),
     });
     await this.submitForApprovalButton.click();
   }
@@ -414,7 +415,7 @@ export class TimesheetPage {
     const colIndex = this.dayIndexObj[col.toLowerCase()];
     // row children are: label, Mon..Sun, Total (matching dayIndexObj)
     const cell = row.locator("> div").nth(colIndex);
-    await cell.waitFor({ state: "visible", timeout: 15000 });
+    await cell.waitFor({ state: "visible", timeout: scaleTimeout(15000) });
 
     return cell;
   }
@@ -438,7 +439,7 @@ export class TimesheetPage {
     // listing that day's entries with their descriptions.
     await this.openCell(cell);
     const popover = this.page.getByRole("dialog").first();
-    await popover.waitFor({ state: "visible", timeout: 15000 });
+    await popover.waitFor({ state: "visible", timeout: scaleTimeout(15000) });
 
     return await popover.innerText();
   }
@@ -551,7 +552,7 @@ export class TimesheetPage {
       .getByRole("region")
       .filter({ hasText: desc })
       .first();
-    await region.waitFor({ state: "visible", timeout: 15000 });
+    await region.waitFor({ state: "visible", timeout: scaleTimeout(15000) });
 
     // The delete control is an unlabelled icon button that only exists visually
     // on hover: "absolute right-0 top-0 opacity-0 pointer-events-none
@@ -567,13 +568,19 @@ export class TimesheetPage {
     const editButton = item
       .locator('button[class*="absolute"][class*="right-0"]')
       .first();
-    await editButton.waitFor({ state: "visible", timeout: 10000 });
+    await editButton.waitFor({
+      state: "visible",
+      timeout: scaleTimeout(10000),
+    });
     await editButton.click();
 
     const deleteButton = this.editTimeModal.getByRole("button", {
       name: "Delete entry",
     });
-    await deleteButton.waitFor({ state: "visible", timeout: 15000 });
+    await deleteButton.waitFor({
+      state: "visible",
+      timeout: scaleTimeout(15000),
+    });
     await deleteButton.click();
     //Assert : Banner to be displayed when a time entry is deleted
     await expect(this.successBanner).toBeVisible();
@@ -600,7 +607,9 @@ export class TimesheetPage {
       .first();
     const firstRow = this.latestTimesheetTaskRows.first();
 
-    await button.waitFor({ state: "visible", timeout: 30000 }).catch(() => {});
+    await button
+      .waitFor({ state: "visible", timeout: scaleTimeout(30000) })
+      .catch(() => {});
 
     // The control is gone once the week already holds the liked tasks, so an
     // absent button is only fine when rows are actually there.
@@ -615,7 +624,7 @@ export class TimesheetPage {
     await button.click();
 
     // The import is async; wait for a row rather than assuming the click landed.
-    await firstRow.waitFor({ state: "visible", timeout: 30000 });
+    await firstRow.waitFor({ state: "visible", timeout: scaleTimeout(30000) });
   }
 
   // --------------------------------------
@@ -637,7 +646,7 @@ export class TimesheetPage {
     await this.openCell(cell);
     await this.editTimeModal
       .first()
-      .waitFor({ state: "visible", timeout: 15000 });
+      .waitFor({ state: "visible", timeout: scaleTimeout(15000) });
 
     const text = (await this.editTimeModal.first().innerText()) || "";
 
@@ -651,9 +660,11 @@ export class TimesheetPage {
     const row = this.latestTimesheetTaskRows.filter({ hasText: task }).last();
 
     // Name the missing row instead of letting the click time out on it.
-    await row.waitFor({ state: "visible", timeout: 20000 }).catch(() => {
-      throw new Error(`No timesheet row for "${task}" in the current week.`);
-    });
+    await row
+      .waitFor({ state: "visible", timeout: scaleTimeout(20000) })
+      .catch(() => {
+        throw new Error(`No timesheet row for "${task}" in the current week.`);
+      });
 
     await row.locator("span.truncate").first().click();
     await this.page.waitForTimeout(2000);
@@ -679,7 +690,9 @@ export class TimesheetPage {
       .getByRole("dialog")
       .filter({ hasText: name })
       .first();
-    await dialog.waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
+    await dialog
+      .waitFor({ state: "visible", timeout: scaleTimeout(15000) })
+      .catch(() => {});
 
     return await dialog.isVisible().catch(() => false);
   }

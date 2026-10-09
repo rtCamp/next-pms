@@ -5,6 +5,7 @@
 import { expect } from "@playwright/test";
 import { TimelinePage } from "./timeline";
 import { getShortFormattedDate, getWeekdayName } from "../../utils/dateUtils";
+import { scaleTimeout } from "../../utils/timeouts";
 // Filter keys mapped to the labels the panel's "Field" dropdown offers.
 const RM_FILTER_FIELD_LABELS = {
   customer: "Customer",
@@ -381,7 +382,7 @@ export class ProjectPage extends TimelinePage {
     const option = this.page
       .getByRole("option", { name: rmExactly(value) })
       .first();
-    await option.waitFor({ state: "visible", timeout: 10000 });
+    await option.waitFor({ state: "visible", timeout: scaleTimeout(10000) });
     await option.click();
 
     await this.page
@@ -424,7 +425,10 @@ export class ProjectPage extends TimelinePage {
     const nameButton = this.page
       .getByRole("button", { name: `View ${projectName} details`, exact: true })
       .first();
-    await nameButton.waitFor({ state: "visible", timeout: 15000 });
+    await nameButton.waitFor({
+      state: "visible",
+      timeout: scaleTimeout(15000),
+    });
 
     const expand = nameButton
       .locator("xpath=preceding-sibling::button[1]")

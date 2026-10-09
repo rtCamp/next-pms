@@ -63,9 +63,14 @@ const globalSetup = async () => {
   fs.writeFileSync(tcJsonPath, JSON.stringify(allTCIds, null, 2));
   console.log(`✅ TC ID list written to: ${tcJsonPath}`);
 
-  // 1) Pre‑generate API auth states for all roles
+  // 1) Pre‑generate auth states for all roles.
+  // Both kinds are built here so no worker ever logs in: a per-worker login
+  // storm times out the authState fixture and kills the run.
   const roles = ["employee", "employee2", "employee3", "manager", "admin"];
   await Promise.all(roles.map((role) => storeStorageState(role, true)));
+  await Promise.all(
+    roles.map((role) => storeStorageState(role, false).catch(() => {})),
+  );
 
   // 2) Create and populate JSON stubs for each TC ID
   console.log("📁 Creating JSON stubs for each TC ID...");

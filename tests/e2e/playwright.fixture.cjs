@@ -36,7 +36,7 @@ const hasUsableSession = async (filePath) => {
 };
 
 const test = base.extend({
-  // Worker-scoped fixture: generate a unique storageState per role per worker
+  // Worker-scoped fixture: resolve the shared storageState for this role
   authState: [
     async ({}, use, testInfo) => {
       const role = testInfo.project.metadata.TEST_ROLE;
@@ -44,15 +44,16 @@ const test = base.extend({
         throw new Error("`metadata.TEST_ROLE` must be set on the project");
       }
 
-      const workerIndex = testInfo.workerIndex;
-      const fileName = `${role}-w${workerIndex}.json`;
-      const outPath = path.resolve(__dirname, "./auth", fileName);
+      // One state per role, not per worker: globalSetup writes these, and every
+      // worker reads the same file. Keying on workerIndex meant a login per
+      // worker, and a replacement worker took a fresh index and logged in again.
+      const outPath = path.resolve(__dirname, "./auth", `${role}.json`);
 
+      // Safety net only - globalSetup should have left a usable session here.
       if (!(await hasUsableSession(outPath))) {
         console.log(
-          `🔐 Refreshing auth state for ${role} (worker ${workerIndex}) - no usable session on disk.`,
+          `🔐 No usable session for ${role} on disk - logging in again.`,
         );
-        // Generate storage state with CSRF (isApi=false)
         await storeStorageState(role, false, outPath);
       }
 

@@ -1,3 +1,4 @@
+import { scaleTimeout } from "../utils/timeouts";
 const escapeForRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
@@ -42,13 +43,13 @@ export class ColumnSettings {
     await this.panel
       .getByRole("listitem")
       .first()
-      .waitFor({ state: "visible", timeout: 15000 });
+      .waitFor({ state: "visible", timeout: scaleTimeout(15000) });
   }
 
   async close() {
     await this.page.keyboard.press("Escape");
     await this.panel
-      .waitFor({ state: "hidden", timeout: 10000 })
+      .waitFor({ state: "hidden", timeout: scaleTimeout(10000) })
       .catch(() => {});
   }
 
@@ -71,14 +72,16 @@ export class ColumnSettings {
       .last()
       .getByRole("option", { name, exact: true });
 
-    await option.waitFor({ state: "visible", timeout: 15000 }).catch(() => {
-      throw new Error(`"${name}" is not offered in the Add Column picker.`);
-    });
+    await option
+      .waitFor({ state: "visible", timeout: scaleTimeout(15000) })
+      .catch(() => {
+        throw new Error(`"${name}" is not offered in the Add Column picker.`);
+      });
     await option.click();
 
     await this.header(name)
       .first()
-      .waitFor({ state: "visible", timeout: 15000 });
+      .waitFor({ state: "visible", timeout: scaleTimeout(15000) });
     await this.close();
   }
 
@@ -89,7 +92,7 @@ export class ColumnSettings {
       .click();
     await this.header(name)
       .first()
-      .waitFor({ state: "hidden", timeout: 15000 })
+      .waitFor({ state: "hidden", timeout: scaleTimeout(15000) })
       .catch(() => {});
     await this.close();
   }

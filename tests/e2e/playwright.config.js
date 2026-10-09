@@ -11,12 +11,23 @@ require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
+// Raise with TEST_TIMEOUT_FACTOR on a slow runner.
+const TIMEOUT_FACTOR = Number(
+  process.env.TEST_TIMEOUT_FACTOR ?? (process.env.CI ? 3 : 2),
+);
+
 module.exports = defineConfig({
   /* Global setup file */
   globalSetup: "./globals/globalSetup.js",
 
   /* Global teardown file */
   globalTeardown: "./globals/globalTeardown.js",
+
+  /* CI runs against a freshly built site, so give assertions and tests more
+     room than the defaults. Both scale together: a longer expect timeout inside
+     an unchanged test budget just converts assertion failures into timeouts. */
+  timeout: 30000 * TIMEOUT_FACTOR,
+  expect: { timeout: 5000 * TIMEOUT_FACTOR },
 
   /* Directory with specs */
   testDir: "./specs",
