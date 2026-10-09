@@ -130,33 +130,41 @@ jobs:
           npx playwright install --with-deps chromium
 
       - name: Run e2e tests
-        # --max-failures=0: the config stops CI runs after 5 failures; we want the whole picture
-        run: npm run e2e:tests -- --max-failures=0
+        run: npx playwright test --config=tests/e2e/playwright.ci.config.js
 
       - name: Summary
         if: always()
         run: |
-          f=$(ls results.json tests/e2e/results.json 2>/dev/null | head -1)
-          [ -n "$f" ] || { echo "No results.json" >> "$GITHUB_STEP_SUMMARY"; exit 0; }
+          f=tests/e2e/results.json
+          [ -f "$f" ] || { echo "No results.json" >> "$GITHUB_STEP_SUMMARY"; exit 0; }
           {
             echo "### E2E results"
-            jq -r '.stats | "expected (passed): \(.expected)  unexpected (failed): \(.unexpected)  flaky: \(.flaky)  skipped: \(.skipped)"' "$f"
+            echo
+            jq -r '.stats | "| passed | failed | flaky | skipped | duration |\n|---|---|---|---|---|\n| \(.expected) | \(.unexpected) | \(.flaky) | \(.skipped) | \((.duration/60000*10|floor)/10) min |"' "$f"
+            echo
+            echo "**Failed / flaky tests**"
+            jq -r '[.. | objects | select(has("specs")) | .specs[] | select(.ok == false or (.ok == true and ((.tests[0].results // []) | length) > 1)) | "- " + (if .ok then "flaky" else "failed" end) + ": " + .title] | unique | .[]' "$f"
+            echo
+            echo "Full report: download the **e2e-html-report** artifact, unzip and open index.html (or run \`npx playwright show-report <folder>\` for traces)."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload reports
+      - name: Upload HTML report
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: e2e-report
+          name: e2e-html-report
           if-no-files-found: ignore
+          retention-days: 14
+          path: tests/e2e/playwright-report
+
+      - name: Upload server logs
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-server-logs
+          if-no-files-found: ignore
+          retention-days: 7
           path: |
-            playwright-report
-            test-results
-            results.json
-            tests/e2e/playwright-report
-            tests/e2e/test-results
-            tests/e2e/results.json
             ${{ runner.temp }}/serve.log
             ${{ runner.temp }}/worker-*.log
             ${{ runner.temp }}/socketio.log
-            /home/runner/frappe-bench/logs
