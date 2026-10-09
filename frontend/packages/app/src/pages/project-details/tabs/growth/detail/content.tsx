@@ -172,8 +172,12 @@ export function GrowthDetailContent({
             type: "Growth Initiative",
           }}
           canEdit={canEdit}
-          title={<h3 className="text-lg font-medium text-ink-gray-7">ToDos</h3>}
-          emptyMessage="No ToDos linked."
+          title={
+            <h3 className="text-lg font-medium text-ink-gray-7">
+              Action items
+            </h3>
+          }
+          emptyMessage="No action items yet."
         />
       </section>
 

@@ -217,7 +217,7 @@ export function CreateTodoModal({
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
-      options={{ title: isEditMode ? "Edit to-do" : "Add to-do", size: "lg" }}
+      options={{ title: isEditMode ? "Edit ToDo" : "Add ToDo", size: "lg" }}
       actions={
         <Button
           className="w-full h-7"
@@ -413,12 +413,12 @@ export function CreateTodoModal({
             <form.Field
               name="linkedTo"
               children={(field) => (
-                <div className="w-64">
+                <div className="w-88">
                   <Combobox
                     inputClassName="bg-surface-gray-2 h-8 border-0"
                     loading={isLinkableLoading}
                     options={linkOptions}
-                    placeholder="Link to milestone, touchpoint…"
+                    placeholder="Link to milestone, touchpoint or growth initiative"
                     value={
                       field.state.value ? linkKey(field.state.value) : null
                     }

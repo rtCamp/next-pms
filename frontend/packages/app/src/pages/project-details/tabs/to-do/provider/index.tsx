@@ -24,7 +24,11 @@ import { TODO_API, todoLinksKey, todosKey } from "../constants";
 import { CreateTodoModal } from "../create-todo";
 import type { TodoStatus } from "../create-todo/schema";
 import type { CreateTodoInput, LinkedRecord, Todo, TodoDoc } from "../types";
-import { isSameRecord } from "../utils";
+import {
+  getTodoDeleteDescription,
+  getUnlinkDescription,
+  isSameRecord,
+} from "../utils";
 
 type Editor = { todo: Todo | null; linkedTo: LinkedRecord | null };
 
@@ -98,7 +102,7 @@ export function TodosProvider({ children }: PropsWithChildren) {
               reference_type: "Project",
               reference_name: projectId,
             })) as TodoDoc);
-        toast.success("To-do created");
+        toast.success("ToDo created");
         await refresh();
         return doc;
       } catch (err) {
@@ -129,7 +133,7 @@ export function TodosProvider({ children }: PropsWithChildren) {
           todo.name,
           toTodoFields(input),
         )) as TodoDoc;
-        toast.success("To-do updated");
+        toast.success("ToDo updated");
         return doc;
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
@@ -158,7 +162,7 @@ export function TodosProvider({ children }: PropsWithChildren) {
     async (name: string) => {
       try {
         await unlinkTodoCall({ todo: name });
-        toast.success("To-do unlinked");
+        toast.success("ToDo unlinked");
         await refresh();
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
@@ -171,7 +175,7 @@ export function TodosProvider({ children }: PropsWithChildren) {
     async (name: string) => {
       try {
         await deleteDoc("ToDo", name);
-        toast.success("To-do deleted");
+        toast.success("ToDo deleted");
         await refresh();
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
@@ -221,8 +225,8 @@ export function TodosProvider({ children }: PropsWithChildren) {
       />
       {unlinking?.linked && (
         <DeleteActionDialog
-          title="Unlink to-do"
-          description={`This to-do will no longer be linked to ${unlinking.linked.title}. The to-do itself is kept.`}
+          title="Unlink ToDo"
+          description={getUnlinkDescription(unlinking, unlinking.linked)}
           confirmLabel="Unlink"
           onClose={() => setUnlinking(null)}
           onConfirm={() => unlinkTodo(unlinking.name)}
@@ -230,8 +234,8 @@ export function TodosProvider({ children }: PropsWithChildren) {
       )}
       {deleting && (
         <DeleteActionDialog
-          title="Delete to-do"
-          description="Are you sure you want to delete this to-do? This action cannot be undone."
+          title="Delete ToDo"
+          description={getTodoDeleteDescription(deleting)}
           onClose={() => setDeleting(null)}
           onConfirm={() => deleteTodo(deleting.name)}
         />

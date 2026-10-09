@@ -18,7 +18,7 @@ import { GrowthDetailView } from "./detail";
 import { GrowthHeader } from "./header";
 import { GrowthListView } from "./list/listView";
 import { GrowthProvider } from "./provider";
-import { useLinkedTodos } from "../to-do/useLinkedTodos";
+import { useLinkedTodoCount } from "../to-do/useLinkedTodoCount";
 import { getDeleteDescription } from "../to-do/utils";
 
 function GrowthContent() {
@@ -31,8 +31,9 @@ function GrowthContent() {
   const deleteName = useGrowth((c) => c.state.deleteName);
   const closeDelete = useGrowth((c) => c.actions.closeDelete);
   const deleteGrowth = useGrowth((c) => c.actions.deleteGrowth);
-  const { todos: deleteTargetTodos } = useLinkedTodos(
-    deleteName ? { doctype: GROWTH_DOCTYPE, name: deleteName } : null,
+  const deleteTarget = useLinkedTodoCount<{ activity: string }>(
+    GROWTH_DOCTYPE,
+    deleteName,
   );
 
   const dialogs = (
@@ -42,12 +43,13 @@ function GrowthContent() {
         onClose={closeCreate}
         growthName={editName}
       />
-      {deleteName && (
+      {deleteName && deleteTarget.isReady && (
         <DeleteActionDialog
           title="Delete growth initiative"
           description={getDeleteDescription(
             "growth initiative",
-            deleteTargetTodos.length,
+            deleteTarget.doc?.activity ?? deleteName,
+            deleteTarget.count > 0,
           )}
           onClose={closeDelete}
           onConfirm={() => deleteGrowth(deleteName)}

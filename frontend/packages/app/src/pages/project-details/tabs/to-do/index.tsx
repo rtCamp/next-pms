@@ -38,7 +38,7 @@ export function Todo() {
         </div>
       ) : todos.length === 0 ? (
         <p className="py-12 text-center text-base text-ink-gray-5">
-          No to-dos yet for this project.
+          No ToDos yet for this project.
         </p>
       ) : (
         <div className="flex flex-col">

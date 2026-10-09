@@ -17,11 +17,12 @@ import { format, parseISO } from "date-fns";
 /**
  * Internal dependencies.
  */
-import { extractTextFromHTML, hasTodoCustomFields } from "@/lib/utils";
+import { hasTodoCustomFields } from "@/lib/utils";
 import type { TodoPriority, TodoStatus } from "./create-todo/schema";
 import { LinkedChip } from "./linkedChip";
 import { useTodos } from "./provider/context";
 import type { Todo } from "./types";
+import { todoTitle } from "./utils";
 
 const STATUS_ICON: Record<
   TodoStatus,
@@ -95,9 +96,7 @@ export function TodoRow({
     <div className={rowVariants({ condensed })}>
       <div className="min-w-0 flex-1">
         <h3 className="truncate text-base font-medium text-ink-gray-8">
-          {todo.custom_title ||
-            extractTextFromHTML(todo.description) ||
-            "Untitled"}
+          {todoTitle(todo)}
         </h3>
         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-gray-5">
           <a
