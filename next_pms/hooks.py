@@ -326,6 +326,10 @@ doc_events = {
     "Customer Feedback": {
         "on_submit": "next_pms.next_pms.notifications.customer_feedback_on_submit",
     },
+    "ToDo": {
+        "validate": "next_pms.next_projects.doc_events.todo.validate",
+        "on_trash": "next_pms.next_projects.doc_events.todo.on_trash",
+    },
     "Customer": {"validate": "next_pms.resource_management.doc_events.customer.validate_abbr"},
     "Employee": {
         "on_update": [

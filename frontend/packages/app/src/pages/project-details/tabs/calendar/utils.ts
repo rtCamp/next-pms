@@ -26,6 +26,7 @@ import type {
   ProjectTimelineItem,
   UserRef,
 } from "./types";
+import type { LinkedRecord } from "../to-do/types";
 
 // Gantt utils
 
@@ -214,5 +215,14 @@ export function mapTimelineItem(raw: ApiTimelineItem): ProjectTimelineItem {
     actualEndDate: raw.actual_end_date ?? undefined,
     owner: raw.owner ? mapUserRef(raw.owner) : { name: "", fullName: "" },
     watchers: (raw.watchers ?? []).map(mapUserRef),
+  };
+}
+
+export function toLinkedRecord(item: ProjectTimelineItem): LinkedRecord {
+  return {
+    doctype: "Project Timeline Item",
+    name: item.id,
+    title: item.title,
+    type: item.type,
   };
 }

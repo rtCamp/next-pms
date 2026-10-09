@@ -17,6 +17,8 @@ import {
 /**
  * Internal dependencies.
  */
+import { useLinkedTodoCount } from "../../../to-do/useLinkedTodoCount";
+import { getDeleteDescription } from "../../../to-do/utils";
 import { useCalendar } from "../../context";
 import type { ProjectTimelineItem } from "../../types";
 
@@ -32,6 +34,10 @@ export function ActionsCell({ item }: ActionsCellProps) {
   const onDelete = useCalendar((c) => c.actions.onDelete);
 
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const linkedTodos = useLinkedTodoCount(
+    "Project Timeline Item",
+    confirmDelete ? item.id : null,
+  );
   const isFollowing = userId
     ? item.watchers.some((w) => w.name === userId)
     : false;
@@ -83,10 +89,14 @@ export function ActionsCell({ item }: ActionsCellProps) {
         ]}
       />
 
-      {confirmDelete && (
+      {confirmDelete && linkedTodos.isReady && (
         <DeleteActionDialog
           title={`Delete ${item.type.toLowerCase()}`}
-          description={`Are you sure you want to delete this ${item.type.toLowerCase()}? This action cannot be undone.`}
+          description={getDeleteDescription(
+            item.type,
+            item.title,
+            linkedTodos.count > 0,
+          )}
           onClose={() => setConfirmDelete(false)}
           onConfirm={() => onDelete(item)}
         />

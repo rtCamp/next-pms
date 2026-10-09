@@ -10,13 +10,14 @@ import { Tabs } from "@rtcamp/frappe-ui-react";
  */
 import { ROUTES } from "@/lib/constant";
 import { AboutThisProject } from "./about";
+import { TAB_PARAM } from "./constants";
 import { useProjectDetail } from "./context";
 import { ProjectDetailHeader } from "./header";
 import { ProjectDetailProvider } from "./provider";
 import { TAB_KEYS, TABS, type TabKey } from "./tabs";
 import { NotesProvider } from "./tabs/notes/provider";
+import { TodosProvider } from "./tabs/to-do/provider";
 
-const TAB_PARAM = "tab";
 const DEFAULT_TAB: TabKey = TAB_KEYS[0];
 
 function ProjectDetail() {
@@ -24,10 +25,12 @@ function ProjectDetail() {
 
   return (
     <ProjectDetailProvider projectId={projectId}>
-      <div className="h-full flex flex-col">
-        <ProjectDetailHeader />
-        <ProjectDetailBody />
-      </div>
+      <TodosProvider>
+        <div className="h-full flex flex-col">
+          <ProjectDetailHeader />
+          <ProjectDetailBody />
+        </div>
+      </TodosProvider>
     </ProjectDetailProvider>
   );
 }

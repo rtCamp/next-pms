@@ -62,7 +62,7 @@ export function DeleteActionDialog({
         </div>
       }
     >
-      <p className="text-base text-ink-gray-7">{description}</p>
+      <p className="text-base text-ink-gray-7 wrap-break-word">{description}</p>
     </Dialog>
   );
 }

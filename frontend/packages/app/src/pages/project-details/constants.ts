@@ -7,3 +7,5 @@ export const MANAGE_ALL_ROLES = [
 ] as const;
 
 export const OWNER_GATED_ROLES = ["Projects User"] as const;
+
+export const TAB_PARAM = "tab";

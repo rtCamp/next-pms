@@ -20,6 +20,7 @@ import { FileCard } from "@/pages/project-details/components/fileCard";
 import { useProjectDetail } from "@/pages/project-details/context";
 import type { FileAttachment } from "@/pages/project-details/types";
 import { useUser } from "@/providers/user";
+import { LinkedTodos } from "../../to-do/linkedTodos";
 import { AddUpdateModal } from "../add-update";
 import { GROWTH_DOCTYPE } from "../constants";
 import { useGrowth } from "../context";
@@ -160,6 +161,24 @@ export function GrowthDetailContent({
         ) : (
           <p className="text-sm text-ink-gray-5">No documents attached.</p>
         )}
+      </section>
+
+      <section className="mb-4.5">
+        <LinkedTodos
+          record={{
+            doctype: GROWTH_DOCTYPE,
+            name: growth.name,
+            title: growth.activity,
+            type: "Growth Initiative",
+          }}
+          canEdit={canEdit}
+          title={
+            <h3 className="text-lg font-medium text-ink-gray-7">
+              Action items
+            </h3>
+          }
+          emptyMessage="No action items yet."
+        />
       </section>
 
       <section className="mb-4.5">

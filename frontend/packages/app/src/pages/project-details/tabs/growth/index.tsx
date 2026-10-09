@@ -11,13 +11,15 @@ import {
 /**
  * Internal dependencies.
  */
-import { GROWTH_DETAIL_PARAM } from "./constants";
+import { GROWTH_DETAIL_PARAM, GROWTH_DOCTYPE } from "./constants";
 import { useGrowth } from "./context";
 import { CreateGrowthModal } from "./create-growth";
 import { GrowthDetailView } from "./detail";
 import { GrowthHeader } from "./header";
 import { GrowthListView } from "./list/listView";
 import { GrowthProvider } from "./provider";
+import { useLinkedTodoCount } from "../to-do/useLinkedTodoCount";
+import { getDeleteDescription } from "../to-do/utils";
 
 function GrowthContent() {
   const [searchParams] = useSearchParams();
@@ -29,6 +31,10 @@ function GrowthContent() {
   const deleteName = useGrowth((c) => c.state.deleteName);
   const closeDelete = useGrowth((c) => c.actions.closeDelete);
   const deleteGrowth = useGrowth((c) => c.actions.deleteGrowth);
+  const deleteTarget = useLinkedTodoCount<{ activity: string }>(
+    GROWTH_DOCTYPE,
+    deleteName,
+  );
 
   const dialogs = (
     <>
@@ -37,10 +43,14 @@ function GrowthContent() {
         onClose={closeCreate}
         growthName={editName}
       />
-      {deleteName && (
+      {deleteName && deleteTarget.isReady && (
         <DeleteActionDialog
           title="Delete growth initiative"
-          description="Are you sure you want to delete this growth initiative? This action cannot be undone."
+          description={getDeleteDescription(
+            "growth initiative",
+            deleteTarget.doc?.activity ?? deleteName,
+            deleteTarget.count > 0,
+          )}
           onClose={closeDelete}
           onConfirm={() => deleteGrowth(deleteName)}
         />

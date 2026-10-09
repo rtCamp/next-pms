@@ -7,7 +7,7 @@ from frappe.utils import today
 
 from next_pms.install import create_default_growth_masters
 
-IGNORE_TEST_RECORD_DEPENDENCIES = ["User", "Project"]
+IGNORE_TEST_RECORD_DEPENDENCIES = ["User", "Project", "ToDo"]
 
 DOCTYPE = "PMS Growth Initiative"
 STATUS_DOCTYPE = "PMS Growth Initiative Status"
