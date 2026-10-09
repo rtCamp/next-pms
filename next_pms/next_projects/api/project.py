@@ -6,7 +6,6 @@ from datetime import date
 from typing import Literal
 
 import frappe
-from erpnext.setup.utils import get_exchange_rate
 from frappe import get_list, only_for, whitelist
 from frappe.query_builder.functions import Coalesce, Count, Sum
 from frappe.utils import cint, flt, getdate, today
@@ -32,6 +31,7 @@ from next_pms.next_projects.api.utils import (
 )
 from next_pms.project_currency.billing_rate import get_billing_rate_context, resolve_billing_rate
 from next_pms.timesheet.api import get_count
+from next_pms.utils.currency import require_exchange_rate
 from next_pms.utils.employee import (
     get_employee_salary,
 )
@@ -428,7 +428,7 @@ def get_page_names_for_computed_sort(
         for row in rows:
             from_currency = row.get("custom_currency")
             if from_currency and from_currency != currency and from_currency not in rates:
-                rates[from_currency] = get_exchange_rate(from_currency, currency, conversion_date) or 1.0
+                rates[from_currency] = require_exchange_rate(from_currency, currency, conversion_date)
 
     valued = []
     for row in rows:
@@ -554,7 +554,7 @@ def _apply_currency_conversion(enriched_projects: list[dict], to_currency: str) 
         return
 
     conversion_date = getdate(today())
-    rates = {fc: get_exchange_rate(fc, to_currency, conversion_date) or 1.0 for fc in from_currencies}
+    rates = {fc: require_exchange_rate(fc, to_currency, conversion_date) for fc in from_currencies}
 
     for project in enriched_projects:
         from_currency = project.get("currency")
