@@ -48,9 +48,10 @@ scripts/seed_project_timesheet_perf.py
 scripts/bench_project_timesheet.py
 scripts/bench_project_timesheet_http.py
 
-# Local LLM tooling files
-.claude/
-/.agents
+# Local LLM tooling files; the shared agent skills (.agents/skills,
+# .claude/skills links, skills-lock.json) are committed
+/.claude/*
+!/.claude/skills/
 CLAUDE.local.md
 
 # Stray yarn.lock at repo root — not part of the build (npm workspaces)

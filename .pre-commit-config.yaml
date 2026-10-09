@@ -1,4 +1,4 @@
-exclude: 'node_modules|.git'
+exclude: 'node_modules|.git|^\.agents/'
 default_stages: [pre-commit]
 fail_fast: false
 
