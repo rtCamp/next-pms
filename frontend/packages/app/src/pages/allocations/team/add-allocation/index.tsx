@@ -76,7 +76,8 @@ function AddAllocationModal({
     variant === "edit" && Boolean(initialValues?.recurrenceId);
   const hasExistingOverrides = (initialValues?.override?.length ?? 0) > 0;
   const isLockedAllocationMetadataEdit =
-    variant === "edit" && (isRecurringEdit || hasExistingOverrides);
+    variant === "edit" &&
+    (isRecurringEdit || (hasExistingOverrides && !initialValues?.isAiCreated));
   const canApproveLockedAllocation =
     Boolean(initialValues?.isAiCreated) && !isRecurringEdit;
 
@@ -1075,6 +1076,23 @@ function AddAllocationModal({
             </div>
           </div>
 
+          {hasExistingOverrides &&
+            initialValues?.isAiCreated &&
+            !isRecurringEdit && (
+              <div className="flex items-start gap-2 bg-surface-blue-1 rounded-lg px-2.5 py-2">
+                <AlertTriangle className="size-4 shrink-0 text-ink-blue-6 mt-0.5" />
+                <div className="flex-1 min-w-0 text-xs text-ink-gray-9 text-left">
+                  <p className="font-medium mb-1">
+                    This allocation includes holidays or leave
+                  </p>
+                  <p className="text-ink-gray-7">
+                    Those days are excluded from the total hours and will be
+                    recalculated if you change the dates or hours.
+                  </p>
+                </div>
+              </div>
+            )}
+
           {isLockedAllocationMetadataEdit && (
             <div className="flex items-center gap-2 bg-(--color-violet-50) rounded-lg px-2.5 py-2">
               <AlertTriangle className="size-4 shrink-0 text-(--color-violet-700)" />
@@ -1086,7 +1104,7 @@ function AddAllocationModal({
             </div>
           )}
 
-          {!(hasExistingOverrides || isRecurringEdit) ? (
+          {!isLockedAllocationMetadataEdit ? (
             <OverAllocationWarning overAllocatedDays={overAllocatedDays} />
           ) : null}
 
