@@ -20,7 +20,7 @@ export function DocumentUploadButton({
 
   return (
     <FileUploader
-      uploadArgs={{ doctype, docname }}
+      uploadArgs={{ doctype, docname, private: true }}
       onSuccess={onSuccess}
       onFailure={(_, errorMessage) => {
         toast.error(errorMessage ?? "Failed to upload document");
