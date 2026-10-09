@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "type-check": "vue-tsc --noEmit"
+    "type-check": "vue-tsc --noEmit",
+    "storybook": "storybook dev -p 6006 --no-open",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "frappe-ui": "^1.0.0",
@@ -15,9 +17,11 @@
     "vue-router": "^4.6.3"
   },
   "devDependencies": {
+    "@storybook/vue3-vite": "^10.6.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
+    "storybook": "^10.6.1",
     "tailwindcss": "^3.4.18",
     "typescript": "~5.9.3",
     "vite": "^7.1.12",
