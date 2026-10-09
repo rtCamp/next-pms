@@ -58,17 +58,7 @@ def get_context(context):
         flags=re.DOTALL | re.IGNORECASE,
     )
 
-    boot_json = json.dumps(boot_json)
-
-    context.update(
-        {
-            "build_version": frappe.utils.get_build_version(),
-            "boot": boot_json,
-            "csrf_token": csrf_token,
-        }
-    )
-
-    context["app_name"] = "Next PMS"
+    context.boot = {"csrf_token": csrf_token, "boot": json.loads(boot_json)}
 
     return context
 

@@ -69,20 +69,6 @@ repos:
 
   - repo: local
     hooks:
-      - id: eslint-react
-        name: "ESlint React"
-        entry: bash -c 'cd frontend && npm run lint:precommit -- "${@#frontend/}" ' --
-        language: system
-        files: \.(jsx|tsx|ts)$
-        types: [file]
-        pass_filenames: true
-        exclude: |
-            (?x)^(
-                .*node_modules.*
-            )$
-
-  - repo: local
-    hooks:
       - id: eslint-js
         name: "ESLint JS"
         entry: bash -c 'npm run lint:precommit -- "${@#next-pms/}" ' --
