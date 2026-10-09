@@ -22,10 +22,13 @@ function isAppOnly(plugin: PluginOption): boolean {
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.stories.ts"],
-  framework: {
-    name: "@storybook/vue3-vite",
-    options: { docgen: "vue-component-meta" },
-  },
+  addons: [
+    "@storybook/addon-mcp",
+    "@storybook/addon-docs",
+    "@storybook/addon-vitest",
+  ],
+  framework: "@storybook/vue3-vite",
+  features: { componentsManifest: true, experimentalDocgenServer: true },
   viteFinal(config) {
     config.plugins = (config.plugins ?? [])
       .flat(Infinity as 1)
