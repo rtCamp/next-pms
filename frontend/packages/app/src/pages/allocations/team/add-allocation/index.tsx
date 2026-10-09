@@ -35,6 +35,7 @@ import { useProjectLookup } from "@/hooks/useProjectLookup";
 import { ROUTES } from "@/lib/constant";
 import { isWeekendEntryAllowed, parseFrappeErrorMsg } from "@/lib/utils";
 import { useEmployeeAvailability } from "@/pages/allocations/useEmployeeAvailability";
+import { isLeaveOwnedOverride } from "@/pages/allocations/utils";
 import {
   addAllocationDefaultValues,
   allocationRecurrenceLabels,
@@ -74,9 +75,20 @@ function AddAllocationModal({
 
   const isRecurringEdit =
     variant === "edit" && Boolean(initialValues?.recurrenceId);
-  const hasExistingOverrides = (initialValues?.override?.length ?? 0) > 0;
+  const existingOverrides = initialValues?.override ?? [];
+  const hasExistingOverrides = existingOverrides.length > 0;
+  const hasLeaveOwnedOverrides = existingOverrides.some(isLeaveOwnedOverride);
+  const hasManualOverrides = existingOverrides.some(
+    (entry) => !isLeaveOwnedOverride(entry),
+  );
   const isLockedAllocationMetadataEdit =
-    variant === "edit" && (isRecurringEdit || hasExistingOverrides);
+    variant === "edit" &&
+    (isRecurringEdit || (hasExistingOverrides && !initialValues?.isAiCreated));
+  const isHoursPerDayLocked =
+    isLockedAllocationMetadataEdit ||
+    (variant === "edit" &&
+      Boolean(initialValues?.isAiCreated) &&
+      hasManualOverrides);
   const canApproveLockedAllocation =
     Boolean(initialValues?.isAiCreated) && !isRecurringEdit;
 
@@ -112,6 +124,7 @@ function AddAllocationModal({
     return {
       ...addAllocationDefaultValues,
       ...initialFormValues,
+      ...(initialValues?.isAiCreated ? { isTentative: false } : {}),
     };
   }, [initialValues]);
 
@@ -994,7 +1007,7 @@ function AddAllocationModal({
                     variant="outline"
                     size="md"
                     value={field.state.value}
-                    disabled={isLockedAllocationMetadataEdit}
+                    disabled={isHoursPerDayLocked}
                     onChange={(value) => field.handleChange(value)}
                     label={false}
                   />
@@ -1075,18 +1088,37 @@ function AddAllocationModal({
             </div>
           </div>
 
-          {isLockedAllocationMetadataEdit && (
+          {hasLeaveOwnedOverrides &&
+            initialValues?.isAiCreated &&
+            !isLockedAllocationMetadataEdit && (
+              <div className="flex items-start gap-2 bg-surface-blue-1 rounded-lg px-2.5 py-2">
+                <AlertTriangle className="size-4 shrink-0 text-ink-blue-6 mt-0.5" />
+                <div className="flex-1 min-w-0 text-xs text-ink-gray-9 text-left">
+                  <p className="font-medium mb-1">
+                    This allocation includes holidays or leave
+                  </p>
+                  <p className="text-ink-gray-7">
+                    Those days are excluded from the total hours and will be
+                    recalculated if you change the dates or hours.
+                  </p>
+                </div>
+              </div>
+            )}
+
+          {isHoursPerDayLocked && (
             <div className="flex items-center gap-2 bg-(--color-violet-50) rounded-lg px-2.5 py-2">
               <AlertTriangle className="size-4 shrink-0 text-(--color-violet-700)" />
               <p className="flex-1 min-w-0 text-xs text-ink-gray-9 text-left">
                 {isRecurringEdit
                   ? "Recurring allocations can only be modified using Edit Schedule."
-                  : "This allocation has schedule changes. Use Edit Schedule to modify them."}
+                  : isLockedAllocationMetadataEdit
+                    ? "This allocation has schedule changes. Use Edit Schedule to modify them."
+                    : "This allocation has custom day changes. Use Edit Schedule to change hours / day."}
               </p>
             </div>
           )}
 
-          {!(hasExistingOverrides || isRecurringEdit) ? (
+          {!isLockedAllocationMetadataEdit ? (
             <OverAllocationWarning overAllocatedDays={overAllocatedDays} />
           ) : null}
 

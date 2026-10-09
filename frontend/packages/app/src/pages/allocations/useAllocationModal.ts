@@ -90,7 +90,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
           ? data.allocationHoursPerDay
           : data.hoursPerDay,
       isBillable: data.billable,
-      isTentative: data.isAiCreated ? false : data.tentative,
+      isTentative: data.tentative,
       isAiCreated: data.isAiCreated,
       aiAllocationReason: data.aiReason,
       includeWeekends: Boolean(data.includeWeekends),
