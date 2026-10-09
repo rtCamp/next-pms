@@ -1,4 +1,12 @@
+/**
+ * External dependencies.
+ */
 import { z } from "zod";
+
+/**
+ * Internal dependencies.
+ */
+import type { LinkedRecord } from "../types";
 
 export const STATUS_OPTIONS = [
   { value: "Open", label: "Open" },
@@ -42,7 +50,7 @@ export const buildCreateTodoSchema = (hasCustomFields: boolean) =>
         ? z.string().trim().min(1, { message: "End is required." })
         : z.string(),
       priority: z.enum(priorityValues),
-      linkedTo: z.string(),
+      linkedTo: z.custom<LinkedRecord>().nullable(),
     })
     .refine(
       (values) => {

@@ -8,17 +8,15 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import { CreateTodoModal } from "./create-todo";
-import { TodosProvider } from "./provider";
 import { useTodos } from "./provider/context";
 import { TodoRow } from "./todoRow";
-import { useTodoModal } from "./useTodoModal";
+import { useLinkableRecords } from "./useLinkableRecords";
+import { useTodosData } from "./useTodosData";
 
-function TodoContent() {
-  const { isOpen, editingTodo, openCreate, openEdit, close } = useTodoModal();
-  const todos = useTodos((s) => s.state.todos);
-  const isLoading = useTodos((s) => s.state.isLoading);
-  const error = useTodos((s) => s.state.error);
+export function Todo() {
+  const openCreate = useTodos((c) => c.actions.openCreate);
+  const { todos, isLoading, error } = useTodosData();
+  const { canLink } = useLinkableRecords();
 
   if (error) throw error;
 
@@ -30,7 +28,7 @@ function TodoContent() {
           variant="solid"
           label="New ToDo"
           iconLeft={() => <AddSm size={16} />}
-          onClick={openCreate}
+          onClick={() => openCreate()}
         />
       </div>
 
@@ -45,20 +43,14 @@ function TodoContent() {
       ) : (
         <div className="flex flex-col">
           {todos.map((todo) => (
-            <TodoRow key={todo.name} todo={todo} onEdit={openEdit} />
+            <TodoRow
+              key={todo.name}
+              todo={todo}
+              canUnlink={canLink(todo.linked)}
+            />
           ))}
         </div>
       )}
-
-      <CreateTodoModal open={isOpen} onClose={close} todo={editingTodo} />
     </div>
-  );
-}
-
-export function Todo() {
-  return (
-    <TodosProvider>
-      <TodoContent />
-    </TodosProvider>
   );
 }

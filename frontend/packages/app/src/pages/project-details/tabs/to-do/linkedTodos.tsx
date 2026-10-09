@@ -2,41 +2,69 @@
  * External dependencies.
  */
 import type { ReactNode } from "react";
+import { Spinner } from "@next-pms/design-system/components";
+import { Button, Tooltip } from "@rtcamp/frappe-ui-react";
+import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
-import { CreateTodoModal } from "./create-todo";
-import { TodosProvider } from "./provider";
-import type { Todo, TodoOwner } from "./types";
-import { useTodoModal } from "./useTodoModal";
+import { useTodos } from "./provider/context";
+import { TodoRow } from "./todoRow";
+import type { LinkedRecord } from "./types";
+import { useLinkedTodos } from "./useLinkedTodos";
 
 type LinkedTodosProps = {
-  owner: TodoOwner;
-  onOwnerChange: () => void;
-  enabled?: boolean;
-  children: (handlers: {
-    openCreate: () => void;
-    openEdit: (todo: Todo) => void;
-  }) => ReactNode;
+  record: LinkedRecord;
+  canEdit: boolean;
+  title: ReactNode;
+  emptyMessage: string;
 };
 
 export function LinkedTodos({
-  owner,
-  onOwnerChange,
-  enabled,
-  children,
+  record,
+  canEdit,
+  title,
+  emptyMessage,
 }: LinkedTodosProps) {
-  const { isOpen, editingTodo, openCreate, openEdit, close } = useTodoModal();
+  const openCreate = useTodos((c) => c.actions.openCreate);
+  const { todos, isLoading } = useLinkedTodos(record);
 
   return (
-    <TodosProvider
-      owner={owner}
-      onOwnerChange={onOwnerChange}
-      enabled={enabled}
-    >
-      {children({ openCreate, openEdit })}
-      <CreateTodoModal open={isOpen} onClose={close} todo={editingTodo} />
-    </TodosProvider>
+    <div className="flex min-h-0 flex-col">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        {title}
+        {canEdit && (
+          <Tooltip text="Add ToDo">
+            <Button
+              type="button"
+              variant="ghost"
+              className="shrink-0"
+              icon={AddSm}
+              aria-label="Add ToDo"
+              onClick={() => openCreate(record)}
+            />
+          </Tooltip>
+        )}
+      </div>
+      {isLoading && !todos.length ? (
+        <div className="flex justify-center py-4">
+          <Spinner />
+        </div>
+      ) : todos.length ? (
+        <div className="min-h-0 overflow-y-auto scrollbar-thin">
+          {todos.map((todo) => (
+            <TodoRow
+              key={todo.name}
+              todo={todo}
+              canUnlink={canEdit}
+              condensed
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-ink-gray-5">{emptyMessage}</p>
+      )}
+    </div>
   );
 }

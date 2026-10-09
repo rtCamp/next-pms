@@ -24,7 +24,6 @@ export type ProjectTimelineItem = {
   actualEndDate?: string;
   owner: UserRef;
   watchers: UserRef[];
-  linkedTodos: string[];
 };
 
 export interface ApiUserRef {
@@ -47,7 +46,6 @@ export interface ApiTimelineItem {
   actual_end_date: string | null;
   owner: ApiUserRef | null;
   watchers: ApiUserRef[];
-  linked_todos: string[];
 }
 
 export interface ApiTimelineItemsResponse {

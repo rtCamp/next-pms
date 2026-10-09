@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
+import { DeleteActionDialog } from "@next-pms/design-system/components";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import {
   type FrappeError,
@@ -9,6 +10,7 @@ import {
   useFrappeDeleteDoc,
   useFrappePostCall,
   useFrappeUpdateDoc,
+  useSWRConfig,
 } from "frappe-react-sdk";
 
 /**
@@ -18,11 +20,13 @@ import { hasTodoCustomFields, parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { useUser } from "@/providers/user";
 import { TodosContext, type TodosContextProps } from "./context";
-import { TODO_API } from "../constants";
+import { TODO_API, todoLinksKey, todosKey } from "../constants";
+import { CreateTodoModal } from "../create-todo";
 import type { TodoStatus } from "../create-todo/schema";
-import type { CreateTodoInput, TodoDoc, TodoOwner } from "../types";
-import { useTodosData } from "../useTodosData";
-import { fromLinkKey, toLinkKey } from "../utils";
+import type { CreateTodoInput, LinkedRecord, Todo, TodoDoc } from "../types";
+import { isSameRecord } from "../utils";
+
+type Editor = { todo: Todo | null; linkedTo: LinkedRecord | null };
 
 const toTodoFields = (input: CreateTodoInput) => ({
   description: input.description,
@@ -38,21 +42,11 @@ const toTodoFields = (input: CreateTodoInput) => ({
     : {}),
 });
 
-interface TodosProviderProps extends PropsWithChildren {
-  owner?: TodoOwner;
-  onOwnerChange?: () => void;
-  enabled?: boolean;
-}
-
-export function TodosProvider({
-  children,
-  owner,
-  onOwnerChange,
-  enabled = true,
-}: TodosProviderProps) {
+export function TodosProvider({ children }: PropsWithChildren) {
   const projectId = useProjectDetail((s) => s.projectId);
   const userId = useUser(({ state }) => state.userId);
-  const { createDoc, loading: isCreating } = useFrappeCreateDoc();
+  const { mutate } = useSWRConfig();
+  const { createDoc } = useFrappeCreateDoc();
   const { updateDoc } = useFrappeUpdateDoc();
   const { deleteDoc } = useFrappeDeleteDoc();
   const { call: createLinkedTodo } = useFrappePostCall<{ message: TodoDoc }>(
@@ -61,27 +55,40 @@ export function TodosProvider({
   const { call: linkTodo } = useFrappePostCall(`${TODO_API}.link_todo`);
   const { call: unlinkTodoCall } = useFrappePostCall(`${TODO_API}.unlink_todo`);
   const toast = useToasts();
-  const [pending, setPending] = useState(false);
-  const { todos, isLoading, error, mutate, mutateLinks } = useTodosData(
-    owner?.todos,
-    enabled,
+  const [isSaving, setIsSaving] = useState(false);
+  const [editor, setEditor] = useState<Editor | null>(null);
+  const [deleting, setDeleting] = useState<Todo | null>(null);
+  const [unlinking, setUnlinking] = useState<Todo | null>(null);
+
+  const refresh = useCallback(
+    () =>
+      Promise.all([
+        mutate(todosKey(projectId)),
+        mutate(todoLinksKey(projectId)),
+      ]),
+    [mutate, projectId],
   );
 
-  const refresh = useCallback(async () => {
-    await Promise.all([mutate(), mutateLinks()]);
-    onOwnerChange?.();
-  }, [mutate, mutateLinks, onOwnerChange]);
+  const openCreate = useCallback(
+    (linkedTo?: LinkedRecord) =>
+      setEditor({ todo: null, linkedTo: linkedTo ?? null }),
+    [],
+  );
+  const openEdit = useCallback(
+    (todo: Todo) => setEditor({ todo, linkedTo: todo.linked ?? null }),
+    [],
+  );
+  const closeEditor = useCallback(() => setEditor(null), []);
 
   const createTodo = useCallback(
     async (input: CreateTodoInput) => {
-      setPending(true);
+      setIsSaving(true);
       try {
-        const target = owner ?? fromLinkKey(input.linkedTo);
-        const doc = target
+        const doc = input.linkedTo
           ? (
               await createLinkedTodo({
-                doctype: target.doctype,
-                name: target.name,
+                doctype: input.linkedTo.doctype,
+                name: input.linkedTo.name,
                 todo: toTodoFields(input),
               })
             ).message
@@ -98,53 +105,53 @@ export function TodosProvider({
         toast.error(parseFrappeErrorMsg(err as FrappeError));
         return undefined;
       } finally {
-        setPending(false);
+        setIsSaving(false);
       }
     },
-    [owner, createLinkedTodo, createDoc, userId, projectId, toast, refresh],
+    [createLinkedTodo, createDoc, userId, projectId, toast, refresh],
   );
 
   const updateTodo = useCallback(
-    async (name: string, input: CreateTodoInput) => {
-      setPending(true);
+    async (todo: Todo, input: CreateTodoInput) => {
+      setIsSaving(true);
       try {
+        if (!isSameRecord(todo.linked, input.linkedTo)) {
+          await (input.linkedTo
+            ? linkTodo({
+                todo: todo.name,
+                doctype: input.linkedTo.doctype,
+                name: input.linkedTo.name,
+              })
+            : unlinkTodoCall({ todo: todo.name }));
+        }
         const doc = (await updateDoc(
           "ToDo",
-          name,
+          todo.name,
           toTodoFields(input),
         )) as TodoDoc;
-        const currentLink = toLinkKey(
-          todos.find((t) => t.name === name)?.linked,
-        );
-        if (!owner && input.linkedTo !== currentLink) {
-          const target = fromLinkKey(input.linkedTo);
-          await (target
-            ? linkTodo({ todo: name, ...target })
-            : unlinkTodoCall({ todo: name }));
-        }
         toast.success("To-do updated");
-        await refresh();
         return doc;
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
         return undefined;
       } finally {
-        setPending(false);
+        await refresh();
+        setIsSaving(false);
       }
     },
-    [updateDoc, todos, owner, linkTodo, unlinkTodoCall, toast, refresh],
+    [linkTodo, unlinkTodoCall, updateDoc, toast, refresh],
   );
 
   const updateTodoStatus = useCallback(
     async (name: string, status: TodoStatus) => {
       try {
         await updateDoc("ToDo", name, { status });
-        await mutate();
+        await refresh();
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
       }
     },
-    [updateDoc, mutate, toast],
+    [updateDoc, refresh, toast],
   );
 
   const unlinkTodo = useCallback(
@@ -176,38 +183,59 @@ export function TodosProvider({
   const value = useMemo<TodosContextProps>(
     () => ({
       state: {
-        todos,
-        owner: owner ?? null,
-        isLoading,
-        error,
-        isCreating: isCreating || pending,
+        isDialogOpen:
+          editor !== null || deleting !== null || unlinking !== null,
+        isSaving,
       },
       actions: {
+        openCreate,
+        openEdit,
         createTodo,
         updateTodo,
         updateTodoStatus,
-        unlinkTodo,
-        deleteTodo,
-        refresh,
+        requestUnlink: setUnlinking,
+        requestDelete: setDeleting,
       },
     }),
     [
-      todos,
-      owner,
-      isLoading,
-      error,
-      isCreating,
-      pending,
+      editor,
+      deleting,
+      unlinking,
+      isSaving,
+      openCreate,
+      openEdit,
       createTodo,
       updateTodo,
       updateTodoStatus,
-      unlinkTodo,
-      deleteTodo,
-      refresh,
     ],
   );
 
   return (
-    <TodosContext.Provider value={value}>{children}</TodosContext.Provider>
+    <TodosContext.Provider value={value}>
+      {children}
+      <CreateTodoModal
+        open={editor !== null}
+        onClose={closeEditor}
+        todo={editor?.todo}
+        linkedTo={editor?.linkedTo}
+      />
+      {unlinking?.linked && (
+        <DeleteActionDialog
+          title="Unlink to-do"
+          description={`This to-do will no longer be linked to ${unlinking.linked.title}. The to-do itself is kept.`}
+          confirmLabel="Unlink"
+          onClose={() => setUnlinking(null)}
+          onConfirm={() => unlinkTodo(unlinking.name)}
+        />
+      )}
+      {deleting && (
+        <DeleteActionDialog
+          title="Delete to-do"
+          description="Are you sure you want to delete this to-do? This action cannot be undone."
+          onClose={() => setDeleting(null)}
+          onConfirm={() => deleteTodo(deleting.name)}
+        />
+      )}
+    </TodosContext.Provider>
   );
 }

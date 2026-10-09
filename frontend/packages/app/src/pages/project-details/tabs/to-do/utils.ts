@@ -1,23 +1,13 @@
 /**
  * Internal dependencies.
  */
-import type { LinkedRecord } from "./types";
+import type { RecordRef } from "./types";
 
-type RecordRef = Pick<LinkedRecord, "doctype" | "name">;
+export const linkKey = (record: RecordRef) =>
+  `${record.doctype}/${record.name}`;
 
-const LINK_KEY_SEPARATOR = "::";
-
-export const toLinkKey = (record?: RecordRef | null) =>
-  record ? `${record.doctype}${LINK_KEY_SEPARATOR}${record.name}` : "";
-
-export const fromLinkKey = (key: string): RecordRef | null => {
-  const index = key.indexOf(LINK_KEY_SEPARATOR);
-  if (index === -1) return null;
-  return {
-    doctype: key.slice(0, index),
-    name: key.slice(index + LINK_KEY_SEPARATOR.length),
-  };
-};
+export const isSameRecord = (a?: RecordRef | null, b?: RecordRef | null) =>
+  Boolean(a && b && a.doctype === b.doctype && a.name === b.name);
 
 export const formatTodoCount = (count: number) =>
   `${count} ${count === 1 ? "ToDo" : "ToDos"}`;

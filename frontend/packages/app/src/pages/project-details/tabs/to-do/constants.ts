@@ -10,6 +10,12 @@ import type { LinkedRecordType } from "./types";
 
 export const TODO_API = "next_pms.next_projects.api.todo";
 
+export const todosKey = (projectId: string) => ["project-todos", projectId];
+export const todoLinksKey = (projectId: string) => [
+  "project-todo-links",
+  projectId,
+];
+
 export const LINKED_RECORD_ICON: Record<LinkedRecordType, typeof Sparkle> = {
   Milestone: Sparkle,
   Touchpoint: Zap,

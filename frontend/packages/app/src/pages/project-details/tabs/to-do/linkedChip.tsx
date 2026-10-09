@@ -17,7 +17,7 @@ import {
 } from "../calendar/constants";
 import { GROWTH_DETAIL_PARAM } from "../growth/constants";
 
-const toLinkedRecordParams = (record: LinkedRecord): Record<string, string> =>
+const toRecordParams = (record: LinkedRecord): Record<string, string> =>
   record.type === "Growth Initiative"
     ? { [TAB_PARAM]: "growth", [GROWTH_DETAIL_PARAM]: record.name }
     : {
@@ -30,16 +30,20 @@ const toLinkedRecordParams = (record: LinkedRecord): Record<string, string> =>
 
 export function LinkedChip({ record }: { record: LinkedRecord }) {
   const [, setSearchParams] = useSearchParams();
+  const Icon = LINKED_RECORD_ICON[record.type];
 
   return (
     <Button
       variant="ghost"
       size="sm"
-      className="h-auto max-w-64 gap-1 px-1 py-0 text-sm text-ink-gray-6"
-      iconLeft={LINKED_RECORD_ICON[record.type]}
-      label={record.title}
+      className="min-w-0 max-w-64 text-sm text-ink-gray-5 hover:text-ink-gray-7"
       aria-label={`Open ${record.type.toLowerCase()} ${record.title}`}
-      onClick={() => setSearchParams(toLinkedRecordParams(record))}
-    />
+      onClick={() => setSearchParams(toRecordParams(record))}
+    >
+      <span className="flex min-w-0 items-center gap-1.5">
+        <Icon className="size-3.5 shrink-0" />
+        <span className="min-w-0 truncate">{record.title}</span>
+      </span>
+    </Button>
   );
 }

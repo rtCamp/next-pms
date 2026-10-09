@@ -17,9 +17,11 @@ import {
 /**
  * Internal dependencies.
  */
+import { useLinkedTodos } from "../../../to-do/useLinkedTodos";
 import { getDeleteDescription } from "../../../to-do/utils";
 import { useCalendar } from "../../context";
 import type { ProjectTimelineItem } from "../../types";
+import { toLinkedRecord } from "../../utils";
 
 type ActionsCellProps = {
   item: ProjectTimelineItem;
@@ -33,6 +35,7 @@ export function ActionsCell({ item }: ActionsCellProps) {
   const onDelete = useCalendar((c) => c.actions.onDelete);
 
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const { todos } = useLinkedTodos(toLinkedRecord(item));
   const isFollowing = userId
     ? item.watchers.some((w) => w.name === userId)
     : false;
@@ -89,7 +92,7 @@ export function ActionsCell({ item }: ActionsCellProps) {
           title={`Delete ${item.type.toLowerCase()}`}
           description={getDeleteDescription(
             item.type.toLowerCase(),
-            item.linkedTodos.length,
+            todos.length,
           )}
           onClose={() => setConfirmDelete(false)}
           onConfirm={() => onDelete(item)}

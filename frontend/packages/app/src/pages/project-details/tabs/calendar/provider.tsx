@@ -54,36 +54,49 @@ export function CalendarProvider({
     const n = new Date();
     return new Date(n.getFullYear(), n.getMonth(), 1);
   });
-  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [activeView, setActiveView] = useState<CalendarView>(() =>
-    searchParams.get(VIEW_PARAM) === "list" ? "list" : "calendar",
-  );
   const [filterType, setFilterType] = useState("all");
-  const [tableTab, setTableTab] = useState<TableTab>(() =>
-    searchParams.get(TABLE_TAB_PARAM) === "touchpoints"
-      ? "touchpoints"
-      : "milestones",
-  );
   const [createMilestoneOpen, setCreateMilestoneOpen] = useState(false);
   const [createTouchpointOpen, setCreateTouchpointOpen] = useState(false);
   const [editItem, setEditItem] = useState<ProjectTimelineItem | null>(null);
-  const [searchInput, setSearchInput] = useState(
-    () => searchParams.get(SEARCH_PARAM) ?? "",
-  );
+  const [searchParams, setSearchParams] = useSearchParams();
+  const viewParam = searchParams.get(VIEW_PARAM);
+  const activeView: CalendarView =
+    viewParam === "gantt" || viewParam === "list" ? viewParam : "calendar";
+  const tableTab: TableTab =
+    searchParams.get(TABLE_TAB_PARAM) === "touchpoints"
+      ? "touchpoints"
+      : "milestones";
+  const urlSearch = searchParams.get(SEARCH_PARAM) ?? "";
+  const [searchInput, setSearchInput] = useState(urlSearch);
   const search = useDebounce(searchInput, 400);
 
+  const setParam = useCallback(
+    (key: string, value: string, defaultValue: string) =>
+      setSearchParams(
+        (prev) => {
+          if (value === defaultValue) prev.delete(key);
+          else prev.set(key, value);
+          return prev;
+        },
+        { replace: true },
+      ),
+    [setSearchParams],
+  );
+
+  const setActiveView = useCallback(
+    (view: CalendarView) => setParam(VIEW_PARAM, view, "calendar"),
+    [setParam],
+  );
+
+  const setTableTab = useCallback(
+    (tab: TableTab) => setParam(TABLE_TAB_PARAM, tab, "milestones"),
+    [setParam],
+  );
+
   useEffect(() => {
-    const deepLinkParams = [VIEW_PARAM, TABLE_TAB_PARAM, SEARCH_PARAM];
-    if (!deepLinkParams.some((param) => searchParams.has(param))) return;
-    setSearchParams(
-      (prev) => {
-        deepLinkParams.forEach((param) => prev.delete(param));
-        return prev;
-      },
-      { replace: true },
-    );
-  }, [searchParams, setSearchParams]);
+    if (search !== urlSearch) setParam(SEARCH_PARAM, search, "");
+  }, [search, urlSearch, setParam]);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -263,6 +276,8 @@ export function CalendarProvider({
       listItems,
       hasMoreList,
       isLoadingList,
+      setActiveView,
+      setTableTab,
       handlePeriodChange,
       goToPrev,
       goToNext,

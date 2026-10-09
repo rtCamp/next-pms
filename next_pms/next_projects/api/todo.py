@@ -99,21 +99,22 @@ def unlink_todo(todo: str):
 
 @whitelist(methods=["GET"])
 @error_logger
-def get_todo_links(todos: str | list[str]) -> dict[str, dict]:
-    """Owner of each ToDo the user can read, for showing the association on the ToDo tab.
+def get_todo_links(project: str) -> dict[str, dict]:
+    """Owner of each Project ToDo the user can read, for showing the association on the ToDo tab.
 
     Args:
-        todos: ToDo names, as a list or a JSON-encoded list
+        project: Project name
 
     Returns:
         {todo: {"doctype": str, "name": str, "title": str, "type": str}} — unlinked ToDos
         are left out.
     """
-    todos = frappe.parse_json(todos) if isinstance(todos, str) else todos
-    if not todos:
-        return {}
-
-    readable = frappe.get_list("ToDo", filters={"name": ["in", todos]}, pluck="name", limit_page_length=0)
+    readable = frappe.get_list(
+        "ToDo",
+        filters={"reference_type": "Project", "reference_name": project},
+        pluck="name",
+        limit_page_length=0,
+    )
     rows = get_todo_owner_rows(readable)
 
     owners = {}

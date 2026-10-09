@@ -43,12 +43,9 @@ export interface LinkedRecord {
   type: LinkedRecordType;
 }
 
-export type TodoLinksMap = Record<string, LinkedRecord>;
+export type RecordRef = Pick<LinkedRecord, "doctype" | "name">;
 
-export interface TodoOwner extends LinkedRecord {
-  todos: string[];
-  canEdit: boolean;
-}
+export type TodoLinksMap = Record<string, LinkedRecord>;
 
 export type Todo = TodoDoc & {
   allocated_to_full_name: string;

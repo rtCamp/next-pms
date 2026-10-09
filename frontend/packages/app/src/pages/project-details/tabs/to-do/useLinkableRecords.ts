@@ -8,19 +8,24 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  */
 import { useProjectDetail } from "@/pages/project-details/context";
 import { TODO_API } from "./constants";
-import type { LinkedRecord } from "./types";
+import type { LinkedRecord, RecordRef } from "./types";
+import { isSameRecord } from "./utils";
 
 const NO_RECORDS: LinkedRecord[] = [];
 
-export function useLinkableRecords(enabled: boolean) {
+export function useLinkableRecords(enabled = true) {
   const projectId = useProjectDetail((s) => s.projectId);
 
   const { data, isLoading } = useFrappeGetCall<{ message: LinkedRecord[] }>(
     `${TODO_API}.get_linkable_records`,
     { project: projectId },
-    enabled && projectId ? undefined : null,
+    enabled && projectId ? ["linkable-records", projectId] : null,
     { revalidateOnFocus: false },
   );
 
-  return { records: data?.message ?? NO_RECORDS, isLoading };
+  const records = data?.message ?? NO_RECORDS;
+  const canLink = (record?: RecordRef | null) =>
+    records.some((r) => isSameRecord(r, record));
+
+  return { records, isLoading, canLink };
 }

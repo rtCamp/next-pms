@@ -347,16 +347,17 @@ class TestLinkAndUnlinkTodo(LinkedTodoTestCase):
 
 class TestTodoLinkLookups(LinkedTodoTestCase):
     def test_get_todo_links_returns_owner_of_each_linked_todo(self):
-        milestone = self.make_timeline_item(title="Beta launch")
-        touchpoint = self.make_timeline_item(type="Touchpoint", title="Client sync")
-        initiative = self.make_initiative(activity="Upsell support")
-        linked = {owner.name: self.make_todo().name for owner in (milestone, touchpoint, initiative)}
+        project = self.make_project("Todo Links Project")
+        milestone = self.make_timeline_item(project=project, title="Beta launch")
+        touchpoint = self.make_timeline_item(type="Touchpoint", project=project, title="Client sync")
+        initiative = self.make_initiative(project=project, activity="Upsell support")
+        linked = {owner.name: self.make_todo(project=project).name for owner in (milestone, touchpoint, initiative)}
         for owner in (milestone, touchpoint, initiative):
             link_todo(linked[owner.name], owner.doctype, owner.name)
-        unlinked = self.make_todo()
+        self.make_todo(project=project)
 
         frappe.set_user(MANAGER)
-        links = get_todo_links(frappe.as_json([*linked.values(), unlinked.name]))
+        links = get_todo_links(project)
 
         self.assertEqual(
             links,
@@ -383,15 +384,16 @@ class TestTodoLinkLookups(LinkedTodoTestCase):
         )
 
     def test_get_todo_links_skips_todos_the_user_cannot_read(self):
-        milestone = self.make_timeline_item()
-        hidden = self.make_todo(allocated_to=MANAGER)
-        visible = self.make_todo(allocated_to=OUTSIDER)
+        project = self.make_project("Todo Links Visibility Project")
+        milestone = self.make_timeline_item(project=project)
+        hidden = self.make_todo(project=project, allocated_to=MANAGER)
+        visible = self.make_todo(project=project, allocated_to=OUTSIDER)
         link_todo(hidden.name, PTI, milestone.name)
-        link_todo(visible.name, PTI, self.make_timeline_item(type="Touchpoint").name)
+        link_todo(visible.name, PTI, self.make_timeline_item(type="Touchpoint", project=project).name)
 
         frappe.set_user(OUTSIDER)
-        self.assertEqual(list(get_todo_links([hidden.name, visible.name])), [visible.name])
-        self.assertEqual(get_todo_links([]), {})
+        self.assertEqual(list(get_todo_links(project)), [visible.name])
+        self.assertEqual(get_todo_links(self.make_project("Todo Links Empty Project")), {})
 
     def test_get_linkable_records_lists_what_the_user_can_edit(self):
         project = self.make_project("Linkable Records Project")

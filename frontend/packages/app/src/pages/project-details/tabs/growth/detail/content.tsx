@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { DeleteActionDialog } from "@next-pms/design-system/components";
 import { Button, StaticTextEditor } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
@@ -20,9 +20,7 @@ import { FileCard } from "@/pages/project-details/components/fileCard";
 import { useProjectDetail } from "@/pages/project-details/context";
 import type { FileAttachment } from "@/pages/project-details/types";
 import { useUser } from "@/providers/user";
-import { LinkedTodoList } from "../../to-do/linkedTodoList";
 import { LinkedTodos } from "../../to-do/linkedTodos";
-import type { TodoOwner } from "../../to-do/types";
 import { AddUpdateModal } from "../add-update";
 import { GROWTH_DOCTYPE } from "../constants";
 import { useGrowth } from "../context";
@@ -35,7 +33,6 @@ interface GrowthDetailContentProps {
   canEdit: boolean;
   onAttachmentsChange: () => void;
   onUpdateLogChange: () => void;
-  onLinkedTodosChange: () => void;
   onDeleteUpdateEntry: (entry: EnrichedGrowthUpdateEntry) => Promise<void>;
 }
 
@@ -48,7 +45,6 @@ export function GrowthDetailContent({
   canEdit,
   onAttachmentsChange,
   onUpdateLogChange,
-  onLinkedTodosChange,
   onDeleteUpdateEntry,
 }: GrowthDetailContentProps) {
   const currency = useProjectDetail(
@@ -70,18 +66,6 @@ export function GrowthDetailContent({
   const canManageEntry = (entry: EnrichedGrowthUpdateEntry) =>
     canEdit && (isSystemManager || entry.updated_by === userId);
   const updates = [...(growth.update_log ?? [])].reverse();
-
-  const todoOwner = useMemo<TodoOwner>(
-    () => ({
-      doctype: GROWTH_DOCTYPE,
-      name: growth.name,
-      title: growth.activity,
-      type: "Growth Initiative",
-      todos: (growth.linked_todos ?? []).map((row) => row.todo),
-      canEdit,
-    }),
-    [growth.name, growth.activity, growth.linked_todos, canEdit],
-  );
 
   const handleUpdateLogChange = () => {
     onUpdateLogChange();
@@ -180,20 +164,17 @@ export function GrowthDetailContent({
       </section>
 
       <section className="mb-4.5">
-        <LinkedTodos owner={todoOwner} onOwnerChange={onLinkedTodosChange}>
-          {({ openCreate, openEdit }) => (
-            <LinkedTodoList
-              title={
-                <h3 className="text-lg font-medium text-ink-gray-7">
-                  Action items
-                </h3>
-              }
-              emptyMessage="No action items yet."
-              onAdd={openCreate}
-              onEdit={openEdit}
-            />
-          )}
-        </LinkedTodos>
+        <LinkedTodos
+          record={{
+            doctype: GROWTH_DOCTYPE,
+            name: growth.name,
+            title: growth.activity,
+            type: "Growth Initiative",
+          }}
+          canEdit={canEdit}
+          title={<h3 className="text-lg font-medium text-ink-gray-7">ToDos</h3>}
+          emptyMessage="No ToDos linked."
+        />
       </section>
 
       <section className="mb-4.5">

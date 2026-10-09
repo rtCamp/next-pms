@@ -9,6 +9,8 @@ import { Lock, Sparkle, Tag, Tasks, Zap } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import type { ProjectTimelineItem } from "./types";
+import { toLinkedRecord } from "./utils";
+import { useLinkedTodos } from "../to-do/useLinkedTodos";
 import { formatTodoCount } from "../to-do/utils";
 
 type ItemHoverCardProps = {
@@ -18,6 +20,7 @@ type ItemHoverCardProps = {
 
 export function ItemHoverCard({ item, children }: ItemHoverCardProps) {
   const TypeIcon = item.type === "Milestone" ? Sparkle : Zap;
+  const { todos } = useLinkedTodos(toLinkedRecord(item));
 
   return (
     <Popover.Root>
@@ -53,11 +56,11 @@ export function ItemHoverCard({ item, children }: ItemHoverCardProps) {
                     <span className="text-sm text-ink-gray-6">Internal</span>
                   </div>
                 )}
-                {item.linkedTodos.length > 0 && (
+                {todos.length > 0 && (
                   <div className="flex gap-2 items-center">
                     <Tasks className="size-4 text-ink-gray-6 shrink-0" />
                     <span className="text-sm text-ink-gray-6">
-                      {formatTodoCount(item.linkedTodos.length)}
+                      {formatTodoCount(todos.length)}
                     </span>
                   </div>
                 )}

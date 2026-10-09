@@ -66,7 +66,6 @@ export function GrowthDetailView({ growthId }: GrowthDetailViewProps) {
         canEdit={canEdit}
         onAttachmentsChange={() => void mutateAttachments()}
         onUpdateLogChange={() => void mutate()}
-        onLinkedTodosChange={() => void mutate()}
         onDeleteUpdateEntry={deleteUpdateEntry}
       />
     </div>

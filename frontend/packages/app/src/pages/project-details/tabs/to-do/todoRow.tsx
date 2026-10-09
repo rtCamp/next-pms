@@ -1,9 +1,7 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
-import { DeleteActionDialog } from "@next-pms/design-system/components";
-import { Avatar, Dropdown } from "@rtcamp/frappe-ui-react";
+import { Avatar, Dropdown, Tooltip } from "@rtcamp/frappe-ui-react";
 import {
   Calendar,
   DotHorizontal,
@@ -75,16 +73,20 @@ function formatDateTime(value: string | null | undefined) {
 
 type TodoRowProps = {
   todo: Todo;
-  onEdit: (todo: Todo) => void;
+  canUnlink?: boolean;
   condensed?: boolean;
 };
 
-export function TodoRow({ todo, onEdit, condensed = false }: TodoRowProps) {
+export function TodoRow({
+  todo,
+  canUnlink = false,
+  condensed = false,
+}: TodoRowProps) {
+  const openEdit = useTodos((c) => c.actions.openEdit);
   const updateTodoStatus = useTodos((c) => c.actions.updateTodoStatus);
-  const unlinkTodo = useTodos((c) => c.actions.unlinkTodo);
-  const deleteTodo = useTodos((c) => c.actions.deleteTodo);
-  const canUnlink = useTodos((c) => Boolean(c.state.owner?.canEdit));
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const requestUnlink = useTodos((c) => c.actions.requestUnlink);
+  const requestDelete = useTodos((c) => c.actions.requestDelete);
+  const isClosed = todo.status === "Closed";
 
   const assigneeHref = `/desk/user/${encodeURIComponent(todo.allocated_to)}`;
   const StatusIcon = STATUS_ICON[todo.status];
@@ -141,21 +143,18 @@ export function TodoRow({ todo, onEdit, condensed = false }: TodoRowProps) {
         </div>
       </div>
 
-      <button
-        type="button"
-        aria-label={
-          todo.status === "Closed" ? "Mark as open" : "Mark as closed"
-        }
-        onClick={() =>
-          updateTodoStatus(
-            todo.name,
-            todo.status === "Closed" ? "Open" : "Closed",
-          )
-        }
-        className={`shrink-0 transition-colors ${STATUS_COLOR[todo.status]}`}
-      >
-        <StatusIcon className="size-5" />
-      </button>
+      <Tooltip text={isClosed ? "Reopen" : "Mark as done"}>
+        <button
+          type="button"
+          aria-label={isClosed ? "Reopen" : "Mark as done"}
+          onClick={() =>
+            updateTodoStatus(todo.name, isClosed ? "Open" : "Closed")
+          }
+          className={`shrink-0 transition-colors ${STATUS_COLOR[todo.status]}`}
+        >
+          <StatusIcon className="size-5" />
+        </button>
+      </Tooltip>
 
       <Dropdown
         placement="right"
@@ -168,14 +167,14 @@ export function TodoRow({ todo, onEdit, condensed = false }: TodoRowProps) {
           {
             label: "Edit",
             key: "edit",
-            onClick: () => onEdit(todo),
+            onClick: () => openEdit(todo),
           },
-          ...(canUnlink
+          ...(canUnlink && todo.linked
             ? [
                 {
                   label: "Unlink",
                   key: "unlink",
-                  onClick: () => void unlinkTodo(todo.name),
+                  onClick: () => requestUnlink(todo),
                 },
               ]
             : []),
@@ -183,19 +182,10 @@ export function TodoRow({ todo, onEdit, condensed = false }: TodoRowProps) {
             label: "Delete",
             key: "delete",
             theme: "red",
-            onClick: () => setConfirmDelete(true),
+            onClick: () => requestDelete(todo),
           },
         ]}
       />
-
-      {confirmDelete && (
-        <DeleteActionDialog
-          title="Delete to-do"
-          description="Are you sure you want to delete this to-do? This action cannot be undone."
-          onClose={() => setConfirmDelete(false)}
-          onConfirm={() => deleteTodo(todo.name)}
-        />
-      )}
     </div>
   );
 }

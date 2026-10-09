@@ -9,32 +9,20 @@ import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
  */
 import { hasTodoCustomFields, hashString } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
-import { TODO_API } from "./constants";
+import { TODO_API, todoLinksKey, todosKey } from "./constants";
 import type { Todo, TodoDoc, TodoLinksMap, TodoUserDetails } from "./types";
 
-export function useTodosData(names?: string[], enabled = true) {
+export function useTodosData() {
   const projectId = useProjectDetail((s) => s.projectId);
-  const isOwnerList = names !== undefined;
 
-  const filters = useMemo(
-    () =>
-      (isOwnerList
-        ? [["name", "in", names]]
-        : [
-            ["reference_type", "=", "Project"],
-            ["reference_name", "=", projectId],
-          ]) as unknown,
-    [isOwnerList, names, projectId],
-  );
-
-  const fields = useMemo(
+  const fields = useMemo<(keyof TodoDoc)[]>(
     () => [
       "name",
       "allocated_to",
       "assigned_by",
       "assigned_by_full_name",
       ...(hasTodoCustomFields()
-        ? ["custom_from_time", "custom_title", "custom_to_time"]
+        ? (["custom_from_time", "custom_title", "custom_to_time"] as const)
         : []),
       "date",
       "description",
@@ -49,26 +37,25 @@ export function useTodosData(names?: string[], enabled = true) {
     [],
   );
 
-  const { data, isLoading, error, mutate } = useFrappeGetDocList<TodoDoc>(
+  const { data, isLoading, error } = useFrappeGetDocList<TodoDoc>(
     "ToDo",
     {
       fields,
-      filters: filters as never,
+      filters: [
+        ["reference_type", "=", "Project"],
+        ["reference_name", "=", projectId],
+      ] as never,
       orderBy: { field: "creation", order: "desc" },
       limit: 500,
     },
-    !enabled || (isOwnerList && !names.length) ? null : undefined,
+    projectId ? todosKey(projectId) : null,
     { keepPreviousData: true },
   );
 
-  const todoNames = useMemo(() => (data ?? []).map((t) => t.name), [data]);
-
-  const { data: linksData, mutate: mutateLinks } = useFrappeGetCall<{
-    message: TodoLinksMap;
-  }>(
+  const { data: linksData } = useFrappeGetCall<{ message: TodoLinksMap }>(
     `${TODO_API}.get_todo_links`,
-    { todos: JSON.stringify(todoNames) },
-    !isOwnerList && todoNames.length ? undefined : null,
+    { project: projectId },
+    projectId ? todoLinksKey(projectId) : null,
     { keepPreviousData: true },
   );
 
@@ -101,7 +88,7 @@ export function useTodosData(names?: string[], enabled = true) {
   );
 
   const todos = useMemo<Todo[]>(() => {
-    if (!data?.length || (isOwnerList && !names.length)) return [];
+    if (!data?.length) return [];
     const links = linksData?.message ?? {};
     return data.map((t) => {
       const u = userMap[t.allocated_to];
@@ -112,7 +99,7 @@ export function useTodosData(names?: string[], enabled = true) {
         linked: links[t.name],
       };
     });
-  }, [data, isOwnerList, names, userMap, linksData]);
+  }, [data, userMap, linksData]);
 
-  return { todos, isLoading, error, mutate, mutateLinks };
+  return { todos, isLoading, error };
 }
