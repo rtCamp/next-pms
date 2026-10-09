@@ -1,8 +1,17 @@
+interface Boot {
+  sitename: string;
+  socketio_port?: number;
+  max_file_size?: number;
+  time_zone?: { system?: string | null; user?: string | null };
+  user?: { name: string };
+  [key: string]: any;
+}
+
 interface Window {
   /**
-   * Boot data from `next_pms/www/next-pms/index.py`. Only a production build
-   * has it; the dev server serves the page without Frappe.
+   * Boot data. A production build gets it from `next_pms/www/next-pms/index.py`;
+   * on the dev server `loadBoot()` fetches it before the app mounts.
    */
-  boot?: Record<string, any>;
+  boot?: Boot;
   csrf_token?: string;
 }
