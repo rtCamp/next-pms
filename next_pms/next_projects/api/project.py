@@ -428,7 +428,7 @@ def get_page_names_for_computed_sort(
         for row in rows:
             from_currency = row.get("custom_currency")
             if from_currency and from_currency != currency and from_currency not in rates:
-                rates[from_currency] = get_exchange_rate(from_currency, currency, conversion_date) or 1.0
+                rates[from_currency] = flt(get_exchange_rate(from_currency, currency, conversion_date))
 
     valued = []
     for row in rows:
@@ -436,7 +436,7 @@ def get_page_names_for_computed_sort(
         if convert and value is not None:
             from_currency = row.get("custom_currency")
             if from_currency and from_currency != currency:
-                value = flt(value) * rates.get(from_currency, 1.0)
+                value = flt(value) * rates[from_currency]
         valued.append((value, row.name))
 
     ranked = [entry for entry in valued if entry[0] is not None]
@@ -554,7 +554,7 @@ def _apply_currency_conversion(enriched_projects: list[dict], to_currency: str) 
         return
 
     conversion_date = getdate(today())
-    rates = {fc: get_exchange_rate(fc, to_currency, conversion_date) or 1.0 for fc in from_currencies}
+    rates = {fc: flt(get_exchange_rate(fc, to_currency, conversion_date)) for fc in from_currencies}
 
     for project in enriched_projects:
         from_currency = project.get("currency")
