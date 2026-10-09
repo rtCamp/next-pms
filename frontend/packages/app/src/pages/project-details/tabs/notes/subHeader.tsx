@@ -16,6 +16,7 @@ import {
   TEMPLATE_EDITOR_MODE,
 } from "./constants";
 import { useNotes } from "./context";
+import { SubscribeButton } from "./subscribeButton";
 import { TemplateDialog } from "./templateDialog";
 import { useProjectDetail } from "../../context";
 
@@ -37,37 +38,40 @@ export function NotesSubHeader() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-1 flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-semibold text-ink-gray-7">Notes</h2>
-        <Dropdown
-          placement="right"
-          button={{
-            variant: "solid",
-            size: "sm",
-            iconLeft: AddSm,
-            iconRight: SmallDown,
-            label: "Create",
-          }}
-          options={[
-            {
-              label: "New from template",
-              key: CREATE_OPTIONS.newFromTemplate,
-              onClick: () => setIsTemplateDialogOpen(true),
-            },
-            {
-              label: "New blank note",
-              key: CREATE_OPTIONS.newBlankNote,
-              onClick: () =>
-                navigate(`${ROUTES.project}/${projectId}/notes/new`),
-            },
-            {
-              label: "Create template",
-              key: CREATE_OPTIONS.createTemplate,
-              onClick: () =>
-                navigate(
-                  `${ROUTES.project}/${projectId}/notes/new?${EDITOR_MODE_PARAM}=${TEMPLATE_EDITOR_MODE}`,
-                ),
-            },
-          ]}
-        />
+        <div className="flex items-center gap-2">
+          <SubscribeButton />
+          <Dropdown
+            placement="right"
+            button={{
+              variant: "solid",
+              size: "sm",
+              iconLeft: AddSm,
+              iconRight: SmallDown,
+              label: "Create",
+            }}
+            options={[
+              {
+                label: "New from template",
+                key: CREATE_OPTIONS.newFromTemplate,
+                onClick: () => setIsTemplateDialogOpen(true),
+              },
+              {
+                label: "New blank note",
+                key: CREATE_OPTIONS.newBlankNote,
+                onClick: () =>
+                  navigate(`${ROUTES.project}/${projectId}/notes/new`),
+              },
+              {
+                label: "Create template",
+                key: CREATE_OPTIONS.createTemplate,
+                onClick: () =>
+                  navigate(
+                    `${ROUTES.project}/${projectId}/notes/new?${EDITOR_MODE_PARAM}=${TEMPLATE_EDITOR_MODE}`,
+                  ),
+              },
+            ]}
+          />
+        </div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 max-md:flex-col max-md:items-stretch">
         <div className="flex flex-1 gap-2 max-md:flex-col">

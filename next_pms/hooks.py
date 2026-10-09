@@ -302,6 +302,7 @@ doc_events = {
         "on_trash": [
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
             "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.delete_project_views",
+            "next_pms.next_pms.doctype.pms_project_update_subscription.pms_project_update_subscription.delete_project_subscriptions",
         ],
     },
     "Resource Allocation": {
@@ -318,6 +319,9 @@ doc_events = {
             "next_pms.next_pms.notifications.growth_on_update",
             "next_pms.next_pms.notifications.growth_owner_on_update",
         ],
+    },
+    "Project Status Update": {
+        "on_update": "next_pms.next_pms.notifications.project_status_update_on_update",
     },
     "Customer Feedback": {
         "on_submit": "next_pms.next_pms.notifications.customer_feedback_on_submit",
@@ -373,7 +377,7 @@ doc_events = {
 # Ignore links to specified DocTypes when deleting documents
 # -----------------------------------------------------------
 
-ignore_links_on_delete = ["NextPMS Notifications", "PMS View Setting"]
+ignore_links_on_delete = ["NextPMS Notifications", "PMS View Setting", "PMS Project Update Subscription"]
 
 # Request Events
 # ----------------

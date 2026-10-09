@@ -12,6 +12,8 @@ from next_pms.timesheet.api.project_status_update import (
     delete_project_status_update,
     get_project_status_update,
     get_project_status_updates_by_project,
+    get_project_update_subscription,
+    set_project_update_subscription,
     update_comment_in_project_status_update,
     update_project_status_update,
 )
@@ -23,6 +25,9 @@ NO_ROLE_USER = "psu.norole@example.com"
 # Holds Projects User: allowed through the API, but must still be denied direct
 # (permission-checked) Frappe CRUD, since the doctype grants the role no perms.
 PROJECTS_USER = "psu.projectsuser@example.com"
+SUBSCRIBER_USER = "psu.subscriber@example.com"
+SUBSCRIPTION_DOCTYPE = "PMS Project Update Subscription"
+ACCOUNT_MANAGER_LOOKUP = "next_pms.timesheet.api.project_status_update.get_project_account_manager"
 
 
 def _find_comment(comments: list[dict], name: str) -> dict | None:
@@ -34,6 +39,48 @@ def _find_comment(comments: list[dict], name: str) -> dict | None:
         if found:
             return found
     return None
+
+
+def make_user(email, roles=()):
+    if not frappe.db.exists("User", email):
+        frappe.get_doc(
+            {
+                "doctype": "User",
+                "email": email,
+                "first_name": email.split("@")[0],
+                "user_type": "System User",
+                "send_welcome_email": 0,
+            }
+        ).insert(ignore_permissions=True)
+    if roles:
+        frappe.get_doc("User", email).add_roles(*roles)
+    return email
+
+
+def make_project(project_name):
+    customer = frappe.db.get_value("Customer", {}, "name")
+    if not customer:
+        customer = (
+            frappe.get_doc(
+                {
+                    "doctype": "Customer",
+                    "customer_name": "Acme Corporation",
+                    "customer_type": "Company",
+                }
+            )
+            .insert(ignore_permissions=True)
+            .name
+        )
+    project = frappe.get_doc(
+        {
+            "doctype": "Project",
+            "project_name": project_name,
+            "company": get_default_company(),
+            "customer": customer,
+            "custom_billing_type": "Non-Billable",
+        }
+    ).insert(ignore_permissions=True)
+    return project.name
 
 
 class TestProjectStatusUpdateComments(IntegrationTestCase):
@@ -50,58 +97,15 @@ class TestProjectStatusUpdateComments(IntegrationTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.company = get_default_company()
-        cls.project = cls._make_project()
+        cls.project = make_project("Comment Thread Project")
 
         # Projects Manager clears the ROLES gate on the endpoints. The doctype
         # itself grants no CRUD to this role; writes succeed only because the
         # endpoints run with ignore_permissions, so the API is the sole gate.
-        cls.author_user = cls._make_user(AUTHOR_USER, roles=("Projects Manager",))
-        cls.other_user = cls._make_user(OTHER_USER, roles=("Projects Manager",))
-        cls.no_role_user = cls._make_user(NO_ROLE_USER)
-        cls.projects_user = cls._make_user(PROJECTS_USER, roles=("Projects User",))
-
-    @classmethod
-    def _make_user(cls, email, roles=()):
-        if not frappe.db.exists("User", email):
-            frappe.get_doc(
-                {
-                    "doctype": "User",
-                    "email": email,
-                    "first_name": email.split("@")[0],
-                    "user_type": "System User",
-                    "send_welcome_email": 0,
-                }
-            ).insert(ignore_permissions=True)
-        if roles:
-            frappe.get_doc("User", email).add_roles(*roles)
-        return email
-
-    @classmethod
-    def _make_project(cls):
-        customer = frappe.db.get_value("Customer", {}, "name")
-        if not customer:
-            customer = (
-                frappe.get_doc(
-                    {
-                        "doctype": "Customer",
-                        "customer_name": "Acme Corporation",
-                        "customer_type": "Company",
-                    }
-                )
-                .insert(ignore_permissions=True)
-                .name
-            )
-        project = frappe.get_doc(
-            {
-                "doctype": "Project",
-                "project_name": "Comment Thread Project",
-                "company": cls.company,
-                "customer": customer,
-                "custom_billing_type": "Non-Billable",
-            }
-        ).insert(ignore_permissions=True)
-        return project.name
+        cls.author_user = make_user(AUTHOR_USER, roles=("Projects Manager",))
+        cls.other_user = make_user(OTHER_USER, roles=("Projects Manager",))
+        cls.no_role_user = make_user(NO_ROLE_USER)
+        cls.projects_user = make_user(PROJECTS_USER, roles=("Projects User",))
 
     def setUp(self):
         frappe.set_user("Administrator")
@@ -443,3 +447,76 @@ class TestProjectStatusUpdateComments(IntegrationTestCase):
 
     def test_no_role_user_cannot_edit_via_direct_crud(self):
         self._assert_direct_crud_forbidden(NO_ROLE_USER)
+
+
+class TestProjectUpdateSubscription(IntegrationTestCase):
+    """Subscribing opts the session user in to notifications for a project's notes; it is idempotent."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.project = make_project("Note Subscription Project")
+        make_user(SUBSCRIBER_USER, roles=("Projects User",))
+        make_user(NO_ROLE_USER)
+
+    def setUp(self):
+        frappe.set_user(SUBSCRIBER_USER)
+
+    def tearDown(self):
+        frappe.set_user("Administrator")
+
+    def _subscription_count(self):
+        return frappe.db.count(SUBSCRIPTION_DOCTYPE, {"project": self.project, "user": SUBSCRIBER_USER})
+
+    def test_new_user_is_not_subscribed(self):
+        state = get_project_update_subscription(project=self.project)
+        self.assertEqual(state, {"subscribed": False, "is_account_manager": False})
+
+    def test_subscribe_is_idempotent(self):
+        set_project_update_subscription(project=self.project, subscribed=1)
+        state = set_project_update_subscription(project=self.project, subscribed=1)
+
+        self.assertTrue(state["subscribed"])
+        self.assertEqual(self._subscription_count(), 1)
+
+    def test_unsubscribe_removes_subscription_and_is_idempotent(self):
+        set_project_update_subscription(project=self.project, subscribed=1)
+        set_project_update_subscription(project=self.project, subscribed=0)
+        state = set_project_update_subscription(project=self.project, subscribed=0)
+
+        self.assertFalse(state["subscribed"])
+        self.assertEqual(self._subscription_count(), 0)
+
+    def test_subscriptions_are_unique_per_project_and_user(self):
+        set_project_update_subscription(project=self.project, subscribed=1)
+        frappe.set_user("Administrator")
+
+        with self.assertRaises(frappe.UniqueValidationError):
+            frappe.get_doc({"doctype": SUBSCRIPTION_DOCTYPE, "project": self.project, "user": SUBSCRIBER_USER}).insert()
+
+    def test_account_manager_is_flagged(self):
+        with patch(ACCOUNT_MANAGER_LOOKUP, return_value=SUBSCRIBER_USER):
+            state = get_project_update_subscription(project=self.project)
+
+        self.assertEqual(state, {"subscribed": False, "is_account_manager": True})
+
+    def test_user_without_projects_role_is_rejected(self):
+        frappe.set_user(NO_ROLE_USER)
+
+        with self.assertRaises(frappe.PermissionError):
+            get_project_update_subscription(project=self.project)
+        with self.assertRaises(frappe.PermissionError):
+            set_project_update_subscription(project=self.project, subscribed=1)
+
+    def test_unknown_project_is_rejected(self):
+        with self.assertRaises(frappe.ValidationError):
+            set_project_update_subscription(project="PROJ-DOES-NOT-EXIST", subscribed=1)
+
+    def test_deleting_project_removes_its_subscriptions(self):
+        project = make_project("Deleted Subscription Project")
+        set_project_update_subscription(project=project, subscribed=1)
+        frappe.set_user("Administrator")
+
+        frappe.delete_doc("Project", project, force=True, ignore_permissions=True)
+
+        self.assertFalse(frappe.db.exists(SUBSCRIPTION_DOCTYPE, {"project": project}))
