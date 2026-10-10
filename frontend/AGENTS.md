@@ -69,4 +69,3 @@ Never edit the build output in `../next_pms/public/frontend` by hand.
 - Call the server with `fetch` or axios; use the frappe-ui composables (P3).
 - Hard-code colours or reach for raw Tailwind palettes; use the semantic tokens (P4).
 - Make broad refactors, rename public APIs or change backend code unless asked.
-- Commit plan files or scratch notes to the repo.

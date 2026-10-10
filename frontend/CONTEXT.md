@@ -7,7 +7,7 @@ Precedence: [`PHILOSOPHY.md`](PHILOSOPHY.md) > this file > existing code.
 
 ## People and access
 
-**Employee** — an ERPNext/HRMS `Employee` record linked to a user. Most pages need one; a user without an employee
+**Employee** — an ERPNext/HRMS `Employee` record linked to a user. All pages need one; a user without an employee
 record is sent to `/no-employee`.
 _Avoid_: member, resource (as a noun for a person), staff.
 
