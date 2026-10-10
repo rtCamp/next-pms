@@ -42,6 +42,12 @@ To see how the old next-pms app called it: `git grep -n "<Name" develop -- front
   props). FeatherIcon / lucide-react / `../../icons` components all become class icons.
 - Colours: semantic tokens only (`bg-surface-*`, `text-ink-*`, `border-outline-*`). React hex maps and raw palettes
   (`bg-blue-100`) become tokens or a frappe-ui `theme`.
+- Use frappe-ui **1.0 (v2) token names**. The React kit used v1 names that no longer exist, and Tailwind silently
+  generates nothing for them: `surface-white` → `surface-base`, `surface-cards` / `surface-card` →
+  `surface-elevation-1`, `surface-modal` → `surface-elevation-2`, `surface-selected` → `surface-elevation-3`,
+  `surface-menu-bar` → `surface-sidebar`, `ink-white` → `ink-base`, `outline-white` → `outline-base`. Full map:
+  `frontend/node_modules/frappe-ui/tailwind/migrate-tokens-v2.js`; valid names:
+  `frontend/node_modules/frappe-ui/tailwind/tokens/colors.js`. Grep every class you use against that file.
 
 ## 3. Translate the API (P7)
 
