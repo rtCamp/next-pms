@@ -1,6 +1,37 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import frappeui from "frappe-ui/vite";
+import type { Plugin as EsbuildPlugin } from "esbuild";
+
+// frappe-ui maps its `#molecules/*`-style imports to a list of fallbacks
+// (`./src/molecules/*`, then `*.ts`, then `*/index.ts`). Vite's resolver copes,
+// but esbuild's dependency pre-bundling only tries the first, so pre-bundling
+// `frappe-ui/editor` fails with "Could not resolve #molecules/editor/...".
+// This tries the `.ts` and `/index.ts` fallbacks for esbuild.
+const frappeUiSubpathImports: EsbuildPlugin = {
+  name: "frappe-ui-subpath-imports",
+  setup(build) {
+    build.onResolve(
+      { filter: /^#(components|molecules|composables|utils)\/[^.]*$/ },
+      async ({ path, importer, kind }) => {
+        const root = importer.slice(
+          0,
+          importer.lastIndexOf("/frappe-ui/") + 11,
+        );
+        if (root.length <= 11) return undefined;
+        const base = `./src/${path.slice(1)}`;
+        for (const candidate of [`${base}.ts`, `${base}/index.ts`]) {
+          const result = await build.resolve(candidate, {
+            resolveDir: root,
+            kind,
+          });
+          if (!result.errors.length) return { path: result.path };
+        }
+        return undefined;
+      },
+    );
+  },
+};
 
 export default defineConfig({
   plugins: [
@@ -15,4 +46,7 @@ export default defineConfig({
     }),
     vue(),
   ],
+  optimizeDeps: {
+    esbuildOptions: { plugins: [frappeUiSubpathImports] },
+  },
 });
