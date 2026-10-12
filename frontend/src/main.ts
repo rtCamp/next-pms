@@ -4,13 +4,8 @@ import App from "./App.vue";
 import { isLoggedIn, loadBoot, redirectToLogin } from "./boot";
 import { router } from "./router";
 import { createSocket, socketKey } from "./socket";
+import { stripHtml } from "./utils/text";
 import "./style.css";
-
-function stripHtml(html: string): string {
-  return (
-    new DOMParser().parseFromString(html, "text/html").body.textContent ?? ""
-  );
-}
 
 function configureFrappeUI(boot: Boot) {
   setConfig("systemTimezone", boot.time_zone?.system);

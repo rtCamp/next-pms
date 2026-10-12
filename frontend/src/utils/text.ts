@@ -66,3 +66,9 @@ export function stripTags(html: string): string {
     .replace(/\s+/g, " ")
     .trim();
 }
+
+export function stripHtml(html: string): string {
+  return (
+    new DOMParser().parseFromString(html, "text/html").body.textContent ?? ""
+  );
+}
