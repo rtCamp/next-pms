@@ -44,6 +44,8 @@ src/
     Timesheet/     timesheet rows (HeaderRow, WeekRow, MemberRow, ProjectRow, TaskRow, TimeOffRow, TotalRow)
 ```
 
+`icons/` (next to `src/`) is for custom icons lucide lacks. It's empty: use `lucide-*` class icons (P4).
+
 Never edit the build output in `../next_pms/public/frontend` by hand.
 
 ## Tools
@@ -70,4 +72,6 @@ Never edit the build output in `../next_pms/public/frontend` by hand.
 - Add React, `frappe-ui-react` or another UI kit.
 - Call the server with `fetch` or axios; use the frappe-ui composables (P3).
 - Hard-code colours or reach for raw Tailwind palettes; use the semantic tokens (P4).
+- Port the frappe-ui-react custom icon set or add an icon library; use `lucide-*` icons, and ask before adding one
+  to `icons/` (P4).
 - Make broad refactors, rename public APIs or change backend code unless asked.

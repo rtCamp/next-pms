@@ -53,7 +53,8 @@ call `fetch` or axios directly.
 ## P4 — Semantic colour tokens and class icons
 
 **Rule.** Colours come from the semantic scales: `bg-surface-*`, `text-ink-*`, `border-outline-*`. Icons are
-`lucide-*` CSS classes, or the icon name string on props such as `icon`.
+`lucide-*` CSS classes, or the icon name string on props such as `icon`. There is no custom icon set; an icon lucide
+lacks goes in `frontend/icons/` (empty for now, ask before adding one).
 
 **Why.** Semantic tokens switch with light and dark mode; raw palette classes and hex values don't.
 
