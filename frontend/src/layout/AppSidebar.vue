@@ -154,7 +154,9 @@ const menuItems = computed(() => [
       :menu-items="menuItems"
     />
 
-    <div class="flex-1 overflow-y-auto">
+    <!-- Sidebar leaves the body's layout to the app. The 8px inset matches the
+         React sidebar and centres the icons in the collapsed 48px column. -->
+    <div class="flex-1 overflow-y-auto px-2 pt-2">
       <SidebarItem
         v-for="item in topItems"
         :key="item.to"
@@ -182,6 +184,8 @@ const menuItems = computed(() => [
       </SidebarSection>
     </div>
 
-    <SidebarCollapseToggle />
+    <div class="p-2">
+      <SidebarCollapseToggle />
+    </div>
   </Sidebar>
 </template>
