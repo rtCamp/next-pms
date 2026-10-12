@@ -40,8 +40,11 @@ src/
   pages/           one folder per URL segment
   components/      components frappe-ui lacks, one folder each:
     MonthPicker/   MonthPicker.vue, MonthPicker.stories.ts, types.ts, index.ts
-    Card/  CircularProgressBar/  ColumnSelector/  DurationInput/  Filter/  TaskStatus/
+    ApprovalStatus/  BudgetBurnBar/  CalendarTimeline/  Card/  CircularProgressBar/  ColumnSelector/
+    Comments/  DayChip/  DurationInput/  ErrorFallback/  Filter/  LoadingOverlay/  NotificationTray/
+    ProgressBar/  SortSelector/  TaskProgress/  TaskStatus/
     Timesheet/     timesheet rows (HeaderRow, WeekRow, MemberRow, ProjectRow, TaskRow, TimeOffRow, TotalRow)
+  utils/           helpers shared by components and pages (date.ts, text.ts); add one only when something needs it
 ```
 
 `icons/` (next to `src/`) holds custom icons lucide lacks, as Vue SFCs exported from `icons/index.ts` (so far only
