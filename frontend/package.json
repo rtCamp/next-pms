@@ -9,7 +9,9 @@
     "type-check": "vue-tsc --noEmit",
     "storybook": "storybook dev -p 6006 --no-open",
     "build-storybook": "storybook build",
-    "test-storybook": "vitest --project storybook"
+    "test-storybook": "vitest --project storybook",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "frappe-ui": "^1.0.0",
@@ -18,17 +20,26 @@
     "vue-router": "^4.6.3"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@storybook/addon-docs": "^10.6.1",
     "@storybook/addon-mcp": "^10.6.1",
     "@storybook/addon-vitest": "^10.6.1",
     "@storybook/vue3-vite": "^10.6.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitest/browser-playwright": "^4.1.11",
+    "@vue/eslint-config-prettier": "^10.2.0",
+    "@vue/eslint-config-typescript": "^14.9.0",
     "autoprefixer": "^10.4.21",
+    "eslint": "^10.12.0",
+    "eslint-plugin-storybook": "^10.6.1",
+    "eslint-plugin-vue": "^10.11.1",
+    "globals": "^17.13.0",
+    "jiti": "^2.7.0",
     "postcss": "^8.5.6",
     "storybook": "^10.6.1",
     "tailwindcss": "^3.4.18",
     "typescript": "~5.9.3",
+    "typescript-eslint": "^8.71.1",
     "vite": "^7.1.12",
     "vitest": "^4.1.11",
     "vue-tsc": "^3.1.3"
