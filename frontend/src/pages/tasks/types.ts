@@ -36,8 +36,8 @@ export interface TaskListItem {
   actual_time: number;
   expected_time: number;
   custom_is_billable?: boolean;
-  /** JSON array of the users who starred the task. */
-  _liked_by: string;
+  /** JSON array of the users who starred the task; `null` when nobody has. */
+  _liked_by: string | null;
   owner: string;
 }
 

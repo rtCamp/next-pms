@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { HoverCard } from "frappe-ui";
-import FilledStarIcon from "./FilledStarIcon.vue";
+import { FilledStarIcon } from "../../../icons";
 import TaskRowCell from "./TaskRowCell.vue";
 import {
   ACTION_CELL_CLASS,
@@ -49,7 +49,7 @@ function onCellClick(dayIndex: number) {
         <span class="min-w-0 truncate text-base-medium">{{ label }}</span>
         <FilledStarIcon
           v-if="starred"
-          class="shrink-0"
+          class="size-4 shrink-0 text-ink-amber-2"
           role="img"
           aria-label="Starred"
         />

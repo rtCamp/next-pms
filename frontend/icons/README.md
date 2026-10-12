@@ -20,6 +20,7 @@ Custom icons that lucide doesn't have. Use `lucide-*` class icons everywhere els
 
 ## Icons
 
-| Icon | Why it's here |
-|---|---|
-| `GithubIcon` | GitHub mark for project links; lucide-static dropped brand icons |
+| Icon             | Why it's here                                                    |
+| ---------------- | ---------------------------------------------------------------- |
+| `FilledStarIcon` | Starred tasks; class icons are CSS masks and can't be filled     |
+| `GithubIcon`     | GitHub mark for project links; lucide-static dropped brand icons |

@@ -5,7 +5,11 @@ import { ColumnSelector } from "../../components/ColumnSelector";
 import { Filter, type FilterField } from "../../components/Filter";
 import { SortSelector } from "../../components/SortSelector";
 import { useDoctypeLinkLookup } from "../../composables/useDoctypeLinkLookup";
-import { TASK_PRIORITY_OPTIONS, TASK_SORTABLE_FIELDS, TASK_STATUS_OPTIONS } from "./constants";
+import {
+  TASK_PRIORITY_OPTIONS,
+  TASK_SORTABLE_FIELDS,
+  TASK_STATUS_OPTIONS,
+} from "./constants";
 import type { TaskListStatus } from "./types";
 import { AVAILABLE_TASK_COLUMNS, useTaskColumns } from "./useTaskColumns";
 import { useTaskFilters } from "./useTaskFilters";
@@ -41,7 +45,16 @@ const SORT_FIELDS = TASK_SORTABLE_FIELDS.map(({ field, label }) => ({
   label,
 }));
 
-const { filters, sort, setSearch, setProject, setStatus, setAdvanced, setSort, resetFilters } = useTaskFilters();
+const {
+  filters,
+  sort,
+  setSearch,
+  setProject,
+  setStatus,
+  setAdvanced,
+  setSort,
+  resetFilters,
+} = useTaskFilters();
 const { selectedColumns, isDefault, reset: resetColumns } = useTaskColumns();
 
 const search = computed({
@@ -64,11 +77,19 @@ const sortModel = computed({
   set: setSort,
 });
 
+const selectedProjectLabel = computed(() =>
+  filters.value.project
+    ? filters.value.projectLabel || filters.value.project
+    : "",
+);
 const projectQuery = ref("");
 const projectLookup = useDoctypeLinkLookup({
   doctype: "Project",
   labelField: "project_name",
-  query: projectQuery,
+  // In input mode the combobox puts the selected option's label in the query; that's
+  // not a search, so it's left out.
+  query: () =>
+    projectQuery.value === selectedProjectLabel.value ? "" : projectQuery.value,
   selected: () =>
     filters.value.project
       ? {
@@ -77,13 +98,21 @@ const projectLookup = useDoctypeLinkLookup({
         }
       : null,
 });
-const projectOptions = computed(() => [{ label: "All", value: "" }, ...projectLookup.options]);
+const projectOptions = computed(() => [
+  { label: "All", value: "" },
+  ...projectLookup.options,
+]);
 
+// No project shows the placeholder rather than "All": in input mode the combobox keeps
+// the selected label in the field, so typing would append to "All". Picking "All"
+// clears the filter.
 const project = computed({
-  get: () => filters.value.project,
+  get: () => filters.value.project || null,
   set: (value: string | number | null) => {
     const next = value ? String(value) : "";
-    const label = projectOptions.value.find((option) => option.value === next)?.label;
+    const label = projectOptions.value.find(
+      (option) => option.value === next,
+    )?.label;
     setProject(next, label);
   },
 });
@@ -102,7 +131,13 @@ const externalFilterCount = computed(
   <div class="flex flex-wrap justify-between gap-2 px-5 py-3.5">
     <div class="flex gap-2">
       <div class="w-44 shrink-0">
-        <TextInput v-model="search" size="sm" placeholder="Search task" aria-label="Search task" :debounce="400" />
+        <TextInput
+          v-model="search"
+          size="sm"
+          placeholder="Search task"
+          aria-label="Search task"
+          :debounce="400"
+        />
       </div>
       <div class="w-44 shrink-0">
         <Combobox
@@ -116,7 +151,12 @@ const externalFilterCount = computed(
         />
       </div>
       <div class="w-44 shrink-0">
-        <MultiSelect v-model="status" :options="TASK_STATUS_OPTIONS" placeholder="Status" aria-label="Status" />
+        <MultiSelect
+          v-model="status"
+          :options="TASK_STATUS_OPTIONS"
+          placeholder="Status"
+          aria-label="Status"
+        />
       </div>
     </div>
     <div class="flex gap-2">

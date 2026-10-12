@@ -48,7 +48,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/tasks",
     name: "task",
-    component: WorkInProgress,
+    component: () => import("./pages/tasks/TaskList.vue"),
     meta: { title: "Tasks" },
   },
   {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Breadcrumbs } from "frappe-ui";
-import FilledStarIcon from "./FilledStarIcon.vue";
+import { FilledStarIcon } from "../../../icons";
 import {
   ACTION_CELL_CLASS,
   CELL_CLASS,
@@ -27,7 +27,12 @@ defineSlots<{
       <div class="flex min-w-0 items-center gap-2 text-ink-gray-9">
         <span class="flex w-4 shrink-0 items-center justify-center">
           <slot name="prefix">
-            <FilledStarIcon v-if="starred" role="img" aria-label="Starred" />
+            <FilledStarIcon
+              v-if="starred"
+              class="size-4 text-ink-amber-2"
+              role="img"
+              aria-label="Starred"
+            />
             <span
               v-else
               class="lucide-star-off size-4 -scale-x-100 text-ink-gray-4"
