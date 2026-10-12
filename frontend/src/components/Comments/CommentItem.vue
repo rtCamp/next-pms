@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { Avatar, dialog } from "frappe-ui";
 import { CommentKit, Editor, EditorContent } from "frappe-ui/editor";
-import { formatRelativeTimeShort } from "../../utils/text";
+import { formatRelativeTimeShort } from "@/utils/text";
 import CommentActions from "./CommentActions.vue";
 import CommentInput from "./CommentInput.vue";
 import { useCommentsContext } from "./context";

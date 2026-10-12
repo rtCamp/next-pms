@@ -1,4 +1,4 @@
-import type { ProgressBarSize } from "../ProgressBar";
+import type { ProgressBarSize } from "@/components/ProgressBar";
 
 /** Colour tier from the share of the budget used: above 80% `over`, 60–80% `moderate`, below 60% `healthy`. */
 export type BudgetBurnTier = "healthy" | "moderate" | "over";

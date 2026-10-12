@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Button } from "frappe-ui";
-import { useSession } from "../session";
-import StatusMessage from "../layout/StatusMessage.vue";
+import { useSession } from "@/session";
+import StatusMessage from "@/layout/StatusMessage.vue";
 
 const session = useSession();
 </script>

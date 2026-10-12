@@ -49,6 +49,14 @@ export default defineConfig({
     // Applies to the dev server only; Storybook and story tests drop it.
     vueDevTools(),
   ],
+  // `@/` is `src/`, so imports don't climb with `../../`. Storybook and the story
+  // tests build on this config, so they resolve it too.
+  resolve: {
+    // `.pathname` rather than node's fileURLToPath: the project has no Node types.
+    alias: {
+      "@": decodeURIComponent(new URL("./src", import.meta.url).pathname),
+    },
+  },
   optimizeDeps: {
     // frappe-ui's editor `.vue` node views can't be pre-bundled with the rest of
     // `frappe-ui/editor`, so they import tiptap on their own. Pre-bundling these

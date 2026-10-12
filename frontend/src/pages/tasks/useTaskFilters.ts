@@ -1,9 +1,9 @@
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-import type { FilterCondition } from "../../components/Filter";
-import type { SortOrder, SortState } from "../../components/SortSelector";
-import { useQueryPatch } from "../../composables/useQueryPatch";
-import { parseJSONArrayParam, queryString } from "../../utils/query";
+import type { FilterCondition } from "@/components/Filter";
+import type { SortOrder, SortState } from "@/components/SortSelector";
+import { useQueryPatch } from "@/composables/useQueryPatch";
+import { parseJSONArrayParam, queryString } from "@/utils/query";
 import { DEFAULT_TASK_SORT } from "./constants";
 import type { TaskListFilters, TaskListStatus } from "./types";
 

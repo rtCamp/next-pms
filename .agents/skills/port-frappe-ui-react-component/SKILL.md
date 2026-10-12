@@ -40,7 +40,7 @@ To see how the old next-pms app called it: `git grep -n "<Name" develop -- front
   report instead of editing `package.json`.
 - Icons: `lucide-*` class names (`<span class="lucide-x size-4" aria-hidden="true" />`, or `icon="lucide-x"` on
   props). FeatherIcon / lucide-react / `../../icons` components all become class icons. Don't port the custom icon set;
-  pick the closest lucide icon, and if none fits, stop and report (custom icons go in `frontend/icons/`).
+  pick the closest lucide icon, and if none fits, stop and report (custom icons go in `src/icons/`).
 - Colours: semantic tokens only (`bg-surface-*`, `text-ink-*`, `border-outline-*`). React hex maps and raw palettes
   (`bg-blue-100`) become tokens or a frappe-ui `theme`.
 - Use frappe-ui **1.0 (v2) token names**. The React kit used v1 names that no longer exist, and Tailwind silently

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { Combobox, MultiSelect, TextInput } from "frappe-ui";
-import { ColumnSelector } from "../../components/ColumnSelector";
-import { Filter, type FilterField } from "../../components/Filter";
-import { SortSelector } from "../../components/SortSelector";
-import { useDoctypeLinkLookup } from "../../composables/useDoctypeLinkLookup";
+import { ColumnSelector } from "@/components/ColumnSelector";
+import { Filter, type FilterField } from "@/components/Filter";
+import { SortSelector } from "@/components/SortSelector";
+import { useDoctypeLinkLookup } from "@/composables/useDoctypeLinkLookup";
 import {
   TASK_PRIORITY_OPTIONS,
   TASK_SORTABLE_FIELDS,

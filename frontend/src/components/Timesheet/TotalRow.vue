@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Breadcrumbs } from "frappe-ui";
-import { FilledStarIcon } from "../../../icons";
+import { FilledStarIcon } from "@/icons";
 import {
   ACTION_CELL_CLASS,
   CELL_CLASS,

@@ -8,8 +8,8 @@ import {
   type InjectionKey,
 } from "vue";
 import { toast, useCall, useDoctype } from "frappe-ui";
-import { errorMessage } from "../../utils/errors";
-import { buildFilterConditions } from "../../utils/filters";
+import { errorMessage } from "@/utils/errors";
+import { buildFilterConditions } from "@/utils/filters";
 import { TASK_LIST_PAGE_SIZE } from "./constants";
 import type { TaskListItem, TaskListResponse } from "./types";
 import { useTaskFilters } from "./useTaskFilters";

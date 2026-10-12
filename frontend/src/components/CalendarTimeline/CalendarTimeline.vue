@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Button, dayjs } from "frappe-ui";
-import { getRangeLabel, getVisibleDays } from "../../utils/date";
+import { getRangeLabel, getVisibleDays } from "@/utils/date";
 import { DEFAULT_VISIBLE_DAYS, WEEKEND_DAY_INDICES } from "./constants";
 import EventChip from "./EventChip.vue";
 import type { CalendarTimelineEvent, CalendarTimelineProps } from "./types";

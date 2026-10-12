@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Button } from "frappe-ui";
-import StatusMessage from "../layout/StatusMessage.vue";
+import StatusMessage from "@/layout/StatusMessage.vue";
 </script>
 
 <template>

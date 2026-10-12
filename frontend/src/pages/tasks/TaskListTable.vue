@@ -18,10 +18,10 @@ import {
   ListRow,
   ListRows,
 } from "frappe-ui/list";
-import { LoadingOverlay } from "../../components/LoadingOverlay";
-import { TaskStatus, type TaskStatusValue } from "../../components/TaskStatus";
-import { useSession } from "../../session";
-import { formatHours } from "../../utils/format";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { TaskStatus, type TaskStatusValue } from "@/components/TaskStatus";
+import { useSession } from "@/session";
+import { formatHours } from "@/utils/format";
 import LikeCell from "./cells/LikeCell.vue";
 import SubjectCell from "./cells/SubjectCell.vue";
 import { TASK_PRIORITIES, TASK_SORTABLE_FIELDS } from "./constants";

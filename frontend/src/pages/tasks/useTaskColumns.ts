@@ -1,8 +1,8 @@
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-import type { SelectorColumn } from "../../components/ColumnSelector";
-import { useQueryPatch } from "../../composables/useQueryPatch";
-import { parseColumnKeys, queryString } from "../../utils/query";
+import type { SelectorColumn } from "@/components/ColumnSelector";
+import { useQueryPatch } from "@/composables/useQueryPatch";
+import { parseColumnKeys, queryString } from "@/utils/query";
 import {
   TASK_ACTION_COLUMNS,
   TASK_COLUMN_PARAM,

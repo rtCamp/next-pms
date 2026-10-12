@@ -1,6 +1,6 @@
 import { computed, reactive } from "vue";
 import { useCall } from "frappe-ui";
-import { redirectToLogin } from "../boot";
+import { redirectToLogin } from "@/boot";
 import { hasAnyRole } from "./roles";
 import type { AppData, EmployeeData, Role } from "./types";
 

@@ -11,7 +11,7 @@ Custom icons that lucide doesn't have. Use `lucide-*` class icons everywhere els
 
   ```vue
   <script setup lang="ts">
-  import { GithubIcon } from "../../icons";
+  import { GithubIcon } from "@/icons";
   </script>
 
   <GithubIcon class="size-4 text-ink-gray-7" aria-hidden="true" />

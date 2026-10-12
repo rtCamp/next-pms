@@ -7,7 +7,7 @@ import {
   type MaybeRefOrGetter,
 } from "vue";
 import { toast, useCall } from "frappe-ui";
-import { errorMessage } from "../utils/errors";
+import { errorMessage } from "@/utils/errors";
 
 export interface ToggleLikeOptions {
   doctype: string;

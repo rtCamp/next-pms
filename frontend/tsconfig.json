@@ -1,13 +1,12 @@
 {
   "extends": "frappe-ui/tsconfig.base.json",
   "compilerOptions": {
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "paths": { "@/*": ["./src/*"] }
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.vue",
-    "icons/**/*.ts",
-    "icons/**/*.vue",
     ".storybook/*.ts",
     "vitest.config.ts"
   ]

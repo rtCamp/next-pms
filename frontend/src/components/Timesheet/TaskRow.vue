@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { HoverCard } from "frappe-ui";
-import { FilledStarIcon } from "../../../icons";
+import { FilledStarIcon } from "@/icons";
 import TaskRowCell from "./TaskRowCell.vue";
 import {
   ACTION_CELL_CLASS,

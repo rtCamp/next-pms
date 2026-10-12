@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Tooltip } from "frappe-ui";
-import { ProgressBar } from "../ProgressBar";
+import { ProgressBar } from "@/components/ProgressBar";
 import { budgetBurnTier, scale } from "./utils";
 import type { BudgetBurnBarProps, BudgetBurnTier } from "./types";
 

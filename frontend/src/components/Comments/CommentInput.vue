@@ -2,7 +2,7 @@
 import { computed, ref, watch, type HTMLAttributes } from "vue";
 import { Avatar, Button, TextInput } from "frappe-ui";
 import { CommentKit, Editor, EditorContent } from "frappe-ui/editor";
-import { stripTags } from "../../utils/text";
+import { stripTags } from "@/utils/text";
 import type { CommentMention } from "./types";
 
 const props = withDefaults(

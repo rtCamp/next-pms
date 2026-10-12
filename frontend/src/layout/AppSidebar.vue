@@ -9,8 +9,8 @@ import {
   SidebarSection,
   useColorScheme,
 } from "frappe-ui";
-import { ROLE_ACCESS, hasAnyRole, type Role } from "../session";
-import logo from "../assets/logo.svg";
+import { ROLE_ACCESS, hasAnyRole, type Role } from "@/session";
+import logo from "@/assets/logo.svg";
 
 const props = defineProps<{
   roles: readonly Role[];

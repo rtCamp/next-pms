@@ -43,11 +43,13 @@ src/
   layout/          AppSidebar (frappe-ui Sidebar) and StatusMessage for the status pages
   pages/           route components; WorkInProgress stands in for pages not rebuilt yet
   components/      components frappe-ui lacks, one folder each; see components/Components.md
+  composables/     shared use* composables: lookups, the like toggle, URL query updates
+  icons/           custom icons lucide lacks, as Vue SFCs exported from icons/index.ts; everything else uses lucide-* (P4)
   utils/           helpers shared by components and pages (date.ts, text.ts); add one only when something needs it
 ```
 
-`icons/` (next to `src/`) holds custom icons lucide lacks, as Vue SFCs exported from `icons/index.ts`. Everything
-else uses `lucide-*` class icons (P4).
+**Imports.** `@/` is `src/` (set in `vite.config.ts` and `tsconfig.json`). Import from another folder with `@/`, e.g.
+`import { useSession } from "@/session"`; keep `./` for files in the same folder, and never climb with `../`.
 
 **Routes.** Give each route a `meta.title` (the tab title), and `meta.roles` from `ROLE_ACCESS` when only some
 roles may open it. The `beforeEach` guard in `router.ts` sends users without an Employee record to `/no-employee`
@@ -86,5 +88,5 @@ Never edit the build output in `../next_pms/public/frontend` by hand.
 - Add Pinia or another store library; shared state goes in a composable over frappe-ui calls, like `useSession()`.
 - Restyle frappe-ui's `Sidebar` parts; compose them as they are.
 - Hard-code colours or reach for raw Tailwind palettes; use the semantic tokens (P4).
-- Add an icon library; use `lucide-*` icons, and ask before adding one to `icons/` (P4).
+- Add an icon library; use `lucide-*` icons, and ask before adding one to `src/icons/` (P4).
 - Make broad refactors, rename public APIs or change backend code unless asked.

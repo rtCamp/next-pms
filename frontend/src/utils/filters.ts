@@ -1,4 +1,4 @@
-import type { FilterCondition } from "../components/Filter";
+import type { FilterCondition } from "@/components/Filter";
 
 const NO_VALUE_OPERATORS = ["is_empty", "is_not_empty"];
 

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Tooltip } from "frappe-ui";
-import { FilledStarIcon } from "../../../../icons";
-import { isLikedBy, useToggleLike } from "../../../composables/useToggleLike";
-import { useSession } from "../../../session";
+import { FilledStarIcon } from "@/icons";
+import { isLikedBy, useToggleLike } from "@/composables/useToggleLike";
+import { useSession } from "@/session";
 
 const props = defineProps<{ name: string; likedBy: string | null }>();
 const emit = defineEmits<{ toggled: [] }>();

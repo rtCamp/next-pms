@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { Button, dayjs } from "frappe-ui";
 import { ref } from "vue";
 import { expect, fn, screen, userEvent, waitFor, within } from "storybook/test";
-import { getWeekStart } from "../../utils/date";
+import { getWeekStart } from "@/utils/date";
 import CalendarTimeline from "./CalendarTimeline.vue";
 import { DEFAULT_VISIBLE_DAYS } from "./constants";
 import type { CalendarTimelineEvent } from "./types";

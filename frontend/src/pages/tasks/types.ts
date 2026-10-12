@@ -1,4 +1,4 @@
-import type { FilterCondition } from "../../components/Filter";
+import type { FilterCondition } from "@/components/Filter";
 import type {
   TASK_ACTION_COLUMNS,
   TASK_LIST_COLUMNS,

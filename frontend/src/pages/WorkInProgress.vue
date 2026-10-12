@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
-import StatusMessage from "../layout/StatusMessage.vue";
+import StatusMessage from "@/layout/StatusMessage.vue";
 
 const route = useRoute();
 </script>
