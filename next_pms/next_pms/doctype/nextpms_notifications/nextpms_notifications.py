@@ -27,16 +27,29 @@ class NextPMSNotifications(Document):
     # end: auto-generated types
 
     def after_insert(self):
-        # Restrict each user to their own notifications (one User Permission per user, scoped to this doctype).
-        if self.user:
-            add_user_permission(
-                "User",
-                self.user,
-                self.user,
-                applicable_for="NextPMS Notifications",
-                ignore_permissions=True,
-            )
+        self.restrict_to_recipient()
         self.send_email()
+
+    def restrict_to_recipient(self):
+        """Restrict the recipient to their own notifications (one User Permission per user, scoped to this doctype).
+
+        Notifications are inserted by parallel jobs and User Permission has no unique constraint, so the
+        check-then-insert is serialised per recipient: lock their User row, then re-check with a locking
+        read, which sees a permission another job committed while this one waited.
+        """
+        if not self.user:
+            return
+
+        frappe.db.get_value("User", self.user, "name", for_update=True)
+        if frappe.db.get_value(
+            "User Permission",
+            {"user": self.user, "allow": "User", "for_value": self.user, "applicable_for": self.doctype},
+            "name",
+            for_update=True,
+        ):
+            return
+
+        add_user_permission("User", self.user, self.user, applicable_for=self.doctype, ignore_permissions=True)
 
     def send_email(self):
         """Deliver the companion email, if this notification carries one.
