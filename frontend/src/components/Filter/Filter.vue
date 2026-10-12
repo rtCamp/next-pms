@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, type VNode } from "vue";
 import { Button, Popover } from "frappe-ui";
 import FilterRow from "./FilterRow.vue";
 import type {
@@ -28,7 +28,7 @@ const emit = defineEmits<{
 
 defineSlots<{
   /** Value input for `type: "link"` fields; without it they get a free-text input. */
-  "link-value"?: (props: FilterLinkValueRenderProps) => any;
+  "link-value"?: (props: FilterLinkValueRenderProps) => VNode[];
 }>();
 
 const localOpen = ref(props.defaultOpen);

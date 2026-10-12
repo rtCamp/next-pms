@@ -4,7 +4,7 @@ interface Boot {
   max_file_size?: number;
   time_zone?: { system?: string | null; user?: string | null };
   user?: { name: string };
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface Window {

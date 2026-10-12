@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useId } from "vue";
+import { computed, useId, type VNode } from "vue";
 import {
   Button,
   Combobox,
@@ -24,7 +24,7 @@ const emit = defineEmits<{
 }>();
 
 const slots = defineSlots<{
-  "link-value"?: (props: FilterLinkValueRenderProps) => any;
+  "link-value"?: (props: FilterLinkValueRenderProps) => VNode[];
 }>();
 
 const dateInputId = useId();
