@@ -3,7 +3,8 @@ interface Boot {
   socketio_port?: number;
   max_file_size?: number;
   time_zone?: { system?: string | null; user?: string | null };
-  user?: { name: string };
+  user?: { name: string; roles?: string[] };
+  currencies?: string[];
   [key: string]: unknown;
 }
 
