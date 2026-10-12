@@ -7,6 +7,12 @@
       "skillPath": "skills/create-adaptable-composable/SKILL.md",
       "computedHash": "2f215126499d29a733be980ef9ce8f4ffb5f25a8831aec965d86c0cd21b2c5d2"
     },
+    "frappe-app-dev": {
+      "source": "frappe/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frappe-app-dev/SKILL.md",
+      "computedHash": "53fc33422fc32f67527bc98af3f5d2e09c51e5b969f7114deefbb3c0bd6eb49f"
+    },
     "frappe-ui": {
       "source": "frappe/frappe-ui",
       "sourceType": "github",
