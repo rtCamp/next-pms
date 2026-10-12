@@ -3,5 +3,12 @@
   "compilerOptions": {
     "types": ["vite/client"]
   },
-  "include": ["src/**/*.ts", "src/**/*.vue", ".storybook/*.ts", "vitest.config.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "icons/**/*.ts",
+    "icons/**/*.vue",
+    ".storybook/*.ts",
+    "vitest.config.ts"
+  ]
 }

@@ -44,7 +44,8 @@ src/
     Timesheet/     timesheet rows (HeaderRow, WeekRow, MemberRow, ProjectRow, TaskRow, TimeOffRow, TotalRow)
 ```
 
-`icons/` (next to `src/`) is for custom icons lucide lacks. It's empty: use `lucide-*` class icons (P4).
+`icons/` (next to `src/`) holds custom icons lucide lacks, as Vue SFCs exported from `icons/index.ts` (so far only
+`GithubIcon`). Everything else uses `lucide-*` class icons (P4).
 
 Never edit the build output in `../next_pms/public/frontend` by hand.
 
