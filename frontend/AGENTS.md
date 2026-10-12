@@ -40,6 +40,8 @@ src/
   pages/           one folder per URL segment
   components/      components frappe-ui lacks, one folder each:
     MonthPicker/   MonthPicker.vue, MonthPicker.stories.ts, types.ts, index.ts
+    Card/  CircularProgressBar/  ColumnSelector/  Filter/  TaskStatus/
+    Timesheet/     timesheet rows (HeaderRow, WeekRow, MemberRow, ProjectRow, TaskRow, TimeOffRow, TotalRow)
 ```
 
 Never edit the build output in `../next_pms/public/frontend` by hand.
