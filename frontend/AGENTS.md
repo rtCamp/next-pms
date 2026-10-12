@@ -1,14 +1,14 @@
 # Agent guide — next-pms frontend
 
-The next-pms UI is being rewritten from React to **Vue 3 + frappe-ui**. This file is the index for any coding agent
-working in `frontend/`. Read it first, then the documents it points to.
+The next-pms frontend is a Vue 3 + frappe-ui single-page app for timesheets, projects and resource management,
+served by the Frappe app at `/next-pms`. This file is the index for any coding agent working in `frontend/`.
 
 ## Read order
 
 1. This file.
-2. [`PHILOSOPHY.md`](PHILOSOPHY.md) — numbered rules (P1, P2, …). Cite them by ID in PRs and reviews.
-3. [`CONTEXT.md`](CONTEXT.md) — what domain and app terms mean, and the names to avoid.
-4. The `frappe-ui` skill (`.agents/skills/frappe-ui/`) before writing any markup or data code.
+2. [`CONTEXT.md`](CONTEXT.md) — what domain and app terms mean, and the names to avoid.
+3. [`PHILOSOPHY.md`](PHILOSOPHY.md) — numbered rules (P1, P2, …). Cite them by ID in PRs and reviews.
+4. [`src/components/Components.md`](src/components/Components.md) — before adding or changing a component.
 
 When sources disagree: **PHILOSOPHY > CONTEXT > existing code**. Code is evidence, not authority. If a rule gives a
 clearly wrong answer, propose an edit to the rule instead of carving a quiet exception.
@@ -38,17 +38,12 @@ src/
   socket.ts        realtime socket; use useSocket() in components
   router.ts        routes, based at /next-pms
   pages/           one folder per URL segment
-  components/      components frappe-ui lacks, one folder each:
-    MonthPicker/   MonthPicker.vue, MonthPicker.stories.ts, types.ts, index.ts
-    ApprovalStatus/  BudgetBurnBar/  CalendarTimeline/  Card/  CircularProgressBar/  ColumnSelector/
-    Comments/  DayChip/  DurationInput/  ErrorFallback/  Filter/  LoadingOverlay/  NotificationTray/
-    ProgressBar/  SortSelector/  TaskProgress/  TaskStatus/
-    Timesheet/     timesheet rows (HeaderRow, WeekRow, MemberRow, ProjectRow, TaskRow, TimeOffRow, TotalRow)
+  components/      components frappe-ui lacks, one folder each; see components/Components.md
   utils/           helpers shared by components and pages (date.ts, text.ts); add one only when something needs it
 ```
 
-`icons/` (next to `src/`) holds custom icons lucide lacks, as Vue SFCs exported from `icons/index.ts` (so far only
-`GithubIcon`). Everything else uses `lucide-*` class icons (P4).
+`icons/` (next to `src/`) holds custom icons lucide lacks, as Vue SFCs exported from `icons/index.ts`. Everything
+else uses `lucide-*` class icons (P4).
 
 Never edit the build output in `../next_pms/public/frontend` by hand.
 
@@ -69,13 +64,12 @@ Never edit the build output in `../next_pms/public/frontend` by hand.
 - Every component ships stories, and its behaviour is covered by interaction stories (P5).
 - Before handing off: `npm run type-check`, `npm run test-storybook -- --run`, and Prettier on changed `.ts`/`.js`
   files, as CI runs it (P10).
-- Keep routes and backend endpoints unchanged while the rewrite is in progress (P8).
+- Don't change routes or backend endpoints as part of frontend work; that needs its own task.
 
 ## Do not
 
-- Add React, `frappe-ui-react` or another UI kit.
+- Add React or another UI kit alongside frappe-ui.
 - Call the server with `fetch` or axios; use the frappe-ui composables (P3).
 - Hard-code colours or reach for raw Tailwind palettes; use the semantic tokens (P4).
-- Port the frappe-ui-react custom icon set or add an icon library; use `lucide-*` icons, and ask before adding one
-  to `icons/` (P4).
+- Add an icon library; use `lucide-*` icons, and ask before adding one to `icons/` (P4).
 - Make broad refactors, rename public APIs or change backend code unless asked.
