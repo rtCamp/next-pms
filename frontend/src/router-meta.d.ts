@@ -9,5 +9,10 @@ declare module "vue-router" {
     roles?: readonly Role[];
     /** A status page: rendered without the sidebar and skipped by the guards. */
     standalone?: boolean;
+    /**
+     * `false` when the page scrolls its own panes, e.g. a list whose header stays
+     * put; the shell then doesn't scroll the page.
+     */
+    scroll?: false;
   }
 }

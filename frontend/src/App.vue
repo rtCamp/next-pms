@@ -11,7 +11,7 @@ const session = useSession();
 <template>
   <FrappeUIProvider>
     <div class="h-screen bg-surface-base text-ink-gray-8">
-      <DesktopShell>
+      <DesktopShell :scroll="route.meta.scroll !== false">
         <template v-if="!route.meta.standalone" #sidebar>
           <AppSidebar
             :roles="session.roles"

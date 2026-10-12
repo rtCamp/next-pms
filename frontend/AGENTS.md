@@ -54,6 +54,8 @@ src/
 **Routes.** Give each route a `meta.title` (the tab title), and `meta.roles` from `ROLE_ACCESS` when only some
 roles may open it. The `beforeEach` guard in `router.ts` sends users without an Employee record to `/no-employee`
 and users without a role to `/no-access`. `meta.standalone` marks a status page: no sidebar, no guard checks.
+`meta.scroll: false` hands scrolling to the page (DesktopShell stops scrolling it), for pages whose header or toolbar
+stays put while a pane scrolls, like the task list's rows.
 
 Never edit the build output in `../next_pms/public/frontend` by hand.
 

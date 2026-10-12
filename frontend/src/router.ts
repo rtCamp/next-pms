@@ -49,7 +49,7 @@ const routes: RouteRecordRaw[] = [
     path: "/tasks",
     name: "task",
     component: () => import("./pages/tasks/TaskList.vue"),
-    meta: { title: "Tasks" },
+    meta: { title: "Tasks", scroll: false },
   },
   {
     path: "/allocations/team",
