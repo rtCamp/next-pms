@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Badge, type BadgeProps } from "frappe-ui";
+import { TASK_STATUS_ICONS } from "./icons";
 import type { TaskStatusProps, TaskStatusValue } from "./types";
 
-const props = withDefaults(defineProps<TaskStatusProps>(), { size: "lg" });
+const props = withDefaults(defineProps<TaskStatusProps>(), {
+  variant: "badge",
+  size: "lg",
+});
 
 type Look = Required<Pick<BadgeProps, "theme" | "variant">>;
 
@@ -20,10 +24,24 @@ const LOOKS: Record<TaskStatusValue, Look> = {
 };
 
 const look = computed(() => LOOKS[props.status] ?? LOOKS.Open);
+const icon = computed(
+  () => TASK_STATUS_ICONS[props.status] ?? TASK_STATUS_ICONS.Open,
+);
 </script>
 
 <template>
+  <span
+    v-if="variant === 'icon'"
+    role="img"
+    :aria-label="status"
+    :title="status"
+    class="inline-flex size-4 shrink-0"
+    :class="icon.color"
+  >
+    <span class="size-4" :class="icon.icon" aria-hidden="true" />
+  </span>
   <Badge
+    v-else
     :theme="look.theme"
     :variant="look.variant"
     :size="size"

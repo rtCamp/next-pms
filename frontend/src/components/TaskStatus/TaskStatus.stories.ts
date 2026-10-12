@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { expect, within } from "storybook/test";
 import TaskStatus from "./TaskStatus.vue";
+import { TASK_STATUS_ICONS } from "./icons";
 import { TASK_STATUSES, type TaskStatusValue } from "./types";
 
 const meta = {
@@ -11,6 +12,7 @@ const meta = {
   args: { status: "Open" },
   argTypes: {
     status: { control: "select", options: [...TASK_STATUSES] },
+    variant: { control: "select", options: ["badge", "icon"] },
     size: { control: "select", options: ["sm", "md", "lg"] },
   },
   render: (args) => ({
@@ -67,5 +69,58 @@ export const ShowsStatusAndTitle: Story = {
   play: async ({ canvasElement }) => {
     const pill = within(canvasElement).getByTitle("Pending Review");
     await expect(pill).toHaveTextContent("Pending Review");
+  },
+};
+
+export const Icon: Story = { args: { status: "Working", variant: "icon" } };
+
+export const AllStatusIcons: Story = {
+  render: () => ({
+    components: { TaskStatus },
+    setup: () => ({ statuses: TASK_STATUSES }),
+    template: `
+      <div class="flex flex-col gap-2 text-base text-ink-gray-6">
+        <div v-for="status in statuses" :key="status" class="flex items-center gap-2">
+          <TaskStatus :status="status" variant="icon" />
+          <span>{{ status }}</span>
+        </div>
+      </div>
+    `,
+  }),
+};
+
+export const IconNamesEveryStatus: Story = {
+  tags: ["interaction"],
+  render: AllStatusIcons.render,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const status of TASK_STATUSES) {
+      const img = canvas.getByRole("img", { name: status });
+      await expect(img).toHaveAttribute("title", status);
+      await expect(
+        img.querySelector(`.${TASK_STATUS_ICONS[status].icon}`),
+      ).not.toBeNull();
+    }
+  },
+};
+
+export const IconHasNoLabelText: Story = {
+  tags: ["interaction"],
+  args: { status: "Overdue", variant: "icon" },
+  play: async ({ canvasElement }) => {
+    const img = within(canvasElement).getByRole("img", { name: "Overdue" });
+    await expect(img).toHaveTextContent("");
+    await expect(img.querySelector(".lucide-timer")).not.toBeNull();
+  },
+};
+
+export const IconUnknownStatusUsesOpen: Story = {
+  tags: ["interaction"],
+  args: { status: LONG_STATUS, variant: "icon" },
+  play: async ({ canvasElement }) => {
+    const img = within(canvasElement).getByRole("img", { name: LONG_STATUS });
+    await expect(
+      img.querySelector(`.${TASK_STATUS_ICONS.Open.icon}`),
+    ).not.toBeNull();
   },
 };
