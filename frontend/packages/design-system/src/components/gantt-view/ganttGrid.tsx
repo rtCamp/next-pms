@@ -219,6 +219,7 @@ export const GanttGrid = forwardRef<GanttGridHandle, GanttGridProps>(
         startDate: props.startDate,
         weekCount: props.weekCount ?? 3,
         hasRoleAccess: props.hasRoleAccess ?? false,
+        canManageAiAllocations: props.canManageAiAllocations ?? false,
         guardAction: props.guardAction,
         onAddAllocation: props.onAddAllocation,
         onEditAllocation: props.onEditAllocation,
@@ -226,6 +227,7 @@ export const GanttGrid = forwardRef<GanttGridHandle, GanttGridProps>(
       }),
       [
         props.hasRoleAccess,
+        props.canManageAiAllocations,
         props.guardAction,
         props.onAddAllocation,
         props.onDeleteAllocation,

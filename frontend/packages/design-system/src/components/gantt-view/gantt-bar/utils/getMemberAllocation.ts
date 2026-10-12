@@ -40,6 +40,7 @@ export function getAllocationSummary(
   const dayHours = new Map<number, number>();
   const dayHasNonBillable = new Map<number, boolean>();
   const dayHasTentative = new Map<number, boolean>();
+  const dayHasAiCreated = new Map<number, boolean>();
   const dayTimeoff = new Map<number, TimeoffPortion>();
   const dayLabel = new Map<number, string>();
   const dayKeys = new Set<number>();
@@ -62,6 +63,9 @@ export function getAllocationSummary(
       }
       if (alloc.tentative) {
         dayHasTentative.set(key, true);
+      }
+      if (alloc.isAiCreated) {
+        dayHasAiCreated.set(key, true);
       }
     }
   }
@@ -95,6 +99,7 @@ export function getAllocationSummary(
         hours,
         billable: !dayHasNonBillable.get(ts),
         tentative: Boolean(dayHasTentative.get(ts)),
+        isAiCreated: Boolean(dayHasAiCreated.get(ts)),
         type: (timeoff ? "timeoff" : "default") as "default" | "timeoff",
         timeoff,
         label: dayLabel.get(ts),
@@ -107,6 +112,7 @@ export function getAllocationSummary(
     hours,
     billable,
     tentative,
+    isAiCreated,
     type,
     timeoff,
     label,
@@ -117,6 +123,7 @@ export function getAllocationSummary(
       last.hours === hours &&
       last.billable === billable &&
       last.tentative === tentative &&
+      last.isAiCreated === isAiCreated &&
       last.type === type &&
       last.timeoff === timeoff &&
       last.label === label &&
@@ -130,6 +137,7 @@ export function getAllocationSummary(
         endDate: date,
         billable,
         tentative,
+        isAiCreated,
         type,
         timeoff,
         label,

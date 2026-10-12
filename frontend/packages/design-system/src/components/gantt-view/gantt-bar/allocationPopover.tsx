@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Avatar, Button } from "@rtcamp/frappe-ui-react";
+import { Avatar, Button, Tooltip } from "@rtcamp/frappe-ui-react";
 import {
   AddMd,
   Calendar,
@@ -35,6 +35,7 @@ export interface AllocationEntry {
   totalHours: string;
   status: "confirmed" | "tentative";
   billable: boolean;
+  isAiCreated?: boolean;
   updatedByName?: string;
   updatedByImage?: string;
   onEdit?: () => void;
@@ -48,6 +49,7 @@ export interface AllocationEntry {
 interface AllocationItemProps {
   entry: AllocationEntry;
   hasRoleAccess: boolean;
+  canManageAiAllocations: boolean;
   variant: GanttGridVariant;
 }
 
@@ -57,9 +59,13 @@ interface AllocationItemProps {
 function AllocationItem({
   entry,
   hasRoleAccess,
+  canManageAiAllocations,
   variant,
 }: AllocationItemProps) {
   const StatusIcon = entry.status === "confirmed" ? Check : Tentative;
+  const canManageEntry = entry.isAiCreated
+    ? canManageAiAllocations
+    : hasRoleAccess;
   const employeeHref =
     hasRoleAccess && entry.employeeId
       ? getEmployeeHref(entry.employeeId)
@@ -68,7 +74,6 @@ function AllocationItem({
     hasRoleAccess && entry.projectId
       ? getProjectHref(entry.projectId)
       : undefined;
-
   return (
     <div className="flex flex-col gap-3">
       {variant === "project" ? (
@@ -138,17 +143,28 @@ function AllocationItem({
 
         {/* Created / Last edited row with avatar and edit/delete actions */}
         <div className="flex gap-2 justify-between items-center">
-          {(entry.createdOn || entry.updatedOn) && (
+          {entry.isAiCreated ? (
+            <div className="flex flex-1 gap-2 items-center">
+              <span className="text-sm truncate text-ink-amber-4 mr-10 font-semibold">
+                Ai
+                {entry.createdOn
+                  ? ` created on ${format(entry.createdOn, "MMM d")}`
+                  : " created"}
+              </span>
+            </div>
+          ) : entry.createdOn || entry.updatedOn ? (
             <div className="flex flex-1 gap-2 items-center">
               {entry.updatedByName && (
-                <div className="shrink-0 flex items-center">
-                  <Avatar
-                    size="xs"
-                    shape="circle"
-                    image={entry.updatedByImage}
-                    label={entry.updatedByName}
-                  />
-                </div>
+                <Tooltip text={entry.updatedByName}>
+                  <div className="shrink-0 flex items-center">
+                    <Avatar
+                      size="xs"
+                      shape="circle"
+                      image={entry.updatedByImage}
+                      label={entry.updatedByName}
+                    />
+                  </div>
+                </Tooltip>
               )}
               <span className="text-sm truncate text-ink-gray-6 mr-10">
                 {entry.updatedOn &&
@@ -160,9 +176,9 @@ function AllocationItem({
                     : null}
               </span>
             </div>
-          )}
+          ) : null}
 
-          {hasRoleAccess && (entry.onEdit || entry.onDelete) && (
+          {canManageEntry && (entry.onEdit || entry.onDelete) && (
             <div className="flex gap-2 items-center shrink-0">
               {entry.onEdit && (
                 <button
@@ -197,6 +213,7 @@ interface GanttAllocationPopoverProps {
   variant: GanttGridVariant;
   onAdd?: () => void;
   hasRoleAccess?: boolean;
+  canManageAiAllocations?: boolean;
   dayOff?: { label: string; isHoliday: boolean };
 }
 
@@ -205,6 +222,7 @@ export function GanttAllocationPopover({
   variant,
   onAdd,
   hasRoleAccess = false,
+  canManageAiAllocations = false,
   dayOff,
 }: GanttAllocationPopoverProps) {
   const DayOffIcon = dayOff?.isHoliday ? Holiday : TimeOff;
@@ -229,6 +247,7 @@ export function GanttAllocationPopover({
             <AllocationItem
               entry={entry}
               hasRoleAccess={hasRoleAccess}
+              canManageAiAllocations={canManageAiAllocations}
               variant={variant}
             />
           </div>

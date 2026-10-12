@@ -9,13 +9,14 @@ import { ArrowLeft } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
+import { FollowersBadge } from "@/pages/project-details/components/followersBadge";
+import type { Follower } from "@/pages/project-details/types";
 import { useUser } from "@/providers/user";
 import { RISK_DETAIL_PARAM } from "../constants";
-import { FollowersBadge } from "./followersBadge";
 import { RiskLevelBadge } from "../riskLevelBadge";
 import { RiskRowActions } from "../riskRowActions";
 import { RiskStatusBadge } from "../riskStatusBadge";
-import type { RiskDetail, Follower } from "../types";
+import type { RiskDetail } from "../types";
 
 interface RiskDetailHeaderProps {
   risk: RiskDetail;

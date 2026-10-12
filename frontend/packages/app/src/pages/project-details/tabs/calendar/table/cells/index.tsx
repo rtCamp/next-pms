@@ -7,6 +7,7 @@ import { ActionsCell } from "./actionsCell";
 import { DateCell } from "./dateCell";
 import { OwnerCell } from "./ownerCell";
 import { TitleCell } from "./titleCell";
+import { TodosCell } from "./todosCell";
 import { WatchersCell } from "./watchersCell";
 import { isDateOverdue } from "../../utils";
 
@@ -32,6 +33,8 @@ export function TimelineCell({ item, column }: TimelineCellProps) {
       );
     case "actualEndDate":
       return <DateCell date={item.actualEndDate} />;
+    case "todos":
+      return <TodosCell item={item} />;
     case "owner":
       return <OwnerCell owner={item.owner} />;
     case "watchers":

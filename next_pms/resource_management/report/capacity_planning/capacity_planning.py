@@ -6,7 +6,7 @@ import datetime
 import frappe
 from erpnext.setup.utils import get_exchange_rate
 from frappe import _, get_list, get_meta, get_value
-from frappe.utils import add_days, getdate
+from frappe.utils import add_days, flt, getdate
 from hrms.hr.utils import get_holidays_for_employee
 
 from next_pms.resource_management.api.utils.helpers import is_on_leave
@@ -204,7 +204,7 @@ def batch_fetch_exchange_rates(project_data):
     )
     exchange_rates = {}
     for currency in currencies:
-        exchange_rates[currency] = get_exchange_rate(currency, CURRENCY)
+        exchange_rates[currency] = flt(get_exchange_rate(currency, CURRENCY))
     return exchange_rates
 
 
@@ -435,7 +435,7 @@ def calculate_revenue_batch(
 
                 # Apply exchange rate
                 if proj.custom_currency and proj.custom_currency != CURRENCY:
-                    rate *= exchange_rates.get(proj.custom_currency, 1)
+                    rate *= exchange_rates.get(proj.custom_currency, 0)
 
                 total_revenue += allocation.hours_allocated_per_day * rate
 

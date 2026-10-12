@@ -14,6 +14,8 @@ RESOURCE_MANAGER_ROLES = frozenset(
     {"Projects Manager", "Projects User", "Delivery Manager", "Delivery User", "System Manager"}
 )
 
+AI_ALLOCATION_MANAGER_ROLES = frozenset({"Delivery Manager"})
+
 DEFAULT_ALLOCATION_RATE_CURRENCY = "USD"
 
 
@@ -553,3 +555,7 @@ def resource_api_permissions_check():
         return {"read": True, "write": True, "delete": True}
 
     return {"read": False, "write": False, "delete": False}
+
+
+def can_manage_ai_allocations(user: str | None = None) -> bool:
+    return bool(AI_ALLOCATION_MANAGER_ROLES & set(frappe.get_roles(user)))

@@ -44,6 +44,8 @@ export type AllocationApiRecord = {
   allocation_start_date: string;
   allocation_end_date: string;
   is_billable: number;
+  is_ai_created?: number;
+  ai_allocation_reason?: string | null;
   include_weekends?: number;
   include_holidays?: number;
   note?: string | null;
@@ -51,6 +53,7 @@ export type AllocationApiRecord = {
   creation?: string | null;
   modified?: string | null;
   modified_by?: string | null;
+  modified_by_full_name?: string | null;
   modified_by_avatar?: string | null;
   override?: AllocationOverrideEntry[];
 };
@@ -248,6 +251,8 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
     includeHolidays: Boolean(allocation.include_holidays),
     billable: Boolean(allocation.is_billable),
     tentative: allocation.status === "Tentative",
+    isAiCreated: Boolean(allocation.is_ai_created),
+    aiReason: allocation.ai_allocation_reason ?? undefined,
     note: allocation.note ?? undefined,
     override: allocation.override,
     createdOn: allocation.creation
@@ -258,7 +263,7 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
       : undefined,
     updatedBy: allocation.modified_by
       ? {
-          name: allocation.modified_by,
+          name: allocation.modified_by_full_name || allocation.modified_by,
           image: allocation.modified_by_avatar || undefined,
         }
       : undefined,

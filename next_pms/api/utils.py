@@ -171,7 +171,7 @@ def sum_to_usd(rows: list, cur_key: str, prev_key: str) -> tuple[float, float]:
     for row in rows:
         rate = 1.0
         if row.currency != "USD":
-            rate = get_exchange_rate(row.currency, "USD", row.transaction_date) or 1
+            rate = flt(get_exchange_rate(row.currency, "USD", row.transaction_date))
         current += flt(row[cur_key]) * rate
         previous += flt(row[prev_key]) * rate
     return current, previous

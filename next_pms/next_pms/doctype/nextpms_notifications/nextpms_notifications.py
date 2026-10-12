@@ -61,6 +61,7 @@ class NextPMSNotifications(Document):
                 message=self.email_message,
                 reference_doctype=self.linked_doctype,
                 reference_name=self.linked_document,
+                now=True,
             )
         except Exception:
             frappe.log_error(

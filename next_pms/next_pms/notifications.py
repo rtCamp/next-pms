@@ -7,6 +7,10 @@ from frappe.desk.notifications import extract_mentions
 from frappe.utils import formatdate, get_fullname, get_url, getdate, strip_html
 
 from next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications import create_notification, truncate
+from next_pms.next_pms.doctype.pms_project_update_subscription.pms_project_update_subscription import (
+    get_project_account_manager,
+    get_project_subscribers,
+)
 
 MENTION_EMAIL_TEMPLATE = "next_pms/templates/mention_notification.html"
 
@@ -164,6 +168,80 @@ def render_risk_owner_email(user, doc, project_name):
     }
 
 
+def growth_on_update(doc, method=None):
+    """Notify followers of a Growth Initiative when its status changes."""
+    if not doc.status:
+        return
+
+    previous = doc.get_doc_before_save()
+    if not previous or previous.status == doc.status:
+        return
+
+    actor = frappe.session.user
+    project_name = frappe.db.get_value("Project", doc.project, "project_name")
+    label = _("{0} updated the growth initiative status to {1} in {2}").format(
+        get_fullname(actor), doc.status, project_name
+    )
+
+    title = _("Growth initiative update")
+    url = growth_deep_link(doc)
+    for user in get_followers("PMS Growth Initiative", doc.name):
+        if user == actor:
+            continue
+        create_notification(user, title, label, "PMS Growth Initiative", doc.name, url=url)
+
+
+def growth_deep_link(doc):
+    return f"/next-pms/projects/{doc.project}?tab=growth&growth={doc.name}"
+
+
+def growth_owner_on_update(doc, method=None):
+    """Notify a user when they are assigned or reassigned as the activity owner of a Growth Initiative."""
+    owner = doc.activity_owner
+    if not owner:
+        return
+
+    previous = doc.get_doc_before_save()
+    previous_owner = previous.activity_owner if previous else None
+    if owner == previous_owner or owner == frappe.session.user:
+        return
+
+    project_name = frappe.db.get_value("Project", doc.project, "project_name") or doc.project
+    label = _('{0} assigned you the growth initiative "{1}" in {2}').format(
+        get_fullname(frappe.session.user), truncate(doc.activity, 80), project_name
+    )
+    create_notification(
+        owner,
+        _("Growth initiative assigned"),
+        label,
+        "PMS Growth Initiative",
+        doc.name,
+        url=growth_deep_link(doc),
+        email=render_growth_owner_email(owner, doc, project_name),
+    )
+
+
+def render_growth_owner_email(user, doc, project_name):
+    """Render the assignment email now so it describes the assignment as it was when made."""
+    user_details = frappe.db.get_value("User", user, ["email", "enabled", "full_name"], as_dict=True)
+    if not user_details or not user_details.email or not user_details.enabled:
+        return None
+
+    message = frappe.render_template(  # nosemgrep - trusted template file
+        "next_pms/templates/growth/activity_owner_assigned.html",
+        {
+            "full_name": user_details.full_name or user,
+            "growth": doc,
+            "project_name": project_name,
+            "growth_url": get_url(growth_deep_link(doc)),
+        },
+    )
+    return {
+        "subject": _("You have been assigned as the owner of a growth initiative in {0}").format(project_name),
+        "message": message,
+    }
+
+
 def project_on_update(doc, method=None):
     """Notify the project manager and followers when the project health (RAG) changes."""
     if not doc.custom_project_rag_status:
@@ -185,6 +263,86 @@ def project_on_update(doc, method=None):
     url = f"/next-pms/projects/{doc.name}?tab=rag-stats"
     for user in recipients:
         create_notification(user, title, label, "Project", doc.name, url=url)
+
+
+def project_status_update_on_update(doc, method=None):
+    """Notify the project's note audience when a Project Status Update moves into Publish."""
+    if doc.status != "Publish":
+        return
+
+    previous = doc.get_doc_before_save()
+    if previous and previous.status == "Publish":
+        return
+
+    frappe.enqueue(
+        send_note_published_notifications,
+        note=doc.name,
+        actor=frappe.session.user,
+        subscribers=get_project_subscribers(doc.project),
+        queue="short",
+        enqueue_after_commit=True,
+        job_name=f"Published Notifications for {doc.name}",
+    )
+
+
+def send_note_published_notifications(note, actor, subscribers):
+    """Notify the project's subscribers at publish time and its Account Manager of a published note, once each."""
+    if not frappe.db.exists("Project Status Update", note):
+        return
+
+    doc = frappe.get_doc("Project Status Update", note)
+    recipients = set(subscribers)
+    account_manager = get_project_account_manager(doc.project)
+    if account_manager:
+        recipients.add(account_manager)
+    recipients.discard(actor)
+    if not recipients:
+        return
+
+    project_name = frappe.db.get_value("Project", doc.project, "project_name") or doc.project
+    author_name = get_fullname(actor)
+    title = _("New project note")
+    label = _('{0} posted "{1}" in {2}').format(author_name, truncate(doc.title, 80), project_name)
+    url = note_deep_link(doc)
+    email_context = {
+        "note": doc,
+        "project_name": project_name,
+        "author_name": author_name,
+        "note_url": get_url(url),
+    }
+
+    for user in frappe.get_all(
+        "User",
+        filters={"name": ["in", list(recipients)], "enabled": 1},
+        fields=["name", "email", "full_name"],
+    ):
+        create_notification(
+            user.name,
+            title,
+            label,
+            "Project Status Update",
+            doc.name,
+            url=url,
+            email=render_note_published_email(user, email_context),
+        )
+
+
+def note_deep_link(doc):
+    return f"/next-pms/projects/{doc.project}?tab=notes&note={doc.name}"
+
+
+def render_note_published_email(user, context):
+    if not user.email:
+        return None
+
+    message = frappe.render_template(  # nosemgrep - trusted template file
+        "next_pms/templates/notes/note_published.html",
+        {**context, "full_name": user.full_name or user.name},
+    )
+    return {
+        "subject": _('New note "{0}" in {1}').format(truncate(context["note"].title, 80), context["project_name"]),
+        "message": message,
+    }
 
 
 def customer_feedback_on_submit(doc, method=None):
@@ -282,3 +440,102 @@ def send_review_reminders():
         )
         url = f"/next-pms/timesheet/team?{query}"
         create_notification(reviewer_user, title, label, "Timesheet", entry["timesheet"], url=url)
+
+
+def ai_allocation_after_insert(doc, method=None):
+    """Notify Delivery Managers when an AI allocation is created."""
+    if not getattr(doc, "is_ai_created", 0):
+        return
+
+    sync_ai_allocation_notifications(doc.project, new_doc=doc)
+
+
+def sync_ai_allocation_notifications(project=None, new_doc=None):
+    delivery_managers = frappe.get_all(
+        "Has Role",
+        filters={"role": "Delivery Manager", "parenttype": "User"},
+        pluck="parent",
+    )
+    if not delivery_managers:
+        return
+
+    active_users = frappe.get_all(
+        "User",
+        filters={
+            "name": ["in", list(set(delivery_managers))],
+            "enabled": 1,
+            "user_type": "System User",
+        },
+        pluck="name",
+    )
+    active_users = [user for user in active_users if user not in ("Administrator", "Guest")]
+    if not active_users:
+        return
+
+    linked_doctype = "Project" if project else "Resource Allocation"
+    linked_document = project or (new_doc.name if new_doc else "")
+
+    if not linked_document:
+        return
+
+    # Serialize concurrent AI inserts for the same project so they share one notification.
+    if project:
+        frappe.db.get_value("Project", project, "name", for_update=True)
+
+    # Resolve project title
+    project_name = None
+    if project:
+        project_name = frappe.db.get_value("Project", project, "project_name") or project
+    title = project_name or _("Resource Allocation")
+
+    label = _("You have AI-generated allocations that need to be reviewed.")
+
+    url = (
+        f"/next-pms/allocations/project?{urlencode({'search': project_name})}"
+        if project
+        else "/next-pms/allocations/team"
+    )
+
+    for user in active_users:
+        existing = frappe.db.get_value(
+            "NextPMS Notifications",
+            filters={
+                "user": user,
+                "linked_doctype": linked_doctype,
+                "linked_document": linked_document,
+                "viewed": 0,
+            },
+            fieldname="name",
+            for_update=True,
+        )
+        if existing:
+            frappe.db.set_value(
+                "NextPMS Notifications",
+                existing,
+                {
+                    "title": truncate(title, frappe.db.VARCHAR_LEN),
+                    "label": truncate(label, frappe.db.VARCHAR_LEN),
+                    "url": url,
+                    "creation": frappe.utils.now(),
+                    "modified": frappe.utils.now(),
+                },
+            )
+        else:
+            frappe.get_doc(
+                {
+                    "doctype": "NextPMS Notifications",
+                    "user": user,
+                    "title": truncate(title, frappe.db.VARCHAR_LEN),
+                    "label": truncate(label, frappe.db.VARCHAR_LEN),
+                    "linked_doctype": linked_doctype,
+                    "linked_document": linked_document,
+                    "url": url,
+                    "viewed": 0,
+                }
+            ).insert(ignore_permissions=True)
+
+        frappe.publish_realtime(
+            event="notification",
+            user=user,
+            after_commit=True,
+        )

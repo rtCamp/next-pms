@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _, get_meta
-from frappe.utils import getdate
+from frappe.utils import flt, getdate
 
 from next_pms.resource_management.api.utils.query import get_allocation_list_for_employee_for_given_range
 from next_pms.resource_management.report.utils import calculate_employee_available_hours, calculate_employee_hours
@@ -124,9 +124,9 @@ def get_data(filters=None, has_bu_field=False):
     exchange_rates = {currency: 1}  # Base currency
     for curr in currencies:
         try:
-            exchange_rates[curr] = get_exchange_rate(curr, currency) or 1
+            exchange_rates[curr] = flt(get_exchange_rate(curr, currency))
         except Exception:
-            exchange_rates[curr] = 1
+            exchange_rates[curr] = 0
 
     # Process employees with pre-fetched data
     for emp in employees:
@@ -172,7 +172,7 @@ def get_data(filters=None, has_bu_field=False):
 
         # Convert currency using pre-fetched rates
         if emp.currency != currency and emp.get("ctc"):
-            rate = exchange_rates.get(emp.currency, 1)
+            rate = exchange_rates.get(emp.currency, 0)
             emp.ctc = emp.ctc * rate
             emp.currency = currency
 

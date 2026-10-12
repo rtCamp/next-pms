@@ -9,14 +9,12 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
+import { DocumentUploadButton } from "@/pages/project-details/components/documentUploadButton";
+import { FileCard } from "@/pages/project-details/components/fileCard";
+import type { FileAttachment } from "@/pages/project-details/types";
+import { useUser } from "@/providers/user";
 import { AddUpdateModal } from "../add-update";
-import type {
-  EnrichedRiskUpdateEntry,
-  RiskDetail,
-  FileAttachment,
-} from "../types";
-import { DocumentUploadButton } from "./documentUploadButton";
-import { FileCard } from "./fileCard";
+import type { EnrichedRiskUpdateEntry, RiskDetail } from "../types";
 import { UpdateEntry } from "./updateEntry";
 
 interface RiskDetailContentProps {
@@ -36,12 +34,20 @@ export function RiskDetailContent({
   onDeleteUpdateEntry,
   canEditRisk,
 }: RiskDetailContentProps) {
+  const { userId, roles } = useUser(({ state }) => ({
+    userId: state.userId,
+    roles: state.roles,
+  }));
   const [isAddUpdateOpen, setIsAddUpdateOpen] = useState(false);
   const [editEntry, setEditEntry] = useState<EnrichedRiskUpdateEntry | null>(
     null,
   );
   const [deleteEntry, setDeleteEntry] =
     useState<EnrichedRiskUpdateEntry | null>(null);
+
+  const isSystemManager = roles.includes("System Manager");
+  const canManageEntry = (entry: EnrichedRiskUpdateEntry) =>
+    canEditRisk && (isSystemManager || entry.updated_by === userId);
 
   const filteredSummary = risk.summary ?? "";
   const filteredMitigationPlan = risk.mitigation_plan ?? "";
@@ -106,7 +112,8 @@ export function RiskDetailContent({
             </h3>
             {canEditRisk && (
               <DocumentUploadButton
-                riskName={risk.name}
+                doctype="Risk"
+                docname={risk.name}
                 onSuccess={() => {
                   mutate();
                   mutateAttachments();
@@ -147,7 +154,7 @@ export function RiskDetailContent({
                 <UpdateEntry
                   key={entry.name}
                   entry={entry}
-                  canEdit={canEditRisk}
+                  canEdit={canManageEntry(entry)}
                   onEdit={() => setEditEntry(entry)}
                   onDelete={() => setDeleteEntry(entry)}
                 />

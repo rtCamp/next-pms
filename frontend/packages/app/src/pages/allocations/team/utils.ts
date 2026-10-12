@@ -36,8 +36,9 @@ export function resolveAllocationTypeSelection(
   const hasBillable = allocationsType.includes("billable");
   const hasNonBillable = allocationsType.includes("non-billable");
   const includeUnallocated = allocationsType.includes("no-allocation");
+  const isAiCreatedOnly = allocationsType.includes("ai-created");
   const isStatusApplicable =
-    !includeUnallocated || hasBillable || hasNonBillable;
+    !includeUnallocated || hasBillable || hasNonBillable || isAiCreatedOnly;
 
   return {
     billableValues: [
@@ -51,6 +52,7 @@ export function resolveAllocationTypeSelection(
       : [],
     includeUnallocated,
     isStatusApplicable,
+    isAiCreatedOnly,
   };
 }
 
