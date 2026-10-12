@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
+import vueDevTools from "vite-plugin-vue-devtools";
 import frappeui from "frappe-ui/vite";
 import type { Plugin as EsbuildPlugin } from "esbuild";
 
@@ -45,6 +46,8 @@ export default defineConfig({
       },
     }),
     vue(),
+    // Applies to the dev server only; Storybook and story tests drop it.
+    vueDevTools(),
   ],
   optimizeDeps: {
     // frappe-ui's editor `.vue` node views can't be pre-bundled with the rest of
