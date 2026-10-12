@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { Breadcrumbs, Button, PageHeader } from "frappe-ui";
+import { Breadcrumbs, Button, PageHeaderBase } from "frappe-ui";
 
 defineEmits<{ addTask: [] }>();
 </script>
 
 <template>
-  <PageHeader>
-    <div class="flex w-full items-center justify-between gap-2">
+  <!-- PageHeaderBase brings no padding of its own; the 56px row with 12px sides
+       matches the React page header. -->
+  <PageHeaderBase class="z-10 border-b border-outline-gray-1 bg-surface-base">
+    <div class="flex h-14 items-center justify-between gap-2 px-3 py-2">
       <Breadcrumbs :items="[{ label: 'Tasks' }]" />
       <Button
         variant="solid"
@@ -15,5 +17,5 @@ defineEmits<{ addTask: [] }>();
         @click="$emit('addTask')"
       />
     </div>
-  </PageHeader>
+  </PageHeaderBase>
 </template>

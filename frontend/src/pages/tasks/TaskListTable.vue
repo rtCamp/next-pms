@@ -156,8 +156,15 @@ watch(
   </div>
   <LoadingOverlay v-else :active="taskList.isFilterRequest">
     <div class="overflow-x-auto px-5">
-      <List :columns="columnWidths" aria-label="Tasks" class="w-max min-w-full">
-        <ListHeader>
+      <!-- Spacing from the React list: 8px row inset; rows and header step by 41px and
+           45px because React's 1px dividers take up space. -->
+      <List
+        :columns="columnWidths"
+        :row-height="41"
+        aria-label="Tasks"
+        class="w-max min-w-full list-row-px-2"
+      >
+        <ListHeader class="!h-[45px]">
           <template v-for="column in columns" :key="column.key">
             <ListHeaderCellSort
               v-if="SORT_FIELD_BY_COLUMN.has(column.key)"

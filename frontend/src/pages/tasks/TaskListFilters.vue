@@ -130,34 +130,31 @@ const externalFilterCount = computed(
 <template>
   <div class="flex flex-wrap justify-between gap-2 px-5 py-3.5">
     <div class="flex gap-2">
-      <div class="w-44 shrink-0">
-        <TextInput
-          v-model="search"
-          size="sm"
-          placeholder="Search task"
-          aria-label="Search task"
-          :debounce="400"
-        />
-      </div>
-      <div class="w-44 shrink-0">
-        <Combobox
-          v-model="project"
-          v-model:query="projectQuery"
-          :options="projectOptions"
-          :loading="projectLookup.loading"
-          :filterable="false"
-          placeholder="Project"
-          aria-label="Project"
-        />
-      </div>
-      <div class="w-44 shrink-0">
-        <MultiSelect
-          v-model="status"
-          :options="TASK_STATUS_OPTIONS"
-          placeholder="Status"
-          aria-label="Status"
-        />
-      </div>
+      <TextInput
+        v-model="search"
+        class="w-44 shrink-0"
+        size="sm"
+        placeholder="Search task"
+        aria-label="Search task"
+        :debounce="400"
+      />
+      <Combobox
+        v-model="project"
+        v-model:query="projectQuery"
+        class="w-44 shrink-0"
+        :options="projectOptions"
+        :loading="projectLookup.loading"
+        :filterable="false"
+        placeholder="Project"
+        aria-label="Project"
+      />
+      <MultiSelect
+        v-model="status"
+        class="w-44 shrink-0"
+        :options="TASK_STATUS_OPTIONS"
+        placeholder="Status"
+        aria-label="Status"
+      />
     </div>
     <div class="flex gap-2">
       <ColumnSelector
