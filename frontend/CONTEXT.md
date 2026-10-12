@@ -15,6 +15,10 @@ _Avoid_: member, resource (as a noun for a person), staff.
 `Delivery Manager`. Pages check roles in the router; the backend enforces permissions again.
 _Avoid_: permission (for a role), group.
 
+**Session** — the signed-in user as the app sees them: user id and name, roles and employee record, from
+`useSession()`.
+_Avoid_: user store, auth, current user (for the whole object).
+
 **Reporting manager** — the employee a person reports to; the default reviewer of their timesheets.
 _Avoid_: boss, approver (unless the field is literally named so).
 
