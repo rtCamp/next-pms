@@ -38,7 +38,10 @@ import {
   type TodoStatus,
 } from "./schema";
 import type { CreateTodoModalProps } from "./types";
+import { LINKED_RECORD_GROUPS, LINKED_RECORD_ICON } from "../constants";
 import { useTodos } from "../provider/context";
+import { useLinkableRecords } from "../useLinkableRecords";
+import { linkKey } from "../utils";
 
 const STATUS_ICON: Record<
   TodoStatus,
@@ -77,11 +80,16 @@ const PriorityDot = ({ priority }: { priority: TodoPriority }) => (
   />
 );
 
-export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
+export function CreateTodoModal({
+  open,
+  onClose,
+  todo,
+  linkedTo = null,
+}: CreateTodoModalProps) {
   const userId = useUser((state) => state.state.userId);
   const createTodo = useTodos((c) => c.actions.createTodo);
   const updateTodo = useTodos((c) => c.actions.updateTodo);
-  const isCreating = useTodos((c) => c.state.isCreating);
+  const isSaving = useTodos((c) => c.state.isSaving);
   const [assigneeSearch, setAssigneeSearch] = useState("");
 
   const hasTodoCustomFields = Boolean(
@@ -98,8 +106,9 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
       startAt: "",
       endAt: "",
       priority: "Medium",
+      linkedTo,
     }),
-    [userId],
+    [userId, linkedTo],
   );
 
   const initialValues: CreateTodoValues = useMemo(() => {
@@ -112,8 +121,9 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
       startAt: todo.custom_from_time ?? "",
       endAt: todo.custom_to_time ?? "",
       priority: todo.priority,
+      linkedTo,
     };
-  }, [todo, emptyValues]);
+  }, [todo, emptyValues, linkedTo]);
 
   const todoSchema = useMemo(
     () => buildCreateTodoSchema(hasTodoCustomFields),
@@ -126,7 +136,7 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
     onSubmit: async ({ value }) => {
       const doc =
         isEditMode && todo
-          ? await updateTodo(todo.name, value)
+          ? await updateTodo(todo, value)
           : await createTodo(value);
       if (doc) closeModal();
     },
@@ -155,6 +165,38 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
       query: assigneeSearch,
     });
 
+  const {
+    records: linkableRecords,
+    isLoading: isLinkableLoading,
+    canLink,
+  } = useLinkableRecords(open);
+  const isLinkLocked = Boolean(
+    linkedTo && !isLinkableLoading && !canLink(linkedTo),
+  );
+
+  const { linkOptions, recordsByKey } = useMemo(() => {
+    const records =
+      linkedTo && isLinkLocked
+        ? [...linkableRecords, linkedTo]
+        : linkableRecords;
+    return {
+      recordsByKey: new Map(records.map((record) => [linkKey(record), record])),
+      linkOptions: LINKED_RECORD_GROUPS.map(({ type, label }) => ({
+        group: label,
+        options: records
+          .filter((record) => record.type === type)
+          .map((record) => {
+            const Icon = LINKED_RECORD_ICON[record.type];
+            return {
+              label: record.title,
+              value: linkKey(record),
+              icon: <Icon className="size-4 text-ink-gray-6" />,
+            };
+          }),
+      })).filter((group) => group.options.length > 0),
+    };
+  }, [isLinkLocked, linkableRecords, linkedTo]);
+
   const assigneeOptionsWithAvatars = useMemo(
     () =>
       assigneeOptions.map((opt) => ({
@@ -175,14 +217,14 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
-      options={{ title: isEditMode ? "Edit to-do" : "Add to-do", size: "lg" }}
+      options={{ title: isEditMode ? "Edit ToDo" : "Add ToDo", size: "lg" }}
       actions={
         <Button
           className="w-full h-7"
           variant="solid"
           label={isEditMode ? "Save" : "Create"}
-          loading={isCreating}
-          disabled={isCreating}
+          loading={isSaving}
+          disabled={isSaving}
           onClick={() => form.handleSubmit()}
         />
       }
@@ -366,6 +408,33 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
               />
             )}
           />
+
+          {(isLinkableLoading || linkOptions.length > 0) && (
+            <form.Field
+              name="linkedTo"
+              children={(field) => (
+                <div className="w-88">
+                  <Combobox
+                    inputClassName="bg-surface-gray-2 h-8 border-0"
+                    loading={isLinkableLoading}
+                    options={linkOptions}
+                    placeholder="Link to milestone, touchpoint or growth initiative"
+                    value={
+                      field.state.value ? linkKey(field.state.value) : null
+                    }
+                    onChange={(value) =>
+                      field.handleChange(
+                        (value && recordsByKey.get(value)) || null,
+                      )
+                    }
+                    disabled={isLinkLocked}
+                    clearable={!isLinkLocked}
+                    openOnFocus
+                  />
+                </div>
+              )}
+            />
+          )}
         </div>
       </div>
     </Dialog>

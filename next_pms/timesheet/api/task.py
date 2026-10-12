@@ -359,6 +359,7 @@ def get_task_log(task: str, start_date: str = None, end_date: str = None, employ
     manager_roles = {
         "Projects Manager",
         "Timesheet Manager",
+        "Timesheet User",
         "Delivery Manager",
         "Delivery User",
         "HR Manager",

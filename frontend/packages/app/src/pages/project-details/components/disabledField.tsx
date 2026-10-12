@@ -4,21 +4,18 @@
 import type { ReactNode } from "react";
 import { FormLabel } from "@rtcamp/frappe-ui-react";
 
-/**
- * Internal dependencies.
- */
-import { DISABLED_FIELD_CLASS } from "./constants";
-
-interface DisabledRiskFieldProps {
+interface DisabledFieldProps {
   label: string;
   children: ReactNode;
 }
 
-export function DisabledRiskField({ label, children }: DisabledRiskFieldProps) {
+export function DisabledField({ label, children }: DisabledFieldProps) {
   return (
     <div className="flex flex-col gap-1.5">
       <FormLabel size="md">{label}</FormLabel>
-      <div className={DISABLED_FIELD_CLASS}>{children}</div>
+      <div className="flex h-8 items-center gap-1 rounded border border-outline-gray-2 bg-surface-gray-1 px-2.5 text-ink-gray-5">
+        {children}
+      </div>
     </div>
   );
 }

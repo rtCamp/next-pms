@@ -13,6 +13,10 @@ export const addProjectFormSchema = z.object({
     .string({ required_error: "Select Company" })
     .trim()
     .min(1, { message: "Select Company" }),
+  customer: z
+    .string({ required_error: "Select Customer" })
+    .trim()
+    .min(1, { message: "Select Customer" }),
 });
 
 export type AddProjectFormValues = z.infer<typeof addProjectFormSchema>;

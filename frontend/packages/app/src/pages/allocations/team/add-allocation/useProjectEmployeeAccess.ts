@@ -27,11 +27,12 @@ export function useProjectEmployeeAccess({
   employeeId,
   enabled,
 }: UseProjectEmployeeAccessOptions) {
-  const { data, isLoading } = useFrappeGetCall<ProjectEmployeeAccessResponse>(
-    "next_pms.timesheet.api.project.get_project_employee_access",
-    { project: projectId || undefined, employee: employeeId || undefined },
-    enabled && (projectId || employeeId) ? undefined : null,
-  );
+  const { data, isLoading, isValidating, mutate } =
+    useFrappeGetCall<ProjectEmployeeAccessResponse>(
+      "next_pms.timesheet.api.project.get_project_employee_access",
+      { project: projectId || undefined, employee: employeeId || undefined },
+      enabled && (projectId || employeeId) ? undefined : null,
+    );
   const access = data?.message;
 
   return {
@@ -40,5 +41,7 @@ export function useProjectEmployeeAccess({
     isValid: access?.is_valid ?? false,
     hasAnswer: access !== undefined,
     isLoading,
+    isValidating,
+    retry: mutate,
   };
 }

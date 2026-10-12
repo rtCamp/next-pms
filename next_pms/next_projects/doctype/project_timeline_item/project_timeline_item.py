@@ -8,6 +8,7 @@ from frappe.model.document import Document
 from next_pms.next_projects.doctype.project_timeline_item_category.project_timeline_item_category import (
     get_fallback_category,
 )
+from next_pms.utils.linked_todos import validate_linked_todos
 
 
 class ProjectTimelineItem(Document):
@@ -19,12 +20,15 @@ class ProjectTimelineItem(Document):
     if TYPE_CHECKING:
         from frappe.types import DF
 
+        from next_pms.next_pms.doctype.pms_linked_todo.pms_linked_todo import PMSLinkedToDo
+
         actual_end_date: DF.Date | None
         category: DF.Link | None
         is_complete: DF.Check
         is_internal: DF.Check
         item_owner: DF.Link
         item_owner_name: DF.Data | None
+        linked_todos: DF.Table[PMSLinkedToDo]
         planned_end_date: DF.Date
         project: DF.Link
         start_date: DF.Date | None
@@ -37,6 +41,7 @@ class ProjectTimelineItem(Document):
             self.start_date = self.planned_end_date
 
         self.validate_category()
+        validate_linked_todos(self)
 
     def validate_category(self):
         if not self.category:

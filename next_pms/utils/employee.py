@@ -1,6 +1,6 @@
 from frappe import _, get_cached_doc, get_cached_value, get_value
 from frappe import throw as error
-from frappe.utils import get_date_str
+from frappe.utils import flt, get_date_str
 from hrms.hr.utils import get_holidays_for_employee
 
 from next_pms.resource_management.api.utils.query import get_employee_leaves
@@ -48,7 +48,7 @@ def get_employee_salary(
 
     if salary_currency != to_currency:
         exchange_rate = get_exchange_rate(salary_currency, to_currency, date)
-        ctc = ctc * (exchange_rate or 1)
+        ctc = ctc * flt(exchange_rate)
 
     monthly_working_hours = get_employee_monthly_working_hours(employee)
     monthly_salary = ctc / 12
@@ -81,7 +81,7 @@ def convert_currency(
         return amount
 
     exchange_rate = get_exchange_rate(from_currency, to_currency, date)
-    return amount * (exchange_rate or 1)
+    return amount * flt(exchange_rate)
 
 
 def generate_flat_tree(doctype: str, nsm_field: str, filters: dict, fields: list[str] | None = None):

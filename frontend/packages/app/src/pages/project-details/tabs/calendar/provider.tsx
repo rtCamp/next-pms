@@ -1,7 +1,14 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type PropsWithChildren,
+} from "react";
+import { useSearchParams } from "react-router";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { parseISO } from "date-fns";
 import {
@@ -16,6 +23,7 @@ import {
 import { useDebounce } from "@/hooks/useDebounce";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
+import { SEARCH_PARAM, TABLE_TAB_PARAM, VIEW_PARAM } from "./constants";
 import { CalendarContext, type CalendarContextProps } from "./context";
 import type { CalendarView, ProjectTimelineItem, TableTab } from "./types";
 import { useProjectTimelineItems } from "./useProjectTimelineItems";
@@ -47,14 +55,48 @@ export function CalendarProvider({
     return new Date(n.getFullYear(), n.getMonth(), 1);
   });
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [activeView, setActiveView] = useState<CalendarView>("calendar");
   const [filterType, setFilterType] = useState("all");
-  const [tableTab, setTableTab] = useState<TableTab>("milestones");
   const [createMilestoneOpen, setCreateMilestoneOpen] = useState(false);
   const [createTouchpointOpen, setCreateTouchpointOpen] = useState(false);
   const [editItem, setEditItem] = useState<ProjectTimelineItem | null>(null);
-  const [searchInput, setSearchInput] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const viewParam = searchParams.get(VIEW_PARAM);
+  const activeView: CalendarView =
+    viewParam === "gantt" || viewParam === "list" ? viewParam : "calendar";
+  const tableTab: TableTab =
+    searchParams.get(TABLE_TAB_PARAM) === "touchpoints"
+      ? "touchpoints"
+      : "milestones";
+  const urlSearch = searchParams.get(SEARCH_PARAM) ?? "";
+  const [searchInput, setSearchInput] = useState(urlSearch);
   const search = useDebounce(searchInput, 400);
+
+  const setParam = useCallback(
+    (key: string, value: string, defaultValue: string) =>
+      setSearchParams(
+        (prev) => {
+          if (value === defaultValue) prev.delete(key);
+          else prev.set(key, value);
+          return prev;
+        },
+        { replace: true },
+      ),
+    [setSearchParams],
+  );
+
+  const setActiveView = useCallback(
+    (view: CalendarView) => setParam(VIEW_PARAM, view, "calendar"),
+    [setParam],
+  );
+
+  const setTableTab = useCallback(
+    (tab: TableTab) => setParam(TABLE_TAB_PARAM, tab, "milestones"),
+    [setParam],
+  );
+
+  useEffect(() => {
+    if (search !== urlSearch) setParam(SEARCH_PARAM, search, "");
+  }, [search, urlSearch, setParam]);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -234,6 +276,8 @@ export function CalendarProvider({
       listItems,
       hasMoreList,
       isLoadingList,
+      setActiveView,
+      setTableTab,
       handlePeriodChange,
       goToPrev,
       goToNext,

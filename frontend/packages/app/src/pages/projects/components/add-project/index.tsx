@@ -19,6 +19,7 @@ import { FrappeError, useFrappeCreateDoc } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { useCompanyLookup } from "@/hooks/useCompanyLookup";
+import { useCustomerLookup } from "@/hooks/useCustomerLookup";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { addProjectFormSchema } from "./schema";
 import type { AddProjectModalProps } from "./types";
@@ -33,6 +34,8 @@ function AddProjectModal({
   onSuccess,
 }: AddProjectModalProps) {
   const [companySearch, setCompanySearch] = useState("");
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
   const toast = useToasts();
   const { createDoc, loading } = useFrappeCreateDoc();
@@ -42,24 +45,26 @@ function AddProjectModal({
       projectName: prefill?.projectName ?? "",
       phase: prefill?.phase ?? "Delivery Prep",
       company: prefill?.company ?? "",
+      customer: prefill?.customer ?? "",
     },
     validators: {
       onSubmit: addProjectFormSchema,
     },
     onSubmit: async ({ value }) => {
+      setSubmitError("");
       try {
         const doc = await createDoc("Project", {
           naming_series: "PROJ-.####",
           project_name: value.projectName,
           custom_project_phase: value.phase,
           company: value.company || undefined,
+          customer: value.customer,
         });
         toast.success("Project created successfully");
         onSuccess?.(doc as { name: string } & Record<string, unknown>);
         closeModal();
       } catch (err) {
-        const error = parseFrappeErrorMsg(err as FrappeError);
-        toast.error(error);
+        setSubmitError(parseFrappeErrorMsg(err as FrappeError));
       }
     },
   });
@@ -70,8 +75,16 @@ function AddProjectModal({
       query: companySearch,
     });
 
+  const { options: customerOptions, isLoading: isCustomerLoading } =
+    useCustomerLookup({
+      shouldFetch: open,
+      query: customerSearch,
+    });
+
   const closeModal = useCallback(() => {
     setCompanySearch("");
+    setCustomerSearch("");
+    setSubmitError("");
     onOpenChange(false);
     form.reset();
   }, [form, onOpenChange]);
@@ -118,8 +131,8 @@ function AddProjectModal({
         <form.Field
           name="projectName"
           children={(field) => (
-            <div>
-              <FormLabel size="md" className="mb-1.5" required>
+            <div className="flex flex-col gap-1.5">
+              <FormLabel size="md" required>
                 Project
               </FormLabel>
               <TextInput
@@ -139,8 +152,8 @@ function AddProjectModal({
         <form.Field
           name="phase"
           children={(field) => (
-            <div>
-              <FormLabel size="md" className="mb-1.5" required>
+            <div className="flex flex-col gap-1.5">
+              <FormLabel size="md" required>
                 Phase
               </FormLabel>
               <Select
@@ -161,8 +174,8 @@ function AddProjectModal({
         <form.Field
           name="company"
           children={(field) => (
-            <div>
-              <FormLabel size="md" className="mb-1.5" required>
+            <div className="flex flex-col gap-1.5">
+              <FormLabel size="md" required>
                 Company
               </FormLabel>
               <Combobox
@@ -183,6 +196,34 @@ function AddProjectModal({
             </div>
           )}
         />
+
+        <form.Field
+          name="customer"
+          children={(field) => (
+            <div className="flex flex-col gap-1.5">
+              <FormLabel size="md" required>
+                Customer
+              </FormLabel>
+              <Combobox
+                inputClassName="bg-surface-white h-8 border-outline-gray-2"
+                loading={isCustomerLoading}
+                options={customerOptions}
+                placeholder="Select customer"
+                searchValue={customerSearch}
+                onSearchChange={setCustomerSearch}
+                value={field.state.value || null}
+                onChange={(value) => field.handleChange(value ?? "")}
+                openOnFocus
+                tooltipOnTruncate
+              />
+              {!field.state.meta.isValid && (
+                <ErrorMessage message={field.state.meta.errors[0]?.message} />
+              )}
+            </div>
+          )}
+        />
+
+        <ErrorMessage message={submitError} />
       </div>
     </Dialog>
   );

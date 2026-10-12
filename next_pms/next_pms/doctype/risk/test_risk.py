@@ -8,14 +8,15 @@ from next_pms.install import create_default_risk_masters
 
 IGNORE_TEST_RECORD_DEPENDENCIES = ["User", "Project"]
 
-OWNER_USER = "test.risk.owner@example.com"
-OTHER_TM_USER = "test.risk.other.tm@example.com"
+OWNER_USER = "test.risk.gated.owner@example.com"
+OTHER_GATED_USER = "test.risk.other.gated@example.com"
+TIMESHEET_MANAGER_USER = "test.risk.tm@example.com"
 PROJECTS_USER = "test.risk.pu@example.com"
 PROJECTS_MANAGER_USER = "test.risk.pm@example.com"
 DELIVERY_MANAGER_USER = "test.risk.dm@example.com"
 DELIVERY_USER_USER = "test.risk.du@example.com"
 
-UNRESTRICTED_USERS = (PROJECTS_MANAGER_USER, DELIVERY_MANAGER_USER, DELIVERY_USER_USER)
+UNRESTRICTED_USERS = (PROJECTS_MANAGER_USER, DELIVERY_MANAGER_USER, DELIVERY_USER_USER, TIMESHEET_MANAGER_USER)
 
 
 class IntegrationTestRisk(IntegrationTestCase):
@@ -23,8 +24,9 @@ class IntegrationTestRisk(IntegrationTestCase):
     def setUpClass(cls):
         super().setUpClass()
         create_default_risk_masters()
-        cls._make_user(OWNER_USER, ["Timesheet Manager"])
-        cls._make_user(OTHER_TM_USER, ["Timesheet Manager"])
+        cls._make_user(OWNER_USER, ["Projects User"])
+        cls._make_user(OTHER_GATED_USER, ["Projects User"])
+        cls._make_user(TIMESHEET_MANAGER_USER, ["Timesheet Manager"])
         cls._make_user(PROJECTS_USER, ["Projects User"])
         cls._make_user(PROJECTS_MANAGER_USER, ["Projects Manager"])
         cls._make_user(DELIVERY_MANAGER_USER, ["Delivery Manager"])
@@ -107,7 +109,7 @@ class IntegrationTestRisk(IntegrationTestCase):
 
     def test_gated_roles_can_read_any_risk(self):
         risk = self._make_risk()
-        for user in (OWNER_USER, OTHER_TM_USER, PROJECTS_USER):
+        for user in (OWNER_USER, OTHER_GATED_USER, PROJECTS_USER):
             with self.subTest(user=user):
                 self.assertTrue(frappe.has_permission("Risk", "read", doc=risk, user=user))
 
@@ -124,7 +126,7 @@ class IntegrationTestRisk(IntegrationTestCase):
 
     def test_non_owner_gated_role_cannot_write(self):
         risk = self._make_risk()
-        for user in (OTHER_TM_USER, PROJECTS_USER):
+        for user in (OTHER_GATED_USER, PROJECTS_USER):
             with self.subTest(user=user):
                 self.assertFalse(frappe.has_permission("Risk", "write", doc=risk, user=user))
                 frappe.set_user(user)
@@ -151,7 +153,7 @@ class IntegrationTestRisk(IntegrationTestCase):
         risk = self._make_risk()
         frappe.set_user(OWNER_USER)
         doc = frappe.get_doc("Risk", risk.name)
-        doc.risk_owner = OTHER_TM_USER
+        doc.risk_owner = OTHER_GATED_USER
         self.assertFalse(frappe.has_permission("Risk", "write", doc=doc, user=OWNER_USER))
         with self.assertRaises(frappe.PermissionError):
             doc.save()

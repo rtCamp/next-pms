@@ -1,9 +1,7 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
-import { DeleteActionDialog } from "@next-pms/design-system/components";
-import { Avatar, Dropdown } from "@rtcamp/frappe-ui-react";
+import { Avatar, Dropdown, Tooltip } from "@rtcamp/frappe-ui-react";
 import {
   Calendar,
   DotHorizontal,
@@ -13,15 +11,18 @@ import {
   StatusInProgress,
   StatusOpen,
 } from "@rtcamp/frappe-ui-react/icons";
+import { cva } from "class-variance-authority";
 import { format, parseISO } from "date-fns";
 
 /**
  * Internal dependencies.
  */
-import { extractTextFromHTML, hasTodoCustomFields } from "@/lib/utils";
+import { hasTodoCustomFields } from "@/lib/utils";
 import type { TodoPriority, TodoStatus } from "./create-todo/schema";
+import { LinkedChip } from "./linkedChip";
 import { useTodos } from "./provider/context";
 import type { Todo } from "./types";
+import { todoTitle } from "./utils";
 
 const STATUS_ICON: Record<
   TodoStatus,
@@ -48,6 +49,18 @@ const PRIORITY_DOT_CLASS: Record<TodoPriority, string> = {
   High: "bg-surface-red-5",
 };
 
+const rowVariants = cva(
+  "flex items-center gap-4 border-b border-outline-gray-2",
+  {
+    variants: {
+      condensed: {
+        true: "py-2 last:border-b-0",
+        false: "py-4",
+      },
+    },
+  },
+);
+
 function formatDateTime(value: string | null | undefined) {
   if (!value) return "—";
   try {
@@ -61,24 +74,29 @@ function formatDateTime(value: string | null | undefined) {
 
 type TodoRowProps = {
   todo: Todo;
-  onEdit: (todo: Todo) => void;
+  canUnlink?: boolean;
+  condensed?: boolean;
 };
 
-export function TodoRow({ todo, onEdit }: TodoRowProps) {
+export function TodoRow({
+  todo,
+  canUnlink = false,
+  condensed = false,
+}: TodoRowProps) {
+  const openEdit = useTodos((c) => c.actions.openEdit);
   const updateTodoStatus = useTodos((c) => c.actions.updateTodoStatus);
-  const deleteTodo = useTodos((c) => c.actions.deleteTodo);
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const requestUnlink = useTodos((c) => c.actions.requestUnlink);
+  const requestDelete = useTodos((c) => c.actions.requestDelete);
+  const isClosed = todo.status === "Closed";
 
   const assigneeHref = `/desk/user/${encodeURIComponent(todo.allocated_to)}`;
   const StatusIcon = STATUS_ICON[todo.status];
 
   return (
-    <div className="flex items-center gap-4 border-b border-outline-gray-2 py-4">
+    <div className={rowVariants({ condensed })}>
       <div className="min-w-0 flex-1">
         <h3 className="truncate text-base font-medium text-ink-gray-8">
-          {todo.custom_title ||
-            extractTextFromHTML(todo.description) ||
-            "Untitled"}
+          {todoTitle(todo)}
         </h3>
         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-gray-5">
           <a
@@ -93,7 +111,7 @@ export function TodoRow({ todo, onEdit }: TodoRowProps) {
             />
             <span className="truncate">{todo.allocated_to_full_name}</span>
           </a>
-          {hasTodoCustomFields() && (
+          {!condensed && hasTodoCustomFields() && (
             <>
               <span aria-hidden>·</span>
               <span className="flex items-center gap-1.5">
@@ -115,51 +133,58 @@ export function TodoRow({ todo, onEdit }: TodoRowProps) {
             />
             {todo.priority}
           </span>
+          {!condensed && todo.linked && (
+            <>
+              <span aria-hidden>·</span>
+              <LinkedChip record={todo.linked} />
+            </>
+          )}
         </div>
       </div>
 
-      <button
-        type="button"
-        aria-label={
-          todo.status === "Closed" ? "Mark as open" : "Mark as closed"
-        }
-        onClick={() =>
-          updateTodoStatus(
-            todo.name,
-            todo.status === "Closed" ? "Open" : "Closed",
-          )
-        }
-        className={`shrink-0 transition-colors ${STATUS_COLOR[todo.status]}`}
-      >
-        <StatusIcon className="size-5" />
-      </button>
+      <Tooltip text={isClosed ? "Reopen" : "Mark as done"}>
+        <button
+          type="button"
+          aria-label={isClosed ? "Reopen" : "Mark as done"}
+          onClick={() =>
+            updateTodoStatus(todo.name, isClosed ? "Open" : "Closed")
+          }
+          className={`shrink-0 transition-colors ${STATUS_COLOR[todo.status]}`}
+        >
+          <StatusIcon className="size-5" />
+        </button>
+      </Tooltip>
 
       <Dropdown
         placement="right"
-        button={{ variant: "ghost", icon: DotHorizontal }}
+        button={{
+          variant: "ghost",
+          icon: DotHorizontal,
+          label: "ToDo actions",
+        }}
         options={[
           {
             label: "Edit",
             key: "edit",
-            onClick: () => onEdit(todo),
+            onClick: () => openEdit(todo),
           },
+          ...(canUnlink && todo.linked
+            ? [
+                {
+                  label: "Unlink",
+                  key: "unlink",
+                  onClick: () => requestUnlink(todo),
+                },
+              ]
+            : []),
           {
             label: "Delete",
             key: "delete",
             theme: "red",
-            onClick: () => setConfirmDelete(true),
+            onClick: () => requestDelete(todo),
           },
         ]}
       />
-
-      {confirmDelete && (
-        <DeleteActionDialog
-          title="Delete to-do"
-          description="Are you sure you want to delete this to-do? This action cannot be undone."
-          onClose={() => setConfirmDelete(false)}
-          onConfirm={() => deleteTodo(todo.name)}
-        />
-      )}
     </div>
   );
 }

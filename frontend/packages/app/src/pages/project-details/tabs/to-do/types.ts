@@ -34,7 +34,21 @@ export type TodoUserDetails = {
   user_image: string | null;
 };
 
+export type LinkedRecordType = "Milestone" | "Touchpoint" | "Growth Initiative";
+
+export interface LinkedRecord {
+  doctype: string;
+  name: string;
+  title: string;
+  type: LinkedRecordType;
+}
+
+export type RecordRef = Pick<LinkedRecord, "doctype" | "name">;
+
+export type TodoLinksMap = Record<string, LinkedRecord>;
+
 export type Todo = TodoDoc & {
   allocated_to_full_name: string;
   allocated_to_image: string | null;
+  linked?: LinkedRecord;
 };

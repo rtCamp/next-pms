@@ -11,6 +11,7 @@ from frappe.utils import cint, getdate, today
 from next_pms.api.utils import error_logger
 from next_pms.next_projects.api.constant import ALLOWED_ROLES, TIMELINE_ITEM_FIELDS
 from next_pms.next_projects.api.utils import get_user_image_map
+from next_pms.utils.linked_todos import LINKED_TODO_DOCTYPE
 
 
 def get_watchers_map(item_names: list[str]) -> dict[str, list[dict]]:
@@ -54,10 +55,29 @@ def get_watchers_map(item_names: list[str]) -> dict[str, list[dict]]:
     return result
 
 
+def get_linked_todos_map(item_names: list[str]) -> dict[str, list[str]]:
+    """ToDo names linked to each Project Timeline Item, fetched in a single query."""
+    if not item_names:
+        return {}
+
+    rows = frappe.get_all(
+        LINKED_TODO_DOCTYPE,
+        filters={"parenttype": "Project Timeline Item", "parent": ["in", item_names]},
+        fields=["parent", "todo"],
+        order_by="idx asc",
+    )
+
+    result: dict[str, list[str]] = {name: [] for name in item_names}
+    for row in rows:
+        result[row.parent].append(row.todo)
+    return result
+
+
 def enrich_timeline_item(
     item: dict,
     user_image_map: dict[str, str | None],
     watchers_map: dict[str, list[dict]],
+    linked_todos_map: dict[str, list[str]],
 ) -> dict:
     """Build the response dict for a single timeline item."""
     item_name = item.get("name")
@@ -89,6 +109,7 @@ def enrich_timeline_item(
         if owner_user
         else None,
         "watchers": watchers_map.get(item_name, []),
+        "linked_todos": linked_todos_map.get(item_name, []),
     }
 
 
@@ -184,7 +205,8 @@ def get_project_timeline_items(
         user_image_map = get_user_image_map(owner_users)
         watchers_map = get_watchers_map(item_names)
 
-    data = [enrich_timeline_item(item, user_image_map, watchers_map) for item in items]
+    linked_todos_map = get_linked_todos_map(item_names)
+    data = [enrich_timeline_item(item, user_image_map, watchers_map, linked_todos_map) for item in items]
 
     return {
         "data": data,

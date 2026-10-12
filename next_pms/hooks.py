@@ -135,6 +135,8 @@ after_install = "next_pms.install.after_install"
 
 has_permission = {
     "Risk": "next_pms.next_pms.doctype.risk.risk.has_permission",
+    "Resource Allocation": "next_pms.resource_management.doctype.resource_allocation.resource_allocation.has_permission",
+    "PMS Growth Initiative": "next_pms.next_pms.doctype.pms_growth_initiative.pms_growth_initiative.has_permission",
 }
 
 
@@ -300,7 +302,11 @@ doc_events = {
         "on_trash": [
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
             "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.delete_project_views",
+            "next_pms.next_pms.doctype.pms_project_update_subscription.pms_project_update_subscription.delete_project_subscriptions",
         ],
+    },
+    "Resource Allocation": {
+        "after_insert": "next_pms.next_pms.notifications.ai_allocation_after_insert",
     },
     "Risk": {
         "on_update": [
@@ -308,8 +314,21 @@ doc_events = {
             "next_pms.next_pms.notifications.risk_owner_on_update",
         ],
     },
+    "PMS Growth Initiative": {
+        "on_update": [
+            "next_pms.next_pms.notifications.growth_on_update",
+            "next_pms.next_pms.notifications.growth_owner_on_update",
+        ],
+    },
+    "Project Status Update": {
+        "on_update": "next_pms.next_pms.notifications.project_status_update_on_update",
+    },
     "Customer Feedback": {
         "on_submit": "next_pms.next_pms.notifications.customer_feedback_on_submit",
+    },
+    "ToDo": {
+        "validate": "next_pms.next_projects.doc_events.todo.validate",
+        "on_trash": "next_pms.next_projects.doc_events.todo.on_trash",
     },
     "Customer": {"validate": "next_pms.resource_management.doc_events.customer.validate_abbr"},
     "Employee": {
@@ -362,7 +381,7 @@ doc_events = {
 # Ignore links to specified DocTypes when deleting documents
 # -----------------------------------------------------------
 
-ignore_links_on_delete = ["NextPMS Notifications", "PMS View Setting"]
+ignore_links_on_delete = ["NextPMS Notifications", "PMS View Setting", "PMS Project Update Subscription"]
 
 # Request Events
 # ----------------
@@ -411,3 +430,10 @@ export_python_type_annotations = True
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
+
+# Read-only tools for the rtCamp MCP server, used when the rtcamp_mcp app is installed
+rtcamp_mcp_tools = [
+    "next_pms.mcp_tools.timesheet_summary",
+    "next_pms.mcp_tools.capacity",
+    "next_pms.mcp_tools.project_health",
+]

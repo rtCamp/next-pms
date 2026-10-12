@@ -15,12 +15,14 @@ import {
  */
 import { hashString, parseFrappeErrorMsg } from "@/lib/utils";
 import type {
-  ApiRiskDetail,
-  EnrichedRiskUpdateEntry,
   FileAttachment,
   Follower,
-  RiskDetail,
   UserDetails,
+} from "@/pages/project-details/types";
+import type {
+  ApiRiskDetail,
+  EnrichedRiskUpdateEntry,
+  RiskDetail,
 } from "../types";
 
 export function useRiskDetail(riskId: string) {

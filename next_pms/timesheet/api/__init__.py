@@ -7,7 +7,7 @@ from next_pms.timesheet.utils.constant import GLOBAL_TIMESHEET_ROLES
 @whitelist(methods=["GET"])
 def get_approver_details():
     """returns a list of approver details"""
-    roles = ["Projects Manager", "Projects User"]
+    roles = ["Projects Manager", "Projects User", "Timesheet User"]
 
     user_ids = get_all(
         "Has Role",
@@ -120,7 +120,7 @@ def filter_employees(
     if not ignore_permissions:
         if set(user_roles).intersection([*GLOBAL_TIMESHEET_ROLES, "Projects Manager"]):
             ignore_permissions = True
-        elif has_membership_filter and set(user_roles).intersection(["Timesheet User", "Projects User"]):
+        elif has_membership_filter and "Projects User" in user_roles:
             ignore_permissions = True
 
     if reports_to:

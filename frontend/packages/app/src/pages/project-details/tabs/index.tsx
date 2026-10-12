@@ -3,6 +3,7 @@ import { Tabs } from "@rtcamp/frappe-ui-react";
 import { CalendarTab } from "./calendar";
 import { EmailTab } from "./email";
 import { Feedback } from "./feedback";
+import { GrowthTab } from "./growth";
 import { Notes } from "./notes";
 import { Overview } from "./overview";
 import { RagStats } from "./rag-stats";
@@ -17,6 +18,7 @@ export const TAB_KEYS = [
   "tracking",
   "reports",
   "risks",
+  "growth",
   "notes",
   "email",
   "to-do",
@@ -32,6 +34,7 @@ export const TABS: ComponentProps<typeof Tabs>["tabs"] = [
   { label: "Tracking", content: <Tracking /> },
   { label: "Reports", content: <Reports /> },
   { label: "Risks", content: <RisksTab /> },
+  { label: "Growth", content: <GrowthTab /> },
   { label: "Notes", content: <Notes /> },
   { label: "Email", content: <EmailTab /> },
   { label: "ToDos", content: <Todo /> },

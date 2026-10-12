@@ -7,40 +7,40 @@ import { createContext, useContextSelector } from "use-context-selector";
  * Internal dependencies.
  */
 import type { TodoStatus } from "../create-todo/schema";
-import type { CreateTodoInput, Todo, TodoDoc } from "../types";
+import type { CreateTodoInput, LinkedRecord, Todo, TodoDoc } from "../types";
 
 export interface TodosContextProps {
   state: {
-    todos: Todo[];
-    isLoading: boolean;
-    error: unknown;
-    isCreating: boolean;
+    isDialogOpen: boolean;
+    isSaving: boolean;
   };
   actions: {
+    openCreate: (linkedTo?: LinkedRecord) => void;
+    openEdit: (todo: Todo) => void;
     createTodo: (input: CreateTodoInput) => Promise<TodoDoc | undefined>;
     updateTodo: (
-      name: string,
+      todo: Todo,
       input: CreateTodoInput,
     ) => Promise<TodoDoc | undefined>;
     updateTodoStatus: (name: string, status: TodoStatus) => Promise<void>;
-    deleteTodo: (name: string) => Promise<void>;
-    refresh: () => Promise<unknown>;
+    requestUnlink: (todo: Todo) => void;
+    requestDelete: (todo: Todo) => void;
   };
 }
 
 export const TodosContext = createContext<TodosContextProps>({
   state: {
-    todos: [],
-    isLoading: false,
-    error: null,
-    isCreating: false,
+    isDialogOpen: false,
+    isSaving: false,
   },
   actions: {
+    openCreate: () => undefined,
+    openEdit: () => undefined,
     createTodo: async () => undefined,
     updateTodo: async () => undefined,
     updateTodoStatus: async () => undefined,
-    deleteTodo: async () => undefined,
-    refresh: async () => undefined,
+    requestUnlink: () => undefined,
+    requestDelete: () => undefined,
   },
 });
 

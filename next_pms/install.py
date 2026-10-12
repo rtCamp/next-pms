@@ -11,6 +11,7 @@ def after_install():
     create_default_project_phases()
     create_default_risk_masters()
     create_default_timeline_item_categories()
+    create_default_growth_masters()
     setup_project_custom_fields()
     setup_project_target_hours_field()
     setup_timesheet_rejection_reason_field()
@@ -20,6 +21,7 @@ def after_install():
     setup_task_permissions()
     setup_todo_permissions()
     setup_role_permissions()
+    setup_project_permissions_for_managers()
     setup_time_report_frequency()
 
 
@@ -258,6 +260,24 @@ def setup_role_permissions():
         update_permission_property(doctype, role, permlevel, "select", 1)
 
 
+def setup_project_permissions_for_managers():
+    """Give System Manager and Delivery Manager full read/write on Project, including the
+    financial permlevels, so the project list and detail pages they can open return data."""
+    import frappe
+    from frappe.permissions import add_permission, update_permission_property
+
+    doctype = "Project"
+    base_permissions = {"read": 1, "write": 1, "create": 1, "select": 1, "report": 1, "export": 1, "share": 1}
+    field_permissions = {"read": 1, "write": 1}
+
+    for role, permlevels in (("System Manager", (0, 1, 2, 3)), ("Delivery Manager", (0, 1, 2))):
+        for permlevel in permlevels:
+            if not frappe.db.exists("Custom DocPerm", {"parent": doctype, "role": role, "permlevel": permlevel}):
+                add_permission(doctype, role, permlevel)
+            for perm_key, perm_val in (base_permissions if permlevel == 0 else field_permissions).items():
+                update_permission_property(doctype, role, permlevel, perm_key, perm_val)
+
+
 def add_project_manager_perm():
     from frappe.permissions import add_permission, update_permission_property
 
@@ -380,8 +400,6 @@ def create_default_project_phases():
 
 
 def create_default_risk_masters():
-    import frappe
-
     risk_categories = ("Internal Team", "Client", "Design", "Technical", "Timeline/Budget")
     risk_levels = ("Low", "Medium", "High")
     risk_statuses = ("To-do", "In Progress", "Escalated", "Blocked", "Mitigated")
@@ -391,11 +409,7 @@ def create_default_risk_masters():
         ("Risk Level", risk_levels),
         ("Risk Status", risk_statuses),
     ):
-        for name in names:
-            if frappe.db.exists(doctype, name):
-                continue
-
-            frappe.get_doc({"doctype": doctype, "name": name}).insert(ignore_permissions=True)
+        _insert_masters(doctype, [{"name": name} for name in names])
 
 
 def create_default_timeline_item_categories():
@@ -421,3 +435,29 @@ def create_default_timeline_item_categories():
             continue
 
         frappe.get_doc({"doctype": "Project Timeline Item Category", **category}).insert(ignore_permissions=True)
+
+
+def create_default_growth_masters():
+    growth_categories = ("Upsell", "Cross-sell", "Renewal/Extension", "New Service", "Referral")
+    growth_statuses = (
+        {"name": "Ideation", "status_type": "Status"},
+        {"name": "In Progress", "status_type": "Status"},
+        {"name": "On Hold", "status_type": "Status"},
+        {"name": "Closed", "status_type": "Status", "is_closed": 1},
+        {"name": "Won", "status_type": "Closed Status"},
+        {"name": "Lost", "status_type": "Closed Status"},
+        {"name": "Not Pursued", "status_type": "Closed Status"},
+    )
+
+    _insert_masters("PMS Growth Initiative Category", [{"name": name} for name in growth_categories])
+    _insert_masters("PMS Growth Initiative Status", growth_statuses)
+
+
+def _insert_masters(doctype, records):
+    import frappe
+
+    for record in records:
+        if frappe.db.exists(doctype, record["name"]):
+            continue
+
+        frappe.get_doc({"doctype": doctype, **record}).insert(ignore_permissions=True)

@@ -12,10 +12,10 @@ DEFAULT_DAILY_WORKING_HOURS = 8
 DEFAULT_WORKING_FREQUENCY = "Per Day"
 
 # Roles that review every employee's timesheets, not only their reports'.
-GLOBAL_TIMESHEET_ROLES = ["Timesheet Manager", "Delivery Manager", "System Manager"]
+GLOBAL_TIMESHEET_ROLES = ["Timesheet Manager", "Timesheet User", "Delivery Manager", "System Manager"]
 
 # Roles that open the Team and Project timesheet pages.
-TIMESHEET_REVIEWER_ROLES = [*GLOBAL_TIMESHEET_ROLES, "Timesheet User", "Projects Manager"]
+TIMESHEET_REVIEWER_ROLES = [*GLOBAL_TIMESHEET_ROLES, "Projects Manager"]
 
 # The one approval status that is an absence of data rather than a stored value: a week
 # with no Timesheet, or a Timesheet whose weekly status was never set.

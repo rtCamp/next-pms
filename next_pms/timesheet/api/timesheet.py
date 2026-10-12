@@ -418,7 +418,7 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
 
         reporting_manager = frappe.get_value("Employee", employee, "reports_to")
         if approver != reporting_manager:
-            allowed_approver_roles = {"Projects Manager", "Timesheet Manager", "System Manager"}
+            allowed_approver_roles = {"Projects Manager", "Timesheet Manager", "Timesheet User", "System Manager"}
             approver_user = frappe.get_value("Employee", approver, "user_id")
             approver_roles = set(frappe.get_roles(approver_user)) if approver_user else set()
             if not (approver_roles & allowed_approver_roles) and approver_user != "Administrator":
