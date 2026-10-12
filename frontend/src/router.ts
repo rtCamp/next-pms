@@ -9,7 +9,6 @@ import { ROLE_ACCESS, useSession } from "./session";
 
 const WorkInProgress = () => import("./pages/WorkInProgress.vue");
 
-// The React app's URLs (P8). Pages that aren't rebuilt yet show WorkInProgress.
 const routes: RouteRecordRaw[] = [
   { path: "/", redirect: { name: "timesheet-personal" } },
   {
