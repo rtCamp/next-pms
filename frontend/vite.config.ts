@@ -47,6 +47,17 @@ export default defineConfig({
     vue(),
   ],
   optimizeDeps: {
+    // frappe-ui's editor `.vue` node views can't be pre-bundled with the rest of
+    // `frappe-ui/editor`, so they import tiptap on their own. Pre-bundling these
+    // keeps a single copy; two copies of ProseMirror fail every editor with
+    // "Adding different instances of a keyed plugin".
+    include: [
+      "@tiptap/vue-3",
+      "@tiptap/core",
+      "@tiptap/pm/state",
+      "@tiptap/pm/view",
+      "@tiptap/pm/model",
+    ],
     esbuildOptions: { plugins: [frappeUiSubpathImports] },
   },
 });
