@@ -28,10 +28,10 @@ import { useForm } from "@tanstack/react-form";
  * Internal dependencies.
  */
 import { useUserLookup } from "@/hooks/useUserLookup";
+import { getTodoStatusOptions } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import {
   PRIORITY_OPTIONS,
-  STATUS_OPTIONS,
   buildCreateTodoSchema,
   type CreateTodoValues,
   type TodoPriority,
@@ -63,8 +63,10 @@ const STATUS_COLOR: Record<TodoStatus, string> = {
 };
 
 const StatusIcon = ({ status }: { status: TodoStatus }) => {
-  const Icon = STATUS_ICON[status];
-  return <Icon className={`size-3.5 ${STATUS_COLOR[status]}`} />;
+  const Icon = STATUS_ICON[status] ?? StatusOpen;
+  return (
+    <Icon className={`size-3.5 ${STATUS_COLOR[status] ?? STATUS_COLOR.Open}`} />
+  );
 };
 
 const PRIORITY_DOT_CLASS: Record<TodoPriority, string> = {
@@ -96,6 +98,10 @@ export function CreateTodoModal({
     window.frappe?.boot?.has_todo_custom_fields,
   );
   const isEditMode = Boolean(todo);
+  const statusOptions = useMemo(
+    () => getTodoStatusOptions().map((value) => ({ value, label: value })),
+    [],
+  );
 
   const emptyValues: CreateTodoValues = useMemo(
     () => ({
@@ -279,17 +285,14 @@ export function CreateTodoModal({
                 size="sm"
                 variant="subtle"
                 value={field.state.value}
-                options={STATUS_OPTIONS.map((o) => ({ ...o }))}
+                options={statusOptions}
                 onChange={(e) =>
-                  e.target.value &&
-                  field.handleChange(
-                    e.target.value as CreateTodoValues["status"],
-                  )
+                  e.target.value && field.handleChange(e.target.value)
                 }
                 prefix={() => <StatusIcon status={field.state.value} />}
                 option={({ option }) => (
                   <div className="flex items-center gap-2">
-                    <StatusIcon status={option.value as TodoStatus} />
+                    <StatusIcon status={option.value} />
                     <span>{option.label}</span>
                   </div>
                 )}
