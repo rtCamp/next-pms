@@ -38,6 +38,7 @@ across components live in `src/utils/`.
 | `NotificationTray/` | `NotificationTray` |
 | `ProgressBar/` | `ProgressBar` |
 | `SortSelector/` | `SortSelector` |
+| `TaskLog/` | `TaskLog` (view), `TaskLogDialog` (loads its data), `useTaskLog`, `TASK_LOG_RANGES`, `DEFAULT_TASK_LOG_RANGE` |
 | `TaskProgress/` | `TaskProgress` |
 | `TaskStatus/` | `TaskStatus`, `TASK_STATUSES`, `TASK_STATUS_ICONS` |
 | `Timesheet/` | Timesheet rows: `HeaderRow`, `WeekRow`, `MemberRow`, `ProjectRow`, `TaskRow`, `TimeOffRow`, `TotalRow` |

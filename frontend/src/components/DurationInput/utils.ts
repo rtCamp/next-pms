@@ -2,14 +2,6 @@ import type { DurationInputSnapMode } from "./types";
 
 export const SLIDER_STEP_MINUTES = 30;
 
-/** Decimal hours to `HH:MM`, e.g. `1.5` → `"01:30"`. */
-export function floatToTime(hours: number): string {
-  const totalMinutes = Math.round(hours * 60);
-  const h = Math.floor(totalMinutes / 60);
-  const m = totalMinutes % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-}
-
 /**
  * Parses decimal hours (`1.5`, `.5`) or `H:M` (`5:3`, `:30`, `5:`, `1:75`) into decimal hours.
  * Minutes may exceed 59 and carry over. Anything else is `0`.

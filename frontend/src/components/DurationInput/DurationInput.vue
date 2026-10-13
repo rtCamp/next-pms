@@ -2,11 +2,11 @@
 import { computed, ref, useId } from "vue";
 import { ErrorMessage, FormLabel, Spinner } from "frappe-ui";
 import { SliderRange, SliderRoot, SliderThumb, SliderTrack } from "reka-ui";
+import { floatToTime } from "@/utils/format";
 import type { DurationInputProps } from "./types";
 import {
   SLIDER_STEP_MINUTES,
   clampHours,
-  floatToTime,
   formatHoursBalance,
   getNotchOffsets,
   getPreviewMinutes,
