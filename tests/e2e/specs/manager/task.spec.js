@@ -50,47 +50,32 @@ test.describe("Manager : Task", () => {
     expect(isTaskDetailsDialogVisible).toBeTruthy();
   });
 
-  // The "Columns" button this case exists to exercise is gone from the redesign:
-  // the task table ships a fixed set of columns (Subject, Project, Status,
-  // Expected time, Priority, Due date) and there is no add/remove control for
-  // them anywhere on the page. Nothing is left to drive, and unlike TC25/TC26 -
-  // which lost the same control but could be rescoped onto the surviving
-  // "Is Billable" filter field - customisable columns have no replacement to
-  // point at. Skipped rather than deleted pending a call from @ayushnirwal on
-  // whether column customisation was dropped deliberately.
-  test.skip("TC20: The information table columns should be customizable using the ‘Columns’ button at the top.   ", async ({
+  // The Columns popover hides, re-adds and reorders the default columns. There
+  // is no saved view: the layout is kept in the URL, so a reload is what checks
+  // that it sticks.
+  test("TC20: The information table columns should be customizable using the ‘Columns’ button at the top.   ", async ({
+    page,
     jsonDir,
   }) => {
     allure.story("Task");
     const stubPath = path.join(jsonDir, "TC20.json");
     const data = await readJSONFile(stubPath);
     const TC20data = data.TC20;
-    //Verify if the column if already present:
-    if (await taskPage.isColumnPresent(TC20data.col)) {
-      // Remove column and save
-      await taskPage.removeColumn(TC20data.col);
-      await taskPage.saveView();
-    }
+    const column = taskPage.columnHeader(TC20data.col);
 
-    // Add column to view and save
-    await taskPage.addColumn(TC20data.col);
-    await taskPage.saveView();
+    // The page opens on the default columns, which include this one.
+    await expect(column).toBeVisible();
 
-    // Re-navigate to tab and store column status
-    await taskPage.goto();
-    const isColumnPresent1 = await taskPage.isColumnPresent(TC20data.col);
-
-    // Remove column and save
     await taskPage.removeColumn(TC20data.col);
-    await taskPage.saveView();
+    await expect(column).toHaveCount(0);
 
-    // Re-navigate to tab and store column status
-    await taskPage.goto();
-    const isColumnPresent2 = await taskPage.isColumnPresent(TC20data.col);
+    await page.reload();
+    // Wait for the table to render before asserting the column is absent.
+    await expect(taskPage.columnHeader("Subject")).toBeVisible();
+    await expect(column).toHaveCount(0);
 
-    // Assertions
-    expect(await isColumnPresent1).toBeTruthy();
-    expect(await isColumnPresent2).toBeFalsy();
+    await taskPage.addColumn(TC20data.col);
+    await expect(column).toBeVisible();
   });
 
   test("TC22: A task like/favourite functionality.", async ({ jsonDir }) => {

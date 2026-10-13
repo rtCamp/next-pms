@@ -23,18 +23,19 @@ export class TaskPage {
     this.searchInput = page.getByPlaceholder("Search task").first();
     this.getSearchInputByValue = (taskName) =>
       page.getByRole("textbox", { value: taskName });
-    this.saveButton = page.getByRole("button", { name: "Save changes" });
-    this.columnsButton = page
-      .getByRole("button")
-      .filter({ has: page.locator("//p[text()='Columns']") });
-
-    // Popper Modals
-    this.columnMenu = page
-      .locator("//div[@data-radix-popper-content-wrapper]")
-      .filter({ has: page.getByRole("menuitem", { name: "Add Columns" }) });
+    this.columnsButton = page.getByRole("button", {
+      name: "Columns",
+      exact: true,
+    });
 
     // Tasks Table
     this.tasksTable = page.getByRole("table");
+    // Header cells have no accessible name of their own; each holds its
+    // column's sort button.
+    this.columnHeader = (name) =>
+      this.tasksTable
+        .getByRole("columnheader")
+        .filter({ has: page.getByRole("button", { name, exact: true }) });
     // Matching a row by `hasText` is a substring match, which reports the wrong
     // status: searching "Performance Improvements" also matched the unrelated
     // billable task "Performance improvements - response times while browsing
@@ -131,43 +132,24 @@ export class TaskPage {
   // --------------------------------------
 
   /**
-   * Saves view by clicking on 'Save changes' button.
-   */
-  async saveView() {
-    await this.saveButton.click();
-  }
-
-  /**
-   * Adds a column by selecting it from the Columns menu.
+   * Adds a hidden column back through the Columns popover.
    */
   async addColumn(name) {
-    const columnSelectionMenu = this.page
-      .locator("//div[@data-radix-popper-content-wrapper]")
-      .filter({
-        hasNot: this.page.getByRole("menuitem", { name: "Add Columns" }),
-      });
-
     await this.columnsButton.click();
-    await this.columnMenu
-      .getByRole("menuitem", { name: "Add Columns" })
-      .click();
-    await columnSelectionMenu
-      .locator(`//div[@role='menuitem' and text()='${name}']`)
-      .click();
-    await this.searchInput.click({ force: true });
+    await this.page.getByRole("button", { name: "Add Column" }).click();
+    await this.page.getByRole("option", { name, exact: true }).click();
+    await this.page.keyboard.press("Escape");
   }
 
   /**
-   * Removes a column by de-selecting it from the Columns menu.
+   * Hides a column through the Columns popover.
    */
   async removeColumn(name) {
     await this.columnsButton.click();
-    await this.columnMenu
-      .getByRole("menuitem", { name: name })
-      .locator("//span")
-      .last()
+    await this.page
+      .getByRole("button", { name: `Remove column: ${name}`, exact: true })
       .click();
-    await this.searchInput.click({ force: true });
+    await this.page.keyboard.press("Escape");
   }
 
   // --------------------------------------
@@ -345,20 +327,6 @@ export class TaskPage {
       .first()
       .waitFor({ state: "hidden", timeout: 10000 })
       .catch(() => {});
-  }
-
-  /**
-   * Checks if the specified column is present in table.
-   */
-  async isColumnPresent(name) {
-    const headerRow = await this.getHeaderRow();
-    const column = headerRow.locator("//th//p", { hasText: name });
-
-    if ((await column.count()) > 0) {
-      return true;
-    }
-
-    return false;
   }
 
   /**

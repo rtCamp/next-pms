@@ -52,7 +52,7 @@ module.exports = {
     },
   },
   TC20: {
-    col: "Issue",
+    col: "Priority",
   },
   TC22: {
     payloadCreateProject: {

@@ -1,7 +1,10 @@
-const { test: base, expect, devices } = require("@playwright/test");
+const { test: base, expect, devices, request } = require("@playwright/test");
 const path = require("path");
 const fs = require("fs").promises;
-const { storeStorageState } = require("./helpers/storageStateHelper");
+const {
+  storeStorageState,
+  credentialsMap,
+} = require("./helpers/storageStateHelper");
 
 // Define the single shared JSON directory
 const SHARED_JSON_DIR = path.resolve(__dirname, "data", "json-files");
@@ -18,21 +21,35 @@ const SHARED_JSON_DIR = path.resolve(__dirname, "data", "json-files");
  * one. The file existing tells you nothing: `sid` expires roughly 12 hours after
  * it is written, so the first run of the next day inherits a dead state.
  *
+ * An unexpired `sid` can still be dead on the server - logged out, or its user
+ * deleted and re-created by the seed scripts - or belong to a user .env no
+ * longer names, so the server is asked who it belongs to.
+ *
  * Checked here rather than in globalSetup because these are per-worker files and
  * only the worker knows its own index.
  */
-const hasUsableSession = async (filePath) => {
+const hasUsableSession = async (filePath, baseURL, email) => {
+  let state;
   try {
-    const state = JSON.parse(await fs.readFile(filePath, "utf-8"));
-    const sid = (state.cookies || []).find((c) => c.name === "sid");
-    if (!sid) return false;
-    // -1 marks a true session cookie: it lives as long as the browser context.
-    if (sid.expires === -1 || sid.expires == null) return true;
-    // Re-login a few minutes early rather than racing the expiry mid-run.
-    return sid.expires * 1000 > Date.now() + 5 * 60 * 1000;
+    state = JSON.parse(await fs.readFile(filePath, "utf-8"));
   } catch {
     return false;
   }
+  const sid = (state.cookies || []).find((c) => c.name === "sid");
+  if (!sid || sid.value === "Guest") return false;
+  // -1 marks a true session cookie: it lives as long as the browser context.
+  // Otherwise re-login a few minutes early rather than racing the expiry mid-run.
+  const unexpired =
+    sid.expires === -1 ||
+    sid.expires == null ||
+    sid.expires * 1000 > Date.now() + 5 * 60 * 1000;
+  if (!unexpired) return false;
+
+  const context = await request.newContext({ baseURL, storageState: state });
+  const response = await context.get("/api/method/frappe.auth.get_logged_user");
+  const user = response.ok() ? (await response.json()).message : null;
+  await context.dispose();
+  return user === email;
 };
 
 const test = base.extend({
@@ -48,7 +65,8 @@ const test = base.extend({
       const fileName = `${role}-w${workerIndex}.json`;
       const outPath = path.resolve(__dirname, "./auth", fileName);
 
-      if (!(await hasUsableSession(outPath))) {
+      const { email } = credentialsMap[role];
+      if (!(await hasUsableSession(outPath, process.env.BASE_URL, email))) {
         console.log(
           `🔐 Refreshing auth state for ${role} (worker ${workerIndex}) - no usable session on disk.`,
         );
