@@ -26,15 +26,15 @@
     "@babel/parser": "^7.28.0",
     "@babel/traverse": "^7.28.6",
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "^1.58.0",
+    "@playwright/test": "^1.64.0",
     "allure-commandline": "^2.36.0",
     "allure-playwright": "^3.4.5",
     "eslint": "^10.10.0",
     "playwright": "^1.56.1"
   },
   "dependencies": {
-    "dotenv": "^17.2.3",
     "axios": "^1.18.1",
+    "dotenv": "^17.2.3",
     "proper-lockfile": "^4.1.2"
   }
 }

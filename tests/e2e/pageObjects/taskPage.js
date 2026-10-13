@@ -189,7 +189,10 @@ export class TaskPage {
   async getTaskRows() {
     await this.tasksTable.waitFor({ state: "visible" });
 
-    return this.tasksTable.getByRole("rowgroup").getByRole("row");
+    // The list has no rowgroups; its header row is the one without cells.
+    return this.tasksTable
+      .getByRole("row")
+      .filter({ has: this.page.getByRole("cell") });
   }
 
   /**
@@ -199,22 +202,6 @@ export class TaskPage {
     await this.tasksTable.waitFor({ state: "visible" });
 
     return this.tasksTable.locator(`//tr[.//p[contains(text(), '${name}')]]`);
-  }
-
-  /**
-   * Retrieves a list of task names from the tasks table.
-   */
-  async getTasks() {
-    const tasks = [];
-    const rows = await this.getTaskRows();
-
-    for (const row of await rows.all()) {
-      const cell = row.getByRole("cell").first();
-      const task = await cell.textContent();
-      tasks.push(task);
-    }
-
-    return tasks;
   }
 
   /**

@@ -2,9 +2,8 @@
  * Login into NextPMS via API
  */
 export const loginIntoNextPMS = async (requestContext, email, password) => {
-  const response = await requestContext.post(`/login`, {
+  const response = await requestContext.post(`/api/method/login`, {
     data: {
-      cmd: "login",
       usr: email,
       pwd: password,
     },
@@ -12,7 +11,9 @@ export const loginIntoNextPMS = async (requestContext, email, password) => {
 
   // Ensure login was successful
   if (!response.ok()) {
-    throw new Error(`Login failed: ${response.status()} ${response.statusText()}`);
+    throw new Error(
+      `Login failed: ${response.status()} ${response.statusText()}`,
+    );
   }
 
   return response;

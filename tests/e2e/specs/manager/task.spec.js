@@ -25,12 +25,11 @@ test.describe("Manager : Task", () => {
     // Search task
     await taskPage.searchTask(taskName);
 
-    // Assertions
-    const filteredTasks = await taskPage.getTasks();
-    expect(filteredTasks.length).toBeGreaterThanOrEqual(1);
-    filteredTasks.forEach((task) => {
-      expect(task).toContain(taskName);
-    });
+    // Assertions. The search is debounced, so these retry until the list
+    // swaps the unfiltered rows for the results.
+    const rows = await taskPage.getTaskRows();
+    await expect(rows.filter({ hasNotText: taskName })).toHaveCount(0);
+    await expect(rows).not.toHaveCount(0);
   });
 
   test("TC19: Open task details popup   ", async ({ jsonDir }) => {
