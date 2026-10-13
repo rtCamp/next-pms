@@ -9,84 +9,31 @@ import {
   SidebarSection,
   useColorScheme,
 } from "frappe-ui";
-import { ROLE_ACCESS, hasAnyRole, type Role } from "@/session";
+import type { Role } from "@/session";
 import logo from "@/assets/logo.svg";
+import { SIDEBAR_COLLAPSED_KEY } from "./constants";
+import {
+  computeSections,
+  isNavItemActive,
+  type NavItem,
+} from "./sidebarSections";
 
 const props = defineProps<{
   roles: readonly Role[];
-  /** The user's Employee ID; the team timesheet opens on their reports. */
   employee?: string | null;
   employeeName?: string;
 }>();
 
 const emit = defineEmits<{ logout: [] }>();
 
-interface NavItem {
-  label: string;
-  icon: string;
-  to: string;
-}
-
-const COLLAPSED_KEY = "next-pms:isSidebarCollapsed";
-
 const route = useRoute();
 const { resolvedColorScheme, toggleColorScheme } = useColorScheme();
 
-const can = (allowed: readonly Role[]) => hasAnyRole(props.roles, allowed);
-const isActive = (item: NavItem) => route.path === item.to.split("?")[0];
+const isActive = (item: NavItem) => isNavItemActive(item, route.path);
 
-const dashboards = computed<NavItem[]>(() => [
-  ...(can(ROLE_ACCESS.leadershipDashboard)
-    ? [
-        {
-          label: "Leadership",
-          icon: "lucide-chart-column",
-          to: "/dashboard/leadership",
-        },
-      ]
-    : []),
-  ...(can(ROLE_ACCESS.managerDashboard)
-    ? [{ label: "Manager", icon: "lucide-briefcase", to: "/dashboard/manager" }]
-    : []),
-]);
-
-const reviewsTimesheets = computed(() => can(ROLE_ACCESS.reviewTimesheets));
-
-const timesheets = computed<NavItem[]>(() => {
-  if (!reviewsTimesheets.value) {
-    return [{ label: "Timesheet", icon: "lucide-clock", to: "/timesheet" }];
-  }
-  const team = props.employee
-    ? `/timesheet/team?reportsTo=${encodeURIComponent(props.employee)}`
-    : "/timesheet/team";
-  return [
-    { label: "Personal", icon: "lucide-clock", to: "/timesheet" },
-    { label: "Team", icon: "lucide-users", to: team },
-    { label: "Projects", icon: "lucide-folder", to: "/timesheet/project" },
-  ];
-});
-
-const topItems = computed<NavItem[]>(() => [
-  ...(timesheets.value.length === 1 ? timesheets.value : []),
-  ...(can(ROLE_ACCESS.projects)
-    ? [{ label: "Projects", icon: "lucide-folder", to: "/projects?status=Open" }]
-    : []),
-  { label: "Tasks", icon: "lucide-list-checks", to: "/tasks" },
-  ...(dashboards.value.length === 1 ? dashboards.value : []),
-]);
-
-const allocations: NavItem[] = [
-  { label: "Team", icon: "lucide-users", to: "/allocations/team" },
-  { label: "Projects", icon: "lucide-folder", to: "/allocations/project" },
-];
-
-const sections = computed(() =>
-  [
-    { label: "Dashboards", items: dashboards.value },
-    { label: "Timesheet", items: timesheets.value },
-    { label: "Allocations", items: allocations },
-  ].filter((section) => section.items.length > 1),
-);
+const nav = computed(() => computeSections(props.roles, props.employee));
+const topItems = computed(() => nav.value.topItems);
+const sections = computed(() => nav.value.sections);
 
 // Sections start closed unless they hold the current page.
 const closedSections = ref<Record<string, boolean>>({});
@@ -104,11 +51,10 @@ watch(
   { immediate: true },
 );
 
-// Left unset (`null`) until the user toggles it, so the sidebar collapses by
-// itself on narrow screens.
+// `null` until toggled, so Sidebar auto-collapses on narrow screens.
 function readCollapsed(): boolean | null {
   try {
-    const stored = localStorage.getItem(COLLAPSED_KEY);
+    const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
     return stored === null ? null : stored === "true";
   } catch {
     return null;
@@ -117,29 +63,23 @@ function readCollapsed(): boolean | null {
 
 const collapsed = ref(readCollapsed());
 watch(collapsed, (value) => {
-  try {
-    if (value !== null) localStorage.setItem(COLLAPSED_KEY, String(value));
-  } catch {
-    // Storage is unavailable (private mode); the choice lasts for this visit.
+  if (value !== null) {
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(value));
   }
 });
 
-// Sidebar collapses itself below Tailwind's `sm` breakpoint while `collapsed`
-// is unset. Its own state can't be injected here: the dev server pre-bundles
-// frappe-ui's `sidebarCollapsedKey` apart from the copy Sidebar.vue provides.
+// Mirrors Sidebar's own rule: injecting `sidebarCollapsedKey` fails in dev,
+// where pre-bundled frappe-ui holds a different Symbol.
 const narrowQuery = window.matchMedia("(max-width: 639.9px)");
 const isNarrow = ref(narrowQuery.matches);
 const onNarrowChange = (event: MediaQueryListEvent) => {
   isNarrow.value = event.matches;
 };
 narrowQuery.addEventListener("change", onNarrowChange);
-onScopeDispose(() =>
-  narrowQuery.removeEventListener("change", onNarrowChange),
-);
+onScopeDispose(() => narrowQuery.removeEventListener("change", onNarrowChange));
 const sidebarCollapsed = computed(() => collapsed.value ?? isNarrow.value);
 
 const menuItems = computed(() => [
-  // Frappe pages outside this app, so not router routes.
   {
     label: "Apps",
     icon: "lucide-layout-grid",
@@ -168,8 +108,6 @@ const menuItems = computed(() => [
       :menu-items="menuItems"
     />
 
-    <!-- Sidebar leaves the body's layout to the app. The 8px inset matches the
-         React sidebar and centres the icons in the collapsed 48px column. -->
     <div class="flex-1 overflow-y-auto px-2 pt-2">
       <SidebarItem
         v-for="item in topItems"
@@ -180,11 +118,11 @@ const menuItems = computed(() => [
         :active="isActive(item)"
       />
 
-      <!-- A collapsed sidebar hides the section toggles, so every section shows
-           its items there; each keeps its own state for when it expands. -->
+      <!-- Keyed by the collapsed state so the switch skips SidebarSection's
+           slide. -->
       <SidebarSection
         v-for="section in sections"
-        :key="section.label"
+        :key="`${section.label}:${sidebarCollapsed}`"
         :collapsed="sidebarCollapsed ? false : closedSections[section.label]"
         :label="section.label"
         collapsible

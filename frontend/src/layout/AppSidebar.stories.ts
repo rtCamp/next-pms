@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { expect, fn, screen, userEvent, waitFor } from "storybook/test";
 import AppSidebar from "./AppSidebar.vue";
+import { SIDEBAR_COLLAPSED_KEY } from "./constants";
 
 const meta = {
   title: "Layout/AppSidebar",
@@ -14,7 +15,7 @@ const meta = {
   },
   beforeEach: () => {
     // Each story starts expanded, whatever an earlier one stored.
-    localStorage.removeItem("next-pms:isSidebarCollapsed");
+    localStorage.removeItem(SIDEBAR_COLLAPSED_KEY);
   },
   render: (args) => ({
     components: { AppSidebar },
@@ -126,24 +127,23 @@ export const Collapse: Story = {
     await expect(
       canvas.getByRole("button", { name: "Expand" }),
     ).toBeInTheDocument();
-    await expect(localStorage.getItem("next-pms:isSidebarCollapsed")).toBe(
-      "true",
-    );
+    await expect(localStorage.getItem(SIDEBAR_COLLAPSED_KEY)).toBe("true");
   },
 };
 
 /** Collapsed, the sidebar shows closed sections' icons too, and expanding it closes them again. */
 export const CollapsedShowsClosedSections: Story = {
   play: async ({ canvas }) => {
-    const team = canvas.getByRole("link", { name: "Team", hidden: true });
-    await expect(team).not.toBeVisible();
+    // Sections remount on collapse; re-query.
+    const team = () => canvas.getByRole("link", { name: "Team", hidden: true });
+    await expect(team()).not.toBeVisible();
     await userEvent.click(canvas.getByRole("button", { name: "Collapse" }));
-    await waitFor(() => expect(team).toBeVisible());
+    await expect(team()).toBeVisible();
     await expect(
       canvas.getByRole("link", { name: "Projects", hidden: true }),
     ).toBeVisible();
     await userEvent.click(canvas.getByRole("button", { name: "Expand" }));
-    await waitFor(() => expect(team).not.toBeVisible());
+    await expect(team()).not.toBeVisible();
     await expect(
       canvas.getByRole("button", { name: "Allocations", hidden: true }),
     ).toHaveAttribute("aria-expanded", "false");
