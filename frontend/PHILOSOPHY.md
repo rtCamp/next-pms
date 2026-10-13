@@ -109,9 +109,15 @@ changes need their own, explicit task.
 ## P9 — Comments explain why, not what
 
 **Rule.** Don't write comments that restate the code. Write one only when the reason behind the code isn't obvious
-(a workaround, an upstream bug, a surprising constraint).
+(a workaround, an upstream bug, a surprising constraint). Keep it to a line or two, and don't comment design or
+layout specifics; the markup and classes already say that.
 
 **Why.** Names already say what the code does; stale comments mislead.
+
+**Bad** `<!-- Laid out as the React sidebar: a divider above each section, the chevron before the label… -->`
+
+**Good** `// Mirrors Sidebar's own rule: injecting sidebarCollapsedKey fails in dev, where pre-bundled frappe-ui holds a
+different Symbol.`
 
 ## P10 — Formatting and commits follow the tooling
 
@@ -120,3 +126,47 @@ changes need their own, explicit task.
 (`feat(components): add MonthPicker`).
 
 **Why.** CI rejects anything else; matching it locally avoids a second round.
+
+## P11 — Derive data in plain functions outside the SFC
+
+**Rule.** When a component computes non-trivial data from its inputs (role filtering, grouping, URL building), put
+it in a pure function in a sibling `.ts` module and call it from one `computed`. The SFC keeps rendering and wiring.
+
+**Why.** A pure function can be read, reused and unit-tested without mounting the component, and the SFC stays short.
+
+**Bad** five chained `computed`s in `<script setup>` building the sidebar links.
+
+**Good** `const nav = computed(() => computeSections(props.roles, props.employee))`
+
+## P12 — Shared literals are named constants
+
+**Rule.** Storage keys, page sizes, status lists and other literals used in more than one place live in the folder's
+`constants.ts` as `UPPER_SNAKE_CASE` exports. Code and stories import them instead of repeating the string.
+
+**Why.** One definition can't drift, and a test that clears or reads a storage key uses the same key as the code.
+
+**Bad** `localStorage.removeItem("next-pms:isSidebarCollapsed")` in a story.
+
+**Good** `localStorage.removeItem(SIDEBAR_COLLAPSED_KEY)`
+
+## P13 — Name IDs as IDs
+
+**Rule.** A parameter or prop that holds a record's name/ID is called `<thing>Id` (`employeeId`, `projectId`), never
+just `<thing>`.
+
+**Why.** `employee` could be a name, an ID or a whole record; the suffix removes the guess.
+
+**Bad** `computeSections(roles, employee)`
+
+**Good** `computeSections(roles, employeeId)`
+
+## P14 — Catch only to handle
+
+**Rule.** Wrap code in `try/catch` only when the catch does something: returns a fallback, returns early, or reports
+the error. Never leave a catch empty or holding only a comment.
+
+**Why.** An empty catch hides failures, and the extra nesting adds nothing.
+
+**Bad** `try { localStorage.setItem(key, value) } catch { /* private mode */ }`
+
+**Good** `localStorage.setItem(key, value)`, or `try { … } catch { return null }` when a fallback is needed.
