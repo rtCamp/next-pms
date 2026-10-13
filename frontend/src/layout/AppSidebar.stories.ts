@@ -132,6 +132,39 @@ export const Collapse: Story = {
   },
 };
 
+/** Collapsed, the sidebar shows closed sections' icons too, and expanding it closes them again. */
+export const CollapsedShowsClosedSections: Story = {
+  play: async ({ canvas }) => {
+    const team = canvas.getByRole("link", { name: "Team", hidden: true });
+    await expect(team).not.toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Collapse" }));
+    await waitFor(() => expect(team).toBeVisible());
+    await expect(
+      canvas.getByRole("link", { name: "Projects", hidden: true }),
+    ).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Expand" }));
+    await waitFor(() => expect(team).not.toBeVisible());
+    await expect(
+      canvas.getByRole("button", { name: "Allocations", hidden: true }),
+    ).toHaveAttribute("aria-expanded", "false");
+  },
+};
+
+/** On a phone the sidebar collapses by itself, and closed sections still show their icons. */
+export const MobileCollapsedShowsClosedSections: Story = {
+  globals: { viewport: { value: "mobile1" } },
+  play: async ({ canvas }) => {
+    await expect(
+      canvas.getByRole("button", { name: "Expand" }),
+    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        canvas.getByRole("link", { name: "Team", hidden: true }),
+      ).toBeVisible(),
+    );
+  },
+};
+
 /** Log out sits in the header menu and is left to the parent. */
 export const LogOut: Story = {
   play: async ({ args, canvas }) => {

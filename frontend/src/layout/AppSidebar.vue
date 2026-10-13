@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onScopeDispose, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import {
   Sidebar,
@@ -124,6 +124,20 @@ watch(collapsed, (value) => {
   }
 });
 
+// Sidebar collapses itself below Tailwind's `sm` breakpoint while `collapsed`
+// is unset. Its own state can't be injected here: the dev server pre-bundles
+// frappe-ui's `sidebarCollapsedKey` apart from the copy Sidebar.vue provides.
+const narrowQuery = window.matchMedia("(max-width: 639.9px)");
+const isNarrow = ref(narrowQuery.matches);
+const onNarrowChange = (event: MediaQueryListEvent) => {
+  isNarrow.value = event.matches;
+};
+narrowQuery.addEventListener("change", onNarrowChange);
+onScopeDispose(() =>
+  narrowQuery.removeEventListener("change", onNarrowChange),
+);
+const sidebarCollapsed = computed(() => collapsed.value ?? isNarrow.value);
+
 const menuItems = computed(() => [
   // Frappe pages outside this app, so not router routes.
   {
@@ -166,12 +180,15 @@ const menuItems = computed(() => [
         :active="isActive(item)"
       />
 
+      <!-- A collapsed sidebar hides the section toggles, so every section shows
+           its items there; each keeps its own state for when it expands. -->
       <SidebarSection
         v-for="section in sections"
         :key="section.label"
-        v-model:collapsed="closedSections[section.label]"
+        :collapsed="sidebarCollapsed ? false : closedSections[section.label]"
         :label="section.label"
         collapsible
+        @update:collapsed="closedSections[section.label] = Boolean($event)"
       >
         <SidebarItem
           v-for="item in section.items"
