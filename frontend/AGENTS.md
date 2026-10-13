@@ -40,7 +40,8 @@ src/
   router.ts        routes, based at /next-pms, and the navigation guards (employee and role checks)
   router-meta.d.ts route meta: title, roles, standalone
   session/         useSession(): the signed-in user, roles and employee record; ROLE_ACCESS, hasAnyRole
-  layout/          AppSidebar (frappe-ui Sidebar) and StatusMessage for the status pages
+  layout/          AppSidebar (frappe-ui Sidebar), AppSidebarSection, the nav links (sidebarSections.ts) and
+                   StatusMessage for the status pages
   pages/           route components; WorkInProgress stands in for pages not rebuilt yet
   components/      components frappe-ui lacks, one folder each; see components/Components.md
   composables/     shared use* composables: lookups, the like toggle, URL query updates
@@ -88,7 +89,8 @@ Never edit the build output in `../next_pms/public/frontend` by hand.
 - Add React or another UI kit alongside frappe-ui.
 - Call the server with `fetch` or axios; use the frappe-ui composables (P3).
 - Add Pinia or another store library; shared state goes in a composable over frappe-ui calls, like `useSession()`.
-- Restyle frappe-ui's `Sidebar` parts; compose them as they are.
+- Restyle frappe-ui's `Sidebar` parts beyond matching the React sidebar's layout. `AppSidebarSection` draws its own
+  section heading and indents its items to match React; everything else composes frappe-ui's parts as they are.
 - Hard-code colours or reach for raw Tailwind palettes; use the semantic tokens (P4).
 - Add an icon library; use `lucide-*` icons, and ask before adding one to `src/icons/` (P4).
 - Make broad refactors, rename public APIs or change backend code unless asked.

@@ -6,12 +6,12 @@ import {
   SidebarCollapseToggle,
   SidebarHeader,
   SidebarItem,
-  SidebarSection,
   useColorScheme,
 } from "frappe-ui";
 import type { Role } from "@/session";
 import logo from "@/assets/logo.svg";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
+import AppSidebarSection from "./AppSidebarSection.vue";
 import {
   computeSections,
   isNavItemActive,
@@ -34,22 +34,6 @@ const isActive = (item: NavItem) => isNavItemActive(item, route.path);
 const nav = computed(() => computeSections(props.roles, props.employee));
 const topItems = computed(() => nav.value.topItems);
 const sections = computed(() => nav.value.sections);
-
-// Sections start closed unless they hold the current page.
-const closedSections = ref<Record<string, boolean>>({});
-watch(
-  [sections, () => route.path],
-  () => {
-    for (const section of sections.value) {
-      if (section.items.some(isActive)) {
-        closedSections.value[section.label] = false;
-      } else {
-        closedSections.value[section.label] ??= true;
-      }
-    }
-  },
-  { immediate: true },
-);
 
 // `null` until toggled, so Sidebar auto-collapses on narrow screens.
 function readCollapsed(): boolean | null {
@@ -118,25 +102,13 @@ const menuItems = computed(() => [
         :active="isActive(item)"
       />
 
-      <!-- Keyed by the collapsed state so the switch skips SidebarSection's
-           slide. -->
-      <SidebarSection
+      <AppSidebarSection
         v-for="section in sections"
-        :key="`${section.label}:${sidebarCollapsed}`"
-        :collapsed="sidebarCollapsed ? false : closedSections[section.label]"
+        :key="section.label"
         :label="section.label"
-        collapsible
-        @update:collapsed="closedSections[section.label] = Boolean($event)"
-      >
-        <SidebarItem
-          v-for="item in section.items"
-          :key="item.to"
-          :label="item.label"
-          :icon="item.icon"
-          :route="item.to"
-          :active="isActive(item)"
-        />
-      </SidebarSection>
+        :items="section.items"
+        :sidebar-collapsed="sidebarCollapsed"
+      />
     </div>
 
     <div class="p-2">

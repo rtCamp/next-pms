@@ -134,7 +134,6 @@ export const Collapse: Story = {
 /** Collapsed, the sidebar shows closed sections' icons too, and expanding it closes them again. */
 export const CollapsedShowsClosedSections: Story = {
   play: async ({ canvas }) => {
-    // Sections remount on collapse; re-query.
     const team = () => canvas.getByRole("link", { name: "Team", hidden: true });
     await expect(team()).not.toBeVisible();
     await userEvent.click(canvas.getByRole("button", { name: "Collapse" }));
