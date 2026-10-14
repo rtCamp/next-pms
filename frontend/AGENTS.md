@@ -24,8 +24,8 @@ carving a quiet exception.
 ## Stack
 
 Vue 3 (`<script setup lang="ts">`), frappe-ui 1.0, Vue Router 4, Tailwind 3.4 with the frappe-ui preset, Vite 7,
-Storybook 10 (Vue 3 + Vite) with the MCP, Docs, Vitest and A11y addons, class-variance-authority and `cn` (P17). Node 22
-or newer.
+Storybook 10 (Vue 3 + Vite) with the MCP, Docs, Vitest, A11y and Themes addons, class-variance-authority and `cn`
+(P17). Node 22 or newer.
 
 ## Commands (run in `frontend/`)
 
