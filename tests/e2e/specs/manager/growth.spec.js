@@ -1,7 +1,11 @@
 const { test, expect } = require("../../playwright.fixture.cjs");
 import * as allure from "allure-js-commons";
 import { GrowthPage } from "../../pageObjects/growthPage";
-import { createDocument, getDocList } from "../../utils/api/apiClient";
+import {
+  createDocument,
+  getDocList,
+  updateDocument,
+} from "../../utils/api/apiClient";
 import { getFormattedDate } from "../../utils/dateUtils";
 import { loadTestCase, notificationsFor } from "../../utils/testCase";
 import { scaleTimeout } from "../../utils/timeouts";
@@ -226,7 +230,8 @@ test.describe("Manager: Project Growth", () => {
     expect(await read(name)).toBeUndefined();
   });
 
-  // Reported this issue once it's resolved will remove the skip from this test.
+  // Skipped: the app accepts any file type (rtCamp/next-pms#2270), so this
+  // assertion cannot pass yet. Remove the skip once #2270 is fixed.
   test.skip("TC127: Attachment upload rejects disallowed file types", async ({
     jsonDir,
   }) => {
@@ -244,10 +249,6 @@ test.describe("Manager: Project Growth", () => {
     await growthPage.uploadDocument(file);
     const listed = await growthPage.isDocumentListed(file.name);
 
-    // Known bug rtCamp/next-pms#2270: any file type is accepted. Marked as an
-    // expected failure only once the upload really was accepted, so a setup
-    // error above cannot pass as the known bug. Starts passing once it is fixed.
-    test.fail(listed, "Known bug #2270 - any file type is accepted");
     expect(listed, "a disallowed file type must not be accepted").toBe(false);
   });
 
@@ -268,6 +269,12 @@ test.describe("Manager: Project Growth", () => {
         ],
         { fields: ["name"] },
       );
+
+    // Following records nothing unless the user has "Send notifications for
+    // documents followed by me" on, and a freshly seeded user starts with it off.
+    await updateDocument("User", process.env.REP_MAN_EMAIL, {
+      document_follow_notify: 1,
+    });
 
     await growthPage.goto(projectId);
     await growthPage.openDetail(data.activity);
@@ -331,18 +338,13 @@ test.describe("Manager: Project Growth", () => {
     await expect(growthPage.field("Priority for Client")).toContainText("High");
   });
 
+  // Skipped: the notification is written by a job on a 15-minute cron
+  // (frappe.deferred_insert.save_to_db) that a test cannot trigger, and CI runs no
+  // scheduler. Remove the skip once that job can be run on demand.
   test.skip("TC131: Changing status or owner notifies the right people", async ({
     jsonDir,
   }) => {
     allure.story("Growth");
-    // The notification is queued and written by a scheduled job that runs on a
-    // 15-minute cron (frappe.deferred_insert.save_to_db), and nothing can trigger
-    // it from here. Set E2E_FAST_SCHEDULER=1 on a site where that job runs
-    // every minute; otherwise there is no way to observe the notification.
-    test.skip(
-      !process.env.E2E_FAST_SCHEDULER,
-      "Needs the deferred-insert job to run every minute (E2E_FAST_SCHEDULER=1)",
-    );
     test.setTimeout(scaleTimeout(240000));
     const { data, projectId } = await loadTestCase(jsonDir, "TC131");
     const { name } = await seed(projectId, { activity: data.activity });

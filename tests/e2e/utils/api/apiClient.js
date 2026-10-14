@@ -244,6 +244,33 @@ export const cancelDocument = async (doctype, name, role = "admin") => {
 
 // ------------------------------------------------------------------------------------------
 
+export const updateDocument = async (doctype, name, data, role = "admin") => {
+  const requestContext = await request.newContext({
+    baseURL,
+    storageState: loadAuthState(role),
+  });
+  try {
+    const res = await fetchWithRetry(
+      requestContext,
+      `/api/resource/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}`,
+      {
+        method: "PUT",
+        timeout: 120000,
+        headers: { "Content-Type": "application/json" },
+        data,
+      },
+    );
+    if (!res.ok()) {
+      throw new Error(
+        `Could not update ${doctype} ${name}: ${res.status()} ${res.statusText()}`,
+      );
+    }
+    return (await res.json())?.data;
+  } finally {
+    await requestContext.dispose();
+  }
+};
+
 /**
  * Creates a document and returns the created doc (including its `creation`).
  */
