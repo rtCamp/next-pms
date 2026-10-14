@@ -10,13 +10,22 @@ served by the Frappe app at `/next-pms`. This file is the index for any coding a
 3. [`PHILOSOPHY.md`](PHILOSOPHY.md) — numbered rules (P1, P2, …). Cite them by ID in PRs and reviews.
 4. [`src/components/Components.md`](src/components/Components.md) — before adding or changing a component.
 
-When sources disagree: **PHILOSOPHY > CONTEXT > existing code**. Code is evidence, not authority. If a rule gives a
-clearly wrong answer, propose an edit to the rule instead of carving a quiet exception.
+When sources disagree:
+
+- **Implementation:** PHILOSOPHY > CONTEXT > existing code > frappe-ui source
+  (`node_modules/frappe-ui/src/`) > the `frappe-ui` skill > other skills > other Frappe apps (CRM, Helpdesk,
+  Gameplan). Take patterns from those apps, never their dependency choices: they still use vuedraggable, Pinia and
+  `createResource`.
+- **Behaviour:** the React app on the `develop` branch is the spec.
+
+Code is evidence, not authority. If a rule gives a clearly wrong answer, propose an edit to the rule instead of
+carving a quiet exception.
 
 ## Stack
 
 Vue 3 (`<script setup lang="ts">`), frappe-ui 1.0, Vue Router 4, Tailwind 3.4 with the frappe-ui preset, Vite 7,
-Storybook 10 (Vue 3 + Vite) with the MCP, Docs and Vitest addons.
+Storybook 10 (Vue 3 + Vite) with the MCP, Docs, Vitest and A11y addons, class-variance-authority and `cn` (P17). Node 22
+or newer.
 
 ## Commands (run in `frontend/`)
 
@@ -25,9 +34,9 @@ Storybook 10 (Vue 3 + Vite) with the MCP, Docs and Vitest addons.
 | `npm run dev` | Vite dev server on port 5173, proxying API calls to the Frappe site |
 | `npm run build` | Production build into `../next_pms/public/frontend` and `../next_pms/www/next-pms/index.html` |
 | `npm run type-check` | `vue-tsc --noEmit` |
-| `npm run lint` / `lint:fix` | ESLint (Vue, TypeScript and Storybook rules) over `.vue`, `.ts` and stories; formatting is Prettier's |
+| `npm run lint` / `lint:fix` | ESLint over `.vue`, `.ts` and stories: Vue, TypeScript, Storybook, Tailwind class, accessibility and composable rules; formatting is Prettier's |
 | `npm run storybook` | Storybook on port 6006 (also serves the Storybook MCP at `/mcp`) |
-| `npm run test-storybook` | Runs every story as a test in headless Chromium (Vitest) |
+| `npm run test-storybook` | Runs every story as a test in headless Chromium (Vitest), including an accessibility check |
 | `npm run build-storybook` | Static Storybook in `storybook-static/` |
 
 ## Layout
@@ -44,9 +53,9 @@ src/
                    StatusMessage for the status pages
   pages/           route components; WorkInProgress stands in for pages not rebuilt yet
   components/      components frappe-ui lacks, one folder each; see components/Components.md
-  composables/     shared use* composables: lookups, the like toggle, URL query updates
+  composables/     shared use* composables: lookups, the like toggle, URL query updates, editor attributes
   icons/           custom icons lucide lacks, as Vue SFCs exported from icons/index.ts; everything else uses lucide-* (P4)
-  utils/           helpers shared by components and pages (date.ts, text.ts); add one only when something needs it
+  utils/           helpers shared by components and pages (date.ts, text.ts, cn.ts); add one only when something needs it
 ```
 
 **Imports.** `@/` is `src/` (set in `vite.config.ts` and `tsconfig.json`). Import from another folder with `@/`, e.g.
@@ -63,9 +72,10 @@ Never edit the build output in `../next_pms/public/frontend` by hand.
 ## Tools
 
 - **Skills** in `.agents/skills/` (symlinked into `.claude/skills/`): `frappe-ui` for any UI or data code;
-  `vue-best-practices`, `vue-router-best-practices`, `vue-testing-best-practices`, `vue-debug-guides`,
-  `create-adaptable-composable` for Vue questions; `frappe-app-dev` for backend Frappe work. Versions are pinned in `skills-lock.json`; update with
-  `npx skills update`.
+  `vue-best-practices`, `vue-router-best-practices`, `vue-debug-guides`, `create-adaptable-composable` for Vue
+  questions; `port-frappe-ui-react-component` (ours) for porting React components. Vendored versions are pinned in
+  `skills-lock.json`; update with `npx skills update`, which overwrites local edits, so corrections go in
+  [Skill overrides](#skill-overrides) below.
 - **Storybook MCP** at `http://localhost:6006/mcp` (needs `npm run storybook` running): `docs-list` / `docs-show`
   to look up our components, `test-run` to run story tests, `stories-preview` for links to share.
 - **Vue DevTools** on the dev server (`vite-plugin-vue-devtools`): Alt+Shift+D in the page, or
@@ -76,12 +86,33 @@ Never edit the build output in `../next_pms/public/frontend` by hand.
 - **Browser checks** run against the Vite URL. If the page redirects to the Frappe login, ask the human to log in;
   never fill in the login form yourself.
 
+## Skill overrides
+
+These win over the vendored skills.
+
+- **vue-testing-best-practices** doesn't apply here. Tests are Storybook stories with `play` functions running in
+  browser Vitest (P5, P6), not Vue Test Utils or node Vitest.
+- **vue-best-practices**: read its reference files only when a task needs one, not all of them up front. Components
+  follow the folder layout in [`src/components/Components.md`](src/components/Components.md), not its feature
+  folders.
+- **frappe-ui composables**: never create a `useCall` inside an event handler. Create it in `setup` with
+  `immediate: false` and call `submit()` from the handler.
+- **frappe-app-dev** is for backend work only. Its frontend references (`fetch`, yarn, Desk's `frappe.call`) don't
+  apply to `frontend/`.
+- **frappe-ui skill errors**:
+  - `CORE.md` says `Dialog` has no `theme` prop. It has one in 1.0 (`Dialog/types.ts`).
+  - `DATA.md` says `submit()` returns before the request when `refetch: true`. It awaits the request in both modes
+    (`useCall.ts`).
+- **frappe-ui skill mapping**: use our `MonthPicker` for picking a month, not `Select` as the skill suggests.
+
 ## Working rules
 
 - Build from frappe-ui first; add a component under `src/components/` only for a real gap (P1).
 - Every component ships stories, and its behaviour is covered by interaction stories (P5).
-- Before handing off: `npm run lint`, `npm run type-check`, `npm run test-storybook -- --run`, and Prettier on changed `.ts`/`.js`
-  files, as CI runs it (P10).
+- Add an npm dependency when it is truly needed or clearly improves the code or the UX, and say why in the PR or
+  report.
+- Before handing off: `npm run lint`, `npm run type-check`, `npm run test-storybook -- --run`, and Prettier on changed
+  files (P10).
 - Don't change routes or backend endpoints as part of frontend work; that needs its own task.
 
 ## Do not

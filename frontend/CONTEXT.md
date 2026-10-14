@@ -34,9 +34,12 @@ _Avoid_: log, record.
 **Personal / Team / Project timesheet** — the three timesheet views: your own week (`/timesheet`), your reports'
 weeks (`/timesheet/team`), and all time logged against projects (`/timesheet/project`).
 
-**Approval status** — a timesheet's review state: `Not Submitted`, `Approval Pending`, `Approved`, `Rejected`, and
-`Partially Approved` for a week with mixed results (`custom_approval_status`, `custom_weekly_approval_status`).
-_Avoid_: state, review status.
+**Approval status** — a timesheet's review state: `Not Submitted`, `Approval Pending`, `Approved`, `Rejected`,
+`Partially Approved` and `Partially Rejected` for a week with mixed results, and `Processing Timesheet`
+(`custom_approval_status`, `custom_weekly_approval_status`).
+In code: `ApprovalStatusValue` and `APPROVAL_STATUSES` from `components/ApprovalStatus`, holding the backend values
+(P16).
+_Avoid_: state, review status, kebab-case copies like `not-submitted`.
 
 **Time off** — leave (`Leave Application`) and holidays (`Holiday List`) shown alongside time entries.
 _Avoid_: vacation, PTO, absence.
@@ -58,6 +61,9 @@ _Avoid_: engagement, account (unless meaning the customer).
 
 **Task** — a Frappe `Task` within a project; time entries are logged against tasks.
 _Avoid_: ticket, issue, todo (a `ToDo` is a separate Frappe doctype).
+
+**Task status** — a task's `status`: `Open`, `Working`, `Pending Review`, `Overdue`, `Template`, `Completed`,
+`Cancelled`. In code: `TaskStatusValue` and `TASK_STATUSES` from `components/TaskStatus` (P16).
 
 **Project phase** — a named, coloured stage a project moves through (`Project Phase`).
 _Avoid_: stage, status (status is a separate field).

@@ -8,10 +8,12 @@ One folder per component, named after it:
 
 ```
 MonthPicker/
-  MonthPicker.vue          the component
-  MonthPicker.stories.ts   stories and interaction tests (P5)
-  types.ts                 props, emits and other public types
-  index.ts                 public exports: the component, `export type * from "./types"`, plus any constants
+  MonthPicker.vue                        the component
+  MonthPicker.stories.ts                 visual stories (P5)
+  MonthPicker.interactions.stories.ts    stories with play functions, run as tests (P5)
+  MonthPicker.fixtures.ts                sample data both story files share, when needed
+  types.ts                               props, emits and other public types
+  index.ts                               public exports: the component, `export type * from "./types"`, plus any constants
 ```
 
 A folder may also hold sub-components (`FilterRow.vue`, `CommentItem.vue`), `constants.ts`, `utils.ts` or
@@ -46,6 +48,6 @@ sync when adding, renaming or removing a component.
 
 ## Adding a component
 
-- Port from frappe-ui-react with the `port-frappe-ui-react-component` skill.
+- Port from the React frontend (design-system or frappe-ui-react) with the `port-frappe-ui-react-component` skill.
 - Ship stories with the component; cover its behaviour with interaction stories (P5).
-- Done when `npm run type-check` and `npm run test-storybook -- --run` pass.
+- Done when `npm run lint`, `npm run type-check` and `npm run test-storybook -- --run` pass.
