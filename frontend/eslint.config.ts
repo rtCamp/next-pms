@@ -69,7 +69,7 @@ export default defineConfigWithVueTs(
     name: "app/rules",
     plugins: { "@scayle/vue-composable": vueComposable },
     rules: {
-      // Our components follow frappe-ui's single-word names (Card, Filter, Comments).
+      // Our components follow frappe-ui's single-word names (Filter, Comments, DayChip).
       "vue/multi-word-component-names": "off",
       // Optional props declared with TypeScript types are `undefined` when absent; a default adds nothing.
       "vue/require-default-prop": "off",
@@ -199,6 +199,11 @@ export default defineConfigWithVueTs(
       "no-restricted-globals": "off",
       "no-restricted-properties": "off",
     },
+  },
+  {
+    name: "app/cn",
+    files: ["src/utils/cn.ts"],
+    rules: { "no-restricted-imports": "off" },
   },
   {
     name: "app/stories",
