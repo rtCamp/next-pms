@@ -1,21 +1,16 @@
 <script setup lang="ts">
-import { computed, ref, useTemplateRef } from "vue";
+import { computed, ref } from "vue";
 import { Avatar, dialog } from "frappe-ui";
-import { CommentKit, Editor, EditorContent } from "frappe-ui/editor";
+import { RichText } from "@/components/RichText";
 import { formatRelativeTimeShort } from "@/utils/text";
 import CommentActions from "./CommentActions.vue";
 import CommentInput from "./CommentInput.vue";
 import { useCommentsContext } from "./context";
 import type { CommentNode } from "./types";
-import { useEditorAttributes } from "@/composables/useEditorAttributes";
 
 const props = defineProps<{ comment: CommentNode; canReply: boolean }>();
 
 const ctx = useCommentsContext();
-const readOnlyExtensions = [CommentKit];
-useEditorAttributes(useTemplateRef("bodyEditor"), () => ({
-  role: "presentation",
-}));
 
 const isEditing = ref(false);
 const isReplying = ref(false);
@@ -117,14 +112,7 @@ function confirmDelete() {
       @cancel="isEditing = false"
     />
     <div v-else class="rounded-6 bg-surface-gray-1 px-3">
-      <Editor
-        ref="bodyEditor"
-        :model-value="body"
-        :extensions="readOnlyExtensions"
-        :editable="false"
-      >
-        <EditorContent class="prose-sm text-ink-gray-7" />
-      </Editor>
+      <RichText :content="body" class="prose-sm text-ink-gray-7" />
     </div>
 
     <CommentActions

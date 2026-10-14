@@ -37,6 +37,7 @@ across components live in `src/utils/`.
 | `MonthPicker/` | `MonthPicker` |
 | `NotificationTray/` | `NotificationTray` |
 | `ProgressBar/` | `ProgressBar` |
+| `RichText/` | `RichText` (read-only editor HTML, e.g. comments) |
 | `SortSelector/` | `SortSelector` |
 | `TaskBadges/` | `TaskBadges` (a task's due date and project) |
 | `TaskLog/` | `TaskLog` (view), `TaskLogDialog` (loads its data), `useTaskLog`, `TASK_LOG_RANGES`, `DEFAULT_TASK_LOG_RANGE` |
