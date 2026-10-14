@@ -7,7 +7,6 @@ const meta = {
   title: "Components/DayChip",
   component: DayChip,
   tags: ["autodocs"],
-  parameters: { layout: "centered" },
   args: {
     dayLabel: "Mon",
     dayNumber: 12,

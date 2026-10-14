@@ -7,7 +7,6 @@ const meta = {
   title: "Components/TaskStatus/Interactions",
   component: TaskStatus,
   tags: ["interaction"],
-  parameters: { layout: "centered" },
   args: { status: "Open" },
   render: (args) => ({
     components: { TaskStatus },

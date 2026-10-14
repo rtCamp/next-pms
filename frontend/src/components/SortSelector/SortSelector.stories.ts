@@ -9,7 +9,6 @@ const meta = {
   title: "Components/SortSelector",
   component: SortSelector,
   tags: ["autodocs"],
-  parameters: { layout: "centered" },
   args: {
     fields: FIELDS,
     modelValue: null,

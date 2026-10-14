@@ -9,7 +9,6 @@ const meta = {
   title: "Components/SortSelector/Interactions",
   component: SortSelector,
   tags: ["interaction"],
-  parameters: { layout: "centered" },
   args: {
     fields: FIELDS,
     modelValue: null,

@@ -6,7 +6,6 @@ const meta = {
   title: "Components/TaskStatus",
   component: TaskStatus,
   tags: ["autodocs"],
-  parameters: { layout: "centered" },
   args: { status: "Open" },
   argTypes: {
     status: { control: "select", options: [...TASK_STATUSES] },

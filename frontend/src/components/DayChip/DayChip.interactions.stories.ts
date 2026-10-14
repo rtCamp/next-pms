@@ -8,7 +8,6 @@ const meta = {
   title: "Components/DayChip/Interactions",
   component: DayChip,
   tags: ["interaction"],
-  parameters: { layout: "centered" },
   args: {
     dayLabel: "Mon",
     dayNumber: 12,

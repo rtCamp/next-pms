@@ -11,6 +11,7 @@ const meta = {
   title: "Components/CalendarTimeline",
   component: CalendarTimeline,
   tags: ["autodocs"],
+  parameters: { layout: "padded" },
   args: {
     events: EVENTS,
     rangeStart: RANGE_START,

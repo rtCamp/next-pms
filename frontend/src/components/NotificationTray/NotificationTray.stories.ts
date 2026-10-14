@@ -9,8 +9,13 @@ const meta = {
   title: "Components/NotificationTray",
   component: NotificationTray,
   tags: ["autodocs"],
+  parameters: {
+    layout: "fullscreen",
+    // Fixed, modal panels: inline on the docs page they stack and lock scrolling.
+    docs: { story: { inline: false, height: "600px" } },
+  },
   args: {
-    open: true,
+    open: false,
     notifications: NOTIFICATIONS,
     offsetClass: "left-60",
     "onUpdate:open": fn(),
@@ -57,16 +62,23 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Closed: Story = {};
 
-export const Empty: Story = { args: { notifications: [] } };
+export const Open: Story = { args: { open: true } };
+
+export const Empty: Story = { args: { open: true, notifications: [] } };
 
 export const AllRead: Story = {
-  args: { notifications: NOTIFICATIONS.map((n) => ({ ...n, read: true })) },
+  args: {
+    open: true,
+    notifications: NOTIFICATIONS.map((n) => ({ ...n, read: true })),
+  },
 };
 
 export const ManyNotifications: Story = {
-  args: { notifications: MANY_NOTIFICATIONS },
+  args: { open: true, notifications: MANY_NOTIFICATIONS },
 };
 
-export const CollapsedSidebar: Story = { args: { offsetClass: "left-12" } };
+export const CollapsedSidebar: Story = {
+  args: { open: true, offsetClass: "left-12" },
+};

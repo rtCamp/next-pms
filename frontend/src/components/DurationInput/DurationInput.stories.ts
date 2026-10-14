@@ -7,7 +7,6 @@ const meta = {
   title: "Components/DurationInput",
   component: DurationInput,
   tags: ["autodocs"],
-  parameters: { layout: "centered" },
   args: {
     label: "Duration",
     size: "sm",

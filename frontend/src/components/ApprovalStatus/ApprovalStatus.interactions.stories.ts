@@ -9,7 +9,6 @@ const meta = {
   title: "Components/ApprovalStatus/Interactions",
   component: ApprovalStatus,
   tags: ["interaction"],
-  parameters: { layout: "centered" },
   args: { status: "Approved" },
   render: (args) => ({
     components: { ApprovalStatus },

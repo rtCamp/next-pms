@@ -11,6 +11,7 @@ const meta = {
   title: "Components/CalendarTimeline/Interactions",
   component: CalendarTimeline,
   tags: ["interaction"],
+  parameters: { layout: "padded" },
   args: {
     events: EVENTS,
     rangeStart: RANGE_START,

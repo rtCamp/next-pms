@@ -39,7 +39,7 @@ const meta = {
     `,
   }),
   // TODO: fail on violations again after the design-system re-port.
-  parameters: { a11y: { test: "todo" } },
+  parameters: { layout: "padded", a11y: { test: "todo" } },
 } satisfies Meta<typeof ProjectRow>;
 
 export default meta;

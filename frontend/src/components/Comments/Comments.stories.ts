@@ -7,6 +7,7 @@ const meta = {
   title: "Components/Comments",
   component: Comments,
   tags: ["autodocs"],
+  parameters: { layout: "padded" },
   args: {
     comments: THREAD,
     authorId: VIEWER,

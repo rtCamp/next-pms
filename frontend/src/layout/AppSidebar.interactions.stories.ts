@@ -7,6 +7,7 @@ const meta = {
   title: "Layout/AppSidebar/Interactions",
   component: AppSidebar,
   tags: ["interaction"],
+  parameters: { layout: "fullscreen" },
   args: {
     roles: [],
     employee: "HR-EMP-00042",

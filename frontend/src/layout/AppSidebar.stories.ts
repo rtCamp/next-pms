@@ -7,6 +7,7 @@ const meta = {
   title: "Layout/AppSidebar",
   component: AppSidebar,
   tags: ["autodocs"],
+  parameters: { layout: "fullscreen" },
   args: {
     roles: [],
     employee: "HR-EMP-00042",

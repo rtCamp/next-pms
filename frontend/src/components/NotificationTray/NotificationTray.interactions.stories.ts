@@ -9,6 +9,7 @@ const meta = {
   title: "Components/NotificationTray/Interactions",
   component: NotificationTray,
   tags: ["interaction"],
+  parameters: { layout: "fullscreen" },
   args: {
     open: true,
     notifications: NOTIFICATIONS,

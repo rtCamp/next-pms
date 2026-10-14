@@ -6,7 +6,6 @@ const meta = {
   title: "Components/ApprovalStatus",
   component: ApprovalStatus,
   tags: ["autodocs"],
-  parameters: { layout: "centered" },
   args: { status: "Approved" },
   argTypes: {
     status: { control: "select", options: [...APPROVAL_STATUSES] },
