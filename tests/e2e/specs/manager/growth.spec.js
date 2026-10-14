@@ -1,10 +1,9 @@
 const { test, expect } = require("../../playwright.fixture.cjs");
-import path from "path";
 import * as allure from "allure-js-commons";
 import { GrowthPage } from "../../pageObjects/growthPage";
-import { readJSONFile } from "../../utils/fileUtils";
 import { createDocument, getDocList } from "../../utils/api/apiClient";
 import { getFormattedDate } from "../../utils/dateUtils";
+import { loadTestCase, notificationsFor } from "../../utils/testCase";
 import { scaleTimeout } from "../../utils/timeouts";
 import { getUploadFile } from "../../utils/uploadFiles";
 
@@ -14,19 +13,6 @@ test.describe("Manager: Project Growth", () => {
   test.beforeEach(async ({ page }) => {
     growthPage = new GrowthPage(page);
   });
-
-  // The stub only gets its project id at teardown, so look the project up by name.
-  const load = async (jsonDir, tc) => {
-    const data = (await readJSONFile(path.join(jsonDir, `${tc}.json`)))[tc];
-    const [project] = await getDocList(
-      "Project",
-      [["project_name", "=", data.payloadCreateProject.project_name]],
-      { fields: ["name"] },
-    );
-    expect(project, `globalSetup did not create ${tc}'s project`).toBeTruthy();
-
-    return { data, projectId: project.name };
-  };
 
   const seed = (projectId, fields) =>
     createDocument("PMS Growth Initiative", {
@@ -51,25 +37,12 @@ test.describe("Manager: Project Growth", () => {
       })
     )[0];
 
-  // Growth notifications land in NextPMS Notifications through a deferred
-  // queue that the scheduler flushes about once a minute.
-  const notificationsFor = (user, name) =>
-    getDocList(
-      "NextPMS Notifications",
-      [
-        ["user", "=", user],
-        ["linked_doctype", "=", "PMS Growth Initiative"],
-        ["linked_document", "=", name],
-      ],
-      { fields: ["label"] },
-    );
-
   test("TC119: Growth tab appears on project details and loads its content", async ({
     page,
     jsonDir,
   }) => {
     allure.story("Growth");
-    const { data, projectId } = await load(jsonDir, "TC119");
+    const { data, projectId } = await loadTestCase(jsonDir, "TC119");
     await seed(projectId, { activity: data.activity });
 
     await page.goto(`/next-pms/projects/${projectId}`, {
@@ -90,7 +63,7 @@ test.describe("Manager: Project Growth", () => {
     jsonDir,
   }) => {
     allure.story("Growth");
-    const { data, projectId } = await load(jsonDir, "TC120");
+    const { data, projectId } = await loadTestCase(jsonDir, "TC120");
     const { name } = await seed(projectId, { activity: data.activity });
 
     await growthPage.goto(projectId);
@@ -114,7 +87,7 @@ test.describe("Manager: Project Growth", () => {
     jsonDir,
   }) => {
     allure.story("Growth");
-    const { data, projectId } = await load(jsonDir, "TC121");
+    const { data, projectId } = await loadTestCase(jsonDir, "TC121");
 
     await growthPage.goto(projectId);
     await expect.poll(() => growthPage.openCount()).toBe(0);
@@ -143,7 +116,7 @@ test.describe("Manager: Project Growth", () => {
     jsonDir,
   }) => {
     allure.story("Growth");
-    const { data, projectId } = await load(jsonDir, "TC122");
+    const { data, projectId } = await loadTestCase(jsonDir, "TC122");
     const { name } = await seed(projectId, { activity: data.activity });
 
     await growthPage.goto(projectId);
@@ -171,7 +144,7 @@ test.describe("Manager: Project Growth", () => {
     jsonDir,
   }) => {
     allure.story("Growth");
-    const { data, projectId } = await load(jsonDir, "TC123");
+    const { data, projectId } = await loadTestCase(jsonDir, "TC123");
     const { name } = await seed(projectId, { activity: data.activity });
 
     await growthPage.goto(projectId);
@@ -200,7 +173,7 @@ test.describe("Manager: Project Growth", () => {
     jsonDir,
   }) => {
     allure.story("Growth");
-    const { data, projectId } = await load(jsonDir, "TC124");
+    const { data, projectId } = await loadTestCase(jsonDir, "TC124");
     await seed(projectId, {
       activity: data.activityIdeation,
       status: "Ideation",
@@ -225,7 +198,7 @@ test.describe("Manager: Project Growth", () => {
     jsonDir,
   }) => {
     allure.story("Growth");
-    const { data, projectId } = await load(jsonDir, "TC125");
+    const { data, projectId } = await loadTestCase(jsonDir, "TC125");
     const { name } = await seed(projectId, { activity: data.activity });
 
     await growthPage.goto(projectId);
@@ -242,7 +215,7 @@ test.describe("Manager: Project Growth", () => {
     jsonDir,
   }) => {
     allure.story("Growth");
-    const { data, projectId } = await load(jsonDir, "TC126");
+    const { data, projectId } = await loadTestCase(jsonDir, "TC126");
     const { name } = await seed(projectId, { activity: data.activity });
 
     await growthPage.goto(projectId);
@@ -258,7 +231,7 @@ test.describe("Manager: Project Growth", () => {
     jsonDir,
   }) => {
     allure.story("Growth");
-    const { data, projectId } = await load(jsonDir, "TC127");
+    const { data, projectId } = await loadTestCase(jsonDir, "TC127");
     await seed(projectId, { activity: data.activity });
 
     await growthPage.goto(projectId);
@@ -283,7 +256,7 @@ test.describe("Manager: Project Growth", () => {
     jsonDir,
   }) => {
     allure.story("Growth");
-    const { data, projectId } = await load(jsonDir, "TC128");
+    const { data, projectId } = await loadTestCase(jsonDir, "TC128");
     const { name } = await seed(projectId, { activity: data.activity });
     const follows = () =>
       getDocList(
@@ -312,7 +285,7 @@ test.describe("Manager: Project Growth", () => {
     jsonDir,
   }) => {
     allure.story("Growth");
-    const { data, projectId } = await load(jsonDir, "TC129");
+    const { data, projectId } = await loadTestCase(jsonDir, "TC129");
     const { name } = await seed(projectId, { activity: data.activity });
 
     await growthPage.goto(projectId);
@@ -331,7 +304,7 @@ test.describe("Manager: Project Growth", () => {
     jsonDir,
   }) => {
     allure.story("Growth");
-    const { data, projectId } = await load(jsonDir, "TC130");
+    const { data, projectId } = await loadTestCase(jsonDir, "TC130");
     const { name } = await seed(projectId, { activity: data.activity });
 
     await growthPage.goto(projectId);
@@ -371,7 +344,7 @@ test.describe("Manager: Project Growth", () => {
       "Needs the deferred-insert job to run every minute (E2E_FAST_SCHEDULER=1)",
     );
     test.setTimeout(scaleTimeout(240000));
-    const { data, projectId } = await load(jsonDir, "TC131");
+    const { data, projectId } = await loadTestCase(jsonDir, "TC131");
     const { name } = await seed(projectId, { activity: data.activity });
     const owner = process.env.EMP_EMAIL;
 
@@ -398,7 +371,9 @@ test.describe("Manager: Project Growth", () => {
     await expect
       .poll(
         async () => {
-          const labels = (await notificationsFor(owner, name))
+          const labels = (
+            await notificationsFor(owner, "PMS Growth Initiative", name)
+          )
             .map((n) => n.label)
             .join(" | ");
 
@@ -420,7 +395,7 @@ test.describe("Manager: Project Growth", () => {
     allure.story("Growth");
     const file = getUploadFile("valid");
     test.skip(!file, "Paste a file into tests/e2e/data/upload-files/valid");
-    const { data, projectId } = await load(jsonDir, "TC132");
+    const { data, projectId } = await loadTestCase(jsonDir, "TC132");
     await seed(projectId, { activity: data.activity });
 
     await growthPage.goto(projectId);

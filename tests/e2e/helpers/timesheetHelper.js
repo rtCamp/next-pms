@@ -17,6 +17,7 @@ import managerTeamData from "../data/manager/team";
 import managerTaskData from "../data/manager/task";
 import managerProjectData from "../data/manager/project";
 import managerGrowthData from "../data/manager/growth";
+import managerNotesData from "../data/manager/notes";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import {
   createProject,
@@ -867,25 +868,28 @@ export const cleanUpProjects = async (data) => {
         }
       }
 
-      // Growth initiatives link to the project and block its delete.
+      // Records that link to the project and would block its delete.
       if (projectId) {
-        try {
-          const initiatives = await getDocList("PMS Growth Initiative", [
-            ["project", "=", projectId],
-          ]);
-          for (const { name } of initiatives) {
-            const { deleted } = await deleteDocument(
-              "PMS Growth Initiative",
-              name,
+        for (const doctype of [
+          "PMS Growth Initiative",
+          "Project Status Update",
+          "PMS Project Update Subscription",
+        ]) {
+          try {
+            const linked = await getDocList(doctype, [
+              ["project", "=", projectId],
+            ]);
+            for (const { name } of linked) {
+              const { deleted } = await deleteDocument(doctype, name);
+              if (!deleted) failures.push(`${doctype} ${name}`);
+            }
+          } catch (err) {
+            failures.push(`${doctype} for ${projectId}`);
+            console.error(
+              `Failed to delete ${doctype} of ${projectId}:`,
+              err.message,
             );
-            if (!deleted) failures.push(`PMS Growth Initiative ${name}`);
           }
-        } catch (err) {
-          failures.push(`PMS Growth Initiative for ${projectId}`);
-          console.error(
-            `Failed to delete growth initiatives of ${projectId}:`,
-            err.message,
-          );
         }
       }
 
@@ -1080,6 +1084,7 @@ export const readAndCleanAllOrphanData = async () => {
     ...managerTeamData,
     ...managerProjectData,
     ...managerGrowthData,
+    ...managerNotesData,
   };
 
   await deleteLeaveOfEmployee();

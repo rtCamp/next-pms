@@ -8,6 +8,7 @@ import managerTeamData from "../data/manager/team.js";
 import managerTaskData from "../data/manager/task.js";
 import managerProjectData from "../data/manager/project.js";
 import managerGrowthData from "../data/manager/growth.js";
+import managerNotesData from "../data/manager/notes.js";
 
 /**
  * Creates a JSON file with initial data
@@ -266,6 +267,7 @@ export const populateJsonStubs = async (jsonDir, testCaseIDs) => {
     manager_task: managerTaskData,
     manager_project: managerProjectData,
     manager_growth: managerGrowthData,
+    manager_notes: managerNotesData,
   };
 
   for (const tcId of testCaseIDs) {
