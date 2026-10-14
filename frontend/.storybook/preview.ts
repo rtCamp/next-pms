@@ -14,7 +14,10 @@ setup((app) => {
 });
 
 const preview: Preview = {
-  parameters: { layout: "fullscreen" },
+  parameters: {
+    layout: "fullscreen",
+    a11y: { test: "error" },
+  },
   globalTypes: {
     theme: {
       description: "Colour scheme",

@@ -31,6 +31,7 @@ const config: StorybookConfig = {
     "@storybook/addon-mcp",
     "@storybook/addon-docs",
     "@storybook/addon-vitest",
+    "@storybook/addon-a11y",
   ],
   framework: "@storybook/vue3-vite",
   features: { componentsManifest: true, experimentalDocgenServer: true },

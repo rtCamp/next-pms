@@ -59,6 +59,7 @@ repos:
         types: [file]
         exclude: |
             (?x)^(
+                frontend/.*|
                 next_pms/public/dist/.*|
                 .*node_modules.*|
                 .*boilerplate.*|
@@ -77,12 +78,25 @@ repos:
         types: [javascript]
         exclude: |
             (?x)^(
+                frontend/.*|
                 next_pms/public/dist/.*|
                 cypress/.*|
                 .*node_modules.*|
                 .*boilerplate.*|
                 next_pms/templates/includes/.*|
             )$
+
+      - id: frontend-prettier
+        name: "Frontend formatter"
+        entry: bash -c 'cd frontend && npx --no-install prettier --write "${@#frontend/}"' --
+        language: system
+        files: ^frontend/.*\.(vue|ts|css|js)$
+
+      - id: frontend-eslint
+        name: "Frontend linter"
+        entry: bash -c 'cd frontend && npx --no-install eslint "${@#frontend/}"' --
+        language: system
+        files: ^frontend/.*\.(vue|ts|js)$
 
 ci:
     autoupdate_schedule: weekly
