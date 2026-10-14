@@ -58,3 +58,6 @@ CLAUDE.local.md
 /yarn.lock
 
 tsconfig.tsbuildinfo
+
+# Local site seed/cleanup scripts
+/scripts/
