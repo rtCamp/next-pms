@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Avatar, Badge, Dialog, Select, Spinner, dayjs } from "frappe-ui";
+import { Avatar, Dialog, Select, Spinner } from "frappe-ui";
+import { TaskBadges } from "@/components/TaskBadges";
 import { TaskProgress } from "@/components/TaskProgress";
 import { TaskStatus } from "@/components/TaskStatus";
 import { floatToTime } from "@/utils/format";
@@ -19,27 +20,6 @@ const open = defineModel<boolean>("open", { required: true });
 const range = defineModel<number>("range", { default: DEFAULT_TASK_LOG_RANGE });
 
 const isTeam = computed(() => props.view === "team");
-
-const badges = computed(() => {
-  const details = props.details;
-  if (!details) return [];
-  return [
-    details.dueDate && {
-      label: "Due date",
-      icon: "lucide-calendar-clock",
-      text: dayjs(details.dueDate).format("DD MMM"),
-    },
-    details.projectName && {
-      label: "Project",
-      icon: "lucide-folder",
-      text: details.projectName,
-    },
-  ].filter((badge) => Boolean(badge)) as {
-    label: string;
-    icon: string;
-    text: string;
-  }[];
-});
 
 const progress = computed(() => {
   const details = props.details;
@@ -69,7 +49,7 @@ const rangeModel = computed({
   >
     <template #title>
       <div v-if="details" class="flex items-center gap-x-2 gap-y-1.5 pr-2">
-        <TaskStatus :status="details.status" variant="icon" />
+        <TaskStatus :status="details.status" />
         <h3 class="text-lg font-semibold text-ink-gray-8">
           <a
             v-if="details.ghLink"
@@ -94,25 +74,11 @@ const rangeModel = computed({
     </div>
     <template v-else>
       <!-- Tucked up under the title, as React's -mt-[5%] did. -->
-      <div v-if="badges.length" class="-mt-5.5 ml-6 flex flex-wrap gap-1">
-        <Badge
-          v-for="badge in badges"
-          :key="badge.label"
-          variant="subtle"
-          size="md"
-          class="min-w-0 max-w-full"
-        >
-          <span
-            class="size-3 shrink-0"
-            :class="badge.icon"
-            role="img"
-            :aria-label="badge.label"
-          />
-          <span class="max-w-42 truncate" :title="badge.text">
-            {{ badge.text }}
-          </span>
-        </Badge>
-      </div>
+      <TaskBadges
+        class="-mt-5.5 ml-6"
+        :project-name="details.projectName"
+        :due-date="details.dueDate"
+      />
 
       <div class="mt-4 flex justify-between text-sm">
         <!-- eslint-disable-next-line better-tailwindcss/no-restricted-classes -- no scale step for 3px -->
