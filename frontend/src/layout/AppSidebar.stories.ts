@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { fn } from "storybook/test";
 import AppSidebar from "./AppSidebar.vue";
+import { APPS } from "./AppSidebar.fixtures";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
 
 const meta = {
@@ -12,6 +13,7 @@ const meta = {
     roles: [],
     employee: "HR-EMP-00042",
     employeeName: "Asha Rao",
+    apps: APPS,
     onLogout: fn(),
   },
   beforeEach: () => {

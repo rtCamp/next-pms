@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { expect, fn, screen, userEvent, waitFor } from "storybook/test";
 import AppSidebar from "./AppSidebar.vue";
+import { APPS } from "./AppSidebar.fixtures";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
 
 const meta = {
@@ -12,6 +13,7 @@ const meta = {
     roles: [],
     employee: "HR-EMP-00042",
     employeeName: "Asha Rao",
+    apps: APPS,
     onLogout: fn(),
   },
   beforeEach: () => {
@@ -173,5 +175,26 @@ export const LogOut: Story = {
       await screen.findByRole("menuitem", { name: "Log out" }),
     );
     await waitFor(() => expect(args.onLogout).toHaveBeenCalledOnce());
+  },
+};
+
+/** Apps lists Desk first, then the other apps, without this one. */
+export const AppsSubmenu: Story = {
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /Next PMS/ }));
+    await userEvent.click(
+      await screen.findByRole("menuitem", { name: "Apps" }),
+    );
+    await screen.findByRole("menuitem", { name: "Desk" });
+    const labels = screen
+      .getAllByRole("menuitem")
+      .map((item) => item.textContent?.trim());
+    const apps = labels.slice(labels.indexOf("Desk"));
+    await expect(apps.slice(0, 3)).toEqual(["Desk", "ERPNext", "HR"]);
+    await expect(labels).not.toContain("Switch To Desk");
+
+    await userEvent.keyboard("{Escape}");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
   },
 };

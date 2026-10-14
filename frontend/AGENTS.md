@@ -49,8 +49,8 @@ src/
   router.ts        routes, based at /next-pms, and the navigation guards (employee and role checks)
   router-meta.d.ts route meta: title, roles, standalone
   session/         useSession(): the signed-in user, roles and employee record; ROLE_ACCESS, hasAnyRole
-  layout/          AppSidebar (frappe-ui Sidebar), AppSidebarSection, the nav links (sidebarSections.ts) and
-                   StatusMessage for the status pages
+  layout/          AppSidebar (frappe-ui Sidebar), AppSidebarSection, the nav links (sidebarSections.ts), the
+                   Apps menu (apps.ts) and StatusMessage for the status pages
   pages/           route components; WorkInProgress stands in for pages not rebuilt yet
   components/      components frappe-ui lacks, one folder each; see components/Components.md
   composables/     shared use* composables: lookups, the like toggle, URL query updates, editor attributes

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { computed, onScopeDispose, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { computed, h, onScopeDispose, ref, watch } from "vue";
 import {
   Sidebar,
   SidebarCollapseToggle,
@@ -10,26 +9,22 @@ import {
 } from "frappe-ui";
 import type { Role } from "@/session";
 import logo from "@/assets/logo.svg";
+import { switchableApps, type AppLink } from "./apps";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
 import AppSidebarSection from "./AppSidebarSection.vue";
-import {
-  computeSections,
-  isNavItemActive,
-  type NavItem,
-} from "./sidebarSections";
+import { computeSections } from "./sidebarSections";
 
 const props = defineProps<{
   roles: readonly Role[];
   employee?: string | null;
   employeeName?: string;
+  /** Apps to offer under "Apps", from `frappe.apps.get_apps`. */
+  apps?: readonly AppLink[];
 }>();
 
 const emit = defineEmits<{ logout: [] }>();
 
-const route = useRoute();
 const { resolvedColorScheme, toggleColorScheme } = useColorScheme();
-
-const isActive = (item: NavItem) => isNavItemActive(item, route.path);
 
 const nav = computed(() => computeSections(props.roles, props.employee));
 const topItems = computed(() => nav.value.topItems);
@@ -67,12 +62,12 @@ const menuItems = computed(() => [
   {
     label: "Apps",
     icon: "lucide-layout-grid",
-    onClick: () => window.location.assign("/apps"),
-  },
-  {
-    label: "Switch To Desk",
-    icon: "lucide-arrow-left-right",
-    onClick: () => window.location.assign("/app"),
+    submenu: switchableApps(props.apps ?? []).map((app) => ({
+      label: app.title,
+      icon: h("img", { src: app.logo, alt: "", class: "size-4" }),
+      // Outside the SPA, so the router can't take these.
+      onClick: () => window.location.assign(app.route),
+    })),
   },
   {
     label: resolvedColorScheme.value === "dark" ? "Light mode" : "Dark mode",
@@ -99,7 +94,6 @@ const menuItems = computed(() => [
         :label="item.label"
         :icon="item.icon"
         :route="item.to"
-        :active="isActive(item)"
       />
 
       <AppSidebarSection
