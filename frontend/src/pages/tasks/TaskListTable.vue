@@ -212,10 +212,7 @@ watch(
                   v-else-if="column.key === 'status'"
                   class="flex min-w-0 items-center gap-2 text-base text-ink-gray-6"
                 >
-                  <TaskStatus
-                    :status="item.status as TaskStatusValue"
-                    variant="icon"
-                  />
+                  <TaskStatus :status="item.status as TaskStatusValue" />
                   <span class="truncate">{{ item.status }}</span>
                 </div>
                 <span

@@ -26,7 +26,7 @@ export interface TaskStatusIcon {
 export interface TaskStatusProps {
   /** Task status to show; an unknown value renders with Open's look. */
   status: TaskStatusValue;
-  /** Labelled badge or icon only. */
+  /** Icon only (default) or a labelled badge. */
   variant?: TaskStatusVariant;
   /** Badge size; ignored by the icon variant. */
   size?: BadgeProps["size"];

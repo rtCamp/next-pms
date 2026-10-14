@@ -22,7 +22,7 @@ const LONG_STATUS =
   "Waiting on client feedback for the second design round" as TaskStatusValue;
 
 export const LongUnknownStatus: Story = {
-  args: { status: LONG_STATUS },
+  args: { status: LONG_STATUS, variant: "badge" },
   play: async ({ canvasElement }) => {
     const pill = within(canvasElement).getByTitle(LONG_STATUS);
     await expect(pill).toHaveTextContent(LONG_STATUS);
@@ -33,7 +33,7 @@ export const LongUnknownStatus: Story = {
 };
 
 export const ShowsStatusAndTitle: Story = {
-  args: { status: "Pending Review" },
+  args: { status: "Pending Review", variant: "badge" },
   play: async ({ canvasElement }) => {
     const pill = within(canvasElement).getByTitle("Pending Review");
     await expect(pill).toHaveTextContent("Pending Review");
