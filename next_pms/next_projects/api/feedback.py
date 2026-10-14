@@ -5,7 +5,7 @@ import frappe
 from frappe import _, enqueue, only_for
 from frappe.desk.notifications import extract_mentions
 from frappe.query_builder import DocType, Order
-from frappe.utils import cint, getdate, strip_html_tags
+from frappe.utils import cint, getdate
 from frappe.utils.user import get_user_fullname
 
 from next_pms.next_projects.api.constant import (
@@ -20,7 +20,13 @@ from next_pms.next_projects.api.utils import (
     get_contact_image_map,
     get_employee_image,
     get_employee_image_map,
-    get_user_details_map,
+)
+from next_pms.utils.comments import (
+    get_comment_doc,
+    get_comment_tree,
+    insert_comment,
+    soft_delete_comment,
+    update_comment_content,
 )
 
 
@@ -383,7 +389,7 @@ def get_feedback_comments(feedback: str):
     only_for(ALLOWED_ROLES, message=True)
     ensure_customer_feedback_available()
     ensure_feedback_exists(feedback)
-    return get_feedback_comment_tree(feedback)
+    return get_comment_tree("Customer Feedback", feedback)
 
 
 @frappe.whitelist(methods=["POST"])
@@ -407,32 +413,7 @@ def add_comment_to_feedback(feedback: str, comment: str, project: str, reply_to:
     ensure_customer_feedback_available()
     ensure_feedback_exists(feedback)
     ensure_feedback_belongs_to_project(feedback, project)
-    if is_blank(comment):
-        frappe.throw(_("Comment cannot be empty"))
-    if reply_to:
-        parent = frappe.db.get_value(
-            "Comment", reply_to, ["comment_type", "reference_doctype", "reference_name"], as_dict=True
-        )
-        if (
-            not parent
-            or parent.comment_type != "Comment"
-            or parent.reference_doctype != "Customer Feedback"
-            or parent.reference_name != feedback
-        ):
-            frappe.throw(_("Parent comment {0} not found").format(reply_to))
-
-    frappe.get_doc(
-        {
-            "doctype": "Comment",
-            "comment_type": "Comment",
-            "reference_doctype": "Customer Feedback",
-            "reference_name": feedback,
-            "content": comment.replace(' data-type="mention"', ""),
-            "comment_email": frappe.session.user,
-            "comment_by": get_user_fullname(frappe.session.user),
-            "custom_reply_to": reply_to,
-        }
-    ).insert(ignore_permissions=True)
+    insert_comment("Customer Feedback", feedback, comment, reply_to)
 
     enqueue(
         notify_feedback_nextpms_mentions,
@@ -443,7 +424,7 @@ def add_comment_to_feedback(feedback: str, comment: str, project: str, reply_to:
         enqueue_after_commit=True,
         job_name=f"Mention Notifications for Feedback Comment {feedback}",
     )
-    return get_feedback_comment_tree(feedback)
+    return get_comment_tree("Customer Feedback", feedback)
 
 
 @frappe.whitelist(methods=["POST"])
@@ -462,17 +443,9 @@ def update_comment_in_feedback(comment_name: str, comment: str):
     """
     only_for(ALLOWED_ROLES, message=True)
     ensure_customer_feedback_available()
-    doc = get_feedback_comment_doc(comment_name)
-    ensure_comment_author(doc)
-    if is_blank(doc.content):
-        frappe.throw(_("This comment has been deleted and can no longer be edited"))
-    if is_blank(comment):
-        frappe.throw(_("Comment cannot be empty"))
-
-    doc.content = comment.replace(' data-type="mention"', "")
-    doc.save(ignore_permissions=True)
-
-    return get_feedback_comment_tree(doc.reference_name)
+    doc = get_comment_doc(comment_name, "Customer Feedback")
+    update_comment_content(doc, comment)
+    return get_comment_tree("Customer Feedback", doc.reference_name)
 
 
 @frappe.whitelist(methods=["POST"])
@@ -491,14 +464,9 @@ def delete_comment_from_feedback(comment_name: str):
     """
     only_for(ALLOWED_ROLES, message=True)
     ensure_customer_feedback_available()
-    doc = get_feedback_comment_doc(comment_name)
-    ensure_comment_author(doc)
-    if is_blank(doc.content):
-        frappe.throw(_("This comment has already been deleted"))
-
-    doc.content = ""
-    doc.save(ignore_permissions=True)
-    return get_feedback_comment_tree(doc.reference_name)
+    doc = get_comment_doc(comment_name, "Customer Feedback")
+    soft_delete_comment(doc)
+    return get_comment_tree("Customer Feedback", doc.reference_name)
 
 
 def ensure_feedback_exists(feedback: str):
@@ -516,76 +484,6 @@ def ensure_feedback_belongs_to_project(feedback: str, project: str):
     project_customer = frappe.db.get_value("Project", project, "customer")
     if not feedback_customer or feedback_customer != project_customer:
         frappe.throw(_("Customer Feedback {0} is not available for Project {1}").format(feedback, project))
-
-
-def get_feedback_comment_doc(comment_name: str):
-    """Load a Comment and verify it belongs to a Customer Feedback record."""
-    if not comment_name or not frappe.db.exists("Comment", comment_name):
-        frappe.throw(_("Comment {0} not found").format(comment_name), frappe.DoesNotExistError)
-    doc = frappe.get_doc("Comment", comment_name)
-    if doc.comment_type != "Comment" or doc.reference_doctype != "Customer Feedback" or not doc.reference_name:
-        frappe.throw(_("Comment {0} not found").format(comment_name), frappe.DoesNotExistError)
-    return doc
-
-
-def ensure_comment_author(doc):
-    """Guard: only the comment's author or Administrator may modify it."""
-    if frappe.session.user != "Administrator" and doc.owner != frappe.session.user:
-        frappe.throw(_("You can only modify your own comments"), frappe.PermissionError)
-
-
-def is_blank(content: str | None) -> bool:
-    """Whether the comment body has no visible text."""
-    return not strip_html_tags(content or "").strip()
-
-
-def get_feedback_comment_tree(feedback: str) -> list[dict]:
-    """Fetch and nest all comments of a Customer Feedback record."""
-    rows = frappe.get_all(
-        "Comment",
-        filters={
-            "reference_doctype": "Customer Feedback",
-            "reference_name": feedback,
-            "comment_type": "Comment",
-        },
-        fields=["name", "owner", "content", "creation", "modified", "custom_reply_to"],
-        order_by="creation asc",
-    )
-    user_map = get_user_details_map([row.owner for row in rows])
-    names = {row.name for row in rows}
-    children_by_parent = {}
-    roots = []
-    for row in rows:
-        if row.custom_reply_to in names:
-            children_by_parent.setdefault(row.custom_reply_to, []).append(row)
-        else:
-            roots.append(row)
-    return [serialize_feedback_comment(row, user_map, children_by_parent) for row in roots]
-
-
-def serialize_feedback_comment(row, user_map: dict, children_by_parent: dict) -> dict:
-    """Serialize one Comment row with its replies nested recursively."""
-    user = user_map.get(row.owner) or {}
-    deleted = is_blank(row.content)
-    replies = [
-        serialize_feedback_comment(child, user_map, children_by_parent)
-        for child in children_by_parent.get(row.name, [])
-    ]
-    return {
-        "name": row.name,
-        "user": row.owner,
-        "user_full_name": user.get("full_name") or row.owner,
-        "user_image": user.get("user_image"),
-        "comment": "" if deleted else row.content,
-        "reply_to": row.custom_reply_to,
-        "created_at": row.creation,
-        "modified_at": row.modified,
-        "edited": not deleted and row.modified != row.creation,
-        "deleted": deleted,
-        "deleted_at": row.modified if deleted else None,
-        "reply_count": len(replies),
-        "replies": replies,
-    }
 
 
 def notify_feedback_nextpms_mentions(content: str, feedback: str, project: str) -> None:
