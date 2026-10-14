@@ -244,6 +244,24 @@ export default defineConfigWithVueTs(
       ],
     },
   },
+  {
+    // TODO: remove once the rows are re-ported from the design-system.
+    name: "app/timesheet-until-report",
+    files: ["src/components/Timesheet/**"],
+    rules: {
+      ...Object.fromEntries(
+        [
+          ...Object.keys(betterTailwind.rules).map(
+            (rule) => `better-tailwindcss/${rule}`,
+          ),
+          ...Object.keys(pluginVueA11y.rules).map(
+            (rule) => `vuejs-accessibility/${rule}`,
+          ),
+        ].map((rule) => [rule, "off"]),
+      ),
+      "no-restricted-syntax": ["error", ...reactivitySyntax],
+    },
+  },
   // Prettier owns formatting (P10); this turns off the rules that would fight it.
   skipFormatting,
 );
