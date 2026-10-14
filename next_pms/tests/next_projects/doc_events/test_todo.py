@@ -82,3 +82,44 @@ class TestLinkedTodoEvents(IntegrationTestCase):
         todo.save(ignore_permissions=True)
         self.assertEqual(frappe.db.get_value("ToDo", todo.name, "status"), "Closed")
         self.assertEqual(frappe.db.get_value(milestone.doctype, milestone.name, "is_complete"), 0)
+
+
+class TestTodoAssignmentComments(IntegrationTestCase):
+    def make_assigned_todo(self, status="Open"):
+        project = TestLinkedTodoEvents.make_project(f"ToDo Assignment {frappe.generate_hash(length=8)}")
+        return frappe.get_doc(
+            {
+                "doctype": "ToDo",
+                "description": "Follow up",
+                "status": status,
+                "allocated_to": "Administrator",
+                "reference_type": "Project",
+                "reference_name": project,
+            }
+        ).insert(ignore_permissions=True)
+
+    def assignment_completed_comments(self, todo):
+        return frappe.db.count(
+            "Comment",
+            {
+                "reference_doctype": "Project",
+                "reference_name": todo.reference_name,
+                "comment_type": "Assignment Completed",
+            },
+        )
+
+    def test_active_status_changes_keep_the_assignment(self):
+        todo = self.make_assigned_todo()
+        for status in ("Backlog", "In Progress", "Open"):
+            todo.status = status
+            todo.save(ignore_permissions=True)
+
+        self.assertEqual(self.assignment_completed_comments(todo), 0)
+        self.assertIn("Administrator", frappe.db.get_value("Project", todo.reference_name, "_assign"))
+
+    def test_closing_an_active_todo_completes_the_assignment(self):
+        todo = self.make_assigned_todo(status="In Progress")
+        todo.status = "Closed"
+        todo.save(ignore_permissions=True)
+
+        self.assertEqual(self.assignment_completed_comments(todo), 1)
