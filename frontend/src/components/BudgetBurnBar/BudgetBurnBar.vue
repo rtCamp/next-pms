@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { cva } from "class-variance-authority";
 import { Tooltip } from "frappe-ui";
 import { ProgressBar } from "@/components/ProgressBar";
 import { budgetBurnTier, scale } from "./utils";
-import type { BudgetBurnBarProps, BudgetBurnTier } from "./types";
+import type { BudgetBurnBarProps } from "./types";
 
 const props = withDefaults(defineProps<BudgetBurnBarProps>(), {
   secondaryValue: 0,
@@ -22,16 +23,20 @@ defineSlots<{
   "marker-tooltip"?: () => unknown;
 }>();
 
-const PRIMARY: Record<BudgetBurnTier, string> = {
-  healthy: "rounded-full bg-surface-green-7",
-  moderate: "rounded-full bg-surface-amber-7",
-  over: "rounded-full bg-surface-red-7",
-};
-const SECONDARY: Record<BudgetBurnTier, string> = {
-  healthy: "rounded-full bg-surface-green-2",
-  moderate: "rounded-full bg-surface-amber-2",
-  over: "rounded-full bg-surface-red-3",
-};
+const fill = cva("rounded-full", {
+  variants: {
+    part: { primary: "", secondary: "" },
+    tier: { healthy: "", moderate: "", over: "" },
+  },
+  compoundVariants: [
+    { part: "primary", tier: "healthy", class: "bg-surface-green-7" },
+    { part: "primary", tier: "moderate", class: "bg-surface-amber-7" },
+    { part: "primary", tier: "over", class: "bg-surface-red-7" },
+    { part: "secondary", tier: "healthy", class: "bg-surface-green-2" },
+    { part: "secondary", tier: "moderate", class: "bg-surface-amber-2" },
+    { part: "secondary", tier: "over", class: "bg-surface-red-3" },
+  ],
+});
 
 const primaryPercent = computed(() => scale(props.value, props.maxValue));
 const totalPercent = computed(() =>
@@ -66,8 +71,8 @@ const progressSecondary = computed(() =>
       :max-value="maxValue"
       :size="size"
       :label="label"
-      :indicator-class="PRIMARY[tier]"
-      :secondary-indicator-class="SECONDARY[tier]"
+      :indicator-class="fill({ part: 'primary', tier })"
+      :secondary-indicator-class="fill({ part: 'secondary', tier })"
     />
     <div class="absolute inset-0 flex">
       <Tooltip

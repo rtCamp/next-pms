@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import type { TaskProgressProps, TaskProgressSize } from "./types";
+import { cva } from "class-variance-authority";
+import type { TaskProgressProps } from "./types";
 
 const props = withDefaults(defineProps<TaskProgressProps>(), {
   size: "md",
@@ -9,7 +10,10 @@ const props = withDefaults(defineProps<TaskProgressProps>(), {
 
 const MAX_VALUE = 100;
 
-const SIZES: Record<TaskProgressSize, string> = { sm: "h-2", md: "h-4" };
+const track = cva("flex rounded-1 bg-surface-gray-2", {
+  variants: { size: { sm: "h-2", md: "h-4" } },
+  defaultVariants: { size: "md" },
+});
 
 const value = computed(() => Math.max(0, props.value));
 const isOverflow = computed(() => value.value > MAX_VALUE);
@@ -31,8 +35,7 @@ const overflowWidth = computed(() =>
     :aria-valuemax="MAX_VALUE"
     :aria-valuenow="Math.min(MAX_VALUE, value)"
     :aria-valuetext="`${Math.round(value)}%`"
-    class="flex rounded-1 bg-surface-gray-2"
-    :class="SIZES[size] ?? SIZES.md"
+    :class="track({ size })"
   >
     <div
       class="h-full rounded-l-1 bg-surface-gray-4"

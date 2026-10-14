@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import type { ProgressBarProps, ProgressBarSize } from "./types";
+import { cva } from "class-variance-authority";
+import type { ProgressBarProps } from "./types";
 
 const props = withDefaults(defineProps<ProgressBarProps>(), {
   maxValue: 100,
@@ -8,11 +9,13 @@ const props = withDefaults(defineProps<ProgressBarProps>(), {
   label: "Progress",
 });
 
-const SIZES: Record<ProgressBarSize, string> = {
-  sm: "h-1",
-  md: "h-2",
-  lg: "h-3",
-};
+const track = cva(
+  "relative w-full overflow-hidden rounded-full bg-surface-gray-2",
+  {
+    variants: { size: { sm: "h-1", md: "h-2", lg: "h-3" } },
+    defaultVariants: { size: "md" },
+  },
+);
 
 const clamp = (v: number) => Math.max(0, Math.min(props.maxValue, v));
 const percent = (v: number) =>
@@ -80,8 +83,7 @@ const marker = computed(() => {
     aria-valuemin="0"
     :aria-valuemax="maxValue"
     :aria-valuenow="clamp(value)"
-    class="relative w-full overflow-hidden rounded-full bg-surface-gray-2"
-    :class="SIZES[size] ?? SIZES.md"
+    :class="track({ size })"
   >
     <div
       v-for="segment in segments"

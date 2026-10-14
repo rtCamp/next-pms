@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, useId } from "vue";
+import { cva } from "class-variance-authority";
 import { ErrorMessage, FormLabel, Spinner } from "frappe-ui";
 import { SliderRange, SliderRoot, SliderThumb, SliderTrack } from "reka-ui";
 import { floatToTime } from "@/utils/format";
@@ -149,58 +150,125 @@ function onKeydown(event: KeyboardEvent) {
   }
 }
 
-const controlClasses = computed(() => [
-  "relative flex items-center overflow-hidden rounded-4",
-  props.disabled
-    ? "cursor-not-allowed"
-    : isDragging.value
-      ? "cursor-grabbing"
-      : "cursor-pointer",
-  hasError.value
-    ? "has-[:focus-visible]:focus-ring-red"
-    : "has-[:focus-visible]:focus-ring",
-  props.variant === "outline" &&
-    (hasError.value
-      ? "ring-1 ring-outline-red-3"
-      : "ring-1 ring-outline-gray-2"),
-]);
+const control = cva("relative flex items-center overflow-hidden rounded-4", {
+  variants: {
+    variant: { subtle: "", outline: "ring-1" },
+    // Tailwind 3.4 has no `has-focus-visible` variant.
+    /* eslint-disable better-tailwindcss/no-restricted-classes */
+    error: {
+      true: "has-[:focus-visible]:focus-ring-red",
+      false: "has-[:focus-visible]:focus-ring",
+    },
+    /* eslint-enable better-tailwindcss/no-restricted-classes */
+    disabled: { true: "cursor-not-allowed", false: "" },
+    dragging: { true: "", false: "" },
+  },
+  compoundVariants: [
+    { disabled: false, dragging: true, class: "cursor-grabbing" },
+    { disabled: false, dragging: false, class: "cursor-pointer" },
+    { variant: "outline", error: true, class: "ring-outline-red-3" },
+    { variant: "outline", error: false, class: "ring-outline-gray-2" },
+  ],
+});
 
-const trackClasses = computed(() => [
-  "relative w-full rounded-4 transition-colors",
-  props.size === "md" ? "h-8" : "h-7",
-  props.variant === "outline"
-    ? "bg-surface-base"
-    : hasError.value
-      ? "bg-surface-red-2"
-      : "bg-surface-gray-2",
-]);
+const track = cva("relative w-full rounded-4 transition-colors", {
+  variants: {
+    size: { sm: "h-7", md: "h-8" },
+    variant: { subtle: "", outline: "bg-surface-base" },
+    error: { true: "", false: "" },
+  },
+  compoundVariants: [
+    { variant: "subtle", error: true, class: "bg-surface-red-2" },
+    { variant: "subtle", error: false, class: "bg-surface-gray-2" },
+  ],
+});
 
-const rangeClasses = computed(() => [
-  "absolute inset-y-0 cursor-grab select-none rounded-4",
-  hasError.value
-    ? "bg-surface-red-3"
-    : props.disabled || props.variant === "outline"
-      ? "bg-surface-gray-3"
-      : "bg-surface-gray-4",
-]);
+const range = cva("absolute inset-y-0 cursor-grab select-none rounded-4", {
+  variants: {
+    error: { true: "bg-surface-red-3", false: "" },
+    disabled: { true: "", false: "" },
+    variant: { subtle: "", outline: "" },
+  },
+  compoundVariants: [
+    {
+      error: false,
+      disabled: false,
+      variant: "subtle",
+      class: "bg-surface-gray-4",
+    },
+    { error: false, disabled: true, class: "bg-surface-gray-3" },
+    {
+      error: false,
+      disabled: false,
+      variant: "outline",
+      class: "bg-surface-gray-3",
+    },
+  ],
+});
 
-const gripClasses = computed(() => [
+const grip = cva(
   "pointer-events-none absolute top-1/2 h-3 w-0.5 -translate-y-1/2 rounded-4 transition-colors",
-  previewMinutes.value <= SLIDER_STEP_MINUTES ? "right-1" : "right-2",
-  previewMinutes.value === 0 && "invisible",
-  hasError.value
-    ? "bg-surface-red-4"
-    : isDragging.value
-      ? "bg-surface-gray-10/[0.36]"
-      : "bg-surface-gray-10/[0.09]",
-]);
+  {
+    variants: {
+      // Up to one step the range is too short to centre the grip.
+      short: { true: "right-1", false: "right-2" },
+      empty: { true: "invisible", false: "" },
+      error: { true: "bg-surface-red-4", false: "" },
+      dragging: { true: "", false: "" },
+    },
+    // The grip's 36% and 9% opacities match React and have no scale step.
+    /* eslint-disable better-tailwindcss/no-restricted-classes */
+    compoundVariants: [
+      { error: false, dragging: true, class: "bg-surface-gray-10/[0.36]" },
+      { error: false, dragging: false, class: "bg-surface-gray-10/[0.09]" },
+    ],
+    /* eslint-enable better-tailwindcss/no-restricted-classes */
+  },
+);
 
-const inputClasses = computed(() => [
+const field = cva(
   "absolute right-2.5 top-1/2 h-auto w-10 -translate-y-1/2 rounded-1 border-0 bg-transparent p-0 text-center tabular-nums shadow-none focus:ring-0 focus-visible:outline-offset-1",
-  props.size === "md" ? "text-base" : "text-sm",
-  props.disabled ? "pointer-events-none text-ink-gray-3" : "text-ink-gray-8",
-  hasError.value && "focus-visible:focus-ring-red",
-]);
+  {
+    variants: {
+      size: { sm: "text-sm", md: "text-base" },
+      disabled: {
+        true: "pointer-events-none text-ink-gray-3",
+        false: "text-ink-gray-8",
+      },
+      error: { true: "focus-visible:focus-ring-red", false: "" },
+    },
+  },
+);
+
+const controlClasses = computed(() =>
+  control({
+    variant: props.variant,
+    error: hasError.value,
+    disabled: props.disabled,
+    dragging: isDragging.value,
+  }),
+);
+const trackClasses = computed(() =>
+  track({ size: props.size, variant: props.variant, error: hasError.value }),
+);
+const rangeClasses = computed(() =>
+  range({
+    error: hasError.value,
+    disabled: props.disabled,
+    variant: props.variant,
+  }),
+);
+const gripClasses = computed(() =>
+  grip({
+    short: previewMinutes.value <= SLIDER_STEP_MINUTES,
+    empty: previewMinutes.value === 0,
+    error: hasError.value,
+    dragging: isDragging.value,
+  }),
+);
+const inputClasses = computed(() =>
+  field({ size: props.size, disabled: props.disabled, error: hasError.value }),
+);
 </script>
 
 <template>

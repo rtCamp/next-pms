@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { cva } from "class-variance-authority";
 import { Tooltip } from "frappe-ui";
-import type { DayChipProps, DayChipState } from "./types";
+import type { DayChipProps } from "./types";
 
 defineOptions({ inheritAttrs: false });
 
@@ -18,29 +19,49 @@ const isDisabled = computed(
   () => props.disabled || props.state === "disabled" || isSkeleton.value,
 );
 
-const CONTAINER: Record<DayChipState, string> = {
-  default: "bg-surface-gray-1",
-  active: "bg-surface-gray-10",
-  selected: "bg-surface-gray-3",
-  disabled: "bg-surface-gray-1",
-  skeleton: "bg-surface-gray-1 opacity-30",
-};
+const chip = cva(
+  // eslint-disable-next-line better-tailwindcss/no-restricted-classes -- 47px matches React and has no scale step
+  "relative h-[47px] w-10.5 shrink-0 rounded-6 px-1.5 py-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 focus-visible:ring-offset-1",
+  {
+    variants: {
+      state: {
+        default: "bg-surface-gray-1",
+        active: "bg-surface-gray-10",
+        selected: "bg-surface-gray-3",
+        disabled: "bg-surface-gray-1",
+        skeleton: "bg-surface-gray-1 opacity-30",
+      },
+      disabled: { true: "cursor-not-allowed", false: "cursor-pointer" },
+    },
+    compoundVariants: [
+      { state: "default", disabled: false, class: "hover:bg-surface-gray-2" },
+    ],
+  },
+);
 
-const DAY_LABEL: Record<DayChipState, string> = {
-  default: "text-ink-gray-4",
-  active: "text-ink-gray-3",
-  selected: "text-ink-gray-5",
-  disabled: "text-ink-gray-3",
-  skeleton: "text-ink-gray-3",
-};
+const dayLabelClass = cva("text-2xs leading-tighter", {
+  variants: {
+    state: {
+      default: "text-ink-gray-4",
+      active: "text-ink-gray-3",
+      selected: "text-ink-gray-5",
+      disabled: "text-ink-gray-3",
+      skeleton: "text-ink-gray-3",
+    },
+  },
+});
 
-const DAY_NUMBER: Record<DayChipState, string> = {
-  default: "text-ink-gray-6",
-  active: "text-ink-base",
-  selected: "text-ink-gray-7",
-  disabled: "text-ink-gray-3",
-  skeleton: "text-ink-gray-3",
-};
+const dayNumberClass = cva("text-base font-medium leading-tighter", {
+  variants: {
+    state: {
+      default: "text-ink-gray-6",
+      active: "text-ink-base",
+      selected: "text-ink-gray-7",
+      disabled: "text-ink-gray-3",
+      skeleton: "text-ink-gray-3",
+    },
+  },
+});
 
 function onClick(event: MouseEvent) {
   if (!isDisabled.value) emit("click", event);
@@ -49,17 +70,12 @@ function onClick(event: MouseEvent) {
 
 <template>
   <Tooltip :text="tooltip" :disabled="!tooltip">
-    <!-- eslint-disable better-tailwindcss/no-restricted-classes -- 47px, 21px and 9px match React and have no scale step -->
+    <!-- eslint-disable better-tailwindcss/no-restricted-classes -- 21px and 9px match React and have no scale step -->
     <!-- eslint-disable vue/no-restricted-v-bind -- a locked day stays focusable so keyboard users reach its tooltip -->
     <button
       v-bind="$attrs"
       type="button"
-      class="relative h-[47px] w-10.5 shrink-0 rounded-6 px-1.5 py-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 focus-visible:ring-offset-1"
-      :class="[
-        CONTAINER[state],
-        isDisabled ? 'cursor-not-allowed' : 'cursor-pointer',
-        { 'hover:bg-surface-gray-2': state === 'default' && !isDisabled },
-      ]"
+      :class="chip({ state, disabled: isDisabled })"
       :aria-disabled="isDisabled"
       :aria-pressed="state === 'active' || state === 'selected'"
       :tabindex="isSkeleton ? -1 : undefined"
@@ -70,13 +86,10 @@ function onClick(event: MouseEvent) {
         class="mx-auto flex w-[21px] flex-col items-center gap-0.5 text-center"
         :class="{ 'opacity-0': isSkeleton }"
       >
-        <span class="text-2xs leading-tighter" :class="DAY_LABEL[state]">
+        <span :class="dayLabelClass({ state })">
           {{ dayLabel }}
         </span>
-        <span
-          class="text-base font-medium leading-tighter"
-          :class="DAY_NUMBER[state]"
-        >
+        <span :class="dayNumberClass({ state })">
           {{ dayNumber }}
         </span>
       </span>
