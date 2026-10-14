@@ -26,6 +26,7 @@ import { AddUpdateModal } from "../add-update";
 import { GROWTH_DOCTYPE } from "../constants";
 import { useGrowth } from "../context";
 import type { EnrichedGrowthUpdateEntry, GrowthDetail } from "../types";
+import { GrowthComments } from "./comments";
 import { UpdateEntry } from "./updateEntry";
 
 interface GrowthDetailContentProps {
@@ -239,6 +240,8 @@ export function GrowthDetailContent({
         name={growth.name}
         modified={growth.modified}
       />
+
+      <GrowthComments growthId={growth.name} />
     </div>
   );
 }
