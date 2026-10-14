@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, watch, type HTMLAttributes } from "vue";
+import { computed, ref, useTemplateRef, watch, type HTMLAttributes } from "vue";
 import { Avatar, Button, TextInput } from "frappe-ui";
 import { CommentKit, Editor, EditorContent } from "frappe-ui/editor";
 import { stripTags } from "@/utils/text";
 import type { CommentMention } from "./types";
+import { useEditorAttributes } from "@/composables/useEditorAttributes";
 
 const props = withDefaults(
   defineProps<{
@@ -12,7 +13,7 @@ const props = withDefaults(
     placeholder?: string;
     initialValue?: string;
     isSubmitting?: boolean;
-    autofocus?: boolean;
+    focusOnOpen?: boolean;
     resetOnSubmit?: boolean;
     cancellable?: boolean;
     submitLabel?: string;
@@ -44,7 +45,7 @@ const extensions = [
 const draft = ref(props.initialValue);
 const expanded = ref(
   !props.collapsible ||
-    props.autofocus ||
+    props.focusOnOpen ||
     stripTags(props.initialValue).length > 0,
 );
 const pending = ref(false);
@@ -54,6 +55,24 @@ watch(
   (value) => {
     draft.value = value;
   },
+);
+
+const editorRef = useTemplateRef("editor");
+useEditorAttributes(editorRef, () => ({
+  role: "textbox",
+  "aria-multiline": "true",
+  "aria-label": props.placeholder,
+}));
+
+// Opening the editor is the user's request to type, so focus moves into it.
+watch(
+  () => editorRef.value?.editor,
+  (editor) => {
+    if (editor && (props.focusOnOpen || props.collapsible)) {
+      editor.commands.focus("start");
+    }
+  },
+  { immediate: true },
 );
 
 const busy = computed(() => props.isSubmitting || pending.value);
@@ -82,11 +101,7 @@ function handleCancel() {
 </script>
 
 <template>
-  <div
-    v-if="!expanded"
-    class="flex items-center gap-3"
-    :class="triggerClass"
-  >
+  <div v-if="!expanded" class="flex items-center gap-3" :class="triggerClass">
     <Avatar
       v-if="avatarName || avatarImage"
       size="lg"
@@ -105,17 +120,14 @@ function handleCancel() {
 
   <div v-else class="flex w-full flex-col gap-2">
     <Editor
+      ref="editor"
       v-model="draft"
       :extensions="extensions"
       :placeholder="placeholder"
       :editable="!busy"
-      :autofocus="autofocus || collapsible"
     >
       <EditorContent
-        role="textbox"
-        aria-multiline="true"
-        :aria-label="placeholder"
-        class="prose-sm max-h-52 min-h-8 w-full max-w-full overflow-auto rounded border border-outline-gray-2 bg-surface-base px-3 py-1.5 text-ink-gray-8 prose-p:my-0 focus:outline-none"
+        class="prose-sm max-h-52 min-h-8 w-full max-w-full overflow-auto rounded-4 border border-outline-gray-2 bg-surface-base px-3 py-1.5 text-ink-gray-8 prose-p:my-0 focus:outline-none"
       />
     </Editor>
     <div class="flex items-center justify-end gap-2">

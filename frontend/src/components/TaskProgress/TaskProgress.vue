@@ -2,7 +2,10 @@
 import { computed } from "vue";
 import type { TaskProgressProps, TaskProgressSize } from "./types";
 
-const props = withDefaults(defineProps<TaskProgressProps>(), { size: "md" });
+const props = withDefaults(defineProps<TaskProgressProps>(), {
+  size: "md",
+  label: "Task progress",
+});
 
 const MAX_VALUE = 100;
 
@@ -23,22 +26,21 @@ const overflowWidth = computed(() =>
 <template>
   <div
     role="progressbar"
+    :aria-label="label"
     aria-valuemin="0"
     :aria-valuemax="MAX_VALUE"
     :aria-valuenow="Math.min(MAX_VALUE, value)"
     :aria-valuetext="`${Math.round(value)}%`"
-    class="flex rounded-sm bg-surface-gray-2"
+    class="flex rounded-1 bg-surface-gray-2"
     :class="SIZES[size] ?? SIZES.md"
   >
     <div
-      data-part="base"
-      class="h-full rounded-l-sm bg-surface-gray-4"
+      class="h-full rounded-l-1 bg-surface-gray-4"
       :style="{ width: `${baseWidth}%` }"
     />
     <div
       v-if="isOverflow"
-      data-part="overflow"
-      class="relative h-full rounded-r-sm bg-surface-red-6 before:absolute before:bottom-0 before:left-0 before:h-[160%] before:w-0 before:border-l before:border-outline-gray-5 before:content-['']"
+      class="relative h-full rounded-r-1 bg-surface-red-6 before:absolute before:bottom-0 before:left-0 before:h-[160%] before:w-0 before:border-l before:border-outline-gray-5 before:content-['']"
       :style="{ width: `${overflowWidth}%` }"
     />
   </div>

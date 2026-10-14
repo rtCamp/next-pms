@@ -37,7 +37,7 @@ const bodyId = useId();
       >
         <button
           type="button"
-          class="flex h-7 w-full items-center gap-1 rounded px-4 focus-visible:ring-0 focus-visible:focus-ring"
+          class="flex h-7 w-full items-center gap-1 rounded-4 px-4 focus-visible:ring-0 focus-visible:focus-ring"
           :aria-expanded="!closed"
           :aria-controls="bodyId"
           @click="closed = !closed"

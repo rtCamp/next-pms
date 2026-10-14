@@ -10,6 +10,7 @@ const props = withDefaults(defineProps<BudgetBurnBarProps>(), {
   maxValue: 100,
   markerValue: 0,
   size: "md",
+  label: "Budget used",
 });
 
 defineSlots<{
@@ -64,6 +65,7 @@ const progressSecondary = computed(() =>
       :secondary-value="progressSecondary"
       :max-value="maxValue"
       :size="size"
+      :label="label"
       :indicator-class="PRIMARY[tier]"
       :secondary-indicator-class="SECONDARY[tier]"
     />

@@ -5,4 +5,6 @@ export interface TaskProgressProps {
   value: number;
   /** Bar height: `sm` 8px, `md` 16px. */
   size?: TaskProgressSize;
+  /** Accessible name of the bar. */
+  label?: string;
 }

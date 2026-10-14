@@ -220,6 +220,7 @@ function close() {
         placeholder="Add subject"
       />
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- frappe-ui's Select renders a <label> from `label` -->
         <Select
           v-model="form.priority"
           label="Priority"
@@ -261,7 +262,7 @@ function close() {
             role="textbox"
             aria-multiline="true"
             aria-label="Description"
-            class="prose-sm h-24 w-full max-w-full overflow-auto rounded-md border border-outline-gray-2 bg-surface-white px-2 text-base text-ink-gray-7 prose-p:my-1 focus:outline-none"
+            class="prose-sm h-24 w-full max-w-full overflow-auto rounded-5 border border-outline-gray-2 bg-surface-base px-2 text-base text-ink-gray-7 prose-p:my-1 focus:outline-none"
           />
         </Editor>
         <ErrorMessage v-if="errors.description" :message="errors.description" />

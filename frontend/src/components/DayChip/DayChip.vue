@@ -49,10 +49,12 @@ function onClick(event: MouseEvent) {
 
 <template>
   <Tooltip :text="tooltip" :disabled="!tooltip">
+    <!-- eslint-disable better-tailwindcss/no-restricted-classes -- 47px, 21px and 9px match React and have no scale step -->
+    <!-- eslint-disable vue/no-restricted-v-bind -- a locked day stays focusable so keyboard users reach its tooltip -->
     <button
       v-bind="$attrs"
       type="button"
-      class="relative h-[47px] w-[42px] shrink-0 rounded-6 px-1.5 py-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 focus-visible:ring-offset-1"
+      class="relative h-[47px] w-10.5 shrink-0 rounded-6 px-1.5 py-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 focus-visible:ring-offset-1"
       :class="[
         CONTAINER[state],
         isDisabled ? 'cursor-not-allowed' : 'cursor-pointer',
@@ -63,15 +65,16 @@ function onClick(event: MouseEvent) {
       :tabindex="isSkeleton ? -1 : undefined"
       @click="onClick"
     >
+      <!-- eslint-enable vue/no-restricted-v-bind -->
       <span
         class="mx-auto flex w-[21px] flex-col items-center gap-0.5 text-center"
         :class="{ 'opacity-0': isSkeleton }"
       >
-        <span class="text-2xs leading-[1.15]" :class="DAY_LABEL[state]">
+        <span class="text-2xs leading-tighter" :class="DAY_LABEL[state]">
           {{ dayLabel }}
         </span>
         <span
-          class="text-base font-medium leading-[1.15]"
+          class="text-base font-medium leading-tighter"
           :class="DAY_NUMBER[state]"
         >
           {{ dayNumber }}
@@ -89,5 +92,6 @@ function onClick(event: MouseEvent) {
         {{ monthLabel }}
       </span>
     </button>
+    <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
   </Tooltip>
 </template>

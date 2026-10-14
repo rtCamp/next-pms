@@ -20,4 +20,6 @@ export interface BudgetBurnBarProps {
   markerTooltip?: string;
   /** Bar height. */
   size?: ProgressBarSize;
+  /** Accessible name of the bar. */
+  label?: string;
 }

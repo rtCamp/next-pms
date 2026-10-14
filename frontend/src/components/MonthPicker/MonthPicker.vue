@@ -44,6 +44,11 @@ const years = computed(() =>
   Array.from({ length: 12 }, (_, i) => yearRangeStart.value + i),
 );
 const step = computed(() => (view.value === "year" ? 12 : 1));
+const viewLabel = computed(() =>
+  view.value === "month"
+    ? String(year.value)
+    : `${yearRangeStart.value} - ${yearRangeStart.value + 11}`,
+);
 
 function onOpen() {
   view.value = "month";
@@ -72,13 +77,11 @@ function selectYear(value: number) {
 <template>
   <Popover :side="side" :align="align" @open="onOpen">
     <template #trigger>
-      <Button
-        v-bind="$attrs"
-        class="w-full !justify-between"
-        :class="{ '!text-ink-gray-5': !modelValue }"
-        :label="modelValue || placeholder"
-        :icon-right="icon"
-      />
+      <Button v-bind="$attrs" class="w-full justify-between" :icon-right="icon">
+        <span :class="{ 'text-ink-gray-5': !modelValue }">
+          {{ modelValue || placeholder }}
+        </span>
+      </Button>
     </template>
 
     <div class="p-2" :class="{ 'min-w-52': view === 'year' }">
@@ -90,14 +93,10 @@ function selectYear(value: number) {
           @click="year -= step"
         />
         <Button
-          aria-label="Toggle between month and year selection"
+          :aria-label="`${viewLabel}, choose ${view === 'month' ? 'year' : 'month'}`"
           @click="toggleView"
         >
-          {{
-            view === "month"
-              ? year
-              : `${yearRangeStart} - ${yearRangeStart + 11}`
-          }}
+          {{ viewLabel }}
         </Button>
         <Button
           variant="ghost"

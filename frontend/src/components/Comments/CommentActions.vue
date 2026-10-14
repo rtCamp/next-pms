@@ -13,7 +13,10 @@ const emit = defineEmits<{ reply: []; edit: []; delete: [] }>();
 </script>
 
 <template>
-  <div v-if="canReply || canEdit || canDelete" class="flex flex-wrap items-center">
+  <div
+    v-if="canReply || canEdit || canDelete"
+    class="flex flex-wrap items-center"
+  >
     <Button
       v-if="canReply"
       variant="ghost"

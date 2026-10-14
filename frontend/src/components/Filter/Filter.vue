@@ -110,14 +110,14 @@ function onOpenChange(open: boolean) {
           Filter
           <span
             v-if="showCount && hasFilters"
-            class="ml-2 rounded-sm bg-surface-base px-1.5 py-0.5 text-xs shadow-sm"
+            class="ml-2 rounded-1 bg-surface-base px-1.5 py-0.5 text-xs shadow-sm"
           >
             {{ filterCount }}
           </span>
         </Button>
       </template>
 
-      <div class="min-w-[400px] max-w-[600px] p-1">
+      <div class="min-w-100 max-w-[600px] p-1">
         <div class="space-y-1">
           <FilterRow
             v-for="(filter, index) in modelValue"

@@ -31,6 +31,13 @@ function focusPanel(event: Event) {
 }
 
 const unread = computed(() => props.notifications.filter((n) => !n.read));
+
+const fade = {
+  enterActiveClass: "transition-opacity duration-200 ease-out",
+  enterFromClass: "opacity-0",
+  leaveActiveClass: "transition-opacity duration-200 ease-in",
+  leaveToClass: "opacity-0",
+};
 </script>
 
 <!--
@@ -41,90 +48,70 @@ const unread = computed(() => props.notifications.filter((n) => !n.read));
 <template>
   <DialogRoot :open="open" @update:open="emit('update:open', $event)">
     <DialogPortal>
-      <DialogOverlay
-        class="tray-overlay fixed inset-y-0 right-0 z-40 bg-black-overlay-200 dark:bg-black-overlay-700"
-        :class="offsetClass"
-      />
-      <DialogContent
-        class="tray-panel fixed inset-y-0 z-50 flex w-[360px] flex-col bg-surface-elevation-2 shadow-xl outline-none"
-        :class="offsetClass"
-        @open-auto-focus="focusPanel"
-      >
-        <div class="flex items-center justify-between gap-2 px-4 pb-2 pt-4">
-          <DialogTitle class="text-sm font-medium text-ink-gray-8">
-            Notifications
-          </DialogTitle>
-          <DialogDescription class="sr-only">
-            Your unread notifications
-          </DialogDescription>
-          <div class="flex items-center gap-0.5">
-            <Tooltip text="Mark all as read">
-              <Button
-                variant="ghost"
-                icon="lucide-check-check"
-                label="Mark all as read"
-                @click="emit('markAllRead')"
-              />
-            </Tooltip>
-            <DialogClose as-child>
-              <Button
-                variant="ghost"
-                icon="lucide-x"
-                label="Close notifications tray"
-              />
-            </DialogClose>
+      <Transition v-bind="fade">
+        <DialogOverlay
+          class="fixed inset-y-0 right-0 z-40 bg-black-overlay-200 dark:bg-black-overlay-700"
+          :class="offsetClass"
+        />
+      </Transition>
+      <Transition v-bind="fade">
+        <DialogContent
+          class="fixed inset-y-0 z-50 flex w-90 flex-col bg-surface-elevation-2 shadow-xl outline-none"
+          :class="offsetClass"
+          @open-auto-focus="focusPanel"
+        >
+          <div class="flex items-center justify-between gap-2 px-4 pb-2 pt-4">
+            <DialogTitle class="text-sm font-medium text-ink-gray-8">
+              Notifications
+            </DialogTitle>
+            <DialogDescription class="sr-only">
+              Your unread notifications
+            </DialogDescription>
+            <div class="flex items-center gap-0.5">
+              <Tooltip text="Mark all as read">
+                <Button
+                  variant="ghost"
+                  icon="lucide-check-check"
+                  label="Mark all as read"
+                  @click="emit('markAllRead')"
+                />
+              </Tooltip>
+              <DialogClose as-child>
+                <Button
+                  variant="ghost"
+                  icon="lucide-x"
+                  label="Close notifications tray"
+                />
+              </DialogClose>
+            </div>
           </div>
-        </div>
 
-        <ScrollArea class="min-h-0 flex-1">
-          <p
-            v-if="!unread.length"
-            class="px-4 py-10 text-center text-sm text-ink-gray-4"
-          >
-            {{
-              notifications.length
-                ? "No unread notifications."
-                : "No notifications yet."
-            }}
-          </p>
-          <ul
-            v-else
-            class="flex flex-col p-2"
-            aria-label="Unread notifications"
-          >
-            <li v-for="notification in unread" :key="notification.id">
-              <NotificationItem
-                :notification="notification"
-                @select="emit('notificationClick', $event)"
-              />
-            </li>
-          </ul>
-        </ScrollArea>
-      </DialogContent>
+          <ScrollArea class="min-h-0 flex-1">
+            <p
+              v-if="!unread.length"
+              class="px-4 py-10 text-center text-sm text-ink-gray-4"
+            >
+              {{
+                notifications.length
+                  ? "No unread notifications."
+                  : "No notifications yet."
+              }}
+            </p>
+            <ul
+              v-else
+              class="flex flex-col p-2"
+              aria-label="Unread notifications"
+            >
+              <li v-for="notification in unread" :key="notification.id">
+                <NotificationItem
+                  :notification="notification"
+                  @select="emit('notificationClick', $event)"
+                />
+              </li>
+            </ul>
+          </ScrollArea>
+        </DialogContent>
+      </Transition>
     </DialogPortal>
   </DialogRoot>
 </template>
-
-<style scoped>
-.tray-overlay[data-state="open"],
-.tray-panel[data-state="open"] {
-  animation: tray-fade-in 200ms ease-out;
-}
-
-.tray-overlay[data-state="closed"],
-.tray-panel[data-state="closed"] {
-  animation: tray-fade-out 200ms ease-in;
-}
-
-@keyframes tray-fade-in {
-  from {
-    opacity: 0;
-  }
-}
-
-@keyframes tray-fade-out {
-  to {
-    opacity: 0;
-  }
-}
-</style>

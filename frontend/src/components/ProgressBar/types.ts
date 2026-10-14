@@ -17,4 +17,6 @@ export interface ProgressBarProps {
   secondaryIndicatorClass?: string;
   /** Classes for the marker. Replaces the default grey. */
   markerClass?: string;
+  /** Accessible name of the bar. */
+  label?: string;
 }

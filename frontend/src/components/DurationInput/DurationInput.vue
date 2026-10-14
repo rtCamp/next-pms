@@ -233,6 +233,7 @@ const inputClasses = computed(() => [
       >
         <SliderTrack :class="trackClasses">
           <template v-if="isDragging && !disabled">
+            <!-- eslint-disable better-tailwindcss/no-restricted-classes -- a hairline notch; the border scale has no half pixel -->
             <div
               v-for="offset in notchOffsets"
               :key="offset"
@@ -242,6 +243,7 @@ const inputClasses = computed(() => [
               "
               :style="{ left: `${offset}%` }"
             />
+            <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
           </template>
           <SliderRange :class="rangeClasses">
             <span :class="gripClasses" />
@@ -251,6 +253,7 @@ const inputClasses = computed(() => [
             :aria-label="accessibleLabel"
             :aria-valuetext="formatHoursBalance(previewHours)"
           />
+          <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -- the input sits outside the slider track; `for` links it -->
           <label
             v-if="inlineLabel"
             :for="inputId"
@@ -265,7 +268,7 @@ const inputClasses = computed(() => [
       <Spinner
         v-if="loading"
         class="pointer-events-none absolute top-1/2 size-4 -translate-y-1/2 text-ink-gray-8"
-        :class="size === 'md' ? 'right-[3.75rem]' : 'right-14'"
+        :class="size === 'md' ? 'right-15' : 'right-14'"
       />
 
       <input

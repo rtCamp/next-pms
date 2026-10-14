@@ -166,7 +166,7 @@ watch(
         aria-label="Tasks"
         class="flex min-h-0 w-max min-w-full flex-1 flex-col list-row-px-2"
       >
-        <ListHeader class="!h-[45px]">
+        <ListHeader class="data-[slot=list-header]:h-[45px]">
           <template v-for="column in columns" :key="column.key">
             <ListHeaderCellSort
               v-if="SORT_FIELD_BY_COLUMN.has(column.key)"

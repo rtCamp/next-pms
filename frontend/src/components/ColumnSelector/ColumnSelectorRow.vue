@@ -56,7 +56,7 @@ function onDragStart(event: DragEvent) {
 <template>
   <div
     ref="row"
-    class="flex items-center justify-between gap-6 rounded px-2 py-1 text-base text-ink-gray-8 hover:bg-surface-gray-2"
+    class="flex items-center justify-between gap-6 rounded-4 px-2 py-1 text-base text-ink-gray-8 hover:bg-surface-gray-2"
     :class="{
       'bg-surface-gray-2 opacity-50': dragging,
       'bg-surface-gray-2 shadow-sm ring-1 ring-outline-gray-3': lifted,
@@ -71,7 +71,7 @@ function onDragStart(event: DragEvent) {
         :aria-label="`${labels.reorder}: ${column.label}`"
         :aria-describedby="hintId"
         :aria-pressed="lifted"
-        class="flex shrink-0 cursor-grab items-center rounded text-ink-gray-5 outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 active:cursor-grabbing"
+        class="flex shrink-0 cursor-grab items-center rounded-4 text-ink-gray-5 outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 active:cursor-grabbing"
         @keydown="emit('handleKeydown', $event)"
         @blur="emit('handleBlur')"
         @dragstart="onDragStart"
@@ -79,23 +79,31 @@ function onDragStart(event: DragEvent) {
       >
         <span class="lucide-grip-vertical size-3.5" aria-hidden="true" />
       </button>
-      <span class="truncate" data-column-label>{{ column.label }}</span>
+      <span class="truncate">{{ column.label }}</span>
     </div>
     <div class="flex shrink-0 items-center gap-1">
       <Tooltip v-if="pinnable" :text="pinLabel">
         <Button
           variant="ghost"
           size="xs"
-          :icon="column.pinned ? 'lucide-pin-off' : 'lucide-pin'"
-          :class="[
-            column.pinned ? '!text-ink-gray-8' : '!text-ink-gray-4',
-            { 'cursor-not-allowed opacity-50': pinDisabled },
-          ]"
+          class="disabled:cursor-not-allowed disabled:opacity-50"
           :aria-label="`${pinLabel}: ${column.label}`"
           :aria-pressed="!!column.pinned"
-          :aria-disabled="pinDisabled"
-          @click="!pinDisabled && emit('togglePin')"
-        />
+          :disabled="pinDisabled"
+          @click="emit('togglePin')"
+        >
+          <template #icon>
+            <span
+              class="size-3.5"
+              :class="
+                column.pinned
+                  ? 'lucide-pin-off text-ink-gray-8'
+                  : 'lucide-pin text-ink-gray-4'
+              "
+              aria-hidden="true"
+            />
+          </template>
+        </Button>
       </Tooltip>
       <Button
         v-if="removable"

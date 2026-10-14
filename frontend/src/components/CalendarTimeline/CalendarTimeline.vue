@@ -105,7 +105,7 @@ const columnStyle = computed(() => ({
           role="group"
           :aria-label="day.fullLabel"
           :aria-current="day.isToday ? 'date' : undefined"
-          class="flex min-h-[140px] flex-col gap-0.5 border-b border-l border-outline-gray-1 py-px pl-0.5 pr-px first:border-l-0"
+          class="flex min-h-35 flex-col gap-0.5 border-b border-l border-outline-gray-1 py-px pl-0.5 pr-px first:border-l-0"
           :class="day.isWeekend ? 'bg-surface-gray-1' : 'bg-surface-base'"
         >
           <div class="flex justify-end p-0.5">

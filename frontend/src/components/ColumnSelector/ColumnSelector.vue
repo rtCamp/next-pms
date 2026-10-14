@@ -213,6 +213,7 @@ function onClose() {
     <div class="min-w-52 p-1.5">
       <span :id="hintId" class="sr-only">{{ labels.reorderHint }}</span>
       <span class="sr-only" aria-live="assertive">{{ announcement }}</span>
+      <!-- eslint-disable vuejs-accessibility/no-static-element-interactions -- drop targets for pointer drags; the keyboard reorders through the handles -->
       <div ref="list" role="list" @dragover="onListDragOver" @drop="onDrop">
         <div
           v-for="(column, index) in columns"
@@ -220,6 +221,7 @@ function onClose() {
           role="listitem"
           @dragover="onDragOver(index, $event)"
         >
+          <!-- eslint-enable vuejs-accessibility/no-static-element-interactions -->
           <div
             v-if="pinnedCount > 0 && index === pinnedCount"
             aria-hidden="true"
@@ -249,6 +251,7 @@ function onClose() {
         v-if="addable.length > 0 || resettable"
         class="mt-1.5 flex flex-col gap-1 border-t border-outline-gray-1 pt-1.5"
       >
+        <!-- `justify-stretch` acts as start in a flex row and outranks Button's `justify-center`. -->
         <Combobox
           v-if="addable.length > 0"
           :options="addable"
@@ -261,22 +264,34 @@ function onClose() {
           <template #trigger="{ open }">
             <Button
               variant="ghost"
-              class="w-full !justify-start !text-ink-gray-5"
-              icon-left="lucide-plus"
-              :label="labels.addColumn"
+              class="w-full justify-stretch"
               aria-haspopup="listbox"
               :aria-expanded="open"
-            />
+            >
+              <template #prefix>
+                <span
+                  class="lucide-plus size-4 text-ink-gray-5"
+                  aria-hidden="true"
+                />
+              </template>
+              <span class="text-ink-gray-5">{{ labels.addColumn }}</span>
+            </Button>
           </template>
         </Combobox>
         <Button
           v-if="resettable"
           variant="ghost"
-          class="w-full !justify-start !text-ink-gray-5"
-          icon-left="lucide-rotate-ccw"
-          :label="labels.resetToDefault"
+          class="w-full justify-stretch"
           @click="emit('reset')"
-        />
+        >
+          <template #prefix>
+            <span
+              class="lucide-rotate-ccw size-4 text-ink-gray-5"
+              aria-hidden="true"
+            />
+          </template>
+          <span class="text-ink-gray-5">{{ labels.resetToDefault }}</span>
+        </Button>
       </div>
     </div>
   </Popover>

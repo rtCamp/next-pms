@@ -53,12 +53,11 @@ function clear(close: () => void) {
           v-for="{ field, label, disabled, tooltipText } in fields"
           :key="field"
           variant="ghost"
-          class="w-full !justify-between"
-          :class="{ '!cursor-not-allowed !text-ink-gray-5': disabled }"
+          class="w-full justify-between disabled:cursor-not-allowed"
           :tooltip="tooltipText"
-          :aria-disabled="disabled || undefined"
+          :disabled="disabled"
           :aria-pressed="orderOf(field) !== null"
-          @click="!disabled && toggle(field)"
+          @click="toggle(field)"
         >
           {{ label }}
           <template v-if="orderOf(field)" #suffix>
@@ -82,7 +81,7 @@ function clear(close: () => void) {
           <Button
             variant="ghost"
             theme="red"
-            class="w-full !justify-start"
+            class="w-full justify-between"
             label="Clear sort"
             @click="clear(close)"
           />

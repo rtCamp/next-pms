@@ -5,6 +5,7 @@ import type { ProgressBarProps, ProgressBarSize } from "./types";
 const props = withDefaults(defineProps<ProgressBarProps>(), {
   maxValue: 100,
   size: "md",
+  label: "Progress",
 });
 
 const SIZES: Record<ProgressBarSize, string> = {
@@ -75,6 +76,7 @@ const marker = computed(() => {
 <template>
   <div
     role="progressbar"
+    :aria-label="label"
     aria-valuemin="0"
     :aria-valuemax="maxValue"
     :aria-valuenow="clamp(value)"
@@ -84,14 +86,12 @@ const marker = computed(() => {
     <div
       v-for="segment in segments"
       :key="segment.part"
-      :data-part="segment.part"
       class="absolute inset-y-0 left-0"
       :class="segment.class"
       :style="{ width: `${segment.width}%` }"
     />
     <div
       v-if="marker !== undefined"
-      data-part="marker"
       aria-hidden="true"
       class="absolute inset-y-0 w-0.5 -translate-x-1/2"
       :class="markerClass ?? 'bg-surface-gray-3'"

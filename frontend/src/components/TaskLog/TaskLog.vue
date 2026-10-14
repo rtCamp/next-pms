@@ -94,7 +94,7 @@ const rangeModel = computed({
     </div>
     <template v-else>
       <!-- Tucked up under the title, as React's -mt-[5%] did. -->
-      <div v-if="badges.length" class="-mt-[22px] ml-6 flex flex-wrap gap-1">
+      <div v-if="badges.length" class="-mt-5.5 ml-6 flex flex-wrap gap-1">
         <Badge
           v-for="badge in badges"
           :key="badge.label"
@@ -115,6 +115,7 @@ const rangeModel = computed({
       </div>
 
       <div class="mt-4 flex justify-between text-sm">
+        <!-- eslint-disable-next-line better-tailwindcss/no-restricted-classes -- no scale step for 3px -->
         <div class="mb-0.5 flex gap-[3px]">
           <div class="flex gap-1">
             <span
@@ -135,7 +136,12 @@ const rangeModel = computed({
         </div>
         <div class="text-ink-gray-6">{{ progress }}%</div>
       </div>
-      <TaskProgress :value="progress" size="sm" class="mt-2.5" />
+      <TaskProgress
+        :value="progress"
+        size="sm"
+        label="Actual against estimated time"
+        class="mt-2.5"
+      />
 
       <div class="mt-6 flex items-center justify-between">
         <h4 v-if="isTeam" class="text-base font-medium text-ink-gray-8">
@@ -143,7 +149,7 @@ const rangeModel = computed({
         </h4>
         <div
           v-else-if="ownSummary"
-          class="flex items-center justify-between gap-1 rounded bg-surface-gray-2 px-2 py-1.5 text-ink-gray-7"
+          class="flex items-center justify-between gap-1 rounded-4 bg-surface-gray-2 px-2 py-1.5 text-ink-gray-7"
         >
           <Avatar
             size="xs"
@@ -164,15 +170,17 @@ const rangeModel = computed({
         />
       </div>
 
+      <!-- eslint-disable better-tailwindcss/no-restricted-classes -- Tailwind 3 has no mask-image or scrollbar-width utilities -->
       <ul
         v-if="isTeam && details.workedBy.length"
         aria-label="Time by member"
         class="mt-2 flex items-center justify-start gap-1.5 overflow-x-auto [mask-image:linear-gradient(to_right,black_calc(100%-24px),transparent)] [scrollbar-width:none]"
       >
+        <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
         <li
           v-for="worker in details.workedBy"
           :key="worker.employeeId"
-          class="flex shrink-0 items-start justify-between gap-2 rounded border border-outline-elevation-2 px-2 py-1.5"
+          class="flex shrink-0 items-start justify-between gap-2 rounded-4 border border-outline-elevation-2 px-2 py-1.5"
         >
           <Avatar
             size="xs"
@@ -190,12 +198,14 @@ const rangeModel = computed({
         </li>
       </ul>
 
+      <!-- eslint-disable better-tailwindcss/no-restricted-classes -- Tailwind 3 has no scrollbar-width utility -->
       <ul
         v-if="entries.length"
         aria-label="Time entries"
         class="-mr-3 mt-3 flex max-h-54 flex-col gap-3 overflow-y-auto pr-3 [scrollbar-width:thin]"
         :class="{ 'mt-4': isTeam }"
       >
+        <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
         <TaskLogEntryItem
           v-for="(entry, index) in entries"
           :key="`${index}-${entry.date}`"
