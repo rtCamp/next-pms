@@ -44,23 +44,6 @@ export function togglePinned<T extends SelectorColumn>(
   ];
 }
 
-/** Moves `from` to `to`, or returns `columns` unchanged when the move is out of range or crosses the pinned boundary. */
-export function moveColumn<T extends SelectorColumn>(
-  columns: T[],
-  from: number,
-  to: number,
-  respectPinned: boolean,
-): T[] {
-  if (from === to || !columns[from] || !columns[to]) return columns;
-  if (respectPinned && !!columns[from].pinned !== !!columns[to].pinned) {
-    return columns;
-  }
-  const next = [...columns];
-  const [moved] = next.splice(from, 1);
-  next.splice(to, 0, moved);
-  return next;
-}
-
 export function sameOrder(a: SelectorColumn[], b: SelectorColumn[]) {
   return (
     a.length === b.length &&

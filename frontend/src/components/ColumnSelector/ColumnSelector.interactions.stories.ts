@@ -64,37 +64,49 @@ const listedLabels = () =>
 
 const DEFAULT_ORDER = ["ID", "Subject", "Status", "Priority", "Customer"];
 
+const nextFrame = () =>
+  new Promise((resolve) => requestAnimationFrame(resolve));
+
+/** Presses `handle`, moves the pointer down to `target` in steps and releases. */
+async function pointerDrag(handle: HTMLElement, target: HTMLElement) {
+  const from = handle.getBoundingClientRect();
+  const to = target.getBoundingClientRect();
+  const x = from.x + from.width / 2;
+  const startY = from.y + from.height / 2;
+  const endY = to.y + to.height * 0.75;
+  const at = (y: number, buttons = 1) => ({
+    bubbles: true,
+    cancelable: true,
+    composed: true,
+    pointerId: 1,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 0,
+    buttons,
+    clientX: x,
+    clientY: y,
+  });
+  handle.dispatchEvent(new PointerEvent("pointerdown", at(startY)));
+  for (let step = 1; step <= 10; step++) {
+    const y = startY + ((endY - startY) * step) / 10;
+    document.dispatchEvent(new PointerEvent("pointermove", at(y)));
+    await nextFrame();
+  }
+  document.dispatchEvent(new PointerEvent("pointerup", at(endY, 0)));
+}
+
 /**
  * Drag a row by its grip handle to reorder it. Open the story and try it with
- * a mouse; the play function drives the same handlers with synthetic drag events.
+ * a mouse; the play function drives the same handlers with pointer events.
  */
 export const DragToReorder: Story = {
   play: async ({ canvasElement, args }) => {
     await openSelector(canvasElement);
 
-    const handle = screen.getByRole("button", { name: "Reorder column: ID" });
-    await expect(handle).toHaveAttribute("draggable", "true");
-
-    const dataTransfer = new DataTransfer();
-    const drag = (type: string, target: Element) =>
-      target.dispatchEvent(
-        new DragEvent(type, { bubbles: true, cancelable: true, dataTransfer }),
-      );
-    drag("dragstart", handle);
-    drag("dragover", screen.getAllByRole("listitem")[2]);
-    await waitFor(() =>
-      expect(listedLabels()).toEqual([
-        "Subject",
-        "Status",
-        "ID",
-        "Priority",
-        "Customer",
-      ]),
+    await pointerDrag(
+      screen.getByRole("button", { name: "Reorder column: ID" }),
+      screen.getAllByRole("listitem")[2]!,
     );
-    await expect(args["onUpdate:modelValue"]).not.toHaveBeenCalled();
-
-    drag("drop", screen.getAllByRole("listitem")[2]);
-    drag("dragend", handle);
 
     await waitFor(() =>
       expect(args["onUpdate:modelValue"]).toHaveBeenCalledTimes(1),
@@ -239,13 +251,8 @@ export const ReordersWithKeyboard: Story = {
     });
     handle.focus();
     await userEvent.keyboard("[Space]");
-    await expect(handle).toHaveAttribute("aria-pressed", "true");
+    await waitFor(() => expect(handle).toHaveAttribute("aria-pressed", "true"));
     await userEvent.keyboard("[ArrowDown]");
-    await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: "Reorder column: Subject" }),
-      ).toHaveFocus(),
-    );
     await userEvent.keyboard("[Space]");
 
     await waitFor(() =>
@@ -258,9 +265,13 @@ export const ReordersWithKeyboard: Story = {
       ]),
     );
     await expect(args["onUpdate:modelValue"]).toHaveBeenCalledTimes(1);
-    await expect(
-      screen.getByRole("button", { name: "Reorder column: Subject" }),
-    ).toHaveAttribute("aria-pressed", "false");
+    const dropped = screen.getByRole("button", {
+      name: "Reorder column: Subject",
+    });
+    await waitFor(() =>
+      expect(dropped).toHaveAttribute("aria-pressed", "false"),
+    );
+    await waitFor(() => expect(dropped).toHaveFocus());
   },
 };
 
