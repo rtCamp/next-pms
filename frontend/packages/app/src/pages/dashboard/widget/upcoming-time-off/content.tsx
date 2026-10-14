@@ -85,7 +85,7 @@ export function UpcomingTimeOffContent() {
                   size="lg"
                   label={leave.status}
                 />
-                {leave.status === "Open" && (
+                {leave.status === "Open" && leave.can_approve && (
                   <div className="flex gap-1.5">
                     <Button
                       variant="solid"
