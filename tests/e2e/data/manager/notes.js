@@ -60,4 +60,11 @@ module.exports = {
     body: "TC140 - note body.",
     comment: "please review this note",
   },
+  TC141: {
+    ...project(141),
+    templateName: "TC141 Template",
+    templateTitle: "TC141 Note From Template",
+    body: "TC141 - body that comes from the template.",
+    addedText: " Added after choosing the template.",
+  },
 };

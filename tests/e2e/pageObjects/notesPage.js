@@ -92,6 +92,12 @@ export class NotesPage {
     await this.page.getByRole("menuitem", { name: item }).click();
   }
 
+  async appendToBody(text) {
+    await this.editor.click();
+    await this.page.keyboard.press("ControlOrMeta+End");
+    await this.page.keyboard.type(text);
+  }
+
   async writeBody(text, { replace = false } = {}) {
     await this.editor.click();
     if (replace) await this.page.keyboard.press("ControlOrMeta+a");
@@ -118,6 +124,23 @@ export class NotesPage {
     await this.saveNoteButton.click();
   }
 
+  /** Opens the note editor pre-filled from an existing template. */
+  async startNoteFromTemplate(templateName) {
+    await this.createButton.click();
+    await this.page
+      .getByRole("menuitem", { name: "New from template" })
+      .click();
+    await this.dialog
+      .getByRole("textbox", { name: "Search template" })
+      .fill(templateName);
+    await this.dialog.getByText(templateName).first().click();
+    await this.dialog.getByRole("button", { name: "Use template" }).click();
+    await this.noteTitleInput.waitFor({
+      state: "visible",
+      timeout: scaleTimeout(15000),
+    });
+  }
+
   // --------------------------------------
   // Templates
   // --------------------------------------
@@ -133,9 +156,7 @@ export class NotesPage {
 
   /** Appends text to an open template and saves it through the Edit dialog. */
   async appendToTemplate(text) {
-    await this.editor.click();
-    await this.page.keyboard.press("ControlOrMeta+End");
-    await this.page.keyboard.type(text);
+    await this.appendToBody(text);
     await this.saveTemplateButton.click();
     await this.dialog.getByRole("button", { name: "Save changes" }).click();
   }
