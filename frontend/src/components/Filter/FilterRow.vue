@@ -214,10 +214,16 @@ function onRangeChange(value: DateRangeValue) {
 
     <Button
       variant="ghost"
-      icon="lucide-x"
-      class="shrink-0 text-ink-gray-7"
+      class="group shrink-0"
       aria-label="Remove filter"
       @click="emit('remove')"
-    />
+    >
+      <template #icon>
+        <span
+          class="lucide-x size-4 text-ink-gray-7 group-hover:text-ink-gray-6"
+          aria-hidden="true"
+        />
+      </template>
+    </Button>
   </div>
 </template>

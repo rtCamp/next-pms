@@ -23,9 +23,9 @@ defineSlots<{
 }>();
 
 const PRIMARY: Record<BudgetBurnTier, string> = {
-  healthy: "rounded-full bg-surface-green-5",
-  moderate: "rounded-full bg-surface-amber-5",
-  over: "rounded-full bg-surface-red-5",
+  healthy: "rounded-full bg-surface-green-7",
+  moderate: "rounded-full bg-surface-amber-7",
+  over: "rounded-full bg-surface-red-7",
 };
 const SECONDARY: Record<BudgetBurnTier, string> = {
   healthy: "rounded-full bg-surface-green-2",

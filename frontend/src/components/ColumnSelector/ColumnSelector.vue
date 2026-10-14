@@ -210,7 +210,7 @@ function onClose() {
       />
     </template>
 
-    <div class="min-w-52 p-1.5">
+    <div class="min-w-40 p-1.5">
       <span :id="hintId" class="sr-only">{{ labels.reorderHint }}</span>
       <span class="sr-only" aria-live="assertive">{{ announcement }}</span>
       <!-- eslint-disable vuejs-accessibility/no-static-element-interactions -- drop targets for pointer drags; the keyboard reorders through the handles -->

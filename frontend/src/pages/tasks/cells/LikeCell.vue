@@ -30,7 +30,7 @@ const label = computed(() => (like.liked ? "Unstar task" : "Star task"));
     >
       <FilledStarIcon
         v-if="like.liked"
-        class="size-4 text-ink-amber-2"
+        class="size-4 text-ink-amber-5"
         aria-hidden="true"
       />
       <span

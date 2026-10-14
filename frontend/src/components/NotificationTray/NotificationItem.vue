@@ -33,7 +33,7 @@ function onClick(event: MouseEvent) {
   >
     <span
       class="mt-2.5 size-2 shrink-0 rounded-full"
-      :class="notification.read ? 'bg-transparent' : 'bg-surface-blue-5'"
+      :class="notification.read ? 'bg-transparent' : 'bg-surface-blue-7'"
       aria-hidden="true"
     />
     <span

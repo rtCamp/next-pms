@@ -41,19 +41,19 @@ const segments = computed<Segment[]>(() => {
       {
         part: "secondary",
         width: secondary,
-        class: secondaryClass("bg-surface-gray-6"),
+        class: secondaryClass("bg-surface-gray-9"),
       },
       {
         part: "primary",
         width: primary,
-        class: primaryClass("bg-surface-gray-7"),
+        class: primaryClass("bg-surface-gray-10"),
       },
     ];
   }
   const back: Segment = {
     part: "primary",
     width: primary,
-    class: primaryClass("bg-surface-gray-6"),
+    class: primaryClass("bg-surface-gray-9"),
   };
   if (secondary === undefined) return [back];
   return [
@@ -61,7 +61,7 @@ const segments = computed<Segment[]>(() => {
     {
       part: "secondary",
       width: secondary,
-      class: secondaryClass("bg-surface-gray-7"),
+      class: secondaryClass("bg-surface-gray-10"),
     },
   ];
 });

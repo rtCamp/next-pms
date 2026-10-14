@@ -20,7 +20,7 @@ const isDisabled = computed(
 
 const CONTAINER: Record<DayChipState, string> = {
   default: "bg-surface-gray-1",
-  active: "bg-surface-gray-7",
+  active: "bg-surface-gray-10",
   selected: "bg-surface-gray-3",
   disabled: "bg-surface-gray-1",
   skeleton: "bg-surface-gray-1 opacity-30",

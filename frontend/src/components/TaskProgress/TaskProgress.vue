@@ -40,7 +40,7 @@ const overflowWidth = computed(() =>
     />
     <div
       v-if="isOverflow"
-      class="relative h-full rounded-r-1 bg-surface-red-6 before:absolute before:bottom-0 before:left-0 before:h-[160%] before:w-0 before:border-l before:border-outline-gray-5 before:content-['']"
+      class="relative h-full rounded-r-1 bg-surface-red-8 before:absolute before:bottom-0 before:left-0 before:h-[160%] before:w-0 before:border-l before:border-outline-gray-7 before:content-['']"
       :style="{ width: `${overflowWidth}%` }"
     />
   </div>

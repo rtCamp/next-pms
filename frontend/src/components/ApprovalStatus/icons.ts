@@ -5,13 +5,13 @@ export const APPROVAL_STATUS_ICONS: Record<
   ApprovalStatusIcon
 > = {
   "Not Submitted": { icon: "lucide-timer", color: "text-ink-gray-4" },
-  "Approval Pending": { icon: "lucide-hourglass", color: "text-ink-amber-4" },
-  Approved: { icon: "lucide-circle-check", color: "text-ink-green-4" },
-  Rejected: { icon: "lucide-circle-x", color: "text-ink-red-4" },
+  "Approval Pending": { icon: "lucide-hourglass", color: "text-ink-amber-8" },
+  Approved: { icon: "lucide-circle-check", color: "text-ink-green-8" },
+  Rejected: { icon: "lucide-circle-x", color: "text-ink-red-8" },
   "Partially Approved": {
     icon: "lucide-circle-check",
-    color: "text-ink-green-4",
+    color: "text-ink-green-8",
   },
-  "Partially Rejected": { icon: "lucide-circle-x", color: "text-ink-red-4" },
-  "Processing Timesheet": { icon: null, color: "text-ink-amber-4" },
+  "Partially Rejected": { icon: "lucide-circle-x", color: "text-ink-red-8" },
+  "Processing Timesheet": { icon: null, color: "text-ink-amber-8" },
 };
