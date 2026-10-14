@@ -32,6 +32,9 @@ const linkSchema = z.object({
     .string()
     .trim()
     .url("Enter a valid URL.")
+    .refine((value) => !/\s/.test(value), {
+      message: "URL cannot contain spaces.",
+    })
     .refine((value) => /^https?:\/\//i.test(value), {
       message: "URL must start with http:// or https://",
     }),

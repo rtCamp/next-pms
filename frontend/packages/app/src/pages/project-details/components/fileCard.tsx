@@ -28,7 +28,9 @@ export function FileCard({ file }: FileCardProps) {
     ? file.file_name
     : file.file_name.replace(/\.[^/.]+$/, "");
   const subtitle = isLink
-    ? new URL(file.file_url).hostname
+    ? href
+      ? new URL(href).hostname
+      : file.file_url
     : `${getFileExtension(file.file_name)} · ${formatFileSize(file.file_size)}`;
 
   return (
