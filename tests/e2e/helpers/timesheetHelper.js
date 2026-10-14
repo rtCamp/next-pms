@@ -16,6 +16,7 @@ import employeeTimesheetData from "../data/employee/timesheet";
 import managerTeamData from "../data/manager/team";
 import managerTaskData from "../data/manager/task";
 import managerProjectData from "../data/manager/project";
+import managerGrowthData from "../data/manager/growth";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import {
   createProject,
@@ -866,6 +867,28 @@ export const cleanUpProjects = async (data) => {
         }
       }
 
+      // Growth initiatives link to the project and block its delete.
+      if (projectId) {
+        try {
+          const initiatives = await getDocList("PMS Growth Initiative", [
+            ["project", "=", projectId],
+          ]);
+          for (const { name } of initiatives) {
+            const { deleted } = await deleteDocument(
+              "PMS Growth Initiative",
+              name,
+            );
+            if (!deleted) failures.push(`PMS Growth Initiative ${name}`);
+          }
+        } catch (err) {
+          failures.push(`PMS Growth Initiative for ${projectId}`);
+          console.error(
+            `Failed to delete growth initiatives of ${projectId}:`,
+            err.message,
+          );
+        }
+      }
+
       // Delete Project
       if (projectId) {
         try {
@@ -1056,6 +1079,7 @@ export const readAndCleanAllOrphanData = async () => {
     ...managerTaskData,
     ...managerTeamData,
     ...managerProjectData,
+    ...managerGrowthData,
   };
 
   await deleteLeaveOfEmployee();
