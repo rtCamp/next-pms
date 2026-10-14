@@ -25,8 +25,6 @@ across components live in `src/utils/`.
 | `ApprovalStatus/` | `ApprovalStatus`, `APPROVAL_STATUSES`, `APPROVAL_STATUS_ICONS` |
 | `BudgetBurnBar/` | `BudgetBurnBar`, `budgetBurnTier` |
 | `CalendarTimeline/` | `CalendarTimeline`, `EventChip`, `DEFAULT_VISIBLE_DAYS`, date helpers re-exported from `utils/date` |
-| `Card/` | `Card` |
-| `CircularProgressBar/` | `CircularProgressBar` |
 | `ColumnSelector/` | `ColumnSelector` |
 | `Comments/` | `Comments` |
 | `DayChip/` | `DayChip` |
