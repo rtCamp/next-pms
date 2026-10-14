@@ -1,51 +1,49 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { Avatar, Badge, Button } from "frappe-ui";
+import { Avatar, Badge } from "frappe-ui";
 import RowToggle from "./RowToggle.vue";
+import StatusActionButton from "./StatusActionButton.vue";
+import TimeCell from "./TimeCell.vue";
 import {
   ACTION_CELL_CLASS,
-  ACTION_TEXT_CLASS,
-  APPROVAL_STATUS_LABEL,
-  APPROVAL_STATUS_THEME,
+  APPROVAL_STATUS_BADGE,
+  BUTTON_CELL_CLASS,
   CELL_CLASS,
-  EMPTY_CELL_CLASS,
-  GHOST_ACTION_CLASS,
-  MEMBER_ACTION,
-  MEMBER_TOTAL_CLASS,
+  MEMBER_SOLID_ACTION_ICON,
   ROW_CLASS,
+  totalHoursClass,
 } from "./constants";
 import type { MemberRowProps } from "./types";
 
-const props = withDefaults(defineProps<MemberRowProps>(), {
-  status: "not-submitted",
+withDefaults(defineProps<MemberRowProps>(), {
   totalHours: "",
+  hideAction: false,
 });
 
 const collapsed = defineModel<boolean>("collapsed", { default: false });
 
-defineEmits<{ action: [] }>();
-
-const action = computed(() => MEMBER_ACTION[props.status]);
+const emit = defineEmits<{
+  /** The member's status button was pressed. */
+  action: [];
+  /** A day's add-time button was pressed. */
+  cellClick: [dayIndex: number];
+}>();
 </script>
 
 <template>
-  <div :class="ROW_CLASS" data-testid="member-row">
+  <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -- a pointer shortcut; the chevron button is the keyboard control -->
+  <div :class="[ROW_CLASS, 'cursor-pointer']" @click="collapsed = !collapsed">
     <div class="flex min-w-0 flex-1 items-center gap-2">
-      <RowToggle
-        label="Toggle member"
-        :collapsed="collapsed"
-        @click="collapsed = !collapsed"
-      />
-      <div class="flex min-w-0 items-center gap-2">
+      <RowToggle :label="`Toggle ${label}`" :collapsed="collapsed" />
+      <div class="flex min-w-0 max-w-75 items-center gap-2 sm:max-w-112">
         <Avatar :image="avatarUrl" :label="label" shape="circle" size="xs" />
-        <span class="truncate text-base-medium text-ink-gray-9">
+        <span class="truncate text-base-medium text-ink-gray-8">
           {{ label }}
         </span>
         <Badge
-          v-if="status !== 'none'"
+          v-if="status"
           class="shrink-0"
-          :theme="APPROVAL_STATUS_THEME[status]"
-          :label="APPROVAL_STATUS_LABEL[status]"
+          :theme="APPROVAL_STATUS_BADGE[status].theme"
+          :label="APPROVAL_STATUS_BADGE[status].label"
         />
       </div>
     </div>
@@ -53,41 +51,33 @@ const action = computed(() => MEMBER_ACTION[props.status]);
     <div
       v-for="(entry, index) in timeEntries"
       :key="index"
-      :class="[CELL_CLASS, 'text-base text-ink-gray-9 lining-nums tabular-nums']"
+      :class="BUTTON_CELL_CLASS"
     >
-      <span v-if="entry === ''" :class="EMPTY_CELL_CLASS">-</span>
-      <span
-        v-else
-        :class="status === 'none' ? 'text-ink-gray-6' : 'font-medium'"
-        >{{ entry }}</span
-      >
+      <TimeCell
+        :time="entry.time"
+        :disabled="entry.disabled"
+        :class="
+          status
+            ? 'text-base-medium text-ink-gray-8'
+            : 'text-base text-ink-gray-6'
+        "
+        @click.stop="emit('cellClick', index)"
+      />
     </div>
 
-    <div :class="[CELL_CLASS, 'text-sm text-ink-gray-5']">
-      <span
-        :class="[
-          'text-base-medium lining-nums tabular-nums',
-          MEMBER_TOTAL_CLASS[status],
-        ]"
-        >{{ totalHours }}</span
-      >
+    <div :class="CELL_CLASS">
+      <span :class="totalHoursClass({ theme: totalHoursTheme })">
+        {{ totalHours }}
+      </span>
     </div>
 
     <div :class="ACTION_CELL_CLASS">
-      <Button
-        v-if="action.icon"
-        size="sm"
-        :variant="action.variant"
-        :icon="action.icon"
-        :class="
-          action.variant === 'ghost' && [
-            GHOST_ACTION_CLASS,
-            ACTION_TEXT_CLASS[status],
-          ]
-        "
-        :aria-label="action.label"
-        :title="APPROVAL_STATUS_LABEL[status]"
-        @click="$emit('action')"
+      <StatusActionButton
+        v-if="!hideAction && status"
+        :status="status"
+        :label="APPROVAL_STATUS_BADGE[status].label"
+        :solid-icon="MEMBER_SOLID_ACTION_ICON[status]"
+        @press="emit('action')"
       />
     </div>
   </div>

@@ -68,6 +68,10 @@ export default defineConfig({
       "@tiptap/pm/state",
       "@tiptap/pm/view",
       "@tiptap/pm/model",
+      // Found only once a story imports them, which reloads a story test run.
+      "class-variance-authority",
+      "clsx",
+      "tailwind-merge",
     ],
     esbuildOptions: { plugins: [frappeUiSubpathImports] },
   },

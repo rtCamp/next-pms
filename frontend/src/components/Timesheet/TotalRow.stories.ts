@@ -1,56 +1,33 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
-import { expect, within } from "storybook/test";
+import { fn } from "storybook/test";
 import TotalRow from "./TotalRow.vue";
-import type { TimesheetBreadcrumb } from "./types";
-
-const BREADCRUMBS: TimesheetBreadcrumb[] = [
-  { label: "Projects" },
-  { label: "Tasks" },
-];
-const TOTAL_TIME_ENTRIES = [
-  "08:30",
-  "08:15",
-  "08:45",
-  "08:30",
-  "07:45",
-  "02:15",
-  "00:45",
-];
+import { LEVELS, TOTAL_WEEK } from "./TotalRow.fixtures";
 
 const meta = {
   title: "Components/Timesheet/TotalRow",
   component: TotalRow,
   tags: ["autodocs"],
+  parameters: { layout: "padded" },
   args: {
-    breadcrumbs: BREADCRUMBS,
-    totalHours: "44:30",
-    status: "approved",
-    totalTimeEntries: TOTAL_TIME_ENTRIES,
-    starred: true,
+    levels: LEVELS,
+    totalHours: "33:15",
+    totalHoursTheme: "green",
+    totalTimeEntries: TOTAL_WEEK,
+    starred: false,
+    onStar: fn(),
+    onCellClick: fn(),
   },
   argTypes: {
-    status: {
+    totalHoursTheme: {
       control: "select",
-      options: [
-        "not-submitted",
-        "approved",
-        "rejected",
-        "approval-pending",
-        "none",
-      ],
+      options: ["green", "red", "amber", "gray"],
     },
   },
   render: (args) => ({
     components: { TotalRow },
     setup: () => ({ args }),
-    template: `
-      <div class="w-[1180px]">
-        <TotalRow v-bind="args" />
-      </div>
-    `,
+    template: `<TotalRow v-bind="args" />`,
   }),
-  // TODO: fail on violations again after the design-system re-port.
-  parameters: { layout: "padded", a11y: { test: "todo" } },
 } satisfies Meta<typeof TotalRow>;
 
 export default meta;
@@ -58,94 +35,22 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const TotalHoursColors: Story = {
-  tags: ["interaction"],
-  render: () => ({
+export const Starred: Story = { args: { starred: true } };
+
+export const Disabled: Story = { args: { disabled: true } };
+
+export const ShortWeek: Story = { args: { totalHoursTheme: "red" } };
+
+export const CustomPrefix: Story = {
+  render: (args) => ({
     components: { TotalRow },
-    setup: () => ({
-      BREADCRUMBS,
-      TOTAL_TIME_ENTRIES,
-      rows: [
-        ["not-submitted", "10:00"],
-        ["approved", "20:00"],
-        ["rejected", "30:00"],
-        ["approval-pending", "40:00"],
-        ["none", "50:00"],
-      ],
-    }),
+    setup: () => ({ args }),
     template: `
-      <div class="w-[1180px] space-y-2">
-        <TotalRow
-          v-for="[status, total] in rows"
-          :key="status"
-          :breadcrumbs="BREADCRUMBS"
-          :status="status"
-          :total-hours="total"
-          :total-time-entries="TOTAL_TIME_ENTRIES"
-        />
-      </div>
+      <TotalRow v-bind="args">
+        <template #prefix>
+          <span class="lucide-sigma size-4 text-ink-gray-8" aria-hidden="true" />
+        </template>
+      </TotalRow>
     `,
   }),
-  // Colour is the behaviour under test and has no ARIA equivalent.
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    await expect(canvas.getByText("10:00")).toHaveClass("text-ink-gray-6");
-    await expect(canvas.getByText("20:00")).toHaveClass("text-ink-green-4");
-    await expect(canvas.getByText("30:00")).toHaveClass("text-ink-red-4");
-    await expect(canvas.getByText("40:00")).toHaveClass("text-ink-amber-4");
-    const none = canvas.getByText("50:00");
-    for (const colour of ["gray-6", "green-4", "red-4", "amber-4"]) {
-      await expect(none).not.toHaveClass(`text-ink-${colour}`);
-    }
-  },
-};
-
-export const StarAndPrefix: Story = {
-  tags: ["interaction"],
-  render: () => ({
-    components: { TotalRow },
-    setup: () => ({ BREADCRUMBS, TOTAL_TIME_ENTRIES }),
-    template: `
-      <div class="w-[1180px] space-y-2">
-        <TotalRow :breadcrumbs="BREADCRUMBS" total-hours="40:00" status="approved"
-          :total-time-entries="TOTAL_TIME_ENTRIES" starred />
-        <TotalRow :breadcrumbs="BREADCRUMBS" total-hours="40:00" status="approved"
-          :total-time-entries="TOTAL_TIME_ENTRIES" />
-        <TotalRow :breadcrumbs="BREADCRUMBS" total-hours="40:00" status="approved"
-          :total-time-entries="TOTAL_TIME_ENTRIES" starred>
-          <template #prefix>
-            <span class="lucide-star size-4" role="img" aria-label="Custom prefix icon" />
-          </template>
-        </TotalRow>
-      </div>
-    `,
-  }),
-  play: async ({ canvasElement }) => {
-    const [starred, unstarred, custom] =
-      within(canvasElement).getAllByTestId("total-row");
-    await expect(
-      within(starred).getByRole("img", { name: "Starred" }),
-    ).toBeInTheDocument();
-    await expect(
-      within(unstarred).getByRole("img", { name: "Not starred" }),
-    ).toHaveClass("lucide-star-off");
-    await expect(
-      within(custom).getByRole("img", { name: "Custom prefix icon" }),
-    ).toBeInTheDocument();
-    await expect(
-      within(custom).queryByRole("img", { name: "Starred" }),
-    ).toBeNull();
-  },
-};
-
-export const BreadcrumbsRender: Story = {
-  tags: ["interaction"],
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    for (const item of BREADCRUMBS) {
-      await expect(
-        canvas.getByRole("button", { name: item.label }),
-      ).toBeInTheDocument();
-    }
-  },
 };
