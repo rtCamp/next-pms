@@ -20,6 +20,7 @@ export interface ApiGrowthInitiativeItem {
   closed_status: string | null;
   activity_owner: string | null;
   ideation_owner: string | null;
+  billable_outcome: number;
   modified: string;
 }
 
@@ -69,7 +70,6 @@ export interface EnrichedGrowthUpdateEntry extends GrowthUpdateEntry {
 
 export interface ApiGrowthDetail extends ApiGrowthInitiativeItem {
   ideation_date: string;
-  billable_outcome: number;
   description: string | null;
   desired_outcome: string | null;
   owner: string;

@@ -57,6 +57,7 @@ export function useGrowthData(filters: GrowthFilters, sort: GrowthSort | null) {
         "closed_status",
         "activity_owner",
         "ideation_owner",
+        "billable_outcome",
         "modified",
       ],
       filters: frappeFilters,
