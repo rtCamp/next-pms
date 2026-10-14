@@ -17,11 +17,9 @@ export interface CalendarTimelineEvent {
 export interface CalendarTimelineProps {
   /** Events to place on the grid; events outside the visible range are ignored. */
   events: CalendarTimelineEvent[];
-  /** First visible day. */
-  rangeStart: Date;
   /** Number of visible days (grid columns). Default `DEFAULT_VISIBLE_DAYS` (14). */
   days?: number;
-  /** Day to highlight as today. Nothing is highlighted when unset. */
+  /** Day to highlight as today, and the week the Today button goes to. Nothing is highlighted when unset. */
   today?: Date;
   /** Header label. Defaults to the range, e.g. `"Oct 12 - Oct 25, 2026"`. */
   rangeLabel?: string;

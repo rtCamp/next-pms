@@ -1,8 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
-import { Button, dayjs } from "frappe-ui";
+import { Button } from "frappe-ui";
 import { useArgs } from "storybook/preview-api";
 import { fn } from "storybook/test";
-import { getWeekStart } from "@/utils/date";
 import CalendarTimeline from "./CalendarTimeline.vue";
 import { DEFAULT_VISIBLE_DAYS } from "./constants";
 import { EVENTS, RANGE_START, TODAY } from "./CalendarTimeline.fixtures";
@@ -17,9 +16,7 @@ const meta = {
     rangeStart: RANGE_START,
     today: TODAY,
     days: DEFAULT_VISIBLE_DAYS,
-    onPrev: fn(),
-    onNext: fn(),
-    onToday: fn(),
+    "onUpdate:rangeStart": fn(),
   },
   argTypes: {
     rangeStart: { control: "date" },
@@ -29,31 +26,21 @@ const meta = {
     const [, updateArgs] = useArgs();
     return {
       components: { CalendarTimeline },
-      setup: () => {
-        // The date control hands back a timestamp, not a Date.
-        const today = new Date(args.today ?? TODAY);
-        const setStart = (rangeStart: Date) => {
+      setup: () => ({
+        args,
+        update: (rangeStart: Date) => {
           // `updateArgs` syncs Controls; story tests only see the args write.
           Object.assign(args, { rangeStart });
           updateArgs({ rangeStart });
-        };
-        const step = (direction: number) =>
-          setStart(
-            dayjs(args.rangeStart)
-              .add(direction * (args.days ?? DEFAULT_VISIBLE_DAYS), "day")
-              .toDate(),
-          );
-        const goToday = () => setStart(getWeekStart(today));
-        return { args, today, step, goToday };
-      },
+        },
+      }),
+      // The date controls hand back timestamps, not Dates.
       template: `
         <CalendarTimeline
           v-bind="args"
           :range-start="new Date(args.rangeStart)"
-          :today="today"
-          @prev="step(-1)"
-          @next="step(1)"
-          @today="goToday"
+          :today="args.today && new Date(args.today)"
+          @update:range-start="update"
         />
       `,
     };

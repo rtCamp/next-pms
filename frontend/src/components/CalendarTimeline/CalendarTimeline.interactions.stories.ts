@@ -1,96 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
-import { Button, dayjs } from "frappe-ui";
-import { useArgs } from "storybook/preview-api";
-import { expect, fn, screen, userEvent, waitFor, within } from "storybook/test";
-import { getWeekStart } from "@/utils/date";
+import { expect, screen, userEvent, waitFor, within } from "storybook/test";
 import CalendarTimeline from "./CalendarTimeline.vue";
-import { DEFAULT_VISIBLE_DAYS } from "./constants";
-import { EVENTS, RANGE_START, TODAY } from "./CalendarTimeline.fixtures";
+import visual, { CustomHeader, WithFilter } from "./CalendarTimeline.stories";
 
 const meta = {
+  ...visual,
   title: "Components/CalendarTimeline/Interactions",
-  component: CalendarTimeline,
   tags: ["interaction"],
-  parameters: { layout: "padded" },
-  args: {
-    events: EVENTS,
-    rangeStart: RANGE_START,
-    today: TODAY,
-    days: DEFAULT_VISIBLE_DAYS,
-    onPrev: fn(),
-    onNext: fn(),
-    onToday: fn(),
-  },
-  argTypes: {
-    rangeStart: { control: "date" },
-    today: { control: "date" },
-  },
-  render: (args) => {
-    const [, updateArgs] = useArgs();
-    return {
-      components: { CalendarTimeline },
-      setup: () => {
-        // The date control hands back a timestamp, not a Date.
-        const today = new Date(args.today ?? TODAY);
-        const setStart = (rangeStart: Date) => {
-          // `updateArgs` syncs Controls; story tests only see the args write.
-          Object.assign(args, { rangeStart });
-          updateArgs({ rangeStart });
-        };
-        const step = (direction: number) =>
-          setStart(
-            dayjs(args.rangeStart)
-              .add(direction * (args.days ?? DEFAULT_VISIBLE_DAYS), "day")
-              .toDate(),
-          );
-        const goToday = () => setStart(getWeekStart(today));
-        return { args, today, step, goToday };
-      },
-      template: `
-        <CalendarTimeline
-          v-bind="args"
-          :range-start="new Date(args.rangeStart)"
-          :today="today"
-          @prev="step(-1)"
-          @next="step(1)"
-          @today="goToday"
-        />
-      `,
-    };
-  },
 } satisfies Meta<typeof CalendarTimeline>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-const WithFilter: Story = {
-  render: (args) => ({
-    components: { CalendarTimeline, Button },
-    setup: () => ({ args }),
-    template: `
-      <CalendarTimeline v-bind="args">
-        <template #filter>
-          <Button label="All projects" icon-right="lucide-chevron-down" />
-        </template>
-      </CalendarTimeline>
-    `,
-  }),
-};
-
-const CustomHeader: Story = {
-  render: (args) => ({
-    components: { CalendarTimeline, Button },
-    setup: () => ({ args }),
-    template: `
-      <CalendarTimeline v-bind="args">
-        <template #header>
-          <span class="text-lg font-semibold text-ink-gray-8">Milestones</span>
-          <Button variant="ghost" label="Export" icon-left="lucide-download" />
-        </template>
-      </CalendarTimeline>
-    `,
-  }),
-};
 
 export const NavigateRanges: Story = {
   play: async ({ canvasElement, args }) => {
@@ -98,10 +18,12 @@ export const NavigateRanges: Story = {
     await expect(canvas.getByText("Oct 12 - Oct 25, 2026")).toBeVisible();
 
     await userEvent.click(canvas.getByRole("button", { name: "Next range" }));
-    await expect(args.onNext).toHaveBeenCalledTimes(1);
     await waitFor(() =>
       expect(canvas.getByText("Oct 26 - Nov 8, 2026")).toBeVisible(),
     );
+    await expect(args["onUpdate:rangeStart"]).toHaveBeenLastCalledWith(
+      new Date(2026, 9, 26),
+    );
 
     await userEvent.click(
       canvas.getByRole("button", { name: "Previous range" }),
@@ -109,15 +31,44 @@ export const NavigateRanges: Story = {
     await userEvent.click(
       canvas.getByRole("button", { name: "Previous range" }),
     );
-    await expect(args.onPrev).toHaveBeenCalledTimes(2);
     await waitFor(() =>
       expect(canvas.getByText("Sep 28 - Oct 11, 2026")).toBeVisible(),
     );
+  },
+};
 
+export const TodayGoesToThisWeek: Story = {
+  args: { rangeStart: new Date(2026, 8, 28) },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole("button", { name: "Today" }));
-    await expect(args.onToday).toHaveBeenCalledTimes(1);
     await waitFor(() =>
       expect(canvas.getByText("Oct 12 - Oct 25, 2026")).toBeVisible(),
+    );
+    await expect(args["onUpdate:rangeStart"]).toHaveBeenLastCalledWith(
+      new Date(2026, 9, 12),
+    );
+  },
+};
+
+export const PickedDateShowsItsWeek: Story = {
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const trigger = canvas.getByRole("button", {
+      name: "Oct 12 - Oct 25, 2026",
+    });
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(trigger);
+    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+
+    await userEvent.click(
+      await screen.findByRole("gridcell", { name: "2026-10-29" }),
+    );
+    await waitFor(() =>
+      expect(canvas.getByText("Oct 26 - Nov 8, 2026")).toBeVisible(),
+    );
+    await expect(args["onUpdate:rangeStart"]).toHaveBeenLastCalledWith(
+      new Date(2026, 9, 26),
     );
   },
 };
