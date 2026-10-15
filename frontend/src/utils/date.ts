@@ -25,3 +25,12 @@ export function getRangeLabel(rangeStart: Date, days: number): string {
   );
   return `${startLabel} - ${end.format("MMM D, YYYY")}`;
 }
+
+/**
+ * A `YYYY-MM-DD` date as `"MMM D"`, with the year added when it isn't the current one,
+ * e.g. `"Oct 15"` or `"Mar 2, 2025"`.
+ */
+export function formatProjectDate(isoDate: string): string {
+  const date = dayjs(isoDate, "YYYY-MM-DD");
+  return date.format(date.year() === dayjs().year() ? "MMM D" : "MMM D, YYYY");
+}
