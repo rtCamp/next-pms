@@ -112,6 +112,24 @@ export function useProjectColumns() {
     }
   }
 
+  /**
+   * Applies a header drag: pinned columns reorder among themselves, and the others take
+   * the unpinned places in the column order.
+   */
+  function reorder(next: { pinned: string[]; scrolling: string[] }) {
+    if (next.pinned.join(",") !== pinned.value.join(",")) {
+      setLayout({ pinned: next.pinned });
+    }
+    const pinnedKeys = new Set(pinned.value);
+    let cursor = 0;
+    const nextOrder = order.value.map((key) =>
+      pinnedKeys.has(key) ? key : (next.scrolling[cursor++] ?? key),
+    );
+    if (nextOrder.join(",") !== order.value.join(",")) {
+      setLayout({ order: nextOrder });
+    }
+  }
+
   function reset() {
     setLayout({ order: DEFAULT_COLUMN_ORDER, pinned: [] });
   }
@@ -124,6 +142,7 @@ export function useProjectColumns() {
     isDefault,
     setLayout,
     togglePinned,
+    reorder,
     reset,
   };
 }

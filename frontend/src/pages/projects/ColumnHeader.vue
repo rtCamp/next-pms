@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useTemplateRef } from "vue";
 import { Button, Dropdown, Tooltip } from "frappe-ui";
+import { useSortable } from "@dnd-kit/vue/sortable";
 import type { SortOrder } from "@/components/SortSelector";
 import { CURRENCY_REQUIRED_TOOLTIP, PIN_LIMIT_TOOLTIP } from "./constants";
 import type { ProjectListColumn } from "./types";
@@ -13,6 +14,8 @@ const props = defineProps<{
   direction: SortOrder | null;
   /** A sort on an amount needs a currency. */
   sortDisabled: boolean;
+  /** Position among the headers of its group; pinned and scrolling headers reorder apart. */
+  groupIndex: number;
 }>();
 
 const emit = defineEmits<{ sort: []; togglePin: [] }>();
@@ -33,6 +36,16 @@ const pinOptions = computed(() => [
   },
 ]);
 
+const group = computed(() => (props.pinned ? "pinned" : "scrolling"));
+const { isDragging } = useSortable({
+  id: () => props.column.key,
+  index: () => props.groupIndex,
+  group,
+  type: group,
+  accept: group,
+  element: useTemplateRef("header"),
+});
+
 function sort() {
   if (!props.sortDisabled) emit("sort");
 }
@@ -40,9 +53,11 @@ function sort() {
 
 <template>
   <div
+    ref="header"
     role="columnheader"
     :aria-sort="ariaSort"
     class="flex min-w-0 items-center gap-1 text-sm text-ink-gray-5"
+    :class="isDragging && 'opacity-50'"
   >
     <Tooltip
       v-if="column.sortField"

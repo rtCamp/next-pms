@@ -1,6 +1,19 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch, type CSSProperties } from "vue";
 import { Spinner } from "frappe-ui";
+import { RestrictToHorizontalAxis } from "@dnd-kit/abstract/modifiers";
+import {
+  Feedback,
+  PointerActivationConstraints,
+  PointerSensor,
+} from "@dnd-kit/dom";
+import { isSortable } from "@dnd-kit/dom/sortable";
+import { arrayMove } from "@dnd-kit/helpers";
+import {
+  DragDropProvider,
+  type DragDropProviderProps,
+  type DragEndEvent,
+} from "@dnd-kit/vue";
 import { List, ListCell, ListHeader, ListRow, ListRows } from "frappe-ui/list";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { useInfiniteScroll } from "@/composables/useInfiniteScroll";
@@ -15,7 +28,42 @@ import { useProjectList } from "./useProjectList";
 const STICKY_MIN_WIDTH = 896;
 
 const projectList = useProjectList();
-const { columns, pinned, togglePinned } = useProjectColumns();
+const { columns, pinned, togglePinned, reorder } = useProjectColumns();
+
+// A press has to move a few pixels before it drags, so the header's sort and menu
+// buttons still take plain clicks.
+const DRAG_SENSORS: DragDropProviderProps["sensors"] = [
+  PointerSensor.configure({
+    activationConstraints: [
+      new PointerActivationConstraints.Distance({ value: 6 }),
+    ],
+    // The sort button fills most of the header, and dnd-kit won't start a drag on one.
+    preventActivation: () => false,
+  }),
+];
+const DRAG_MODIFIERS: DragDropProviderProps["modifiers"] = [
+  RestrictToHorizontalAxis,
+];
+const DRAG_PLUGINS: DragDropProviderProps["plugins"] = (defaults) => [
+  ...defaults,
+  Feedback.configure({ dropAnimation: null }),
+];
+
+// Read from the sortable's own indexes: a pinned header dropped at the edge of the
+// scroll area ends with no drop target, which `move()` needs.
+function onDragEnd(event: DragEndEvent) {
+  const source = event.operation.source;
+  if (event.canceled || !source || !isSortable(source)) return;
+  if (source.initialIndex === source.index) return;
+  const keys = columns.value.map((column) => column.key);
+  const groups = {
+    pinned: keys.slice(0, pinnedCount.value),
+    scrolling: keys.slice(pinnedCount.value),
+  };
+  const group = source.group === "pinned" ? "pinned" : "scrolling";
+  groups[group] = arrayMove(groups[group], source.initialIndex, source.index);
+  reorder(groups);
+}
 const { filters, sort, setSort } = useProjectFilters();
 
 const scroller = useTemplateRef("scroller");
@@ -101,42 +149,50 @@ function sortBy(sortField?: string) {
         No projects found.
       </p>
       <div v-else ref="scroller" class="min-h-0 flex-1 overflow-auto">
-        <List
-          :columns="columnWidths"
-          :row-height="40"
-          aria-label="Projects"
-          class="w-max min-w-full list-gap-0"
+        <DragDropProvider
+          :sensors="DRAG_SENSORS"
+          :modifiers="DRAG_MODIFIERS"
+          :plugins="DRAG_PLUGINS"
+          @drag-end="onDragEnd"
         >
-          <ListHeader class="sticky top-0 z-10 bg-surface-base">
-            <ColumnHeader
-              v-for="(column, index) in columns"
-              :key="column.key"
-              class="h-full px-2"
-              :class="pinnedClass(index, true)"
-              :style="stickyStyles[index]"
-              :column="column"
-              :pinned="index < pinnedCount"
-              :pin-limit="index >= pinnedCount && pinLimit"
-              :direction="direction(column.sortField)"
-              :sort-disabled="isSortDisabled(column.sortField)"
-              @sort="sortBy(column.sortField)"
-              @toggle-pin="togglePinned(column.key)"
-            />
-          </ListHeader>
-          <ListRows v-slot="{ item }" :items="projectList.rows">
-            <ListRow>
-              <ListCell
+          <List
+            :columns="columnWidths"
+            :row-height="40"
+            aria-label="Projects"
+            class="w-max min-w-full list-gap-0"
+          >
+            <ListHeader class="sticky top-0 z-10 bg-surface-base">
+              <ColumnHeader
                 v-for="(column, index) in columns"
                 :key="column.key"
-                class="h-full min-w-0 px-2"
-                :class="pinnedClass(index)"
+                class="h-full px-2"
+                :class="pinnedClass(index, true)"
                 :style="stickyStyles[index]"
-              >
-                <ProjectListCell :project="item" :column="column" />
-              </ListCell>
-            </ListRow>
-          </ListRows>
-        </List>
+                :column="column"
+                :pinned="index < pinnedCount"
+                :pin-limit="index >= pinnedCount && pinLimit"
+                :direction="direction(column.sortField)"
+                :sort-disabled="isSortDisabled(column.sortField)"
+                :group-index="index < pinnedCount ? index : index - pinnedCount"
+                @sort="sortBy(column.sortField)"
+                @toggle-pin="togglePinned(column.key)"
+              />
+            </ListHeader>
+            <ListRows v-slot="{ item }" :items="projectList.rows">
+              <ListRow>
+                <ListCell
+                  v-for="(column, index) in columns"
+                  :key="column.key"
+                  class="h-full min-w-0 px-2"
+                  :class="pinnedClass(index)"
+                  :style="stickyStyles[index]"
+                >
+                  <ProjectListCell :project="item" :column="column" />
+                </ListCell>
+              </ListRow>
+            </ListRows>
+          </List>
+        </DragDropProvider>
         <div ref="sentinel" aria-hidden="true" />
         <div
           v-if="projectList.isNextPageLoading"
