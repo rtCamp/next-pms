@@ -2,7 +2,9 @@
 import ProjectListTable from "./ProjectListTable.vue";
 import { provideProjectList } from "./useProjectList";
 
-provideProjectList();
+const projectList = provideProjectList();
+
+defineExpose({ refresh: () => projectList.refresh() });
 </script>
 
 <template>
