@@ -50,14 +50,22 @@ export function InvoiceBurnCell() {
         <LegendItem
           className="bg-surface-violet-5"
           label="Invoiced and paid"
-          value={currencyFormat(currency).format(invoicedPaid)}
+          value={
+            invoiceBurn.invoiced_and_paid === undefined
+              ? "N/A"
+              : currencyFormat(currency).format(invoicedPaid)
+          }
           labelClassName="text-ink-gray-6"
           valueClassName="font-medium"
         />
         <LegendItem
           className="bg-surface-blue-5"
           label="Invoiced but not paid"
-          value={currencyFormat(currency).format(invoicedUnpaid)}
+          value={
+            invoiceBurn.invoiced_but_not_paid === undefined
+              ? "N/A"
+              : currencyFormat(currency).format(invoicedUnpaid)
+          }
           labelClassName="text-ink-gray-6"
           valueClassName="font-medium"
         />

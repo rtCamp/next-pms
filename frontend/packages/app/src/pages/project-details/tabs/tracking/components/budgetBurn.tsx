@@ -34,21 +34,25 @@ export function BudgetBurnCell() {
         <LegendItem
           className="bg-surface-green-5"
           label="Actual budget burn"
-          value={currencyFormat(currency).format(actual)}
+          value={budgetBurn ? currencyFormat(currency).format(actual) : "N/A"}
           labelClassName="text-ink-gray-6"
           valueClassName="shrink-0 font-medium"
         />
         <LegendItem
           className="bg-surface-green-3"
           label="Forecasted budget burn"
-          value={currencyFormat(currency).format(forecasted)}
+          value={
+            budgetBurn ? currencyFormat(currency).format(forecasted) : "N/A"
+          }
           labelClassName="text-ink-gray-6"
           valueClassName="shrink-0 font-medium"
         />
         <LegendItem
           className="bg-surface-gray-3"
           label="Total project budget"
-          value={currencyFormat(currency).format(totalBudget)}
+          value={
+            budgetBurn ? currencyFormat(currency).format(totalBudget) : "N/A"
+          }
           labelClassName="text-ink-gray-6"
           valueClassName="shrink-0 font-medium"
         />
