@@ -36,6 +36,7 @@ across components live in `src/utils/`.
 | `LoadingOverlay/` | `LoadingOverlay` |
 | `MonthPicker/` | `MonthPicker` |
 | `NotificationTray/` | `NotificationTray` |
+| `PhaseIcon/` | `PhaseIcon` (a project phase's colour), `PROJECT_PHASE_COLORS` |
 | `ProgressBar/` | `ProgressBar` |
 | `RichText/` | `RichText` (read-only editor HTML, e.g. comments) |
 | `SortSelector/` | `SortSelector` |
