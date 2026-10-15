@@ -32,7 +32,7 @@ across components live in `src/utils/`.
 | `DayChip/` | `DayChip` |
 | `DurationInput/` | `DurationInput` |
 | `ErrorFallback/` | `ErrorFallback` |
-| `Filter/` | `Filter`, `DEFAULT_OPERATORS` |
+| `Filter/` | `Filter`, `FilterLinkValue` (the `#link-value` input: searches the field's doctype or `customMethod`), `DEFAULT_OPERATORS` |
 | `LoadingOverlay/` | `LoadingOverlay` |
 | `MonthPicker/` | `MonthPicker` |
 | `NotificationTray/` | `NotificationTray` |
