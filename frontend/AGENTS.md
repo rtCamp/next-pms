@@ -52,8 +52,9 @@ src/
   layout/          AppSidebar (frappe-ui Sidebar), AppSidebarSection, the nav links (sidebarSections.ts), the
                    Apps menu (apps.ts) and StatusMessage for the status pages
   pages/           route components; WorkInProgress stands in for pages not rebuilt yet. A rebuilt page gets a
-                   folder (pages/tasks/): the route component, its parts and dialogs, cells/, and page-only
-                   use* composables (provide/inject state, filters and columns kept in the URL)
+                   folder (pages/tasks/, pages/projects/): the route component, its parts and dialogs, cells/, and
+                   page-only use* composables (provide/inject state, filters and columns kept in the URL);
+                   pages/projects/ also has kanban/ and views/ (saved views)
   components/      components frappe-ui lacks, one folder each; see components/Components.md
   composables/     shared use* composables: lookups, the like toggle, URL query updates, editor attributes,
                    infinite scroll, project phases
