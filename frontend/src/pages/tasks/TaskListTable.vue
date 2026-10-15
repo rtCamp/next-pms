@@ -1,13 +1,5 @@
 <script setup lang="ts">
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  useTemplateRef,
-  watch,
-} from "vue";
+import { computed, useTemplateRef } from "vue";
 import { Button, dayjs, dialog, Dropdown, Spinner } from "frappe-ui";
 import {
   List,
@@ -20,6 +12,7 @@ import {
 } from "frappe-ui/list";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { TaskStatus, type TaskStatusValue } from "@/components/TaskStatus";
+import { useInfiniteScroll } from "@/composables/useInfiniteScroll";
 import { useSession } from "@/session";
 import { formatHours } from "@/utils/format";
 import LikeCell from "./cells/LikeCell.vue";
@@ -103,48 +96,13 @@ function rowActions(task: TaskListItem) {
   ];
 }
 
-// Infinite scroll: load the next page while the sentinel under the rows is within
-// 200px of the bottom of the rows' scroll area. The observer only reports changes,
-// so after each page the sentinel is observed afresh: a page shorter than the area
-// leaves it visible, and the next callback, measured against the new rows, says
-// whether another page is needed.
-const scroller = useTemplateRef("scroller");
-const sentinel = useTemplateRef("sentinel");
-const sentinelVisible = ref(false);
-let observer: IntersectionObserver | undefined;
-
-function observeSentinel() {
-  if (!observer || observer.root !== scroller.value) {
-    observer?.disconnect();
-    observer = new IntersectionObserver(
-      ([entry]) => (sentinelVisible.value = Boolean(entry?.isIntersecting)),
-      { root: scroller.value, rootMargin: "200px" },
-    );
-  }
-  observer.disconnect();
-  sentinelVisible.value = false;
-  if (sentinel.value) observer.observe(sentinel.value);
-}
-
-onMounted(observeSentinel);
-onBeforeUnmount(() => observer?.disconnect());
-
-watch(sentinel, observeSentinel);
-// Synchronous, so the stale "visible" is gone before the watcher below sees loading end.
-watch(
-  () => taskList.rows.length,
-  () => {
-    sentinelVisible.value = false;
-    nextTick(observeSentinel);
-  },
-  { flush: "sync" },
-);
-watch(
-  () => [sentinelVisible.value, taskList.isLoading, taskList.hasMore] as const,
-  ([visible, loading, hasMore]) => {
-    if (visible && !loading && hasMore) taskList.loadMore();
-  },
-);
+useInfiniteScroll({
+  root: useTemplateRef("scroller"),
+  sentinel: useTemplateRef("sentinel"),
+  count: () => taskList.rows.length,
+  canLoad: () => !taskList.isLoading && taskList.hasMore,
+  load: () => taskList.loadMore(),
+});
 </script>
 
 <template>
