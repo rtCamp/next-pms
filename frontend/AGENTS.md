@@ -85,8 +85,8 @@ Never edit the build output in `../next_pms/public/frontend` by hand.
   `useCall`/`useList`/`useDoc` result is a reactive object, so read its `data`, `loading` and `error` in the
   component's setup state (`useList` also takes `debug: true`). The `vue-debug-guides` skill covers reactivity and
   async debugging.
-- **Browser checks** run against the Vite URL. If the page redirects to the Frappe login, ask the human to log in;
-  never fill in the login form yourself.
+- **Page checks** are Playwright e2e tests in `../tests/e2e/` (`npm run e2e:tests` from the repo root), not manual
+  browser checks. Never fill in the Frappe login form yourself.
 
 ## Skill overrides
 
