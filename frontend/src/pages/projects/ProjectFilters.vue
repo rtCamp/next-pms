@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { Combobox, MultiSelect, Select, TextInput } from "frappe-ui";
 import { ColumnSelector } from "@/components/ColumnSelector";
 import { Filter, FilterLinkValue, type FilterField } from "@/components/Filter";
@@ -111,10 +111,26 @@ onMounted(() => {
   if (!filters.value.currency) setCurrency(defaultCurrency());
 });
 
-const search = computed({
-  get: () => filters.value.search,
-  set: (value: string | number) => setSearch(String(value)),
-});
+// Debounced here rather than with TextInput's `debounce`, which re-emits the typed
+// text on blur and would undo a revert that cleared it in the meantime.
+const SEARCH_DEBOUNCE_MS = 400;
+const search = ref(filters.value.search);
+let searchTimer: ReturnType<typeof setTimeout> | undefined;
+watch(
+  () => filters.value.search,
+  (value) => {
+    clearTimeout(searchTimer);
+    search.value = value;
+  },
+);
+function onSearchInput(value: string | number) {
+  search.value = String(value);
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    if (search.value !== filters.value.search) setSearch(search.value);
+  }, SEARCH_DEBOUNCE_MS);
+}
+onBeforeUnmount(() => clearTimeout(searchTimer));
 
 const ragStatus = computed({
   get: () => filters.value.ragStatus,
@@ -182,12 +198,12 @@ const externalFilterCount = computed(
   <div class="flex flex-wrap justify-between gap-2 px-5 py-3.5">
     <div class="flex gap-2">
       <TextInput
-        v-model="search"
+        :model-value="search"
         class="w-44 shrink-0"
         size="sm"
         placeholder="Search project"
         aria-label="Search project"
-        :debounce="400"
+        @update:model-value="onSearchInput"
       />
       <MultiSelect
         v-model="ragStatus"

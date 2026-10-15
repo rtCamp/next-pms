@@ -27,3 +27,33 @@ export const BUILT_IN_VIEWS: ProjectView[] = [
     type: "Custom",
   },
 ];
+
+export const DEFAULT_VIEW_ICON = "📋";
+
+/** The icons a saved view can have, as in the React picker. */
+export const PRESET_EMOJIS = [
+  "📋",
+  "📁",
+  "📊",
+  "📈",
+  "📉",
+  "🗂️",
+  "⭐",
+  "🔥",
+  "🚀",
+  "✅",
+  "🎯",
+  "🏷️",
+  "💡",
+  "📌",
+  "🔖",
+  "🗓️",
+  "👥",
+  "🛠️",
+  "🐞",
+  "🎨",
+  "💰",
+  "⏱️",
+  "📦",
+  "🔔",
+];
