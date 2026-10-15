@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Button, dayjs } from "frappe-ui";
-import { getRangeLabel, getVisibleDays } from "@/utils/date";
+import { Button, DatePicker, dayjs } from "frappe-ui";
+import { getRangeLabel, getVisibleDays, getWeekStart } from "@/utils/date";
 import { DEFAULT_VISIBLE_DAYS, WEEKEND_DAY_INDICES } from "./constants";
 import EventChip from "./EventChip.vue";
 import type { CalendarTimelineEvent, CalendarTimelineProps } from "./types";
@@ -10,18 +10,37 @@ const props = withDefaults(defineProps<CalendarTimelineProps>(), {
   days: DEFAULT_VISIBLE_DAYS,
 });
 
-defineEmits<{ prev: []; next: []; today: [] }>();
+/** First visible day. The header's picker, arrows and Today button move it. */
+const rangeStart = defineModel<Date>("rangeStart", { required: true });
 
 defineSlots<{
-  /** Replaces the whole built-in header (range label, navigation, filter). */
+  /** Replaces the whole built-in header (range picker, navigation, filter). */
   header?: () => unknown;
   /** Extra controls after the navigation buttons, e.g. a project filter. */
   filter?: () => unknown;
 }>();
 
 const label = computed(
-  () => props.rangeLabel ?? getRangeLabel(props.rangeStart, props.days),
+  () => props.rangeLabel ?? getRangeLabel(rangeStart.value, props.days),
 );
+
+const pickerValue = computed(() =>
+  dayjs(rangeStart.value).format("YYYY-MM-DD"),
+);
+
+function pick(date: string) {
+  if (date) rangeStart.value = getWeekStart(dayjs(date).toDate());
+}
+
+function step(direction: number) {
+  rangeStart.value = dayjs(rangeStart.value)
+    .add(direction * props.days, "day")
+    .toDate();
+}
+
+function goToday() {
+  rangeStart.value = getWeekStart(props.today ?? new Date());
+}
 
 const eventsByDay = computed(() => {
   const grouped = new Map<string, CalendarTimelineEvent[]>();
@@ -34,7 +53,7 @@ const eventsByDay = computed(() => {
 });
 
 const visibleDays = computed(() =>
-  getVisibleDays(props.rangeStart, props.days).map((date) => {
+  getVisibleDays(rangeStart.value, props.days).map((date) => {
     const day = dayjs(date);
     return {
       key: day.format("YYYY-MM-DD"),
@@ -57,29 +76,46 @@ const columnStyle = computed(() => ({
   <div class="flex flex-col gap-3">
     <div class="flex flex-wrap items-center justify-between gap-2 px-4 pt-4">
       <slot name="header">
-        <div
-          class="flex items-center gap-1 text-base font-medium text-ink-gray-8"
+        <DatePicker
+          :model-value="pickerValue"
+          :clearable="false"
+          side="bottom"
+          align="start"
+          @update:model-value="pick"
         >
-          <span>{{ label }}</span>
-          <span
-            class="lucide-chevron-down size-4 text-ink-gray-5"
-            aria-hidden="true"
-          />
-        </div>
+          <template #trigger="{ open, setOpen }">
+            <Button
+              variant="ghost"
+              aria-haspopup="dialog"
+              :aria-expanded="open"
+              @click="setOpen(!open)"
+            >
+              <span class="whitespace-nowrap text-lg-semibold text-ink-gray-8">
+                {{ label }}
+              </span>
+              <template #suffix>
+                <span
+                  class="lucide-chevron-down size-4 text-ink-gray-5"
+                  aria-hidden="true"
+                />
+              </template>
+            </Button>
+          </template>
+        </DatePicker>
         <div class="flex flex-wrap items-center gap-2">
           <div class="flex items-center gap-1">
             <Button
               variant="ghost"
               icon="lucide-chevron-left"
               label="Previous range"
-              @click="$emit('prev')"
+              @click="step(-1)"
             />
-            <Button variant="outline" label="Today" @click="$emit('today')" />
+            <Button variant="ghost" label="Today" @click="goToday" />
             <Button
               variant="ghost"
               icon="lucide-chevron-right"
               label="Next range"
-              @click="$emit('next')"
+              @click="step(1)"
             />
           </div>
           <slot name="filter" />
@@ -105,7 +141,7 @@ const columnStyle = computed(() => ({
           role="group"
           :aria-label="day.fullLabel"
           :aria-current="day.isToday ? 'date' : undefined"
-          class="flex min-h-[140px] flex-col gap-0.5 border-b border-l border-outline-gray-1 py-px pl-0.5 pr-px first:border-l-0"
+          class="flex min-h-35 flex-col gap-0.5 border-b border-l border-outline-gray-1 py-px pl-0.5 pr-px first:border-l-0"
           :class="day.isWeekend ? 'bg-surface-gray-1' : 'bg-surface-base'"
         >
           <div class="flex justify-end p-0.5">

@@ -65,11 +65,16 @@ props as a component (ask before adding one).
 
 ## P5 — Components ship with stories, and behaviour with interaction stories
 
-**Rule.** Every component in `src/components/` has a `Name.stories.ts` with its visual states. Behaviour (opening,
-selecting, navigating) is covered by stories with a `play` function, and `npm run test-storybook` passes.
+**Rule.** Every component in `src/components/` has a `Name.stories.ts` with its visual states, one component
+instance per story. Behaviour (opening, selecting, navigating) is covered by stories with a `play` function in a
+sibling `Name.interactions.stories.ts` (title `Components/Name/Interactions`), one behaviour per story, and
+`npm run test-storybook` passes. Sample data both files need goes in a data-only `Name.fixtures.ts`.
 
 **Why.** Stories are the component's documentation for people and for agents (through the Storybook MCP), and the
-`play` stories are its tests.
+`play` stories are its tests. Keeping them apart keeps the docs pages to the visual states.
+
+Gotcha: popovers, dialogs and tooltips render into `document.body`, outside the story's canvas. Query them with
+`screen`, not `within(canvasElement)`.
 
 ## P6 — Accessibility is part of done
 
@@ -97,7 +102,11 @@ frappe-ui conventions:
 | `className` | `class`, falling through to the root or trigger element |
 | `placement` (popper) | `side` + `align` |
 
-**Why.** A literal port drags React idioms into the Vue code and makes it fight frappe-ui.
+Keep the React interactions and feel too (drag with a floating row, animations, hover cards, whole-row click
+targets) where it is feasible; decide case by case, and list any UX a port loses in its report.
+
+**Why.** A literal port drags React idioms into the Vue code and makes it fight frappe-ui. A port that quietly loses
+UX goes unnoticed: no test checks how a drag feels.
 
 ## P8 — Routes and endpoints stay the same during the rewrite
 
@@ -121,11 +130,12 @@ different Symbol.`
 
 ## P10 — Formatting and commits follow the tooling
 
-**Rule.** Format changed `.ts`/`.js` files with Prettier the way CI does
-(`npx --yes prettier@4.0.0-alpha.8 --write <files>`). Commit messages follow Conventional Commits
-(`feat(components): add MonthPicker`).
+**Rule.** Format changed `.vue`, `.ts`, `.js` and `.css` files with the frontend's Prettier
+(`npx prettier --write <files>` in `frontend/`), never a whole folder. The pre-commit hooks run it and ESLint on
+changed files. Commit messages follow Conventional Commits (`feat(components): add MonthPicker`).
 
-**Why.** CI rejects anything else; matching it locally avoids a second round.
+**Why.** The hooks reject anything else; matching them locally avoids a second round, and formatting only changed
+files keeps diffs to the change.
 
 ## P11 — Derive data in plain functions outside the SFC
 
@@ -170,3 +180,43 @@ the error. Never leave a catch empty or holding only a comment.
 **Bad** `try { localStorage.setItem(key, value) } catch { /* private mode */ }`
 
 **Good** `localStorage.setItem(key, value)`, or `try { … } catch { return null }` when a fallback is needed.
+
+## P15 — Customise frappe-ui through its API
+
+**Rule.** To change a frappe-ui component, use in order: its props, then its slots, then its `data-slot` /
+`data-state` attributes (`data-[slot=list-header]:h-11`). Reach for `!` or `[&_x]` selectors into its markup only
+when the clean option needs much more code or makes the code worse. Disable controls with the real `disabled`
+attribute; `aria-disabled` is only for a control that must stay focusable.
+
+**Why.** `!` and descendant selectors depend on frappe-ui's internal markup and class order, and break silently when
+it changes. A faked disabled state still fires clicks and needs guards in every handler.
+
+**Bad** `<Button class="!text-ink-gray-5 opacity-50" :aria-disabled="locked" @click="!locked && pin()" />`
+
+**Good** `<Button :disabled="locked" @click="pin" />`
+
+## P16 — One type per domain concept
+
+**Rule.** A domain value (a task status, an approval status) has one type and one list of values, defined next to
+the component that shows it and imported everywhere else. Use the backend's values as option values
+(`"Approval Pending"`) and keep display labels in a separate map. Never copy a status type, icon map or colour map
+into another component.
+
+**Why.** Copies drift. The Timesheet rows' copy of the task-status icons already differs from `TaskStatus`, and their
+`not-submitted` doesn't match the backend's `Not Submitted`.
+
+**Bad** `type ApprovalStatus = "not-submitted" | "approved" | …` in `Timesheet/types.ts`
+
+**Good** `import type { ApprovalStatusValue } from "@/components/ApprovalStatus"`
+
+## P17 — Variants with cva, merged classes with cn
+
+**Rule.** A component whose classes depend on variants or combined states defines them once with
+`class-variance-authority` (`cva`). A component that merges a caller's classes with its own does it with `cn` from
+`@/utils/cn` (`clsx` + `tailwind-merge` configured for frappe-ui's classes), never by string concatenation.
+
+**Why.** Hand-written parallel class maps keyed by the same state drift apart and need hand-written combined rules
+(DayChip has three maps and a separate hover rule). An unconfigured `tailwind-merge` mistakes frappe-ui classes like
+`text-base-medium` for colours and drops them; `cn` holds that configuration in one place.
+
+`cn` can't resolve conflicts inside frappe-ui's own components, which don't call it; customise those through P15.

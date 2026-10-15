@@ -36,9 +36,7 @@ async function init() {
   configureFrappeUI(boot);
 
   const app = createApp(App).use(router);
-  const socket = createSocket(boot);
-  app.provide(socketKey, socket);
-  app.config.globalProperties.$socket = socket;
+  app.provide(socketKey, createSocket(boot));
   app.mount("#app");
 }
 

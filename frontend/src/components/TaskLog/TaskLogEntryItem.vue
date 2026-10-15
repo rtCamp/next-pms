@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { Avatar, Badge, dayjs } from "frappe-ui";
-import { CommentKit, Editor, EditorContent } from "frappe-ui/editor";
+import { RichText } from "@/components/RichText";
 import { floatToTime } from "@/utils/format";
 import type { TaskLogEntry } from "./types";
 
 defineProps<{ entry: TaskLogEntry; showAvatar: boolean }>();
-
-const readOnlyExtensions = [CommentKit];
 </script>
 
 <template>
@@ -28,14 +26,11 @@ const readOnlyExtensions = [CommentKit];
         {{ dayjs(entry.date).format("MMM DD") }}
       </time>
     </div>
-    <Editor
-      :model-value="entry.description"
-      :extensions="readOnlyExtensions"
-      :editable="false"
-    >
-      <EditorContent
-        class="prose-sm max-h-30 overflow-auto [scrollbar-width:thin] text-base leading-[21px] text-ink-gray-7 prose-p:my-2"
-      />
-    </Editor>
+    <!-- eslint-disable better-tailwindcss/no-restricted-classes -- Tailwind 3 has no scrollbar-width utility; no scale step for 21px -->
+    <RichText
+      :content="entry.description"
+      class="prose-sm max-h-30 overflow-auto [scrollbar-width:thin] text-base leading-[21px] text-ink-gray-7 prose-p:my-2"
+    />
+    <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
   </li>
 </template>

@@ -1,23 +1,22 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Badge, Button } from "frappe-ui";
+import { Badge } from "frappe-ui";
+import { ApprovalStatus } from "@/components/ApprovalStatus";
 import RowToggle from "./RowToggle.vue";
+import StatusActionButton from "./StatusActionButton.vue";
 import {
   ACTION_CELL_CLASS,
-  ACTION_TEXT_CLASS,
-  APPROVAL_STATUS_LABEL,
-  APPROVAL_STATUS_THEME,
+  APPROVAL_STATUS_BADGE,
   CELL_CLASS,
-  GHOST_ACTION_CLASS,
   ROW_CLASS,
-  WEEK_ACTION,
-  WEEK_TOTAL_CLASS,
+  SOLID_ACTION_ICON,
+  SUBMIT_ACTION_LABEL,
+  totalHoursClass,
 } from "./constants";
 import type { WeekRowProps } from "./types";
 
 const props = withDefaults(defineProps<WeekRowProps>(), {
   label: "This Week",
-  status: "not-submitted",
   thisWeek: false,
   today: "",
   totalHours: "",
@@ -25,27 +24,21 @@ const props = withDefaults(defineProps<WeekRowProps>(), {
 
 const collapsed = defineModel<boolean>("collapsed", { default: false });
 
-defineEmits<{ action: [] }>();
+const emit = defineEmits<{
+  /** The week's submit or resubmit button was pressed. */
+  submit: [];
+}>();
 
-const action = computed(() => WEEK_ACTION[props.status]);
+const submitLabel = computed(
+  () => props.status && SUBMIT_ACTION_LABEL[props.status],
+);
 
-const totalClass = computed(() => {
-  if (!collapsed.value) return "";
-  const colour =
-    props.status === "approval-pending" && !props.thisWeek
-      ? "text-ink-red-4"
-      : WEEK_TOTAL_CLASS[props.status];
-  return ["text-base-medium lining-nums tabular-nums", colour];
-});
-
-const actionClass = computed(() => {
-  if (action.value.variant !== "ghost") return "";
-  const tint =
-    props.status === "rejected" && !props.thisWeek && !collapsed.value
-      ? "!text-ink-gray-5"
-      : ACTION_TEXT_CLASS[props.status];
-  return [GHOST_ACTION_CLASS, tint];
-});
+// React greys the resubmit icon on an open, earlier rejected week.
+const actionIconClass = computed(() =>
+  props.status === "Rejected" && !props.thisWeek && !collapsed.value
+    ? "text-ink-gray-5"
+    : undefined,
+);
 
 function splitDate(date: string) {
   const [month, day] = date.split(" ");
@@ -54,23 +47,26 @@ function splitDate(date: string) {
 </script>
 
 <template>
-  <div :class="ROW_CLASS" data-testid="week-row">
+  <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -- a pointer shortcut; the chevron button is the keyboard control -->
+  <div :class="[ROW_CLASS, 'cursor-pointer']" @click="collapsed = !collapsed">
     <div class="flex min-w-0 flex-1 items-center gap-2">
-      <RowToggle
-        label="Toggle week"
-        :collapsed="collapsed"
-        @click="collapsed = !collapsed"
-      />
-      <div class="flex min-w-0 items-center gap-2">
-        <span class="truncate text-base-medium text-ink-gray-9">
+      <RowToggle :label="`Toggle ${label}`" :collapsed="collapsed" />
+      <div class="flex min-w-0 max-w-75 items-center gap-2 sm:max-w-112">
+        <span class="truncate text-base-medium text-ink-gray-8">
           {{ label }}
         </span>
         <Badge
-          v-if="status !== 'none'"
+          v-if="status"
           class="shrink-0"
-          :theme="APPROVAL_STATUS_THEME[status]"
-          :label="APPROVAL_STATUS_LABEL[status]"
+          :theme="APPROVAL_STATUS_BADGE[status].theme"
+          :label="APPROVAL_STATUS_BADGE[status].label"
         />
+        <span
+          v-if="badgeLabel"
+          class="shrink-0 whitespace-nowrap text-base text-ink-gray-5"
+        >
+          {{ badgeLabel }}
+        </span>
       </div>
     </div>
 
@@ -87,7 +83,7 @@ function splitDate(date: string) {
             :class="
               thisWeek &&
               date === today &&
-              'rounded-1 bg-surface-red-5 px-1 py-px text-ink-base dark:text-ink-gray-9'
+              'rounded-1 bg-surface-red-7 px-1 py-px text-ink-base dark:text-ink-red-9'
             "
             >{{ splitDate(date).day }}</span
           >
@@ -96,23 +92,28 @@ function splitDate(date: string) {
     </template>
 
     <div
-      v-if="!(status === 'none' && collapsed)"
+      v-if="status || !collapsed"
       :class="[CELL_CLASS, 'text-sm text-ink-gray-5']"
     >
-      <span :class="totalClass">{{ collapsed ? totalHours : "Total" }}</span>
+      <span
+        v-if="collapsed"
+        :class="totalHoursClass({ theme: totalHoursTheme })"
+      >
+        {{ totalHours }}
+      </span>
+      <span v-else>Total</span>
     </div>
 
     <div :class="ACTION_CELL_CLASS">
-      <Button
-        v-if="action.icon"
-        size="sm"
-        :variant="action.variant"
-        :icon="action.icon"
-        :class="actionClass"
-        :aria-label="action.label"
-        :title="APPROVAL_STATUS_LABEL[status]"
-        @click="$emit('action')"
+      <StatusActionButton
+        v-if="status && submitLabel"
+        :status="status"
+        :label="submitLabel"
+        :solid-icon="SOLID_ACTION_ICON[status]"
+        :icon-class="actionIconClass"
+        @press="emit('submit')"
       />
+      <ApprovalStatus v-else-if="status" :status="status" />
     </div>
   </div>
 </template>

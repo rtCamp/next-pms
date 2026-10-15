@@ -1,20 +1,23 @@
 <script setup lang="ts">
-import { Button } from "frappe-ui";
-
 defineProps<{
-  /** Accessible name, e.g. "Toggle week". */
+  /** Accessible name, e.g. "Toggle This Week". */
   label: string;
   collapsed: boolean;
 }>();
 </script>
 
+<!-- The click bubbles to the row, which does the toggling. -->
 <template>
-  <Button
-    variant="ghost"
-    icon="lucide-chevron-down"
-    class="!w-4 transition-transform hover:!bg-transparent focus:!bg-transparent active:!bg-transparent"
-    :class="collapsed ? '-rotate-90' : 'rotate-0'"
+  <button
+    type="button"
+    class="flex size-4 shrink-0 items-center justify-center rounded-4 text-ink-gray-8"
     :aria-label="label"
     :aria-expanded="!collapsed"
-  />
+  >
+    <span
+      class="lucide-chevron-down size-4 transition-transform"
+      :class="collapsed ? '-rotate-90' : 'rotate-0'"
+      aria-hidden="true"
+    />
+  </button>
 </template>

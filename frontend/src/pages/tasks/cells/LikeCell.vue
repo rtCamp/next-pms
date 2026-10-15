@@ -22,7 +22,7 @@ const label = computed(() => (like.liked ? "Unstar task" : "Star task"));
   <Tooltip :text="label">
     <button
       type="button"
-      class="inline-flex size-4 shrink-0 cursor-pointer items-center justify-center rounded disabled:cursor-not-allowed"
+      class="inline-flex size-4 shrink-0 cursor-pointer items-center justify-center rounded-4 disabled:cursor-not-allowed"
       :aria-label="label"
       :aria-pressed="like.liked"
       :disabled="like.isToggling"
@@ -30,7 +30,7 @@ const label = computed(() => (like.liked ? "Unstar task" : "Star task"));
     >
       <FilledStarIcon
         v-if="like.liked"
-        class="size-4 text-ink-amber-2"
+        class="size-4 text-ink-amber-5"
         aria-hidden="true"
       />
       <span

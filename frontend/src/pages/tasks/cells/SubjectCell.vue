@@ -21,7 +21,7 @@ function measure() {
   <Tooltip :text="subject" :disabled="!truncated">
     <button
       type="button"
-      class="inline-flex h-7 w-full cursor-pointer items-center justify-start rounded bg-transparent px-0 text-left text-base font-medium text-ink-gray-8 transition-colors hover:bg-surface-gray-3 active:bg-surface-gray-4"
+      class="inline-flex h-7 w-full cursor-pointer items-center justify-start rounded-4 bg-transparent px-0 text-left text-base font-medium text-ink-gray-8 transition-colors hover:bg-surface-gray-3 active:bg-surface-gray-4"
       @mouseenter="measure"
       @focus="measure"
       @click="$emit('open')"

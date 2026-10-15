@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { DesktopShell, FrappeUIProvider } from "frappe-ui";
+import { DesktopShell, FrappeUIProvider, useCall } from "frappe-ui";
 import { useRoute } from "vue-router";
+import type { AppLink } from "./layout/apps";
 import AppSidebar from "./layout/AppSidebar.vue";
 import { useSession } from "./session";
 
 const route = useRoute();
 const session = useSession();
+const apps = useCall<AppLink[]>({
+  url: "/api/v2/method/frappe.apps.get_apps",
+});
 </script>
 
 <template>
@@ -17,6 +21,7 @@ const session = useSession();
             :roles="session.roles"
             :employee="session.employee"
             :employee-name="session.employeeName"
+            :apps="apps.data ?? []"
             @logout="session.logout()"
           />
         </template>

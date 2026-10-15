@@ -8,6 +8,8 @@ import TaskListTable from "./TaskListTable.vue";
 import type { TaskListItem } from "./types";
 import { provideTaskList } from "./useTaskList";
 
+defineOptions({ inheritAttrs: false });
+
 const taskList = provideTaskList();
 
 const dialogOpen = ref(false);

@@ -1,17 +1,21 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import type { ProgressBarProps, ProgressBarSize } from "./types";
+import { cva } from "class-variance-authority";
+import type { ProgressBarProps } from "./types";
 
 const props = withDefaults(defineProps<ProgressBarProps>(), {
   maxValue: 100,
   size: "md",
+  label: "Progress",
 });
 
-const SIZES: Record<ProgressBarSize, string> = {
-  sm: "h-1",
-  md: "h-2",
-  lg: "h-3",
-};
+const track = cva(
+  "relative w-full overflow-hidden rounded-full bg-surface-gray-2",
+  {
+    variants: { size: { sm: "h-1", md: "h-2", lg: "h-3" } },
+    defaultVariants: { size: "md" },
+  },
+);
 
 const clamp = (v: number) => Math.max(0, Math.min(props.maxValue, v));
 const percent = (v: number) =>
@@ -40,19 +44,19 @@ const segments = computed<Segment[]>(() => {
       {
         part: "secondary",
         width: secondary,
-        class: secondaryClass("bg-surface-gray-6"),
+        class: secondaryClass("bg-surface-gray-9"),
       },
       {
         part: "primary",
         width: primary,
-        class: primaryClass("bg-surface-gray-7"),
+        class: primaryClass("bg-surface-gray-10"),
       },
     ];
   }
   const back: Segment = {
     part: "primary",
     width: primary,
-    class: primaryClass("bg-surface-gray-6"),
+    class: primaryClass("bg-surface-gray-9"),
   };
   if (secondary === undefined) return [back];
   return [
@@ -60,7 +64,7 @@ const segments = computed<Segment[]>(() => {
     {
       part: "secondary",
       width: secondary,
-      class: secondaryClass("bg-surface-gray-7"),
+      class: secondaryClass("bg-surface-gray-10"),
     },
   ];
 });
@@ -75,23 +79,21 @@ const marker = computed(() => {
 <template>
   <div
     role="progressbar"
+    :aria-label="label"
     aria-valuemin="0"
     :aria-valuemax="maxValue"
     :aria-valuenow="clamp(value)"
-    class="relative w-full overflow-hidden rounded-full bg-surface-gray-2"
-    :class="SIZES[size] ?? SIZES.md"
+    :class="track({ size })"
   >
     <div
       v-for="segment in segments"
       :key="segment.part"
-      :data-part="segment.part"
       class="absolute inset-y-0 left-0"
       :class="segment.class"
       :style="{ width: `${segment.width}%` }"
     />
     <div
       v-if="marker !== undefined"
-      data-part="marker"
       aria-hidden="true"
       class="absolute inset-y-0 w-0.5 -translate-x-1/2"
       :class="markerClass ?? 'bg-surface-gray-3'"

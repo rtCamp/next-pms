@@ -33,14 +33,14 @@ function onClick(event: MouseEvent) {
   >
     <span
       class="mt-2.5 size-2 shrink-0 rounded-full"
-      :class="notification.read ? 'bg-transparent' : 'bg-surface-blue-5'"
+      :class="notification.read ? 'bg-transparent' : 'bg-surface-blue-7'"
       aria-hidden="true"
     />
     <span
       class="flex size-8 shrink-0 items-center justify-center rounded-6 bg-surface-gray-2 text-ink-gray-7"
       aria-hidden="true"
     >
-      <span :class="icon" class="size-[18px]" />
+      <span :class="icon" class="size-4.5" />
     </span>
     <span class="flex min-w-0 flex-col gap-1">
       <span class="flex items-baseline justify-between gap-2">

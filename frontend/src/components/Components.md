@@ -8,10 +8,12 @@ One folder per component, named after it:
 
 ```
 MonthPicker/
-  MonthPicker.vue          the component
-  MonthPicker.stories.ts   stories and interaction tests (P5)
-  types.ts                 props, emits and other public types
-  index.ts                 public exports: the component, `export type * from "./types"`, plus any constants
+  MonthPicker.vue                        the component
+  MonthPicker.stories.ts                 visual stories (P5)
+  MonthPicker.interactions.stories.ts    stories with play functions, run as tests (P5)
+  MonthPicker.fixtures.ts                sample data both story files share, when needed
+  types.ts                               props, emits and other public types
+  index.ts                               public exports: the component, `export type * from "./types"`, plus any constants
 ```
 
 A folder may also hold sub-components (`FilterRow.vue`, `CommentItem.vue`), `constants.ts`, `utils.ts` or
@@ -25,8 +27,6 @@ across components live in `src/utils/`.
 | `ApprovalStatus/` | `ApprovalStatus`, `APPROVAL_STATUSES`, `APPROVAL_STATUS_ICONS` |
 | `BudgetBurnBar/` | `BudgetBurnBar`, `budgetBurnTier` |
 | `CalendarTimeline/` | `CalendarTimeline`, `EventChip`, `DEFAULT_VISIBLE_DAYS`, date helpers re-exported from `utils/date` |
-| `Card/` | `Card` |
-| `CircularProgressBar/` | `CircularProgressBar` |
 | `ColumnSelector/` | `ColumnSelector` |
 | `Comments/` | `Comments` |
 | `DayChip/` | `DayChip` |
@@ -37,17 +37,19 @@ across components live in `src/utils/`.
 | `MonthPicker/` | `MonthPicker` |
 | `NotificationTray/` | `NotificationTray` |
 | `ProgressBar/` | `ProgressBar` |
+| `RichText/` | `RichText` (read-only editor HTML, e.g. comments) |
 | `SortSelector/` | `SortSelector` |
+| `TaskBadges/` | `TaskBadges` (a task's due date and project) |
 | `TaskLog/` | `TaskLog` (view), `TaskLogDialog` (loads its data), `useTaskLog`, `TASK_LOG_RANGES`, `DEFAULT_TASK_LOG_RANGE` |
 | `TaskProgress/` | `TaskProgress` |
 | `TaskStatus/` | `TaskStatus`, `TASK_STATUSES`, `TASK_STATUS_ICONS` |
-| `Timesheet/` | Timesheet rows: `HeaderRow`, `WeekRow`, `MemberRow`, `ProjectRow`, `TaskRow`, `TimeOffRow`, `TotalRow` |
+| `Timesheet/` | Timesheet rows: `HeaderRow`, `WeekRow`, `MemberRow`, `ProjectRow`, `TaskRow`, `TimeOffRow`, `TotalRow`; `TaskCard` (a task's hover card), `APPROVAL_STATUS_BADGE`, `SUBMIT_ACTION_LABEL`, `totalHoursClass` |
 
 Look up props and usage with the Storybook MCP (`docs-list` / `docs-show`), not from this table. Keep the table in
 sync when adding, renaming or removing a component.
 
 ## Adding a component
 
-- Port from frappe-ui-react with the `port-frappe-ui-react-component` skill.
+- Port from the React frontend (design-system or frappe-ui-react) with the `port-frappe-ui-react-component` skill.
 - Ship stories with the component; cover its behaviour with interaction stories (P5).
-- Done when `npm run type-check` and `npm run test-storybook -- --run` pass.
+- Done when `npm run lint`, `npm run type-check` and `npm run test-storybook -- --run` pass.

@@ -4,12 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Next PMS</title>
-    <!-- No icon yet, so the browser doesn't request /favicon.ico. Add yours here. -->
-    <link rel="icon" href="data:," />
+    <link rel="icon" href="/assets/next_pms/next-pms-logo.png" />
     <script>
       // Apply the saved light or dark mode before the first paint, so the page
       // doesn't flash. useColorScheme() in the app keeps it in sync after that.
-      const scheme = localStorage.getItem('theme')
+      // Blocked site data makes touching localStorage throw; use light then.
+      const scheme = navigator.cookieEnabled
+        ? localStorage.getItem('theme')
+        : 'light'
       const dark =
         scheme === 'dark' ||
         (scheme !== 'light' &&

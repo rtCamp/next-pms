@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Avatar, Badge, Dialog, Select, Spinner, dayjs } from "frappe-ui";
+import { Avatar, Dialog, Select, Spinner } from "frappe-ui";
+import { TaskBadges } from "@/components/TaskBadges";
 import { TaskProgress } from "@/components/TaskProgress";
 import { TaskStatus } from "@/components/TaskStatus";
 import { floatToTime } from "@/utils/format";
@@ -19,27 +20,6 @@ const open = defineModel<boolean>("open", { required: true });
 const range = defineModel<number>("range", { default: DEFAULT_TASK_LOG_RANGE });
 
 const isTeam = computed(() => props.view === "team");
-
-const badges = computed(() => {
-  const details = props.details;
-  if (!details) return [];
-  return [
-    details.dueDate && {
-      label: "Due date",
-      icon: "lucide-calendar-clock",
-      text: dayjs(details.dueDate).format("DD MMM"),
-    },
-    details.projectName && {
-      label: "Project",
-      icon: "lucide-folder",
-      text: details.projectName,
-    },
-  ].filter((badge) => Boolean(badge)) as {
-    label: string;
-    icon: string;
-    text: string;
-  }[];
-});
 
 const progress = computed(() => {
   const details = props.details;
@@ -69,7 +49,7 @@ const rangeModel = computed({
   >
     <template #title>
       <div v-if="details" class="flex items-center gap-x-2 gap-y-1.5 pr-2">
-        <TaskStatus :status="details.status" variant="icon" />
+        <TaskStatus :status="details.status" />
         <h3 class="text-lg font-semibold text-ink-gray-8">
           <a
             v-if="details.ghLink"
@@ -94,27 +74,14 @@ const rangeModel = computed({
     </div>
     <template v-else>
       <!-- Tucked up under the title, as React's -mt-[5%] did. -->
-      <div v-if="badges.length" class="-mt-[22px] ml-6 flex flex-wrap gap-1">
-        <Badge
-          v-for="badge in badges"
-          :key="badge.label"
-          variant="subtle"
-          size="md"
-          class="min-w-0 max-w-full"
-        >
-          <span
-            class="size-3 shrink-0"
-            :class="badge.icon"
-            role="img"
-            :aria-label="badge.label"
-          />
-          <span class="max-w-42 truncate" :title="badge.text">
-            {{ badge.text }}
-          </span>
-        </Badge>
-      </div>
+      <TaskBadges
+        class="-mt-5.5 ml-6"
+        :project-name="details.projectName"
+        :due-date="details.dueDate"
+      />
 
       <div class="mt-4 flex justify-between text-sm">
+        <!-- eslint-disable-next-line better-tailwindcss/no-restricted-classes -- no scale step for 3px -->
         <div class="mb-0.5 flex gap-[3px]">
           <div class="flex gap-1">
             <span
@@ -135,7 +102,12 @@ const rangeModel = computed({
         </div>
         <div class="text-ink-gray-6">{{ progress }}%</div>
       </div>
-      <TaskProgress :value="progress" size="sm" class="mt-2.5" />
+      <TaskProgress
+        :value="progress"
+        size="sm"
+        label="Actual against estimated time"
+        class="mt-2.5"
+      />
 
       <div class="mt-6 flex items-center justify-between">
         <h4 v-if="isTeam" class="text-base font-medium text-ink-gray-8">
@@ -143,7 +115,7 @@ const rangeModel = computed({
         </h4>
         <div
           v-else-if="ownSummary"
-          class="flex items-center justify-between gap-1 rounded bg-surface-gray-2 px-2 py-1.5 text-ink-gray-7"
+          class="flex items-center justify-between gap-1 rounded-4 bg-surface-gray-2 px-2 py-1.5 text-ink-gray-7"
         >
           <Avatar
             size="xs"
@@ -164,15 +136,17 @@ const rangeModel = computed({
         />
       </div>
 
+      <!-- eslint-disable better-tailwindcss/no-restricted-classes -- Tailwind 3 has no mask-image or scrollbar-width utilities -->
       <ul
         v-if="isTeam && details.workedBy.length"
         aria-label="Time by member"
         class="mt-2 flex items-center justify-start gap-1.5 overflow-x-auto [mask-image:linear-gradient(to_right,black_calc(100%-24px),transparent)] [scrollbar-width:none]"
       >
+        <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
         <li
           v-for="worker in details.workedBy"
           :key="worker.employeeId"
-          class="flex shrink-0 items-start justify-between gap-2 rounded border border-outline-elevation-2 px-2 py-1.5"
+          class="flex shrink-0 items-start justify-between gap-2 rounded-4 border border-outline-elevation-2 px-2 py-1.5"
         >
           <Avatar
             size="xs"
@@ -190,12 +164,14 @@ const rangeModel = computed({
         </li>
       </ul>
 
+      <!-- eslint-disable better-tailwindcss/no-restricted-classes -- Tailwind 3 has no scrollbar-width utility -->
       <ul
         v-if="entries.length"
         aria-label="Time entries"
         class="-mr-3 mt-3 flex max-h-54 flex-col gap-3 overflow-y-auto pr-3 [scrollbar-width:thin]"
         :class="{ 'mt-4': isTeam }"
       >
+        <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
         <TaskLogEntryItem
           v-for="(entry, index) in entries"
           :key="`${index}-${entry.date}`"

@@ -103,21 +103,31 @@ function onOpenChange(open: boolean) {
     >
       <template #trigger>
         <Button
-          icon-left="lucide-list-filter"
-          :icon-right="hasFilters ? undefined : 'lucide-chevron-down'"
           :class="[{ 'rounded-r-none border-r-0': hasFilters }, triggerClass]"
         >
+          <template #prefix>
+            <span
+              class="lucide-list-filter size-4 text-ink-gray-7"
+              aria-hidden="true"
+            />
+          </template>
+          <template v-if="!hasFilters" #suffix>
+            <span
+              class="lucide-chevron-down size-4 text-ink-gray-5"
+              aria-hidden="true"
+            />
+          </template>
           Filter
           <span
             v-if="showCount && hasFilters"
-            class="ml-2 rounded-sm bg-surface-base px-1.5 py-0.5 text-xs shadow-sm"
+            class="ml-2 rounded-1 bg-surface-base px-1.5 py-0.5 text-xs shadow-sm"
           >
             {{ filterCount }}
           </span>
         </Button>
       </template>
 
-      <div class="min-w-[400px] max-w-[600px] p-1">
+      <div class="min-w-100 max-w-[600px] p-1">
         <div class="space-y-1">
           <FilterRow
             v-for="(filter, index) in modelValue"
@@ -137,11 +147,19 @@ function onOpenChange(open: boolean) {
         <Button
           v-if="canAdd"
           variant="ghost"
-          icon-left="lucide-plus"
-          label="Add filter"
-          class="mt-2 text-ink-gray-5"
+          class="group mt-2"
           @click="addFilter"
-        />
+        >
+          <template #prefix>
+            <span
+              class="lucide-plus size-4 text-ink-gray-5 group-hover:text-ink-gray-7"
+              aria-hidden="true"
+            />
+          </template>
+          <span class="text-ink-gray-5 group-hover:text-ink-gray-7">
+            Add filter
+          </span>
+        </Button>
       </div>
     </Popover>
 

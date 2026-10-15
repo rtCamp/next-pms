@@ -1,21 +1,26 @@
 <script setup lang="ts">
 import RowToggle from "./RowToggle.vue";
+import TimeCell from "./TimeCell.vue";
 import {
   ACTION_CELL_CLASS,
+  BUTTON_CELL_CLASS,
   CELL_CLASS,
-  EMPTY_CELL_CLASS,
   ROW_CLASS,
-  TOTAL_TEXT_CLASS,
+  totalHoursClass,
 } from "./constants";
 import type { ProjectRowProps } from "./types";
 
 withDefaults(defineProps<ProjectRowProps>(), {
   totalHours: "",
-  status: "not-submitted",
   highlightTimeEntries: false,
 });
 
 const collapsed = defineModel<boolean>("collapsed", { default: false });
+
+const emit = defineEmits<{
+  /** A day's add-time button was pressed. */
+  cellClick: [dayIndex: number];
+}>();
 
 defineSlots<{
   /** Icon before the label; defaults to a folder. */
@@ -24,14 +29,13 @@ defineSlots<{
 </script>
 
 <template>
-  <div :class="ROW_CLASS" data-testid="project-row">
+  <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -- a pointer shortcut; the chevron button is the keyboard control -->
+  <div :class="[ROW_CLASS, 'cursor-pointer']" @click="collapsed = !collapsed">
     <div class="flex min-w-0 flex-1 items-center gap-2">
-      <RowToggle
-        label="Toggle project"
-        :collapsed="collapsed"
-        @click="collapsed = !collapsed"
-      />
-      <div class="flex min-w-0 items-center gap-2 text-ink-gray-9">
+      <RowToggle :label="`Toggle ${label}`" :collapsed="collapsed" />
+      <div
+        class="flex min-w-0 max-w-75 items-center gap-2 text-ink-gray-8 sm:max-w-112"
+      >
         <span class="flex shrink-0 items-center">
           <slot name="prefix">
             <span class="lucide-folder size-4" aria-hidden="true" />
@@ -43,21 +47,27 @@ defineSlots<{
 
     <div
       v-for="(entry, index) in timeEntries"
-      :key="`${entry}-${index}`"
-      :class="[
-        CELL_CLASS,
-        'text-base text-ink-gray-6 lining-nums tabular-nums',
-        highlightTimeEntries && entry !== '' && '!text-ink-gray-9 font-medium',
-      ]"
+      :key="index"
+      :class="BUTTON_CELL_CLASS"
     >
-      <span v-if="entry === ''" :class="EMPTY_CELL_CLASS">-</span>
-      <span v-else>{{ entry }}</span>
+      <TimeCell
+        :time="entry.time"
+        :disabled="entry.disabled"
+        :class="
+          highlightTimeEntries && entry.time !== ''
+            ? 'text-base-medium text-ink-gray-8'
+            : 'text-base text-ink-gray-6'
+        "
+        @click.stop="emit('cellClick', index)"
+      />
     </div>
 
-    <div :class="[CELL_CLASS, 'text-base-medium text-ink-gray-5']">
-      <span :class="['lining-nums tabular-nums', TOTAL_TEXT_CLASS[status]]">{{
-        totalHours
-      }}</span>
+    <div :class="CELL_CLASS">
+      <span
+        :class="totalHoursClass({ theme: totalHoursTheme, weight: 'regular' })"
+      >
+        {{ totalHours }}
+      </span>
     </div>
 
     <div :class="ACTION_CELL_CLASS" />

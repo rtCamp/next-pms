@@ -25,12 +25,23 @@ function isAppOnly(plugin: PluginOption): boolean {
   );
 }
 
+// This file runs in Node, but the shared tsconfig has no Node types.
+declare const process: { env: Record<string, string | undefined> };
+
+// Interaction stories are tests; the published Storybook shows only the
+// visual ones.
+const isProduction = process.env.NODE_ENV === "production";
+
 const config: StorybookConfig = {
-  stories: ["../src/**/*.stories.ts"],
+  stories: isProduction
+    ? ["../src/**/!(*.interactions).stories.ts"]
+    : ["../src/**/*.stories.ts"],
   addons: [
     "@storybook/addon-mcp",
     "@storybook/addon-docs",
     "@storybook/addon-vitest",
+    "@storybook/addon-a11y",
+    "@storybook/addon-themes",
   ],
   framework: "@storybook/vue3-vite",
   features: { componentsManifest: true, experimentalDocgenServer: true },

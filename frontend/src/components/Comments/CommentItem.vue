@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { Avatar, dialog } from "frappe-ui";
-import { CommentKit, Editor, EditorContent } from "frappe-ui/editor";
+import { RichText } from "@/components/RichText";
 import { formatRelativeTimeShort } from "@/utils/text";
 import CommentActions from "./CommentActions.vue";
 import CommentInput from "./CommentInput.vue";
@@ -11,7 +11,6 @@ import type { CommentNode } from "./types";
 const props = defineProps<{ comment: CommentNode; canReply: boolean }>();
 
 const ctx = useCommentsContext();
-const readOnlyExtensions = [CommentKit];
 
 const isEditing = ref(false);
 const isReplying = ref(false);
@@ -105,21 +104,15 @@ function confirmDelete() {
       :mentions="ctx.mentions.value"
       :initial-value="comment.content"
       placeholder="Edit comment"
-      autofocus
+      focus-on-open
       cancellable
       :is-submitting="ctx.isUpdating.value"
       submit-label="Save"
       :submit="saveEdit"
       @cancel="isEditing = false"
     />
-    <div v-else class="rounded-lg bg-surface-gray-1 px-3">
-      <Editor
-        :model-value="body"
-        :extensions="readOnlyExtensions"
-        :editable="false"
-      >
-        <EditorContent class="prose-sm text-ink-gray-7" />
-      </Editor>
+    <div v-else class="rounded-6 bg-surface-gray-1 px-3">
+      <RichText :content="body" class="prose-sm text-ink-gray-7" />
     </div>
 
     <CommentActions
@@ -138,7 +131,7 @@ function confirmDelete() {
       v-if="isReplying"
       :mentions="ctx.mentions.value"
       placeholder="Type a reply"
-      autofocus
+      focus-on-open
       cancellable
       :is-submitting="ctx.isUpdating.value"
       submit-label="Post"

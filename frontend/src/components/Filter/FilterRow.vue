@@ -130,7 +130,7 @@ function onRangeChange(value: DateRangeValue) {
     </span>
 
     <Combobox
-      class="min-w-[120px]"
+      class="min-w-30"
       aria-label="Field"
       placeholder="Field"
       :model-value="filter.field || null"
@@ -139,7 +139,7 @@ function onRangeChange(value: DateRangeValue) {
     />
 
     <Combobox
-      class="min-w-[80px]"
+      class="min-w-20"
       aria-label="Operator"
       placeholder="Operator"
       :model-value="filter.operator || null"
@@ -149,10 +149,11 @@ function onRangeChange(value: DateRangeValue) {
     />
 
     <template v-if="valueKind === 'date'">
+      <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -- `for` reaches the picker's input through its `id` prop -->
       <label :for="dateInputId" class="sr-only">Value</label>
       <DatePicker
         :id="dateInputId"
-        class="min-w-[140px]"
+        class="min-w-35"
         placeholder="Value"
         :model-value="stringValue ?? ''"
         :disabled="valueDisabled"
@@ -160,10 +161,11 @@ function onRangeChange(value: DateRangeValue) {
       />
     </template>
     <template v-else-if="valueKind === 'daterange'">
+      <!-- eslint-disable-next-line vuejs-accessibility/label-has-for -- `for` reaches the picker's input through its `id` prop -->
       <label :for="dateInputId" class="sr-only">Value</label>
       <DateRangePicker
         :id="dateInputId"
-        class="min-w-[180px]"
+        class="min-w-45"
         placeholder="Value"
         :model-value="rangeValue"
         :disabled="valueDisabled"
@@ -172,7 +174,7 @@ function onRangeChange(value: DateRangeValue) {
     </template>
     <Combobox
       v-else-if="valueKind === 'link-set'"
-      class="min-w-[140px]"
+      class="min-w-35"
       aria-label="Value"
       placeholder="Value"
       :model-value="stringValue"
@@ -191,7 +193,7 @@ function onRangeChange(value: DateRangeValue) {
     />
     <Combobox
       v-else-if="valueKind === 'options'"
-      class="min-w-[140px]"
+      class="min-w-35"
       aria-label="Value"
       placeholder="Value"
       :model-value="stringValue"
@@ -201,7 +203,7 @@ function onRangeChange(value: DateRangeValue) {
     />
     <TextInput
       v-else-if="valueKind === 'text'"
-      class="min-w-[140px]"
+      class="min-w-35"
       aria-label="Value"
       placeholder="Value"
       :type="selectedField?.type === 'number' ? 'number' : 'text'"
@@ -212,10 +214,16 @@ function onRangeChange(value: DateRangeValue) {
 
     <Button
       variant="ghost"
-      icon="lucide-x"
-      class="shrink-0 text-ink-gray-7"
+      class="group shrink-0"
       aria-label="Remove filter"
       @click="emit('remove')"
-    />
+    >
+      <template #icon>
+        <span
+          class="lucide-x size-4 text-ink-gray-7 group-hover:text-ink-gray-6"
+          aria-hidden="true"
+        />
+      </template>
+    </Button>
   </div>
 </template>

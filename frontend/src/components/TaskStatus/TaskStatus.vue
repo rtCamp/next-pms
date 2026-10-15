@@ -5,7 +5,7 @@ import { TASK_STATUS_ICONS } from "./icons";
 import type { TaskStatusProps, TaskStatusValue } from "./types";
 
 const props = withDefaults(defineProps<TaskStatusProps>(), {
-  variant: "badge",
+  variant: "icon",
   size: "lg",
 });
 

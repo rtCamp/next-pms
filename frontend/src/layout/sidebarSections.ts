@@ -11,10 +11,6 @@ export interface NavSection {
   items: NavItem[];
 }
 
-export function isNavItemActive(item: NavItem, path: string): boolean {
-  return path === item.to.split("?")[0];
-}
-
 /**
  * @param roles The user's roles
  * @param employeeId The user's Employee ID; the Team timesheet link filters on

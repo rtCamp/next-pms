@@ -166,7 +166,7 @@ watch(
         aria-label="Tasks"
         class="flex min-h-0 w-max min-w-full flex-1 flex-col list-row-px-2"
       >
-        <ListHeader class="!h-[45px]">
+        <ListHeader class="data-[slot=list-header]:h-[45px]">
           <template v-for="column in columns" :key="column.key">
             <ListHeaderCellSort
               v-if="SORT_FIELD_BY_COLUMN.has(column.key)"
@@ -212,10 +212,7 @@ watch(
                   v-else-if="column.key === 'status'"
                   class="flex min-w-0 items-center gap-2 text-base text-ink-gray-6"
                 >
-                  <TaskStatus
-                    :status="item.status as TaskStatusValue"
-                    variant="icon"
-                  />
+                  <TaskStatus :status="item.status as TaskStatusValue" />
                   <span class="truncate">{{ item.status }}</span>
                 </div>
                 <span

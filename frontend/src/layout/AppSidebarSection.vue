@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, useId, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { SidebarItem } from "frappe-ui";
-import { isNavItemActive, type NavItem } from "./sidebarSections";
+import type { NavItem } from "./sidebarSections";
 
 const props = defineProps<{
   label: string;
@@ -11,8 +11,14 @@ const props = defineProps<{
 }>();
 
 const route = useRoute();
-const isActive = (item: NavItem) => isNavItemActive(item, route.path);
-const hasActiveItem = computed(() => props.items.some(isActive));
+const router = useRouter();
+// SidebarItem marks the active item by route name; open the section holding it.
+const hasActiveItem = computed(() =>
+  props.items.some((item) => {
+    const name = router.resolve(item.to).name;
+    return name !== undefined && name === route.name;
+  }),
+);
 
 const closed = ref(!hasActiveItem.value);
 watch(
@@ -37,7 +43,7 @@ const bodyId = useId();
       >
         <button
           type="button"
-          class="flex h-7 w-full items-center gap-1 rounded px-4 focus-visible:ring-0 focus-visible:focus-ring"
+          class="flex h-7 w-full items-center gap-1 rounded-4 px-4 focus-visible:ring-0 focus-visible:focus-ring"
           :aria-expanded="!closed"
           :aria-controls="bodyId"
           @click="closed = !closed"
@@ -65,7 +71,6 @@ const bodyId = useId();
           :label="item.label"
           :icon="item.icon"
           :route="item.to"
-          :active="isActive(item)"
         />
       </div>
     </div>

@@ -1,69 +1,87 @@
 <script setup lang="ts">
-import { Breadcrumbs } from "frappe-ui";
+import { computed } from "vue";
+import { Tooltip } from "frappe-ui";
 import { FilledStarIcon } from "@/icons";
+import LevelLabels from "./LevelLabels.vue";
+import TimeCell from "./TimeCell.vue";
 import {
   ACTION_CELL_CLASS,
+  BUTTON_CELL_CLASS,
   CELL_CLASS,
   ROW_CLASS,
-  TOTAL_TEXT_CLASS,
+  totalHoursClass,
 } from "./constants";
 import type { TotalRowProps } from "./types";
 
-withDefaults(defineProps<TotalRowProps>(), {
+const props = withDefaults(defineProps<TotalRowProps>(), {
   starred: false,
   totalHours: "",
-  status: "not-submitted",
+  disabled: false,
 });
 
+const emit = defineEmits<{
+  /** The star button was pressed to import or clear liked tasks. */
+  star: [];
+  /** A day's add-time button was pressed. */
+  cellClick: [dayIndex: number];
+}>();
+
 defineSlots<{
-  /** Icon before the breadcrumbs; replaces the star. */
+  /** Replaces the star button. */
   prefix?: () => unknown;
 }>();
+
+const starLabel = computed(() =>
+  props.starred ? "Clear imported tasks" : "Import liked tasks to this week",
+);
 </script>
 
 <template>
-  <div :class="ROW_CLASS" data-testid="total-row">
-    <div class="flex min-w-0 flex-1 items-center">
-      <div class="flex min-w-0 items-center gap-2 text-ink-gray-9">
-        <span class="flex w-4 shrink-0 items-center justify-center">
-          <slot name="prefix">
-            <FilledStarIcon
-              v-if="starred"
-              class="size-4 text-ink-amber-2"
-              role="img"
-              aria-label="Starred"
-            />
-            <span
-              v-else
-              class="lucide-star-off size-4 -scale-x-100 text-ink-gray-4"
-              role="img"
-              aria-label="Not starred"
-            />
-          </slot>
-        </span>
-        <div
-          class="min-w-0 [&_[aria-hidden]]:text-ink-gray-9 [&_button]:cursor-default [&_button]:text-base-medium [&_button]:text-ink-gray-9"
-        >
-          <Breadcrumbs :items="breadcrumbs" />
-        </div>
-      </div>
+  <div :class="ROW_CLASS">
+    <div class="flex min-w-0 flex-1 items-center gap-2">
+      <span class="flex w-4 shrink-0 items-center justify-center">
+        <slot name="prefix">
+          <Tooltip :text="starLabel">
+            <button
+              type="button"
+              class="flex size-4 items-center justify-center rounded-4 hover:bg-surface-gray-2"
+              :aria-label="starLabel"
+              @click="emit('star')"
+            >
+              <FilledStarIcon
+                v-if="starred"
+                class="size-4 text-ink-amber-5"
+                aria-hidden="true"
+              />
+              <span
+                v-else
+                class="lucide-star-off size-4 -scale-x-100 text-ink-gray-4"
+                aria-hidden="true"
+              />
+            </button>
+          </Tooltip>
+        </slot>
+      </span>
+      <LevelLabels :levels="levels" variant="total" />
     </div>
 
     <div
       v-for="(entry, index) in totalTimeEntries"
       :key="index"
-      :class="[
-        CELL_CLASS,
-        'text-base-medium text-ink-gray-9 lining-nums tabular-nums',
-      ]"
+      :class="BUTTON_CELL_CLASS"
     >
-      {{ entry }}
+      <TimeCell
+        :time="entry.time"
+        :disabled="disabled || entry.disabled"
+        class="text-base-medium text-ink-gray-8"
+        @click="emit('cellClick', index)"
+      />
     </div>
 
-    <div :class="[CELL_CLASS, 'text-base-medium text-ink-gray-5']">
-      <span :class="['lining-nums tabular-nums', TOTAL_TEXT_CLASS[status]]">{{
-        totalHours
-      }}</span>
+    <div :class="CELL_CLASS">
+      <span :class="totalHoursClass({ theme: totalHoursTheme })">
+        {{ totalHours }}
+      </span>
     </div>
 
     <div :class="ACTION_CELL_CLASS" />

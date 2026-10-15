@@ -1,10 +1,6 @@
 <script setup lang="ts">
-import {
-  ACTION_CELL_CLASS,
-  CELL_CLASS,
-  EMPTY_CELL_CLASS,
-  ROW_CLASS,
-} from "./constants";
+import { Tooltip } from "frappe-ui";
+import { ACTION_CELL_CLASS, CELL_CLASS, ROW_CLASS } from "./constants";
 import type { TimeOffRowProps } from "./types";
 
 withDefaults(defineProps<TimeOffRowProps>(), {
@@ -19,8 +15,8 @@ defineSlots<{
 </script>
 
 <template>
-  <div :class="ROW_CLASS" data-testid="time-off-row">
-    <div class="flex min-w-0 flex-1 items-center gap-2 text-ink-gray-9">
+  <div :class="ROW_CLASS">
+    <div class="flex min-w-0 flex-1 items-center gap-2 text-ink-gray-8">
       <span class="flex w-4 shrink-0 items-center">
         <slot name="prefix">
           <span class="lucide-calendar-x-2 size-4" aria-hidden="true" />
@@ -29,21 +25,37 @@ defineSlots<{
       <span class="min-w-0 truncate text-base-medium">{{ label }}</span>
     </div>
 
-    <div
+    <Tooltip
       v-for="(entry, index) in timeOffEntries"
       :key="index"
-      :class="[CELL_CLASS, 'text-base text-ink-gray-6 lining-nums tabular-nums']"
+      :text="entry.holidayDescription ?? ''"
+      :disabled="!entry.holidayDescription"
     >
-      <span v-if="entry === ''" :class="EMPTY_CELL_CLASS">-</span>
-      <span v-else>{{ entry }}</span>
-    </div>
+      <div
+        :class="[
+          CELL_CLASS,
+          'text-base lining-nums tabular-nums',
+          entry.holiday ? 'text-ink-gray-4' : 'text-ink-gray-6',
+        ]"
+      >
+        <span
+          v-if="entry.time === ''"
+          class="flex-1 text-center text-ink-gray-4"
+        >
+          -
+        </span>
+        <span v-else>{{ entry.time }}</span>
+        <span v-if="entry.holidayDescription" class="sr-only">
+          {{ entry.holidayDescription }}
+        </span>
+      </div>
+    </Tooltip>
 
     <div
       :class="[
         CELL_CLASS,
-        'text-base-medium text-ink-amber-4 lining-nums tabular-nums',
+        'text-base-medium text-ink-amber-8 lining-nums tabular-nums',
       ]"
-      data-testid="time-off-total"
     >
       {{ totalHours }}
     </div>
