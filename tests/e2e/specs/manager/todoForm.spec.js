@@ -81,6 +81,8 @@ test.describe("Manager: ToDo form", () => {
     expect(await todosOfProject(projectId)).toEqual([]);
 
     await todoPage.titleInput.fill(data.todo);
+    // A stock ToDo requires a description; staging relaxes that, a fresh site does not.
+    await todoPage.writeDescription(data.todo);
     await todoPage.pickDate(todoPage.startTrigger, 20);
     await todoPage.pickDate(todoPage.endTrigger, 15);
     await todoPage.createButton.click();

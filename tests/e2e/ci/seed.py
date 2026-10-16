@@ -252,7 +252,17 @@ def business_unit_customization():
         for df in items:
             if not frappe.db.exists("Custom Field", {"dt": doctype, "fieldname": df["fieldname"]}):
                 frappe.get_doc({"doctype": "Custom Field", "dt": doctype, **df}).insert()
+    todo_statuses()
     frappe.clear_cache()
+
+
+def todo_statuses():
+    # The ToDo form offers Backlog and In Progress, but a stock ToDo only accepts Open, Closed and Cancelled
+    # (rtCamp/next-pms#2278). Staging adds them; so does this site, so the status tests run here too.
+    from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+    if not frappe.db.exists("Property Setter", {"doc_type": "ToDo", "field_name": "status", "property": "options"}):
+        make_property_setter("ToDo", "status", "options", "Open\nBacklog\nIn Progress\nClosed\nCancelled", "Text")
 
 
 def permission_patches():

@@ -7,7 +7,6 @@ import {
   TIMELINE_ITEM,
   TODO,
   findTodo,
-  getTodoMeta,
   linkedTodoNames,
   seedInitiative,
   seedTimelineItem,
@@ -79,11 +78,6 @@ test.describe("Manager: Project ToDos", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { statuses } = await getTodoMeta();
-    test.skip(
-      !["Backlog", "In Progress"].every((status) => statuses.includes(status)),
-      "Skipped: this site's ToDo status field has no Backlog or In Progress, so the app rejects them (rtCamp/next-pms#2278). Remove the check once the app adds them.",
-    );
     const { data, projectId } = await loadTestCase(jsonDir, "TC143");
     const todo = await seedTodo(projectId, data.todo);
 
