@@ -205,6 +205,60 @@ export const getDocList = async (
   }
 };
 
+/**
+ * Reads one document with its child-table rows, or null when it does not exist.
+ */
+export const getDocument = async (doctype, name, role = "admin") => {
+  const requestContext = await request.newContext({
+    baseURL,
+    storageState: loadAuthState(role),
+  });
+  try {
+    const res = await fetchWithRetry(
+      requestContext,
+      `/api/resource/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}`,
+      { method: "GET" },
+    );
+    if (res.status() === 404) return null;
+    if (!res.ok()) {
+      throw new Error(
+        `Could not read ${doctype} ${name}: ${res.status()} ${res.statusText()}`,
+      );
+    }
+    return (await res.json())?.data;
+  } finally {
+    await requestContext.dispose();
+  }
+};
+
+/**
+ * The fields of a doctype as this site has them, with custom fields and
+ * property setters applied. Sites differ here: staging customizes ToDo, a
+ * freshly installed site does not.
+ */
+export const getDoctypeFields = async (doctype, role = "admin") => {
+  const requestContext = await request.newContext({
+    baseURL,
+    storageState: loadAuthState(role),
+  });
+  try {
+    const res = await fetchWithRetry(
+      requestContext,
+      `/api/method/frappe.desk.form.load.getdoctype?doctype=${encodeURIComponent(doctype)}`,
+      { method: "GET" },
+    );
+    if (!res.ok()) {
+      throw new Error(
+        `Could not read the fields of ${doctype}: ${res.status()} ${res.statusText()}`,
+      );
+    }
+    const docs = (await res.json())?.docs ?? [];
+    return docs.find((doc) => doc.name === doctype)?.fields ?? [];
+  } finally {
+    await requestContext.dispose();
+  }
+};
+
 // ------------------------------------------------------------------------------------------
 
 /**

@@ -18,6 +18,7 @@ import managerTaskData from "../data/manager/task";
 import managerProjectData from "../data/manager/project";
 import managerGrowthData from "../data/manager/growth";
 import managerNotesData from "../data/manager/notes";
+import managerTodoData from "../data/manager/todo";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import {
   createProject,
@@ -868,17 +869,26 @@ export const cleanUpProjects = async (data) => {
         }
       }
 
-      // Records that link to the project and would block its delete.
+      // Records that link to the project and would block its delete. ToDos go
+      // first: they reference the project, and deleting one unlinks it from its owner.
       if (projectId) {
-        for (const doctype of [
-          "PMS Growth Initiative",
-          "Project Status Update",
-          "PMS Project Update Subscription",
+        for (const [doctype, filters] of [
+          [
+            "ToDo",
+            [
+              ["reference_type", "=", "Project"],
+              ["reference_name", "=", projectId],
+            ],
+          ],
+          ...[
+            "PMS Growth Initiative",
+            "Project Timeline Item",
+            "Project Status Update",
+            "PMS Project Update Subscription",
+          ].map((name) => [name, [["project", "=", projectId]]]),
         ]) {
           try {
-            const linked = await getDocList(doctype, [
-              ["project", "=", projectId],
-            ]);
+            const linked = await getDocList(doctype, filters);
             for (const { name } of linked) {
               const { deleted } = await deleteDocument(doctype, name);
               if (!deleted) failures.push(`${doctype} ${name}`);
@@ -1085,6 +1095,7 @@ export const readAndCleanAllOrphanData = async () => {
     ...managerProjectData,
     ...managerGrowthData,
     ...managerNotesData,
+    ...managerTodoData,
   };
 
   await deleteLeaveOfEmployee();

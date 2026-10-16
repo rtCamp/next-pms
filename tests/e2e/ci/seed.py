@@ -241,6 +241,12 @@ def business_unit_customization():
                 "options": "User",
             },
         ],
+        # Not shipped by next_pms; the ToDo form shows Title, Start and End only when all three exist.
+        "ToDo": [
+            {"fieldname": "custom_title", "label": "Title", "fieldtype": "Data"},
+            {"fieldname": "custom_from_time", "label": "From Time", "fieldtype": "Datetime"},
+            {"fieldname": "custom_to_time", "label": "To Time", "fieldtype": "Datetime"},
+        ],
     }
     for doctype, items in fields.items():
         for df in items:
