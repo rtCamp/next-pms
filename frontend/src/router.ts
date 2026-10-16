@@ -14,8 +14,8 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/timesheet",
     name: "timesheet-personal",
-    component: WorkInProgress,
-    meta: { title: "Timesheet" },
+    component: () => import("./pages/timesheet/personal/PersonalTimesheet.vue"),
+    meta: { title: "Timesheet", scroll: false },
   },
   {
     path: "/timesheet/team",

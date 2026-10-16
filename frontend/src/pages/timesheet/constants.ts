@@ -1,4 +1,6 @@
 import type { ApprovalStatusValue } from "@/components/ApprovalStatus";
+import type { FilterField } from "@/components/Filter";
+import { DATE_FILTER_FIELD } from "./filters";
 
 /** Weeks per request on the personal page. */
 export const PERSONAL_WEEKS_PER_PAGE = 4;
@@ -44,4 +46,39 @@ export const TIMESHEET_VIEWS: {
     routeName: "timesheet-project",
     icon: "lucide-folder",
   },
+];
+
+/** localStorage key of the liked tasks imported per week, as the React app wrote it. */
+export const IMPORTED_TASKS_STORAGE_KEY = "next-pms:importedTasks";
+
+/** Weeks expanded on load when the user has no setting. */
+export const DEFAULT_AUTO_EXPAND_WEEKS = 4;
+
+/** Hours a day the time-entry form allows when the employee's are unknown. */
+export const FALLBACK_DAILY_WORKING_HOURS = 8;
+
+const EQUALITY_OPERATORS = [
+  { label: "Equals", value: "=" },
+  { label: "Not Equals", value: "!=" },
+];
+
+/** Fields of the personal page's Filter. */
+export const PERSONAL_TIMESHEET_FILTER_FIELDS: FilterField[] = [
+  {
+    fieldCategory: "Timesheet Detail",
+    name: "project",
+    label: "Project",
+    type: "link",
+    link: { doctype: "Project", labelField: "project_name" },
+    operators: EQUALITY_OPERATORS,
+  },
+  {
+    fieldCategory: "Timesheet Detail",
+    name: "task",
+    label: "Task",
+    type: "link",
+    link: { doctype: "Task", labelField: "subject" },
+    operators: EQUALITY_OPERATORS,
+  },
+  { name: DATE_FILTER_FIELD, label: "Date", type: "daterange" },
 ];

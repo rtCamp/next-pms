@@ -8,6 +8,7 @@ const props = withDefaults(defineProps<LoadMoreRowProps>(), {
   hasMore: false,
   empty: false,
   emptyText: "No timesheet for this week",
+  count: 1,
 });
 
 const emit = defineEmits<{
@@ -47,7 +48,13 @@ watch(
     role="status"
     aria-label="Loading more"
   >
-    <Skeleton class="h-11 w-full shrink-0 rounded-none" />
+    <div class="flex flex-col gap-px">
+      <Skeleton
+        v-for="index in count"
+        :key="index"
+        class="h-11 w-full shrink-0 rounded-none"
+      />
+    </div>
   </div>
   <div
     v-else-if="empty"

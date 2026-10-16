@@ -20,4 +20,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Loading: Story = { args: { loading: true } };
 
+export const LoadingPage: Story = { args: { loading: true, count: 4 } };
+
 export const Empty: Story = { args: { empty: true } };
