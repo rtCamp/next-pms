@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from "vue";
-import { Button, Dropdown, Tooltip } from "frappe-ui";
+import { Dropdown, Tooltip } from "frappe-ui";
 import { useSortable } from "@dnd-kit/vue/sortable";
 import type { SortOrder } from "@/components/SortSelector";
 import { CURRENCY_REQUIRED_TOOLTIP, PIN_LIMIT_TOOLTIP } from "./constants";
@@ -67,7 +67,7 @@ function sort() {
       <!-- eslint-disable vue/no-restricted-v-bind -- stays hoverable so the tooltip says why -->
       <button
         type="button"
-        class="flex h-7 min-w-0 items-center gap-1 rounded-4 text-sm-medium select-none"
+        class="flex h-7 min-w-0 items-center gap-1 rounded-4 text-sm select-none"
         :class="sortDisabled && 'cursor-not-allowed text-ink-gray-4'"
         :aria-disabled="sortDisabled || undefined"
         @click="sort"
@@ -82,16 +82,17 @@ function sort() {
       </button>
       <!-- eslint-enable vue/no-restricted-v-bind -->
     </Tooltip>
-    <span v-else class="flex h-7 min-w-0 items-center text-sm-medium">
+    <span v-else class="flex h-7 min-w-0 items-center text-sm">
       <span class="truncate">{{ column.label }}</span>
     </span>
     <Dropdown :options="pinOptions" side="bottom">
-      <Button
-        variant="ghost"
-        size="xs"
-        icon="lucide-chevron-down"
+      <button
+        type="button"
+        class="shrink-0 rounded-4 p-0.5 text-ink-gray-6 focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3"
         :aria-label="`${column.label} column options`"
-      />
+      >
+        <span class="lucide-chevron-down block size-3.5" aria-hidden="true" />
+      </button>
     </Dropdown>
   </div>
 </template>

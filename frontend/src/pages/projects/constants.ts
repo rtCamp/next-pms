@@ -81,7 +81,7 @@ export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
   {
     key: "burn_rate_per_week",
     label: "Burn rate/week",
-    width: "130px",
+    width: "150px",
     sortField: "burn_rate_per_week",
   },
   {
@@ -99,7 +99,7 @@ export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
   {
     key: "profit_margin",
     label: "Profit margin",
-    width: "120px",
+    width: "130px",
     sortField: "profit_margin",
   },
   {
@@ -111,7 +111,7 @@ export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
   {
     key: "next_milestone",
     label: "Next milestone",
-    width: "140px",
+    width: "150px",
     sortField: "custom_next_milestone",
   },
   {
@@ -135,7 +135,7 @@ export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
   {
     key: "project_type",
     label: "Project type",
-    width: "120px",
+    width: "130px",
     sortField: "project_type",
     defaultHidden: true,
   },
@@ -148,7 +148,7 @@ export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
   {
     key: "contract_end_date",
     label: "Contract end date",
-    width: "160px",
+    width: "170px",
     sortField: "contract_end_date",
   },
   {

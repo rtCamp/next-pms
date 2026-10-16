@@ -165,7 +165,7 @@ function sortBy(sortField?: string) {
               <ColumnHeader
                 v-for="(column, index) in columns"
                 :key="column.key"
-                class="h-full px-2"
+                class="h-full px-1"
                 :class="pinnedClass(index, true)"
                 :style="stickyStyles[index]"
                 :column="column"
@@ -183,7 +183,7 @@ function sortBy(sortField?: string) {
                 <ListCell
                   v-for="(column, index) in columns"
                   :key="column.key"
-                  class="h-full min-w-0 px-2"
+                  class="h-full min-w-0 px-1"
                   :class="pinnedClass(index)"
                   :style="stickyStyles[index]"
                 >
