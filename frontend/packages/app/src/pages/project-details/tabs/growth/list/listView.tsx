@@ -9,6 +9,7 @@ import { Accordion } from "@base-ui/react/accordion";
 import { CLOSED_GROWTH_COLUMNS, OPEN_GROWTH_COLUMNS } from "../constants";
 import { useGrowth } from "../context";
 import { GrowthGroup } from "./listViewGroup";
+import { TotalOutcome } from "./totalOutcome";
 
 export function GrowthListView() {
   const data = useGrowth((c) => c.state.data);
@@ -26,19 +27,22 @@ export function GrowthListView() {
   const closedItems = data.filter((item) => Boolean(item.is_closed));
 
   return (
-    <Accordion.Root multiple defaultValue={["open", "closed"]}>
-      <GrowthGroup
-        value="open"
-        label="Open Growth Initiatives"
-        columns={OPEN_GROWTH_COLUMNS}
-        items={openItems}
-      />
-      <GrowthGroup
-        value="closed"
-        label="Closed Growth Initiatives"
-        columns={CLOSED_GROWTH_COLUMNS}
-        items={closedItems}
-      />
-    </Accordion.Root>
+    <>
+      <TotalOutcome items={data} />
+      <Accordion.Root multiple defaultValue={["open", "closed"]}>
+        <GrowthGroup
+          value="open"
+          label="Open Growth Initiatives"
+          columns={OPEN_GROWTH_COLUMNS}
+          items={openItems}
+        />
+        <GrowthGroup
+          value="closed"
+          label="Closed Growth Initiatives"
+          columns={CLOSED_GROWTH_COLUMNS}
+          items={closedItems}
+        />
+      </Accordion.Root>
+    </>
   );
 }

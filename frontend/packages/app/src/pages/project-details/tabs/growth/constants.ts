@@ -1,3 +1,4 @@
+import type { CommentThreadMethods } from "@/pages/project-details/useCommentThread";
 import type { GrowthFilters, GrowthListColumn } from "./types";
 
 export const GROWTH_DOCTYPE = "PMS Growth Initiative";
@@ -81,3 +82,10 @@ export const FORM_EDITOR_CLASS =
   "px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-surface-white border rounded-md border-outline-gray-2 text-ink-gray-7";
 
 export const GROWTH_DETAIL_PARAM = "growth";
+
+export const GROWTH_COMMENT_METHODS: CommentThreadMethods = {
+  list: "next_pms.next_projects.api.growth.get_growth_comments",
+  add: "next_pms.next_projects.api.growth.add_growth_comment",
+  update: "next_pms.next_projects.api.growth.update_growth_comment",
+  remove: "next_pms.next_projects.api.growth.delete_growth_comment",
+};

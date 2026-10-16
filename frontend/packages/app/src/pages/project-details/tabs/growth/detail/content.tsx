@@ -15,6 +15,7 @@ import {
   getDefaultCurrency,
 } from "@/lib/utils";
 import { ActivitySection } from "@/pages/project-details/components/activity/activitySection";
+import { DocumentLinkButton } from "@/pages/project-details/components/documentLinkButton";
 import { DocumentUploadButton } from "@/pages/project-details/components/documentUploadButton";
 import { FileCard } from "@/pages/project-details/components/fileCard";
 import { useProjectDetail } from "@/pages/project-details/context";
@@ -25,6 +26,7 @@ import { AddUpdateModal } from "../add-update";
 import { GROWTH_DOCTYPE } from "../constants";
 import { useGrowth } from "../context";
 import type { EnrichedGrowthUpdateEntry, GrowthDetail } from "../types";
+import { GrowthComments } from "./comments";
 import { UpdateEntry } from "./updateEntry";
 
 interface GrowthDetailContentProps {
@@ -145,11 +147,18 @@ export function GrowthDetailContent({
             Additional documents
           </h3>
           {canEdit && (
-            <DocumentUploadButton
-              doctype={GROWTH_DOCTYPE}
-              docname={growth.name}
-              onSuccess={onAttachmentsChange}
-            />
+            <div className="flex items-center gap-1 shrink-0">
+              <DocumentLinkButton
+                doctype={GROWTH_DOCTYPE}
+                docname={growth.name}
+                onSuccess={onAttachmentsChange}
+              />
+              <DocumentUploadButton
+                doctype={GROWTH_DOCTYPE}
+                docname={growth.name}
+                onSuccess={onAttachmentsChange}
+              />
+            </div>
           )}
         </div>
         {attachments.length > 0 ? (
@@ -159,7 +168,9 @@ export function GrowthDetailContent({
             ))}
           </div>
         ) : (
-          <p className="text-sm text-ink-gray-5">No documents attached.</p>
+          <p className="text-sm text-ink-gray-5">
+            No documents or links attached.
+          </p>
         )}
       </section>
 
@@ -229,6 +240,8 @@ export function GrowthDetailContent({
         name={growth.name}
         modified={growth.modified}
       />
+
+      <GrowthComments growthId={growth.name} />
     </div>
   );
 }

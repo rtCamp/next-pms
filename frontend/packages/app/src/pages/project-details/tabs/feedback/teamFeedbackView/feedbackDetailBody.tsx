@@ -1,10 +1,9 @@
 /**
  * External dependencies.
  */
-import { useCallback, useContext } from "react";
 import { Comments, Spinner } from "@next-pms/design-system/components";
 import { format, parseISO } from "date-fns";
-import { FrappeContext } from "frappe-react-sdk";
+import { useMentionSuggestions } from "@/hooks/useMentionSuggestions";
 import { useUser } from "@/providers/user";
 
 /**
@@ -33,30 +32,7 @@ export function FeedbackDetailBody({ feedbackId }: { feedbackId: string }) {
     userImage: state.image,
   }));
 
-  const frappe = useContext(FrappeContext);
-
-  const getMentions = useCallback(
-    async (query: string) => {
-      const response = await frappe?.call.get(
-        "next_pms.timesheet.api.employee.get_employee_list",
-        {
-          employee_name: query || undefined,
-          page_length: 5,
-          start: 0,
-        },
-      );
-
-      const mentions = response.message.data
-        .filter((emp: { user_id?: string }) => emp.user_id)
-        .map((emp: { user_id: string; employee_name: string }) => ({
-          id: emp.user_id,
-          label: emp.employee_name,
-        }));
-
-      return mentions || [];
-    },
-    [frappe],
-  );
+  const getMentions = useMentionSuggestions();
 
   return isLoading ? (
     <div className="flex h-60 items-center justify-center">
