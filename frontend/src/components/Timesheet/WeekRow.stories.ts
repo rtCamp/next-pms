@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { useArgs } from "storybook/preview-api";
 import { fn } from "storybook/test";
 import { APPROVAL_STATUSES } from "@/components/ApprovalStatus";
+import { NO_APPROVAL_STATUS } from "./constants";
 import WeekRow from "./WeekRow.vue";
 import { DATES, PAST_DATES, TODAY } from "./WeekRow.fixtures";
 
@@ -22,7 +23,10 @@ const meta = {
     onSubmit: fn(),
   },
   argTypes: {
-    status: { control: "select", options: [...APPROVAL_STATUSES] },
+    status: {
+      control: "select",
+      options: [...APPROVAL_STATUSES, NO_APPROVAL_STATUS],
+    },
     totalHoursTheme: {
       control: "select",
       options: ["green", "red", "amber", "gray"],
@@ -86,6 +90,10 @@ export const Processing: Story = {
 
 export const WithoutStatus: Story = {
   args: { status: undefined },
+};
+
+export const NoneStatus: Story = {
+  args: { status: NO_APPROVAL_STATUS, collapsed: true },
 };
 
 export const ShortOnHours: Story = {

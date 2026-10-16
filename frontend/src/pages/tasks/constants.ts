@@ -45,12 +45,9 @@ export const TASK_LIST_COLUMNS = [
   { key: "exp_end_date", label: "Due date", width: "140px" },
 ] as const;
 
-/**
- * Trailing per-row controls; always shown and never offered in the column selector. The
- * React page also has an `add_time` column; it comes back with the Add time dialog in
- * the timesheet module.
- */
+/** Trailing per-row controls; always shown and never offered in the column selector. */
 export const TASK_ACTION_COLUMNS = [
+  { key: "add_time", label: "", width: "48px" },
   { key: "like", label: "", width: "48px" },
   { key: "actions", label: "", width: "48px" },
 ] as const;

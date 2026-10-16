@@ -18,8 +18,8 @@ withDefaults(defineProps<ProjectRowProps>(), {
 const collapsed = defineModel<boolean>("collapsed", { default: false });
 
 const emit = defineEmits<{
-  /** A day's add-time button was pressed. */
-  cellClick: [dayIndex: number];
+  /** A day's add-time button was pressed; `date` is the cell's `date`. */
+  cellClick: [dayIndex: number, date: string | undefined];
 }>();
 
 defineSlots<{
@@ -58,7 +58,7 @@ defineSlots<{
             ? 'text-base-medium text-ink-gray-8'
             : 'text-base text-ink-gray-6'
         "
-        @click.stop="emit('cellClick', index)"
+        @click.stop="emit('cellClick', index, entry.date)"
       />
     </div>
 

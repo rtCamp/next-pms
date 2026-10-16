@@ -24,6 +24,7 @@ across components live in `src/utils/`.
 
 | Folder | Exports |
 |---|---|
+| `AddTime/` | `AddTime` (the Add time dialog's form: entry, validation, calendar events into the comment), `AddTimeDialog` (loads lookups, hours left and calendar events, and saves) |
 | `ApprovalStatus/` | `ApprovalStatus`, `APPROVAL_STATUSES`, `APPROVAL_STATUS_ICONS` |
 | `BudgetBurnBar/` | `BudgetBurnBar`, `budgetBurnTier` |
 | `CalendarTimeline/` | `CalendarTimeline`, `EventChip`, `DEFAULT_VISIBLE_DAYS`, date helpers re-exported from `utils/date` |
@@ -32,7 +33,7 @@ across components live in `src/utils/`.
 | `DayChip/` | `DayChip` |
 | `DurationInput/` | `DurationInput` |
 | `ErrorFallback/` | `ErrorFallback` |
-| `Filter/` | `Filter`, `DEFAULT_OPERATORS` |
+| `Filter/` | `Filter`, `FilterLinkValue` (the `#link-value` input: searches the field's doctype or `customMethod`), `DEFAULT_OPERATORS` |
 | `LoadingOverlay/` | `LoadingOverlay` |
 | `MonthPicker/` | `MonthPicker` |
 | `NotificationTray/` | `NotificationTray` |
@@ -43,7 +44,8 @@ across components live in `src/utils/`.
 | `TaskLog/` | `TaskLog` (view), `TaskLogDialog` (loads its data), `useTaskLog`, `TASK_LOG_RANGES`, `DEFAULT_TASK_LOG_RANGE` |
 | `TaskProgress/` | `TaskProgress` |
 | `TaskStatus/` | `TaskStatus`, `TASK_STATUSES`, `TASK_STATUS_ICONS` |
-| `Timesheet/` | Timesheet rows: `HeaderRow`, `WeekRow`, `MemberRow`, `ProjectRow`, `TaskRow`, `TimeOffRow`, `TotalRow`; `TaskCard` (a task's hover card), `APPROVAL_STATUS_BADGE`, `SUBMIT_ACTION_LABEL`, `totalHoursClass` |
+| `Timesheet/` | Timesheet rows: `HeaderRow`, `WeekRow`, `MemberRow`, `ProjectRow`, `TaskRow`, `TimeOffRow`, `TotalRow`; rows that derive their hours from timesheet data: `WeekGroup`, `MemberGroup`, `ProjectGroup` (collapsible, rows below in the slot), `TaskWeekRow`, `TimeOffWeekRow`; `LoadMoreRow` (paging skeleton and sentinel); the derivation in `utils.ts` (`computeWeekTotals`, `computeTaskCells`, …); `TaskCard` (a task's hover card), `APPROVAL_STATUS_BADGE`, `SUBMIT_ACTION_LABEL`, `totalHoursClass`; approval and task status helpers (`APPROVAL_STATUS_PARAMS`, `approvalStatusFromParam`, `canSubmitForApproval`, `toApprovalStatus`, `NO_APPROVAL_STATUS`, `toTaskStatus`, `TOTAL_HOURS_THEME`) and the timesheet data types |
+| `UnsavedChangesDialog/` | `UnsavedChangesDialog` (the Save Changes prompt for `provideUnsavedChanges` in `composables/useUnsavedChanges.ts`) |
 
 Look up props and usage with the Storybook MCP (`docs-list` / `docs-show`), not from this table. Keep the table in
 sync when adding, renaming or removing a component.

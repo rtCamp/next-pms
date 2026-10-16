@@ -54,8 +54,11 @@ src/
   pages/           route components; WorkInProgress stands in for pages not rebuilt yet. A rebuilt page gets a
                    folder (pages/tasks/): the route component, its parts and dialogs, cells/, and page-only
                    use* composables (provide/inject state, filters and columns kept in the URL)
+                   Views that share a shell keep the shared parts at the folder root and one subfolder per view
+                   (pages/timesheet/: layout, filters, dialogs; personal/, team/, project/)
   components/      components frappe-ui lacks, one folder each; see components/Components.md
-  composables/     shared use* composables: lookups, the like toggle, URL query updates, editor attributes
+  composables/     shared use* composables: lookups, the like toggle, URL query updates, editor attributes, the
+                   unsaved changes guard
   icons/           custom icons lucide lacks, as Vue SFCs exported from icons/index.ts; everything else uses lucide-* (P4)
   utils/           helpers shared by components and pages (date.ts, text.ts, cn.ts); add one only when something needs it
 ```

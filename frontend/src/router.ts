@@ -14,20 +14,28 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/timesheet",
     name: "timesheet-personal",
-    component: WorkInProgress,
-    meta: { title: "Timesheet" },
+    component: () => import("./pages/timesheet/personal/PersonalTimesheet.vue"),
+    meta: { title: "Timesheet", scroll: false },
   },
   {
     path: "/timesheet/team",
     name: "timesheet-team",
-    component: WorkInProgress,
-    meta: { title: "Team Timesheet", roles: ROLE_ACCESS.reviewTimesheets },
+    component: () => import("./pages/timesheet/team/TeamTimesheet.vue"),
+    meta: {
+      title: "Team Timesheet",
+      roles: ROLE_ACCESS.reviewTimesheets,
+      scroll: false,
+    },
   },
   {
     path: "/timesheet/project",
     name: "timesheet-project",
-    component: WorkInProgress,
-    meta: { title: "Project Timesheet", roles: ROLE_ACCESS.reviewTimesheets },
+    component: () => import("./pages/timesheet/project/ProjectTimesheet.vue"),
+    meta: {
+      title: "Project Timesheet",
+      roles: ROLE_ACCESS.reviewTimesheets,
+      scroll: false,
+    },
   },
   {
     path: "/projects",

@@ -1,33 +1,33 @@
 import type { TaskRowTimeEntry } from "./types";
 
 export const WEEK: TaskRowTimeEntry[] = [
-  { time: "01:15" },
-  { time: "02:00", nonBillable: true },
-  { time: "02:30" },
-  { time: "" },
-  { time: "02:15" },
-  { time: "" },
-  { time: "" },
+  { date: "2025-12-29", time: "01:15" },
+  { date: "2025-12-30", time: "02:00", nonBillable: true },
+  { date: "2025-12-31", time: "02:30" },
+  { date: "2026-01-01", time: "" },
+  { date: "2026-01-02", time: "02:15" },
+  { date: "2026-01-03", time: "" },
+  { date: "2026-01-04", time: "" },
 ];
 
 export const WITH_STATUSES: TaskRowTimeEntry[] = [
-  { time: "01:15", status: "Approved", disabled: true },
-  { time: "02:00", status: "Approval Pending" },
-  { time: "02:30", status: "Rejected" },
-  { time: "01:00", status: "Processing Timesheet" },
-  { time: "" },
-  { time: "", disabled: true },
-  { time: "" },
+  { date: "2025-12-29", time: "01:15", status: "Approved", disabled: true },
+  { date: "2025-12-30", time: "02:00", status: "Approval Pending" },
+  { date: "2025-12-31", time: "02:30", status: "Rejected" },
+  { date: "2026-01-01", time: "01:00", status: "Processing Timesheet" },
+  { date: "2026-01-02", time: "" },
+  { date: "2026-01-03", time: "", disabled: true },
+  { date: "2026-01-04", time: "" },
 ];
 
 export const LOCKED: TaskRowTimeEntry[] = [
-  { time: "03:00", disabled: true },
-  { time: "", disabled: true },
-  { time: "" },
-  { time: "" },
-  { time: "" },
-  { time: "" },
-  { time: "" },
+  { date: "2025-12-29", time: "03:00", disabled: true },
+  { date: "2025-12-30", time: "", disabled: true },
+  { date: "2025-12-31", time: "" },
+  { date: "2026-01-01", time: "" },
+  { date: "2026-01-02", time: "" },
+  { date: "2026-01-03", time: "" },
+  { date: "2026-01-04", time: "" },
 ];
 
 export const CARD = {

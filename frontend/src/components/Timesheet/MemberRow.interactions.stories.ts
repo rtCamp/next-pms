@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { expect, userEvent, within } from "storybook/test";
 import MemberRow from "./MemberRow.vue";
 import visual from "./MemberRow.stories";
+import { NO_APPROVAL_STATUS } from "./constants";
 import { PARTIAL_WEEK } from "./MemberRow.fixtures";
 
 const meta = {
@@ -51,12 +52,12 @@ export const KeyboardToggles: Story = {
   },
 };
 
-export const CellClickEmitsDay: Story = {
+export const CellClickEmitsDayAndDate: Story = {
   play: async ({ canvasElement, args }) => {
     await userEvent.click(
       within(canvasElement).getByRole("button", { name: "08:15" }),
     );
-    await expect(args.onCellClick).toHaveBeenCalledWith(1);
+    await expect(args.onCellClick).toHaveBeenCalledWith(1, "2025-12-30");
     await expect(toggle(canvasElement)).toHaveAttribute(
       "aria-expanded",
       "true",
@@ -108,5 +109,16 @@ export const NoActionWithoutStatus: Story = {
     const canvas = within(canvasElement);
     await expect(canvas.queryByText("Approval pending")).toBeNull();
     await expect(canvas.getAllByRole("button")).toHaveLength(8);
+  },
+};
+
+export const NoneStatusHidesBadgeAndAction: Story = {
+  args: { status: NO_APPROVAL_STATUS },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.queryByText("Approval pending")).toBeNull();
+    await expect(
+      canvas.queryByRole("button", { name: "Approval pending" }),
+    ).toBeNull();
   },
 };

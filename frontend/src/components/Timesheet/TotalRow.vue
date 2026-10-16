@@ -22,8 +22,8 @@ const props = withDefaults(defineProps<TotalRowProps>(), {
 const emit = defineEmits<{
   /** The star button was pressed to import or clear liked tasks. */
   star: [];
-  /** A day's add-time button was pressed. */
-  cellClick: [dayIndex: number];
+  /** A day's add-time button was pressed; `date` is the cell's `date`. */
+  cellClick: [dayIndex: number, date: string | undefined];
 }>();
 
 defineSlots<{
@@ -74,7 +74,7 @@ const starLabel = computed(() =>
         :time="entry.time"
         :disabled="disabled || entry.disabled"
         class="text-base-medium text-ink-gray-8"
-        @click="emit('cellClick', index)"
+        @click="emit('cellClick', index, entry.date)"
       />
     </div>
 
