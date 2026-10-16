@@ -234,6 +234,12 @@ def business_unit_customization():
                 "fieldtype": "Link",
                 "options": "Business Unit",
             },
+            {
+                "fieldname": "custom_account_manager_",
+                "label": "Account Manager",
+                "fieldtype": "Link",
+                "options": "User",
+            },
         ],
     }
     for doctype, items in fields.items():

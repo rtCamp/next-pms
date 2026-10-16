@@ -5,6 +5,7 @@ import {
   createDocument,
   deleteDocument,
   getDocList,
+  updateDocument,
 } from "../../utils/api/apiClient";
 import { loadTestCase, notificationsFor } from "../../utils/testCase";
 import { scaleTimeout } from "../../utils/timeouts";
@@ -12,6 +13,7 @@ import { scaleTimeout } from "../../utils/timeouts";
 const NOTE = "Project Status Update";
 const TEMPLATE = "Project Status Update Template";
 const SUBSCRIPTION = "PMS Project Update Subscription";
+const ACCOUNT_MANAGER_FIELD = "custom_account_manager_";
 
 test.describe("Manager: Project Notes", () => {
   /** @type {NotesPage} */ let notesPage;
@@ -292,6 +294,10 @@ test.describe("Manager: Project Notes", () => {
   }) => {
     allure.story("Notes");
     const { projectId } = await loadTestCase(jsonDir, "TC139");
+    // Site customization: staging has the field, ci/seed.py adds it on the CI site.
+    await updateDocument("Project", projectId, {
+      [ACCOUNT_MANAGER_FIELD]: process.env.REP_MAN_EMAIL,
+    });
 
     await notesPage.goto(projectId);
 

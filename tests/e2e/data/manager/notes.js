@@ -51,9 +51,7 @@ module.exports = {
     newBody: "TC138 - edited body.",
     comment: "TC138 - a comment that must not notify again.",
   },
-  TC139: {
-    ...project(139, { custom_account_manager_: process.env.REP_MAN_EMAIL }),
-  },
+  TC139: { ...project(139) },
   TC140: {
     ...project(140),
     title: "TC140 Note",
