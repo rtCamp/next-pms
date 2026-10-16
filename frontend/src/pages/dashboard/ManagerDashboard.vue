@@ -9,6 +9,7 @@ import ManagedProjectsCard from "./managed-projects/ManagedProjectsCard.vue";
 import NotificationsCard from "./notifications/NotificationsCard.vue";
 import ManagerStatCards from "./stat-cards/ManagerStatCards.vue";
 import TeamTimesheetsCard from "./team-timesheets/TeamTimesheetsCard.vue";
+import UpcomingTimeOffCard from "./time-off/UpcomingTimeOffCard.vue";
 import WidgetCard from "./WidgetCard.vue";
 
 defineOptions({ inheritAttrs: false });
@@ -42,6 +43,9 @@ const greetingName = computed(() =>
       </WidgetCard>
       <WidgetCard class="col-span-8 h-75 overflow-y-auto p-4">
         <TeamTimesheetsCard />
+      </WidgetCard>
+      <WidgetCard class="col-span-4 h-75 overflow-y-auto p-4">
+        <UpcomingTimeOffCard />
       </WidgetCard>
     </section>
   </div>
