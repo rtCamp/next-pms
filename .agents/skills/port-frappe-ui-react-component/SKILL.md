@@ -86,10 +86,12 @@ What it changes, for reference when a class reaches you some other way:
 | `ink-<colour>-2` / `-3` / `-4` | `-5` / `-6` / `-8` |
 | `outline-gray-5` | `-7` |
 | `outline-<colour>-2` / `-3` / `-4` | `-3` / `-4` / `-5` |
+| `outline-gray-modals`, `outline-gray-modal` | `outline-elevation-2` |
 | `surface-white`, `ink-white`, `outline-white` | `surface-base`, `ink-base`, `outline-base` |
 | `surface-cards`, `surface-modal`, `surface-selected`, `surface-menu-bar` | `surface-elevation-1`, `-2`, `-3`, `surface-sidebar` |
 | `text-xl` (18px), `text-2xl` (20px), `text-3xl` (24px) | `text-2xl`, `text-3xl`, `text-4xl` |
 | `text-base font-medium` | `text-base-medium` |
+| `rounded-sm` (4px), `rounded` (8px), `-md` (10px), `-lg` (12px), `-xl` (16px), `-2xl` (20px) | `rounded-1`, `-4`, `-5`, `-6`, `-7`, `-8`; sides too (`rounded-t-2xl` → `rounded-t-8`) |
 
 `<colour>` is red, blue, green, amber or violet. Full map:
 `frontend/node_modules/frappe-ui/tailwind/migrate-tokens-v2.js`; valid colour names:
@@ -99,6 +101,11 @@ use `leading-tighter` where React relied on 1.15.
 The codemod only knows those five. frappe-ui-react added its own `ink-cyan-*` and `ink-pink-*` on the same steps
 (`ink-cyan-3` and `ink-red-3` are both the `-500` shade), and the codemod leaves them alone. Shift them by hand like
 the five: `ink-cyan-3` → `ink-cyan-6`.
+
+Translate a radius by its pixel value, not by Tailwind's default scale: the old kit's `rounded-2xl` was 20px
+(`rounded-8`), where stock Tailwind's is 16px (`rounded-7`). The codemod skips a bare `rounded` it reads as an English
+word, so grep for it afterwards. A border colour is an `outline-*` token, so `border-outline-gray-modals` becomes
+`border-outline-elevation-2`, a lighter grey than `outline-gray-2`.
 
 The translation is done when every colour, font-size and radius class that came from React has gone through the
 codemod or this section, checked by grepping the files you wrote:
