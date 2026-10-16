@@ -77,7 +77,8 @@ Never edit the build output in `../next_pms/public/frontend` by hand.
 
 - **Skills** in `.agents/skills/` (symlinked into `.claude/skills/`): `frappe-ui` for any UI or data code;
   `vue-best-practices`, `vue-router-best-practices`, `vue-debug-guides`, `create-adaptable-composable` for Vue
-  questions; `port-frappe-ui-react-component` (ours) for porting React components. Vendored versions are pinned in
+  questions; `port-frappe-ui-react-component` (ours) for porting React components, and its "Translate the tokens"
+  section before copying any class from React code (pages too). Vendored versions are pinned in
   `skills-lock.json`; update with `npx skills update`, which overwrites local edits, so corrections go in
   [Skill overrides](#skill-overrides) below.
 - **Storybook MCP** at `http://localhost:6006/mcp` (needs `npm run storybook` running): `docs-list` / `docs-show`
