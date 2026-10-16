@@ -181,6 +181,8 @@ export interface TimeEntry {
   project_name?: string | null;
   custom_approval_status?: ApprovalStatusValue | null;
   custom_rejection_reason?: string | null;
+  /** The reason the reviewer gave when rejecting the whole week. */
+  custom_weekly_rejection_reason?: string | null;
 }
 
 /** A task with its time entries for a week. */
