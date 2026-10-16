@@ -4,23 +4,23 @@ import type { PhaseIconProps } from "./types";
 
 defineProps<PhaseIconProps>();
 
-// frappe-ui has no ink shades for black, pink or purple, so they use the nearest hue.
+// Black has no ink shade; purple shows violet, as Close Out did in React.
 const icon = cva("lucide-circle size-4 shrink-0", {
   variants: {
     color: {
       black: "text-ink-gray-9",
       gray: "text-ink-gray-4",
-      blue: "text-ink-blue-3",
-      green: "text-ink-green-3",
-      red: "text-ink-red-3",
-      pink: "text-ink-red-3",
-      orange: "text-ink-orange-3",
-      amber: "text-ink-amber-3",
-      yellow: "text-ink-yellow-3",
-      cyan: "text-ink-cyan-3",
-      teal: "text-ink-teal-3",
-      violet: "text-ink-violet-3",
-      purple: "text-ink-violet-3",
+      blue: "text-ink-blue-6",
+      green: "text-ink-green-6",
+      red: "text-ink-red-6",
+      pink: "text-ink-pink-6",
+      orange: "text-ink-orange-6",
+      amber: "text-ink-amber-6",
+      yellow: "text-ink-yellow-6",
+      cyan: "text-ink-cyan-6",
+      teal: "text-ink-teal-6",
+      violet: "text-ink-violet-6",
+      purple: "text-ink-violet-6",
     },
   },
   defaultVariants: { color: "gray" },

@@ -9,9 +9,9 @@ const props = defineProps<{ status?: string | null }>();
 const dot = cva("size-2 shrink-0 rounded-full bg-current", {
   variants: {
     status: {
-      red: "text-ink-red-3",
-      amber: "text-ink-amber-3",
-      green: "text-ink-green-3",
+      red: "text-ink-red-6",
+      amber: "text-ink-amber-6",
+      green: "text-ink-green-6",
     },
   },
 });
