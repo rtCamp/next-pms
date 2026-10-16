@@ -24,6 +24,7 @@ across components live in `src/utils/`.
 
 | Folder | Exports |
 |---|---|
+| `AddTime/` | `AddTime` (the Add time dialog's form: entry, validation, calendar events into the comment), `AddTimeDialog` (loads lookups, hours left and calendar events, and saves) |
 | `ApprovalStatus/` | `ApprovalStatus`, `APPROVAL_STATUSES`, `APPROVAL_STATUS_ICONS` |
 | `BudgetBurnBar/` | `BudgetBurnBar`, `budgetBurnTier` |
 | `CalendarTimeline/` | `CalendarTimeline`, `EventChip`, `DEFAULT_VISIBLE_DAYS`, date helpers re-exported from `utils/date` |

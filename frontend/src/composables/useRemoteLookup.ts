@@ -37,6 +37,8 @@ export interface RemoteLookupOptions<TResponse, TItem> {
   toOption: (item: TItem) => LookupOption;
   /** Options kept in the list when the latest results don't include them, e.g. the current value. */
   selected?: MaybeRefOrGetter<LookupOption | null | undefined>;
+  /** Other inputs of `params`; a change searches again at once, e.g. a project scope. */
+  refetchOn?: () => unknown;
 }
 
 /**
@@ -68,7 +70,11 @@ export function useRemoteLookup<TResponse, TItem>(
   });
 
   watch(
-    [() => toValue(options.enabled ?? true), debouncedQuery],
+    [
+      () => toValue(options.enabled ?? true),
+      debouncedQuery,
+      () => options.refetchOn?.(),
+    ],
     ([enabled]) => {
       if (enabled) call.fetch();
     },

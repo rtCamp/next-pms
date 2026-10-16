@@ -15,6 +15,7 @@ import { TaskStatus, type TaskStatusValue } from "@/components/TaskStatus";
 import { useInfiniteScroll } from "@/composables/useInfiniteScroll";
 import { useSession } from "@/session";
 import { formatHours } from "@/utils/format";
+import AddTimeCell from "./cells/AddTimeCell.vue";
 import LikeCell from "./cells/LikeCell.vue";
 import SubjectCell from "./cells/SubjectCell.vue";
 import { TASK_PRIORITIES, TASK_SORTABLE_FIELDS } from "./constants";
@@ -26,7 +27,14 @@ import { useTaskList } from "./useTaskList";
 const emit = defineEmits<{
   openTask: [name: string];
   editTask: [task: TaskListItem];
+  addTime: [task: TaskListItem];
 }>();
+
+const ACTION_COLUMN_LABELS: Record<string, string> = {
+  add_time: "Add time",
+  like: "Star",
+  actions: "Actions",
+};
 
 /** Roles that may delete any task; others may delete only their own. */
 const MANAGER_ROLES = ["Projects Manager", "Delivery Manager", "Delivery User"];
@@ -135,7 +143,7 @@ useInfiniteScroll({
             </ListHeaderCellSort>
             <ListHeaderCell v-else>
               <span class="sr-only">{{
-                column.key === "like" ? "Star" : "Actions"
+                ACTION_COLUMN_LABELS[column.key]
               }}</span>
             </ListHeaderCell>
           </template>
@@ -202,6 +210,10 @@ useInfiniteScroll({
                     N/A
                   </span>
                 </template>
+                <AddTimeCell
+                  v-else-if="column.key === 'add_time'"
+                  @add-time="emit('addTime', item)"
+                />
                 <LikeCell
                   v-else-if="column.key === 'like'"
                   :name="item.name"
