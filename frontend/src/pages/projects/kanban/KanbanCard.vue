@@ -24,7 +24,7 @@ const { isDragging } = useSortable({
 <template>
   <div
     ref="card"
-    class="h-full rounded-7 transition-shadow"
+    class="h-full rounded-8 transition-shadow"
     :class="isDragging && 'shadow-xl'"
   >
     <ProjectCard :project="project" />

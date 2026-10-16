@@ -46,22 +46,24 @@ function onPointerUp(event: PointerEvent) {
     role="link"
     tabindex="0"
     :aria-label="project.project_name"
-    class="flex w-full cursor-pointer flex-col gap-2.5 rounded-7 border border-outline-gray-2 bg-surface-base pb-3 shadow-sm hover:bg-surface-gray-2 focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3"
+    class="flex w-full cursor-pointer flex-col gap-2.5 rounded-8 border border-outline-elevation-2 bg-surface-base pb-3 shadow-sm hover:bg-surface-gray-2 focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3"
     @pointerdown="onPointerDown"
     @pointerup="onPointerUp"
     @keydown.enter.prevent="open"
     @keydown.space.prevent="open"
   >
     <div
-      class="flex w-full items-center gap-2 rounded-t-7 border-b border-outline-gray-1 px-3.5 py-3"
+      class="flex w-full items-center gap-2 rounded-t-8 border-b border-outline-gray-1 px-3.5 py-3"
     >
       <RagDot :status="project.rag_status" />
       <span
-        class="min-w-0 flex-1 truncate text-base font-medium text-ink-gray-7"
+        class="min-w-0 flex-1 truncate text-base-medium leading-tighter text-ink-gray-7"
         >{{ project.project_name }}</span
       >
     </div>
-    <div class="flex w-full flex-col gap-3.5 px-4 text-base text-ink-gray-6">
+    <div
+      class="flex w-full flex-col gap-3.5 px-4 text-base leading-tighter text-ink-gray-6"
+    >
       <div class="flex w-full items-center gap-2">
         <span class="lucide-calendar size-4 shrink-0" aria-hidden="true" />
         <span class="truncate">{{ dateRange || "N/A" }}</span>
