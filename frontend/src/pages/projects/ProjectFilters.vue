@@ -222,7 +222,6 @@ const externalFilterCount = computed(
       <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- aria-label reaches frappe-ui's trigger -->
       <Select
         v-model="phase"
-        class="w-34 shrink-0"
         :options="phaseOptions"
         placeholder="Phases"
         aria-label="Phases"
@@ -230,7 +229,6 @@ const externalFilterCount = computed(
       <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- aria-label reaches frappe-ui's trigger -->
       <Select
         v-model="status"
-        class="w-34 shrink-0"
         :options="PROJECT_STATUS_OPTIONS"
         placeholder="Status"
         aria-label="Status"
