@@ -7,6 +7,8 @@ import { useDashboardCall } from "@/pages/dashboard/dashboardCall";
 import WidgetFilter from "@/pages/dashboard/WidgetFilter.vue";
 import { formatHours } from "@/utils/format";
 
+defineOptions({ inheritAttrs: false });
+
 interface TimeUtilisationRole {
   designation: string;
   billable_hours: number;
@@ -42,23 +44,20 @@ const slices = computed(() => {
 </script>
 
 <template>
-  <div class="h-72">
+  <div class="flex items-start justify-between gap-4">
+    <h3 class="text-lg-semibold text-ink-gray-8">
+      Utilised time in the past 30 days
+    </h3>
+    <WidgetFilter v-model="selectedRoles" noun="role" :options="roleOptions" />
+  </div>
+  <div class="h-60">
     <DonutChart
-      title="Utilised time in the past 30 days"
       :data="slices"
       category="category"
       value="hours"
       center-label="Hours"
       :format="(value: number) => formatHours(value)"
       :loading="utilisation.loading"
-    >
-      <template #actions>
-        <WidgetFilter
-          v-model="selectedRoles"
-          noun="role"
-          :options="roleOptions"
-        />
-      </template>
-    </DonutChart>
+    />
   </div>
 </template>
