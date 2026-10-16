@@ -402,15 +402,11 @@ test.describe("Manager: Project Growth", () => {
 
     await growthPage.goto(projectId);
     await growthPage.openDetail(data.activity);
-    await growthPage.uploadDocument({
-      name: "tc132-notes.txt",
-      mimeType: "text/plain",
-      content: "Growth initiative notes",
-    });
+    await growthPage.uploadDocument(file);
 
-    await expect(growthPage.documentLink("tc132-notes.txt")).toBeVisible();
+    await expect(growthPage.documentLink(file.name)).toBeVisible();
     await expect(growthPage.section("Additional documents")).toContainText(
-      "TXT",
+      file.name.split(".").pop().toUpperCase(),
     );
   });
 });
