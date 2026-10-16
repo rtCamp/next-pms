@@ -2,6 +2,7 @@
 import { AddTimeDialog } from "@/components/AddTime";
 import { UnsavedChangesDialog } from "@/components/UnsavedChangesDialog";
 import { provideUnsavedChanges } from "@/composables/useUnsavedChanges";
+import AddLeaveDialog from "./AddLeaveDialog.vue";
 import TimesheetHeader from "./TimesheetHeader.vue";
 import { provideTimesheetDialogs } from "./useTimesheetDialogs";
 
@@ -25,6 +26,10 @@ const unsavedChanges = provideUnsavedChanges();
   <AddTimeDialog
     v-model:open="dialogs.state.addTime.open"
     :prefill="dialogs.state.addTime.prefill"
+    :pick-employee="pickEmployee"
+  />
+  <AddLeaveDialog
+    v-model:open="dialogs.state.addLeave.open"
     :pick-employee="pickEmployee"
   />
   <UnsavedChangesDialog
