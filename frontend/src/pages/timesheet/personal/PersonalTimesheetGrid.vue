@@ -1,37 +1,19 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Spinner, useCall } from "frappe-ui";
+import { Spinner } from "frappe-ui";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { dayLabels, HeaderRow, LoadMoreRow } from "@/components/Timesheet";
-import {
-  DEFAULT_AUTO_EXPAND_WEEKS,
-  PERSONAL_WEEKS_PER_PAGE,
-} from "@/pages/timesheet/constants";
+import { PERSONAL_WEEKS_PER_PAGE } from "@/pages/timesheet/constants";
+import { useExpandedWeeks } from "@/pages/timesheet/useExpandedWeeks";
 import PersonalTaskLog from "./PersonalTaskLog.vue";
 import PersonalWeek from "./PersonalWeek.vue";
 import { usePersonalTimesheet } from "./usePersonalTimesheet";
-
-interface PmsSettings {
-  auto_expand_weeks_by_default: number | null;
-  use_system_auto_expand_weeks: boolean | number;
-  system_auto_expand_weeks_by_default: number;
-}
 
 defineOptions({ inheritAttrs: false });
 
 const timesheet = usePersonalTimesheet();
 
-const settings = useCall<PmsSettings>({
-  url: "/api/v2/method/next_pms.next_pms.doctype.pms_user_setting.pms_user_setting.get_pms_settings",
-});
-
-const expandedWeeks = computed(() => {
-  const data = settings.data;
-  if (data?.use_system_auto_expand_weeks) {
-    return data.system_auto_expand_weeks_by_default;
-  }
-  return data?.auto_expand_weeks_by_default ?? DEFAULT_AUTO_EXPAND_WEEKS;
-});
+const expandedWeeks = useExpandedWeeks();
 
 const weeks = computed(() => Object.values(timesheet.timesheetData.data));
 const days = computed(() => dayLabels(weeks.value[0]?.dates ?? []));
@@ -47,7 +29,9 @@ const taskLogOpen = computed({
 
 <template>
   <div
-    v-if="settings.loading || (timesheet.isInitialLoad && weeks.length === 0)"
+    v-if="
+      expandedWeeks.loading || (timesheet.isInitialLoad && weeks.length === 0)
+    "
     class="flex flex-1 items-center justify-center"
   >
     <Spinner class="size-6" />
@@ -77,7 +61,7 @@ const taskLogOpen = computed({
           :holidays="timesheet.timesheetData.holidays"
           :working-hour="timesheet.timesheetData.working_hour"
           :working-frequency="timesheet.timesheetData.working_frequency"
-          :default-collapsed="index >= expandedWeeks"
+          :default-collapsed="index >= expandedWeeks.count"
           :hide-total-row="timesheet.hasTaskFilter"
           @label-click="selectedTask = $event"
         />
