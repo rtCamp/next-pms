@@ -51,11 +51,10 @@ function createProjectList() {
   async function fetchRows(start: number, limit: number, kind: RequestKind) {
     const request = ++latestRequest;
     pending.value = kind;
-    const response = await projectList.submit({
-      ...queryParams.value,
-      start,
-      limit,
-    });
+    // submit() rejects when the request fails; the error is read from the call below.
+    const response = await projectList
+      .submit({ ...queryParams.value, start, limit })
+      .catch(() => null);
     if (request !== latestRequest) return;
     pending.value = null;
     if (!response) {

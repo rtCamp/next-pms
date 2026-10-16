@@ -266,15 +266,18 @@ function createProjectViews() {
   }
 
   async function duplicateView(view: ProjectView) {
-    await createViewCall.submit({
-      view: {
-        ...view,
-        label: `${view.label} (Copy)`,
-        public: 0,
-        default: 0,
-        dt: "Project",
-      },
-    });
+    // submit() rejects when the request fails; the error is read from the call below.
+    await createViewCall
+      .submit({
+        view: {
+          ...view,
+          label: `${view.label} (Copy)`,
+          public: 0,
+          default: 0,
+          dt: "Project",
+        },
+      })
+      .catch(() => undefined);
     if (createViewCall.error) {
       toast.error(errorMessage(createViewCall.error));
       return;
@@ -284,7 +287,9 @@ function createProjectViews() {
   }
 
   async function updateView(view: ProjectView) {
-    await updateViewCall.submit({ view: { ...view, dt: "Project" } });
+    await updateViewCall
+      .submit({ view: { ...view, dt: "Project" } })
+      .catch(() => undefined);
     if (updateViewCall.error) {
       toast.error(errorMessage(updateViewCall.error));
       return;

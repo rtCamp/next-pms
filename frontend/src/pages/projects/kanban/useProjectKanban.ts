@@ -39,7 +39,8 @@ export function useProjectKanban() {
 
   async function reload() {
     const request = ++latestRequest;
-    const response = await kanban.submit(queryParams.value);
+    // submit() rejects when the request fails; the error is read from the call below.
+    const response = await kanban.submit(queryParams.value).catch(() => null);
     if (request !== latestRequest) return;
     if (!response) {
       toast.error(errorMessage(kanban.error));

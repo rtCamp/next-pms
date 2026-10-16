@@ -40,11 +40,14 @@ export function useToggleLike(options: ToggleLikeOptions) {
   async function toggle() {
     const next = !liked.value;
     liked.value = next;
-    await call.submit({
-      doctype: options.doctype,
-      name: toValue(options.name),
-      add: next ? "Yes" : "No",
-    });
+    // submit() rejects when the request fails; the error is read from the call below.
+    await call
+      .submit({
+        doctype: options.doctype,
+        name: toValue(options.name),
+        add: next ? "Yes" : "No",
+      })
+      .catch(() => undefined);
     if (call.error) {
       liked.value = !next;
       toast.error(errorMessage(call.error));
