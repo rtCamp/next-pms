@@ -9,6 +9,7 @@ import ForecastCard from "./forecast/ForecastCard.vue";
 import { useDashboardCall } from "./dashboardCall";
 import { firstName } from "./greeting";
 import HeatmapCard from "./heatmap/HeatmapCard.vue";
+import NotificationsCard from "./notifications/NotificationsCard.vue";
 import KpiCard from "./kpi-cards/KpiCard.vue";
 import {
   defaultKpiMonth,
@@ -49,6 +50,9 @@ const kpis = useDashboardCall<LeadershipKpis>("get_leadership_kpis", () =>
       </WidgetCard>
       <WidgetCard class="col-span-8 h-75 p-4">
         <HeatmapCard />
+      </WidgetCard>
+      <WidgetCard class="col-span-4 h-75 p-4">
+        <NotificationsCard />
       </WidgetCard>
       <div class="col-span-12">
         <LeadershipStatCards />

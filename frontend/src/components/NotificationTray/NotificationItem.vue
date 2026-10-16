@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { DOCTYPE_ICONS, FALLBACK_ICON, MENTION_ICON } from "./constants";
 import type { NotificationEntry } from "./types";
+import { notificationIcon } from "./utils";
 
 const props = defineProps<{ notification: NotificationEntry }>();
 
 const emit = defineEmits<{ select: [notification: NotificationEntry] }>();
 
-const icon = computed(() => {
-  const { title, linkedDoctype } = props.notification;
-  if (title?.toLowerCase().includes("mention")) return MENTION_ICON;
-  return DOCTYPE_ICONS[linkedDoctype] ?? FALLBACK_ICON;
-});
+const icon = computed(() => notificationIcon(props.notification));
 
 // A modified or middle click keeps the browser's default (new tab or window),
 // a plain click is left to the listener, which navigates in-app.

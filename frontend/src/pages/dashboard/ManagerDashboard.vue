@@ -5,6 +5,7 @@ import CalendarTimelineCard from "./calendar/CalendarTimelineCard.vue";
 import DashboardHeader from "./DashboardHeader.vue";
 import { firstName } from "./greeting";
 import HeatmapCard from "./heatmap/HeatmapCard.vue";
+import NotificationsCard from "./notifications/NotificationsCard.vue";
 import ManagerStatCards from "./stat-cards/ManagerStatCards.vue";
 import WidgetCard from "./WidgetCard.vue";
 
@@ -27,6 +28,9 @@ const greetingName = computed(() =>
       </div>
       <WidgetCard class="col-span-8 h-75 overflow-y-auto">
         <HeatmapCard />
+      </WidgetCard>
+      <WidgetCard class="col-span-4 h-75 overflow-y-auto">
+        <NotificationsCard />
       </WidgetCard>
       <WidgetCard class="col-span-12">
         <CalendarTimelineCard />
