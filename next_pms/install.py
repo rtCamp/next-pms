@@ -12,8 +12,10 @@ def after_install():
     create_default_risk_masters()
     create_default_timeline_item_categories()
     create_default_growth_masters()
+    create_default_technologies()
     setup_project_custom_fields()
     setup_project_target_hours_field()
+    setup_project_tech_stack_field()
     setup_timesheet_rejection_reason_field()
     setup_timesheet_weekly_rejection_reason_field()
     setup_timesheet_rejected_hours_field()
@@ -118,6 +120,26 @@ def setup_project_target_hours_field():
                     "fieldtype": "Float",
                     "label": "Target Hours",
                     "insert_after": "percent_complete",
+                },
+            ]
+        }
+    )
+
+
+def setup_project_tech_stack_field():
+    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+    create_custom_fields(
+        {
+            "Project": [
+                {
+                    "fieldname": "tech_stack",
+                    "fieldtype": "Table MultiSelect",
+                    "label": "Tech Stack",
+                    "options": "Tech Stack Item",
+                    "insert_after": "custom_host",
+                    "mandatory_depends_on": 'eval:doc.__islocal && doc.custom_billing_type !== "Non-Billable"',
+                    "module": "Next Projects",
                 },
             ]
         }
@@ -410,6 +432,11 @@ def create_default_risk_masters():
         ("Risk Status", risk_statuses),
     ):
         _insert_masters(doctype, [{"name": name} for name in names])
+
+
+def create_default_technologies():
+    technologies = ("WordPress VIP", "Drupal", "AEM", "Next.js", "Frappe")
+    _insert_masters("Technology", [{"name": name, "technology_name": name} for name in technologies])
 
 
 def create_default_timeline_item_categories():
