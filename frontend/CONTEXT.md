@@ -44,6 +44,22 @@ _Avoid_: state, review status, kebab-case copies like `not-submitted`.
 **Time off** — leave (`Leave Application`) and holidays (`Holiday List`) shown alongside time entries.
 _Avoid_: vacation, PTO, absence.
 
+**Weekly approval** — a reviewer's decision on one employee's week, optionally limited to one project: approve or
+reject the checked days (a rejection needs a reason). The backend marks the week `Processing Timesheet` and finishes
+on the `long` queue; the result arrives over realtime.
+_Avoid_: sign-off, review (for the action).
+
+**Backdate limit** — the date before which an employee may no longer add or change time entries
+(`backdate_restricted_before`); days before it are locked in the grid.
+_Avoid_: freeze, cutoff.
+
+**Imported task** — a liked (starred) task added to a week of the personal timesheet so it shows a row before any
+time is logged on it. Kept per week in `localStorage` under `next-pms:importedTasks`.
+_Avoid_: pinned task, favourite.
+
+**Unsaved changes guard** — the page-level check that asks Save / Discard / Keep Editing before an action or
+navigation would drop an open, edited entry (`provideUnsavedChanges` in `composables/useUnsavedChanges.ts`).
+
 ## Planning
 
 **Allocation** — a `Resource Allocation`: an employee booked on a project (or customer) for a date range, as hours
