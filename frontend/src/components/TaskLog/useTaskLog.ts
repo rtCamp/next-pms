@@ -54,9 +54,10 @@ export function useTaskLog({ task, employee }: UseTaskLogOptions) {
       end_date: today.format("YYYY-MM-DD"),
     };
     const employeeId = toValue(employee) || undefined;
+    // submit() rejects when the request fails; the error is read from the calls below.
     const [taskData, logData] = await Promise.all([
-      taskCall.submit(params),
-      logCall.submit({ ...params, employee: employeeId }),
+      taskCall.submit(params).catch(() => null),
+      logCall.submit({ ...params, employee: employeeId }).catch(() => null),
     ]);
     if (request !== latestRequest) return;
     loading.value = false;

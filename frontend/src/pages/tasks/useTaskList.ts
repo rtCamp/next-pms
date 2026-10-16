@@ -62,11 +62,10 @@ function createTaskList() {
   ) {
     const request = ++latestRequest;
     pending.value = kind;
-    const response = await taskList.submit({
-      ...queryParams.value,
-      start,
-      page_length: pageLength,
-    });
+    // submit() rejects when the request fails; the error is read from the call below.
+    const response = await taskList
+      .submit({ ...queryParams.value, start, page_length: pageLength })
+      .catch(() => null);
     if (request !== latestRequest) return;
     pending.value = null;
     if (!response) {
