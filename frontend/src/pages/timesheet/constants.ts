@@ -82,3 +82,10 @@ export const PERSONAL_TIMESHEET_FILTER_FIELDS: FilterField[] = [
   },
   { name: DATE_FILTER_FIELD, label: "Date", type: "daterange" },
 ];
+
+/** Leave durations of the time-off dialog, as React kept them. */
+export const LEAVE_DURATIONS = [
+  "full-day",
+  "first-half",
+  "second-half",
+] as const;

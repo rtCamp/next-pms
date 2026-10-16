@@ -6,6 +6,7 @@ import type {
   TimesheetTasks,
 } from "@/components/Timesheet";
 import type { WorkingFrequency } from "@/session";
+import type { LEAVE_DURATIONS } from "./constants";
 
 /** One week of an employee's timesheet, as `get_timesheet_data` returns it. */
 export interface TimesheetWeek {
@@ -35,3 +36,5 @@ export interface TimesheetData {
 
 /** A starred task from `task.get_liked_tasks`, also the format imported tasks are stored in. */
 export type LikedTask = TimesheetTask & { exp_end_date?: string };
+
+export type LeaveDuration = (typeof LEAVE_DURATIONS)[number];
