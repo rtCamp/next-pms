@@ -16,6 +16,7 @@ def after_install():
     setup_project_custom_fields()
     setup_project_target_hours_field()
     setup_project_tech_stack_field()
+    setup_crm_deal_tech_stack_field()
     setup_timesheet_rejection_reason_field()
     setup_timesheet_weekly_rejection_reason_field()
     setup_timesheet_rejected_hours_field()
@@ -144,6 +145,54 @@ def setup_project_tech_stack_field():
             ]
         }
     )
+
+
+def after_app_install(app_name):
+    if app_name in ("crm", "frappe_crm_xt"):
+        setup_crm_deal_tech_stack_field()
+
+
+def setup_crm_deal_tech_stack_field():
+    import json
+
+    import frappe
+    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+    if not frappe.db.exists("DocType", "CRM Deal"):
+        return
+
+    create_custom_fields(
+        {
+            "CRM Deal": [
+                {
+                    "fieldname": "tech_stack",
+                    "fieldtype": "Table MultiSelect",
+                    "label": "Tech Stack",
+                    "options": "Tech Stack Item",
+                    "insert_after": "custom_current_host",
+                    "module": "Next Projects",
+                },
+            ]
+        }
+    )
+
+    layout_name = "CRM Deal-Data Fields"
+    if not frappe.db.exists("CRM Fields Layout", layout_name):
+        return
+
+    layout = frappe.get_doc("CRM Fields Layout", layout_name)
+    tabs = json.loads(layout.layout or "[]")
+    columns = [column for tab in tabs for section in tab.get("sections", []) for column in section.get("columns", [])]
+    if any("tech_stack" in column.get("fields", []) for column in columns):
+        return
+
+    for column in columns:
+        fields = column.get("fields", [])
+        if "custom_current_host" in fields:
+            fields.insert(fields.index("custom_current_host") + 1, "tech_stack")
+            layout.layout = json.dumps(tabs)
+            layout.save(ignore_permissions=True)
+            return
 
 
 def setup_time_report_frequency():

@@ -1,3 +1,24 @@
+def before_insert(doc, method=None):
+    copy_tech_stack_from_deal(doc)
+
+
+def copy_tech_stack_from_deal(doc):
+    import frappe
+
+    deal = doc.get("custom_deal")
+    if doc.get("tech_stack") or not deal:
+        return
+
+    technologies = frappe.get_all(
+        "Tech Stack Item",
+        filters={"parenttype": "CRM Deal", "parent": deal, "parentfield": "tech_stack"},
+        order_by="idx",
+        pluck="technology",
+    )
+    for technology in technologies:
+        doc.append("tech_stack", {"technology": technology})
+
+
 def validate(doc, method=None):
     validate_tech_stack(doc)
 
