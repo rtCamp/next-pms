@@ -37,7 +37,7 @@ Storybook 10 (Vue 3 + Vite) with the MCP, Docs, Vitest, A11y and Themes addons, 
 | `npm run lint` / `lint:fix` | ESLint over `.vue`, `.ts` and stories: Vue, TypeScript, Storybook, Tailwind class, accessibility and composable rules; formatting is Prettier's |
 | `npm run storybook` | Storybook on port 6006 (also serves the Storybook MCP at `/mcp`) |
 | `npm run test-storybook` | Runs every story as a test in headless Chromium (Vitest), including an accessibility check |
-| `npm run test-unit` | Runs the `*.test.ts` unit tests for utils and composables in headless Chromium (Vitest) |
+| `npm run test-unit` | Runs the `*.test.ts` unit tests for `src/utils/` in headless Chromium (Vitest) |
 | `npm run build-storybook` | Static Storybook in `storybook-static/` |
 
 ## Layout
@@ -61,8 +61,6 @@ src/
                    infinite scroll, project phases
   icons/           custom icons lucide lacks, as Vue SFCs exported from icons/index.ts; everything else uses lucide-* (P4)
   utils/           helpers shared by components and pages (date.ts, text.ts, cn.ts); add one only when something needs it
-  test/            unit-test helpers: mockApi() answers frappe-ui's requests, withSetup() runs a composable in a
-                   mounted app (router, provide/inject), fakeSocket() stands in for the realtime socket
 ```
 
 **Imports.** `@/` is `src/` (set in `vite.config.ts` and `tsconfig.json`). Import from another folder with `@/`, e.g.
@@ -99,9 +97,8 @@ Never edit the build output in `../next_pms/public/frontend` by hand.
 These win over the vendored skills.
 
 - **vue-testing-best-practices** doesn't apply here. Components are tested with Storybook stories with `play`
-  functions (P5, P6), not Vue Test Utils. Utils and composables (`utils.ts`, `use*.ts`) get a sibling `*.test.ts`,
-  run by browser Vitest (`npm run test-unit`), not node Vitest: they call the real frappe-ui composables, with
-  `fetch` answered by `mockApi()` from `src/test/`, rather than mocking frappe-ui.
+  functions (P5, P6), not Vue Test Utils. The shared helpers in `src/utils/` get a sibling `*.test.ts`, run by
+  browser Vitest (`npm run test-unit`), not node Vitest. A component's own `utils.ts` is covered by its stories.
 - **vue-best-practices**: read its reference files only when a task needs one, not all of them up front. Components
   follow the folder layout in [`src/components/Components.md`](src/components/Components.md), not its feature
   folders.
@@ -121,7 +118,7 @@ These win over the vendored skills.
 - Every component ships stories, and its behaviour is covered by interaction stories (P5).
 - Add an npm dependency when it is truly needed or clearly improves the code or the UX, and say why in the PR or
   report.
-- Every util and composable has unit tests in a sibling `*.test.ts`.
+- Every helper in `src/utils/` has unit tests in a sibling `*.test.ts`.
 - Before handing off: `npm run lint`, `npm run type-check`, `npm run test-unit -- --run`,
   `npm run test-storybook -- --run`, and Prettier on changed files (P10).
 - Don't change routes or backend endpoints as part of frontend work; that needs its own task.
