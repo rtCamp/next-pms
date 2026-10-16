@@ -35,7 +35,7 @@ across components live in `src/utils/`.
 | `Filter/` | `Filter`, `DEFAULT_OPERATORS` |
 | `LoadingOverlay/` | `LoadingOverlay` |
 | `MonthPicker/` | `MonthPicker` |
-| `NotificationTray/` | `NotificationTray` |
+| `NotificationTray/` | `NotificationTray`, `notificationIcon` |
 | `ProgressBar/` | `ProgressBar` |
 | `RichText/` | `RichText` (read-only editor HTML, e.g. comments) |
 | `SortSelector/` | `SortSelector` |
