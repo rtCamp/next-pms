@@ -176,6 +176,7 @@ export function Specifics({ form, isEditing, submitting }: SpecificsProps) {
                 onSearchChange={setTechStackSearch}
                 value={field.state.value}
                 onChange={field.handleChange}
+                open={submitting ? false : undefined}
               />
             </EditableField>
           )}
