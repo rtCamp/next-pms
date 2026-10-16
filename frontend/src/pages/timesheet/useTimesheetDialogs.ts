@@ -1,18 +1,6 @@
 import { inject, provide, reactive, type InjectionKey } from "vue";
 import { dayjs } from "frappe-ui";
-
-/** What the Add time dialog opens with; unset fields start empty. */
-export interface AddTimePrefill {
-  /** `YYYY-MM-DD`; today when unset. */
-  date?: string;
-  project?: string;
-  projectLabel?: string;
-  task?: string;
-  taskLabel?: string;
-  /** Logs time for this employee (team and project pages). */
-  employeeId?: string;
-  employeeLabel?: string;
-}
+import type { AddTimePrefill } from "@/components/AddTime";
 
 /** The week a Submit for approval dialog is for. */
 export interface SubmitApprovalWeek {
