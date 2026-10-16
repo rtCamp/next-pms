@@ -334,4 +334,6 @@ export interface LoadMoreRowProps {
   empty?: boolean;
   /** Text for an empty list. */
   emptyText?: string;
+  /** Skeleton rows shown while loading, e.g. one per row a page brings. Default `1`. */
+  count?: number;
 }
