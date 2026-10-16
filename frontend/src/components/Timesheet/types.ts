@@ -1,5 +1,6 @@
 import type { ApprovalStatusValue } from "@/components/ApprovalStatus";
 import type { TaskStatusValue } from "@/components/TaskStatus";
+import type { WorkingFrequency } from "@/session";
 
 /** Colour of a total: green on target, red short, amber over, gray neutral. */
 export type TotalHoursTheme = "green" | "red" | "amber" | "gray";
@@ -223,4 +224,114 @@ export interface TimesheetHoliday {
   /** `YYYY-MM-DD`. */
   holiday_date: string;
   weekly_off: boolean;
+}
+
+export interface WeekGroupProps {
+  /** Label for the week, e.g. `"This week"`. */
+  label?: string;
+  /** The week's dates as `YYYY-MM-DD`, one per column. */
+  dates: string[];
+  /** Approval status of the week; `"None"` or unset hides the badge and the action. */
+  status?: TimesheetApprovalStatus;
+  /**
+   * A week without totals (team and project weeks): no hours are computed, the total
+   * stays gray and the week can't be submitted.
+   */
+  readOnly?: boolean;
+  /** The week's tasks, for the totals. */
+  tasks?: TimesheetTasks;
+  leaves?: TimesheetLeave[];
+  holidays?: TimesheetHoliday[];
+  /** Hours the employee works per `workingFrequency`. */
+  workingHour?: number;
+  workingFrequency?: WorkingFrequency;
+  /** Days before this `YYYY-MM-DD` date take no new time. */
+  backdateRestrictedBefore?: string | null;
+  /** Adds `· N pending approvals` after the label. */
+  approvalPendingCount?: number;
+  /** Whether the week starts collapsed. */
+  defaultCollapsed?: boolean;
+}
+
+export interface MemberGroupProps {
+  /** Name of the member. */
+  label: string;
+  avatarUrl?: string;
+  /** The week's dates as `YYYY-MM-DD`, one per column. */
+  dates: string[];
+  tasks: TimesheetTasks;
+  leaves: TimesheetLeave[];
+  holidays: TimesheetHoliday[];
+  workingHour: number;
+  workingFrequency: WorkingFrequency;
+  /** Approval status of the member's week (or of their share of a project). */
+  status?: TimesheetApprovalStatus;
+  /** Turns every day's add-time button off, e.g. for an approved week. */
+  disabled?: boolean;
+  /** Days before this `YYYY-MM-DD` date take no new time. */
+  backdateRestrictedBefore?: string | null;
+  /** Hides the approval button. */
+  hideAction?: boolean;
+  /** Whether the member starts collapsed. */
+  defaultCollapsed?: boolean;
+}
+
+export interface ProjectGroupProps {
+  /** Name of the project. */
+  label: string;
+  /** The week's dates as `YYYY-MM-DD`, one per column. */
+  dates: string[];
+  /** The project's tasks in the week. */
+  tasks: TimesheetTasks;
+  /** Shows no hours: no day cells and an empty total. */
+  hideTime?: boolean;
+  /** Turns every day's add-time button off. */
+  disabled?: boolean;
+  /** Turns off the days that have an approved entry. Default `true`. */
+  lockApproved?: boolean;
+  /** Days before this `YYYY-MM-DD` date take no new time. */
+  backdateRestrictedBefore?: string | null;
+  /** Shows the logged hours in the strong text colour. */
+  highlightTimeEntries?: boolean;
+  /** Whether the project starts collapsed. */
+  defaultCollapsed?: boolean;
+}
+
+export interface TaskWeekRowProps {
+  /** The week's dates as `YYYY-MM-DD`, one per column. */
+  dates: string[];
+  /** The task with its entries for the week. */
+  task: TimesheetTask;
+  /** Turns every day off, e.g. while the member's week is approved or processing. */
+  disabled?: boolean;
+  /** Days before this `YYYY-MM-DD` date take no new time. */
+  backdateRestrictedBefore?: string | null;
+  /** Whether the task is starred. */
+  starred?: boolean;
+  /** Hides the star button. */
+  hideStarButton?: boolean;
+  /** See `TaskRowProps.guard`. */
+  guard?: (action: () => void) => void;
+}
+
+export interface TimeOffWeekRowProps {
+  /** Label for the row. */
+  label?: string;
+  /** The week's dates as `YYYY-MM-DD`, one per column. */
+  dates: string[];
+  leaves: TimesheetLeave[];
+  holidays: TimesheetHoliday[];
+  /** Hours a day off counts as. */
+  dailyHours: number;
+}
+
+export interface LoadMoreRowProps {
+  /** Whether a page is loading. */
+  loading?: boolean;
+  /** Whether there are more rows to load. */
+  hasMore?: boolean;
+  /** Whether nothing has loaded, which shows `emptyText` once loading is done. */
+  empty?: boolean;
+  /** Text for an empty list. */
+  emptyText?: string;
 }
