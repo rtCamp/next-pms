@@ -66,7 +66,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/dashboard/leadership",
     name: "dashboard-leadership",
-    component: WorkInProgress,
+    component: () => import("./pages/dashboard/LeadershipDashboard.vue"),
     meta: {
       title: "Leadership Dashboard",
       roles: ROLE_ACCESS.leadershipDashboard,
@@ -75,7 +75,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/dashboard/manager",
     name: "dashboard-manager",
-    component: WorkInProgress,
+    component: () => import("./pages/dashboard/ManagerDashboard.vue"),
     meta: { title: "Manager Dashboard", roles: ROLE_ACCESS.managerDashboard },
   },
   {
