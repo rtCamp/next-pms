@@ -10,6 +10,8 @@ export const TEAM_WEEKS_PER_PAGE = 12;
 export const TEAM_MEMBER_PAGE_LENGTH = 20;
 /** Weeks per request on the project page. */
 export const PROJECT_WEEKS_PER_PAGE = 12;
+/** Projects per request in a project week. */
+export const PROJECT_PAGE_LENGTH = 4;
 
 /** Statuses the approval-status filter offers, in React's order. */
 export const APPROVAL_FILTER_STATUSES: ApprovalStatusValue[] = [
@@ -64,16 +66,39 @@ const EQUALITY_OPERATORS = [
   { label: "Not Equals", value: "!=" },
 ];
 
+const PROJECT_FILTER_FIELD: FilterField = {
+  fieldCategory: "Timesheet Detail",
+  name: "project",
+  label: "Project",
+  type: "link",
+  link: { doctype: "Project", labelField: "project_name" },
+  operators: EQUALITY_OPERATORS,
+};
+
+const DATE_RANGE_FILTER_FIELD: FilterField = {
+  name: DATE_FILTER_FIELD,
+  label: "Date",
+  type: "daterange",
+};
+
+const MEMBER_FILTER_FIELD: FilterField = {
+  fieldCategory: "Timesheet",
+  name: "employee",
+  label: "Member",
+  type: "link",
+  link: {
+    doctype: "Employee",
+    labelField: "employee_name",
+    customMethod: {
+      method: "next_pms.timesheet.api.employee.get_employee_list",
+    },
+  },
+  operators: EQUALITY_OPERATORS,
+};
+
 /** Fields of the personal page's Filter. */
 export const PERSONAL_TIMESHEET_FILTER_FIELDS: FilterField[] = [
-  {
-    fieldCategory: "Timesheet Detail",
-    name: "project",
-    label: "Project",
-    type: "link",
-    link: { doctype: "Project", labelField: "project_name" },
-    operators: EQUALITY_OPERATORS,
-  },
+  PROJECT_FILTER_FIELD,
   {
     fieldCategory: "Timesheet Detail",
     name: "task",
@@ -82,26 +107,13 @@ export const PERSONAL_TIMESHEET_FILTER_FIELDS: FilterField[] = [
     link: { doctype: "Task", labelField: "subject" },
     operators: EQUALITY_OPERATORS,
   },
-  { name: DATE_FILTER_FIELD, label: "Date", type: "daterange" },
+  DATE_RANGE_FILTER_FIELD,
 ];
 
 /** Fields of the team page's Filter. */
 export const TEAM_TIMESHEET_FILTER_FIELDS: FilterField[] = [
   ...PERSONAL_TIMESHEET_FILTER_FIELDS,
-  {
-    fieldCategory: "Timesheet",
-    name: "employee",
-    label: "Member",
-    type: "link",
-    link: {
-      doctype: "Employee",
-      labelField: "employee_name",
-      customMethod: {
-        method: "next_pms.timesheet.api.employee.get_employee_list",
-      },
-    },
-    operators: EQUALITY_OPERATORS,
-  },
+  MEMBER_FILTER_FIELD,
   {
     fieldCategory: "Employee",
     name: "status",
@@ -135,3 +147,10 @@ export const LEAVE_DURATIONS = [
   "first-half",
   "second-half",
 ] as const;
+
+/** Fields of the project page's Filter. */
+export const PROJECT_TIMESHEET_FILTER_FIELDS: FilterField[] = [
+  PROJECT_FILTER_FIELD,
+  DATE_RANGE_FILTER_FIELD,
+  MEMBER_FILTER_FIELD,
+];
