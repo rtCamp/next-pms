@@ -7,6 +7,8 @@ import { useExpandedWeeks } from "@/pages/timesheet/useExpandedWeeks";
 import TeamTaskLog from "./TeamTaskLog.vue";
 import TeamWeek from "./TeamWeek.vue";
 import { useTeamTimesheet } from "./useTeamTimesheet";
+import type { WeeklyApprovalTarget } from "./weekly-approval/types";
+import WeeklyApprovalDialog from "./weekly-approval/WeeklyApprovalDialog.vue";
 
 defineOptions({ inheritAttrs: false });
 
@@ -20,6 +22,14 @@ const taskLogOpen = computed({
   get: () => selectedTask.value !== null,
   set: (open: boolean) => {
     if (!open) selectedTask.value = null;
+  },
+});
+
+const reviewTarget = ref<WeeklyApprovalTarget | null>(null);
+const reviewOpen = computed({
+  get: () => reviewTarget.value !== null,
+  set: (open: boolean) => {
+    if (!open) reviewTarget.value = null;
   },
 });
 </script>
@@ -58,6 +68,7 @@ const taskLogOpen = computed({
           :filter-args="timesheet.loadedFilterArgs"
           :default-collapsed="index >= expandedWeeks.count"
           @label-click="selectedTask = $event"
+          @review="reviewTarget = $event"
         />
         <LoadMoreRow
           :loading="timesheet.isLoading && !timesheet.isFilterRequest"
@@ -67,6 +78,11 @@ const taskLogOpen = computed({
       </div>
     </div>
   </LoadingOverlay>
+  <WeeklyApprovalDialog
+    v-if="reviewTarget"
+    v-model:open="reviewOpen"
+    :target="reviewTarget"
+  />
   <TeamTaskLog
     v-if="selectedTask"
     v-model:open="taskLogOpen"
