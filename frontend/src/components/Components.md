@@ -44,7 +44,7 @@ across components live in `src/utils/`.
 | `TaskLog/` | `TaskLog` (view), `TaskLogDialog` (loads its data), `useTaskLog`, `TASK_LOG_RANGES`, `DEFAULT_TASK_LOG_RANGE` |
 | `TaskProgress/` | `TaskProgress` |
 | `TaskStatus/` | `TaskStatus`, `TASK_STATUSES`, `TASK_STATUS_ICONS` |
-| `Timesheet/` | Timesheet rows: `HeaderRow`, `WeekRow`, `MemberRow`, `ProjectRow`, `TaskRow`, `TimeOffRow`, `TotalRow`; `TaskCard` (a task's hover card), `APPROVAL_STATUS_BADGE`, `SUBMIT_ACTION_LABEL`, `totalHoursClass` |
+| `Timesheet/` | Timesheet rows: `HeaderRow`, `WeekRow`, `MemberRow`, `ProjectRow`, `TaskRow`, `TimeOffRow`, `TotalRow`; `TaskCard` (a task's hover card), `APPROVAL_STATUS_BADGE`, `SUBMIT_ACTION_LABEL`, `totalHoursClass`; approval and task status helpers (`APPROVAL_STATUS_PARAMS`, `approvalStatusFromParam`, `canSubmitForApproval`, `toApprovalStatus`, `NO_APPROVAL_STATUS`, `toTaskStatus`, `TOTAL_HOURS_THEME`) and the timesheet data types |
 
 Look up props and usage with the Storybook MCP (`docs-list` / `docs-show`), not from this table. Keep the table in
 sync when adding, renaming or removing a component.

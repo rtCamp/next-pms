@@ -26,9 +26,9 @@ const meta = {
     template: `
       <TaskRow v-bind="args">
         <template #card><TaskCard v-bind="card" /></template>
-        <template #entry="{ dayIndex, close, setEngaged }">
+        <template #entry="{ dayIndex, date, close, setEngaged }">
           <div class="flex w-60 flex-col gap-2 p-2">
-            <p class="text-sm text-ink-gray-7">Entries for day {{ dayIndex + 1 }}</p>
+            <p class="text-sm text-ink-gray-7">Entries for day {{ dayIndex + 1 }} ({{ date }})</p>
             <TextInput aria-label="Description" @update:model-value="setEngaged(true)" />
             <Button label="Save" @click="close" />
           </div>
@@ -119,12 +119,12 @@ export const CardOnLabelHover: Story = {
   },
 };
 
-export const CellClickEmitsDay: Story = {
+export const CellClickEmitsDayAndDate: Story = {
   play: async ({ canvasElement, args }) => {
     await userEvent.click(
       within(canvasElement).getByRole("button", { name: "02:30" }),
     );
-    await expect(args.onCellClick).toHaveBeenCalledWith(2);
+    await expect(args.onCellClick).toHaveBeenCalledWith(2, "2025-12-31");
   },
 };
 
@@ -156,17 +156,17 @@ export const LockedCellWithTimeOpens: Story = {
     await userEvent.click(
       within(canvasElement).getByRole("button", { name: "03:00" }),
     );
-    const title = await screen.findByText("Entries for day 1");
+    const title = await screen.findByText("Entries for day 1 (2025-12-29)");
     await waitFor(() => expect(title).toBeVisible());
   },
 };
 
-export const EntryOpensOnPress: Story = {
+export const EntryOpensOnPressWithDate: Story = {
   play: async ({ canvasElement }) => {
     await userEvent.click(
       within(canvasElement).getByRole("button", { name: "02:30" }),
     );
-    const title = await screen.findByText("Entries for day 3");
+    const title = await screen.findByText("Entries for day 3 (2025-12-31)");
     await waitFor(() => expect(title).toBeVisible());
   },
 };

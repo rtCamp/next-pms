@@ -11,6 +11,7 @@ import {
   ROW_CLASS,
   SOLID_ACTION_ICON,
   SUBMIT_ACTION_LABEL,
+  toApprovalStatus,
   totalHoursClass,
 } from "./constants";
 import type { WeekRowProps } from "./types";
@@ -29,13 +30,15 @@ const emit = defineEmits<{
   submit: [];
 }>();
 
+const shownStatus = computed(() => toApprovalStatus(props.status));
+
 const submitLabel = computed(
-  () => props.status && SUBMIT_ACTION_LABEL[props.status],
+  () => shownStatus.value && SUBMIT_ACTION_LABEL[shownStatus.value],
 );
 
 // React greys the resubmit icon on an open, earlier rejected week.
 const actionIconClass = computed(() =>
-  props.status === "Rejected" && !props.thisWeek && !collapsed.value
+  shownStatus.value === "Rejected" && !props.thisWeek && !collapsed.value
     ? "text-ink-gray-5"
     : undefined,
 );
@@ -56,10 +59,10 @@ function splitDate(date: string) {
           {{ label }}
         </span>
         <Badge
-          v-if="status"
+          v-if="shownStatus"
           class="shrink-0"
-          :theme="APPROVAL_STATUS_BADGE[status].theme"
-          :label="APPROVAL_STATUS_BADGE[status].label"
+          :theme="APPROVAL_STATUS_BADGE[shownStatus].theme"
+          :label="APPROVAL_STATUS_BADGE[shownStatus].label"
         />
         <span
           v-if="badgeLabel"
@@ -92,7 +95,7 @@ function splitDate(date: string) {
     </template>
 
     <div
-      v-if="status || !collapsed"
+      v-if="shownStatus || !collapsed"
       :class="[CELL_CLASS, 'text-sm text-ink-gray-5']"
     >
       <span
@@ -106,14 +109,14 @@ function splitDate(date: string) {
 
     <div :class="ACTION_CELL_CLASS">
       <StatusActionButton
-        v-if="status && submitLabel"
-        :status="status"
+        v-if="shownStatus && submitLabel"
+        :status="shownStatus"
         :label="submitLabel"
-        :solid-icon="SOLID_ACTION_ICON[status]"
+        :solid-icon="SOLID_ACTION_ICON[shownStatus]"
         :icon-class="actionIconClass"
         @press="emit('submit')"
       />
-      <ApprovalStatus v-else-if="status" :status="status" />
+      <ApprovalStatus v-else-if="shownStatus" :status="shownStatus" />
     </div>
   </div>
 </template>

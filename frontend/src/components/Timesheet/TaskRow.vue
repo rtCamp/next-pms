@@ -22,8 +22,8 @@ const props = withDefaults(defineProps<TaskRowProps>(), {
 });
 
 const emit = defineEmits<{
-  /** A day's cell was pressed while it accepts time. */
-  cellClick: [dayIndex: number];
+  /** A day's cell was pressed while it accepts time; `date` is the cell's `date`. */
+  cellClick: [dayIndex: number, date: string | undefined];
   /** The star button was pressed. */
   star: [];
   /** The task's name was pressed. */
@@ -40,6 +40,8 @@ defineSlots<{
    */
   entry?: (props: {
     dayIndex: number;
+    /** The cell's `date`. */
+    date: string | undefined;
     close: () => void;
     setEngaged: (engaged: boolean) => void;
   }) => unknown;
@@ -79,7 +81,7 @@ function onCellClick(dayIndex: number) {
   const entry = props.timeEntries[dayIndex];
   if (engaged.value && openDay.value === dayIndex) requestClose();
   else if (canOpen(entry)) openDay.value = dayIndex;
-  if (!entry.disabled) emit("cellClick", dayIndex);
+  if (!entry.disabled) emit("cellClick", dayIndex, entry.date);
 }
 
 function onKeydown(event: KeyboardEvent) {
@@ -179,6 +181,7 @@ function cellClass(entry: TaskRowTimeEntry) {
         <slot
           name="entry"
           :day-index="index"
+          :date="entry.date"
           :close="close"
           :set-engaged="setEngaged"
         />

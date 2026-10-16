@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { expect, userEvent, within } from "storybook/test";
 import WeekRow from "./WeekRow.vue";
 import visual from "./WeekRow.stories";
+import { NO_APPROVAL_STATUS } from "./constants";
 import { PAST_DATES } from "./WeekRow.fixtures";
 
 const meta = {
@@ -166,5 +167,15 @@ export const ShowsBadgeLabel: Story = {
     await expect(
       within(canvasElement).getByText("· 2 pending approvals"),
     ).toBeVisible();
+  },
+};
+
+export const NoneStatusHidesBadgeAndAction: Story = {
+  args: { status: NO_APPROVAL_STATUS, collapsed: true },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.queryByText("Not submitted")).toBeNull();
+    await expect(canvas.getAllByRole("button")).toHaveLength(1);
+    await expect(canvas.queryByText("40:00")).toBeNull();
   },
 };

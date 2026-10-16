@@ -8,7 +8,14 @@ export { default as TimeOffRow } from "./TimeOffRow.vue";
 export { default as TotalRow } from "./TotalRow.vue";
 export {
   APPROVAL_STATUS_BADGE,
+  APPROVAL_STATUS_PARAMS,
+  NO_APPROVAL_STATUS,
   SUBMIT_ACTION_LABEL,
+  TOTAL_HOURS_THEME,
+  approvalStatusFromParam,
+  canSubmitForApproval,
+  toApprovalStatus,
+  toTaskStatus,
   totalHoursClass,
 } from "./constants";
 export type * from "./types";
