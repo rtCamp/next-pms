@@ -75,7 +75,13 @@ function submitForApproval() {
     @submit="submitForApproval"
   >
     <template
-      #default="{ totalHours, totalHoursTheme, totalCells, dailyHours }"
+      #default="{
+        totalHours,
+        totalHoursTheme,
+        totalCells,
+        hoursPerDay,
+        dailyHours,
+      }"
     >
       <TotalRow
         v-if="!hideTotalRow"
@@ -117,6 +123,8 @@ function submitForApproval() {
           :task="task"
           :disabled="disabled"
           :backdate-restricted-before="session.backdateRestrictedBefore"
+          :daily-hours="dailyHours"
+          :hours-per-day="hoursPerDay"
           @label-click="emit('labelClick', $event)"
         />
       </ProjectGroup>
