@@ -6,6 +6,8 @@ import { DATE_FILTER_FIELD } from "./filters";
 export const PERSONAL_WEEKS_PER_PAGE = 4;
 /** Weeks per request on the team page. */
 export const TEAM_WEEKS_PER_PAGE = 12;
+/** Members per request in a team week. */
+export const TEAM_MEMBER_PAGE_LENGTH = 20;
 /** Weeks per request on the project page. */
 export const PROJECT_WEEKS_PER_PAGE = 12;
 
@@ -81,6 +83,50 @@ export const PERSONAL_TIMESHEET_FILTER_FIELDS: FilterField[] = [
     operators: EQUALITY_OPERATORS,
   },
   { name: DATE_FILTER_FIELD, label: "Date", type: "daterange" },
+];
+
+/** Fields of the team page's Filter. */
+export const TEAM_TIMESHEET_FILTER_FIELDS: FilterField[] = [
+  ...PERSONAL_TIMESHEET_FILTER_FIELDS,
+  {
+    fieldCategory: "Timesheet",
+    name: "employee",
+    label: "Member",
+    type: "link",
+    link: {
+      doctype: "Employee",
+      labelField: "employee_name",
+      customMethod: {
+        method: "next_pms.timesheet.api.employee.get_employee_list",
+      },
+    },
+    operators: EQUALITY_OPERATORS,
+  },
+  {
+    fieldCategory: "Employee",
+    name: "status",
+    label: "Member Status",
+    type: "select",
+    options: [
+      { label: "Active", value: "Active" },
+      { label: "Inactive", value: "Inactive" },
+      { label: "Suspended", value: "Suspended" },
+      { label: "Left", value: "Left" },
+    ],
+    // Status is mandatory, so the default empty checks mean nothing here.
+    operators: [
+      { label: "is", value: "=" },
+      { label: "is not", value: "!=" },
+    ],
+  },
+  {
+    fieldCategory: "Employee",
+    name: "custom_business_unit",
+    label: "Business Unit",
+    type: "link",
+    link: { doctype: "Business Unit" },
+    operators: EQUALITY_OPERATORS,
+  },
 ];
 
 /** Leave durations of the time-off dialog, as React kept them. */

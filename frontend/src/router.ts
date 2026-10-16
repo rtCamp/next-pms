@@ -20,8 +20,12 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/timesheet/team",
     name: "timesheet-team",
-    component: WorkInProgress,
-    meta: { title: "Team Timesheet", roles: ROLE_ACCESS.reviewTimesheets },
+    component: () => import("./pages/timesheet/team/TeamTimesheet.vue"),
+    meta: {
+      title: "Team Timesheet",
+      roles: ROLE_ACCESS.reviewTimesheets,
+      scroll: false,
+    },
   },
   {
     path: "/timesheet/project",
