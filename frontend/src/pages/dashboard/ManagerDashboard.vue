@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useSession } from "@/session";
+import CalendarTimelineCard from "./calendar/CalendarTimelineCard.vue";
 import DashboardHeader from "./DashboardHeader.vue";
 import { firstName } from "./greeting";
 import ManagerStatCards from "./stat-cards/ManagerStatCards.vue";
+import WidgetCard from "./WidgetCard.vue";
 
 defineOptions({ inheritAttrs: false });
 
@@ -22,6 +24,9 @@ const greetingName = computed(() =>
       <div class="col-span-12">
         <ManagerStatCards />
       </div>
+      <WidgetCard class="col-span-12">
+        <CalendarTimelineCard />
+      </WidgetCard>
     </section>
   </div>
 </template>

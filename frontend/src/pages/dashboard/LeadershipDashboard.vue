@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useSession } from "@/session";
 import { useSavedState } from "@/composables/useSavedState";
 import { KPI_MONTH_KEY } from "./constants";
+import CalendarTimelineCard from "./calendar/CalendarTimelineCard.vue";
 import DashboardHeader from "./DashboardHeader.vue";
 import { useDashboardCall } from "./dashboardCall";
 import { firstName } from "./greeting";
@@ -46,6 +47,9 @@ const kpis = useDashboardCall<LeadershipKpis>("get_leadership_kpis", () =>
       <div class="col-span-12">
         <LeadershipStatCards />
       </div>
+      <WidgetCard class="col-span-12 gap-3 p-0">
+        <CalendarTimelineCard />
+      </WidgetCard>
     </section>
   </div>
 </template>
