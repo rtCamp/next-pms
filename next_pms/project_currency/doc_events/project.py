@@ -1,3 +1,17 @@
+def validate(doc, method=None):
+    validate_tech_stack(doc)
+
+
+def validate_tech_stack(doc):
+    import frappe
+    from frappe import _
+
+    if doc.custom_billing_type == "Non-Billable" or doc.get("tech_stack"):
+        return
+    if doc.is_new() or doc.has_value_changed("custom_billing_type"):
+        frappe.throw(_("Tech Stack is required for billable projects."), title=_("Missing Tech Stack"))
+
+
 def on_update(doc, method=None):
     share_project_with_employee(doc)
 
