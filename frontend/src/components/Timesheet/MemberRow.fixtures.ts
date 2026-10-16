@@ -7,21 +7,21 @@ export const AVATAR =
   );
 
 export const FULL_WEEK: DayCell[] = [
-  { time: "08:30" },
-  { time: "08:15" },
-  { time: "08:45" },
-  { time: "08:30" },
-  { time: "07:45" },
-  { time: "02:15" },
-  { time: "00:30" },
+  { date: "2025-12-29", time: "08:30" },
+  { date: "2025-12-30", time: "08:15" },
+  { date: "2025-12-31", time: "08:45" },
+  { date: "2026-01-01", time: "08:30" },
+  { date: "2026-01-02", time: "07:45" },
+  { date: "2026-01-03", time: "02:15" },
+  { date: "2026-01-04", time: "00:30" },
 ];
 
 export const PARTIAL_WEEK: DayCell[] = [
-  { time: "01:00" },
-  { time: "02:00" },
-  { time: "03:00" },
-  { time: "" },
-  { time: "04:00" },
-  { time: "", disabled: true },
-  { time: "", disabled: true },
+  { date: "2025-12-29", time: "01:00" },
+  { date: "2025-12-30", time: "02:00" },
+  { date: "2025-12-31", time: "03:00" },
+  { date: "2026-01-01", time: "" },
+  { date: "2026-01-02", time: "04:00" },
+  { date: "2026-01-03", time: "", disabled: true },
+  { date: "2026-01-04", time: "", disabled: true },
 ];

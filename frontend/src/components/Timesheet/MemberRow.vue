@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { Avatar, Badge } from "frappe-ui";
 import RowToggle from "./RowToggle.vue";
 import StatusActionButton from "./StatusActionButton.vue";
@@ -10,11 +11,12 @@ import {
   CELL_CLASS,
   MEMBER_SOLID_ACTION_ICON,
   ROW_CLASS,
+  toApprovalStatus,
   totalHoursClass,
 } from "./constants";
 import type { MemberRowProps } from "./types";
 
-withDefaults(defineProps<MemberRowProps>(), {
+const props = withDefaults(defineProps<MemberRowProps>(), {
   totalHours: "",
   hideAction: false,
 });
@@ -24,9 +26,11 @@ const collapsed = defineModel<boolean>("collapsed", { default: false });
 const emit = defineEmits<{
   /** The member's status button was pressed. */
   action: [];
-  /** A day's add-time button was pressed. */
-  cellClick: [dayIndex: number];
+  /** A day's add-time button was pressed; `date` is the cell's `date`. */
+  cellClick: [dayIndex: number, date: string | undefined];
 }>();
+
+const shownStatus = computed(() => toApprovalStatus(props.status));
 </script>
 
 <template>
@@ -40,10 +44,10 @@ const emit = defineEmits<{
           {{ label }}
         </span>
         <Badge
-          v-if="status"
+          v-if="shownStatus"
           class="shrink-0"
-          :theme="APPROVAL_STATUS_BADGE[status].theme"
-          :label="APPROVAL_STATUS_BADGE[status].label"
+          :theme="APPROVAL_STATUS_BADGE[shownStatus].theme"
+          :label="APPROVAL_STATUS_BADGE[shownStatus].label"
         />
       </div>
     </div>
@@ -57,11 +61,11 @@ const emit = defineEmits<{
         :time="entry.time"
         :disabled="entry.disabled"
         :class="
-          status
+          shownStatus
             ? 'text-base-medium text-ink-gray-8'
             : 'text-base text-ink-gray-6'
         "
-        @click.stop="emit('cellClick', index)"
+        @click.stop="emit('cellClick', index, entry.date)"
       />
     </div>
 
@@ -73,10 +77,10 @@ const emit = defineEmits<{
 
     <div :class="ACTION_CELL_CLASS">
       <StatusActionButton
-        v-if="!hideAction && status"
-        :status="status"
-        :label="APPROVAL_STATUS_BADGE[status].label"
-        :solid-icon="MEMBER_SOLID_ACTION_ICON[status]"
+        v-if="!hideAction && shownStatus"
+        :status="shownStatus"
+        :label="APPROVAL_STATUS_BADGE[shownStatus].label"
+        :solid-icon="MEMBER_SOLID_ACTION_ICON[shownStatus]"
         @press="emit('action')"
       />
     </div>
