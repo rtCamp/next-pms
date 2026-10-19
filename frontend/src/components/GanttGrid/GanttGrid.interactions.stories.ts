@@ -1,5 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
-import { expect, fireEvent, userEvent, waitFor, within } from "storybook/test";
+import {
+  expect,
+  fireEvent,
+  screen,
+  userEvent,
+  waitFor,
+  within,
+} from "storybook/test";
 import GanttGrid from "./GanttGrid.vue";
 import visual from "./GanttGrid.stories";
 import { EMPLOYEES, PROJECTS } from "./GanttGrid.fixtures";
@@ -163,5 +170,50 @@ export const EscapeCancelsAHeaderResize: Story = {
     await waitFor(() => expect(headerWidth(canvasElement)).toBe(340));
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(headerWidth(canvasElement)).toBe(240));
+  },
+};
+
+export const SummaryBarsShowCapacity: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getAllByText("Full").length).toBeGreaterThan(0);
+    await expect(canvas.getByText("2h over")).toBeVisible();
+    await expect(canvas.getByText("2 days off")).toBeVisible();
+    // Chen has nothing booked: free capacity against a 6h day.
+    await expect(canvas.getAllByText("6h free").length).toBeGreaterThan(0);
+  },
+};
+
+export const ExpandedRowsShowAllocationBars: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(toggle(canvasElement, "Dana Ortiz"));
+    await waitFor(() =>
+      expect(canvas.getByText("6h/day for 5 days")).toBeVisible(),
+    );
+    await expect(canvas.getByText("4h/day for 3 days")).toBeVisible();
+    // A zero-hour placeholder still shows where the allocation is.
+    await expect(canvas.getByText("0h/day for 3 days")).toBeVisible();
+  },
+};
+
+export const ProjectSummaryTotalsTheWeek: Story = {
+  args: projectVariant,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getAllByText("50h / week")).toHaveLength(3);
+    await userEvent.click(toggle(canvasElement, "Atlas Redesign"));
+    await waitFor(() =>
+      expect(canvas.getByText("4h/day for 12 days")).toBeVisible(),
+    );
+  },
+};
+
+export const TimeOffBarNamesTheHoliday: Story = {
+  play: async ({ canvasElement }) => {
+    await userEvent.hover(within(canvasElement).getByText("Dussehra"));
+    await waitFor(() =>
+      expect(screen.getByRole("tooltip")).toHaveTextContent("Dussehra"),
+    );
   },
 };

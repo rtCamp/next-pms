@@ -3,9 +3,12 @@ import { computed } from "vue";
 import { Avatar, Badge } from "frappe-ui";
 import { CELL_HEIGHT, COLLAPSE_DURATION_MS } from "./constants";
 import GanttAddRow from "./GanttAddRow.vue";
+import GanttAllocationBar from "./GanttAllocationBar.vue";
 import GanttChildRow from "./GanttChildRow.vue";
 import GanttRowHeader from "./GanttRowHeader.vue";
+import GanttProjectSummaryBar from "./GanttProjectSummaryBar.vue";
 import GanttRowOverlay from "./GanttRowOverlay.vue";
+import GanttTimeoffBar from "./GanttTimeoffBar.vue";
 import type { ProjectRow } from "./rows";
 import { useCollapsiblePresence } from "./useCollapsiblePresence";
 import { useGanttGrid } from "./useGanttGrid";
@@ -65,7 +68,13 @@ function addEmployee() {
       :class="grid.isNextExpanded(index) && 'border-b'"
       :style="{ height: `${CELL_HEIGHT}px` }"
     />
-    <GanttRowOverlay />
+    <GanttRowOverlay>
+      <GanttProjectSummaryBar
+        v-for="bar in row.summaryBars"
+        :key="bar.startDate.getTime()"
+        :bar="bar"
+      />
+    </GanttRowOverlay>
   </tr>
 
   <template v-if="children.rendered.value">
@@ -103,6 +112,21 @@ function addEmployee() {
           </template>
         </GanttRowHeader>
       </template>
+      <GanttAllocationBar
+        v-for="(bar, barIndex) in employee.allocations"
+        :key="`${bar.id ?? barIndex}-${bar.startDate.getTime()}`"
+        :bar="bar"
+      />
+      <GanttTimeoffBar
+        v-for="bar in employee.leaveBars"
+        :key="`leave-${bar.startDate.getTime()}`"
+        :start-date="bar.startDate"
+        :end-date="bar.endDate"
+        :timeoff="bar.timeoff"
+        :holiday="bar.label"
+        :left="bar.barOffset + grid.headerWidth.value"
+        :width="bar.width"
+      />
     </GanttChildRow>
     <GanttAddRow
       v-if="canManage"

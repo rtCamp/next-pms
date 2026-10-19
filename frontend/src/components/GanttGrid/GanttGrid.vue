@@ -101,7 +101,7 @@ function startColumnResize(event: PointerEvent) {
   <!-- eslint-disable better-tailwindcss/no-restricted-classes -- Tailwind 3 has no scrollbar-width utility -->
   <div
     ref="scroller"
-    class="relative size-full overflow-auto [scrollbar-width:none]"
+    class="relative size-full overflow-auto bg-surface-base [scrollbar-width:none]"
   >
     <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
     <div

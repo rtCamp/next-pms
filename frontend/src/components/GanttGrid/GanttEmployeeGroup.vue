@@ -3,9 +3,11 @@ import { computed } from "vue";
 import { Avatar, Badge } from "frappe-ui";
 import { CELL_HEIGHT, COLLAPSE_DURATION_MS } from "./constants";
 import GanttAddRow from "./GanttAddRow.vue";
+import GanttAllocationBar from "./GanttAllocationBar.vue";
 import GanttChildRow from "./GanttChildRow.vue";
 import GanttRowHeader from "./GanttRowHeader.vue";
 import GanttRowOverlay from "./GanttRowOverlay.vue";
+import GanttSummaryBar from "./GanttSummaryBar.vue";
 import type { EmployeeRow } from "./rows";
 import { useCollapsiblePresence } from "./useCollapsiblePresence";
 import { useGanttGrid } from "./useGanttGrid";
@@ -63,7 +65,14 @@ function addProject() {
       :class="grid.isNextExpanded(index) && 'border-b'"
       :style="{ height: `${CELL_HEIGHT}px` }"
     />
-    <GanttRowOverlay />
+    <GanttRowOverlay>
+      <GanttSummaryBar
+        v-for="bar in [...row.freeBars, ...row.summaryBars]"
+        :key="`${bar.type}-${bar.startDate.getTime()}`"
+        :bar="bar"
+        :row="row"
+      />
+    </GanttRowOverlay>
   </tr>
 
   <template v-if="children.rendered.value">
@@ -98,6 +107,11 @@ function addProject() {
           </template>
         </GanttRowHeader>
       </template>
+      <GanttAllocationBar
+        v-for="(bar, barIndex) in project.allocations"
+        :key="`${bar.id ?? barIndex}-${bar.startDate.getTime()}`"
+        :bar="bar"
+      />
     </GanttChildRow>
     <GanttAddRow
       v-if="canManage"
