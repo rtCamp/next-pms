@@ -15,19 +15,13 @@ import { useDashboardCall } from "@/pages/dashboard/dashboardCall";
 import WidgetFilter from "@/pages/dashboard/WidgetFilter.vue";
 import { formatHours } from "@/utils/format";
 import HoursBurnBar from "./HoursBurnBar.vue";
+import {
+  customerOptions as toCustomerOptions,
+  filterByCustomers,
+  type ProjectSummary,
+} from "./projects";
 
 defineOptions({ inheritAttrs: false });
-
-interface ProjectSummary {
-  name: string;
-  project_name: string;
-  customer: string | null;
-  total_hours_purchased: number;
-  actual_time: number;
-  total_hours_remaining: number;
-  billable_hours: number;
-  non_billable_hours: number;
-}
 
 const COLUMNS = [
   { label: "Projects", width: "minmax(0, 1fr)" },
@@ -46,18 +40,14 @@ const selectedCustomers = useSavedState<string[]>(
   [],
 );
 
-const all = computed(() => projects.data ?? []);
-const customerOptions = computed(() =>
-  [...new Set(all.value.map((p) => p.customer).filter(Boolean))].map(
-    (customer) => ({ value: customer as string, label: customer as string }),
+const customerOptions = computed(() => toCustomerOptions(projects.data ?? []));
+const rows = computed(() =>
+  filterByCustomers(
+    projects.data ?? [],
+    selectedCustomers.value,
+    customerOptions.value.length,
   ),
 );
-const rows = computed(() => {
-  const selected = selectedCustomers.value;
-  if (!selected.length || selected.length === customerOptions.value.length)
-    return all.value;
-  return all.value.filter((p) => p.customer && selected.includes(p.customer));
-});
 </script>
 
 <template>

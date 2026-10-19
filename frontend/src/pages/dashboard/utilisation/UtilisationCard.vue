@@ -5,15 +5,14 @@ import { useSavedState } from "@/composables/useSavedState";
 import { UTILISATION_ROLES_KEY } from "@/pages/dashboard/constants";
 import { useDashboardCall } from "@/pages/dashboard/dashboardCall";
 import WidgetFilter from "@/pages/dashboard/WidgetFilter.vue";
+import {
+  filterBySelected,
+  roleOptions as toRoleOptions,
+} from "@/pages/dashboard/roles";
 import { formatHours } from "@/utils/format";
+import { utilisationSlices, type TimeUtilisationRole } from "./utilisation";
 
 defineOptions({ inheritAttrs: false });
-
-interface TimeUtilisationRole {
-  designation: string;
-  billable_hours: number;
-  non_billable_hours: number;
-}
 
 const utilisation = useDashboardCall<{ roles: TimeUtilisationRole[] }>(
   "get_time_utilisation",
@@ -22,25 +21,10 @@ const utilisation = useDashboardCall<{ roles: TimeUtilisationRole[] }>(
 const selectedRoles = useSavedState<string[]>(UTILISATION_ROLES_KEY, []);
 
 const roles = computed(() => utilisation.data?.roles ?? []);
-const roleOptions = computed(() =>
-  roles.value.map((role) => ({
-    value: role.designation,
-    label: role.designation,
-  })),
+const roleOptions = computed(() => toRoleOptions(roles.value));
+const slices = computed(() =>
+  utilisationSlices(filterBySelected(roles.value, selectedRoles.value)),
 );
-const slices = computed(() => {
-  const visible = selectedRoles.value.length
-    ? roles.value.filter((role) =>
-        selectedRoles.value.includes(role.designation),
-      )
-    : roles.value;
-  const sum = (key: "billable_hours" | "non_billable_hours") =>
-    visible.reduce((total, role) => total + role[key], 0);
-  return [
-    { category: "Billable hours", hours: sum("billable_hours") },
-    { category: "Non-billable hours", hours: sum("non_billable_hours") },
-  ];
-});
 </script>
 
 <template>

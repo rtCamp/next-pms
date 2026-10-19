@@ -4,6 +4,10 @@ import { Skeleton } from "frappe-ui";
 import { useSavedState } from "@/composables/useSavedState";
 import { FORECAST_ROLES_KEY } from "@/pages/dashboard/constants";
 import { useDashboardCall } from "@/pages/dashboard/dashboardCall";
+import {
+  filterBySelected,
+  roleOptions as toRoleOptions,
+} from "@/pages/dashboard/roles";
 import WidgetFilter from "@/pages/dashboard/WidgetFilter.vue";
 import { forecastSegments, type ForecastRole } from "./forecast";
 
@@ -16,20 +20,9 @@ const forecast = useDashboardCall<{ roles: ForecastRole[] }>(
 const selectedRoles = useSavedState<string[]>(FORECAST_ROLES_KEY, []);
 
 const roles = computed(() => forecast.data?.roles ?? []);
-const roleOptions = computed(() =>
-  roles.value.map((role) => ({
-    value: role.designation,
-    label: role.designation,
-  })),
-);
+const roleOptions = computed(() => toRoleOptions(roles.value));
 const segments = computed(() =>
-  forecastSegments(
-    selectedRoles.value.length
-      ? roles.value.filter((role) =>
-          selectedRoles.value.includes(role.designation),
-        )
-      : roles.value,
-  ),
+  forecastSegments(filterBySelected(roles.value, selectedRoles.value)),
 );
 </script>
 

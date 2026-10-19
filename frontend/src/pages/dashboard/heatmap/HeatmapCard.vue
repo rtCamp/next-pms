@@ -5,6 +5,10 @@ import { cva } from "class-variance-authority";
 import { useSavedState } from "@/composables/useSavedState";
 import { HEATMAP_ROLES_KEY } from "@/pages/dashboard/constants";
 import { useDashboardCall } from "@/pages/dashboard/dashboardCall";
+import {
+  filterBySelected,
+  roleOptions as toRoleOptions,
+} from "@/pages/dashboard/roles";
 import WidgetFilter from "@/pages/dashboard/WidgetFilter.vue";
 import {
   HEATMAP_LEGEND,
@@ -36,18 +40,10 @@ const stopDefaults = watch(
   },
 );
 
-const roleOptions = computed(() =>
-  (heatmap.data?.roles ?? []).map((role) => ({
-    value: role.designation,
-    label: role.designation,
-  })),
+const roleOptions = computed(() => toRoleOptions(heatmap.data?.roles ?? []));
+const visibleRoles = computed(() =>
+  filterBySelected(heatmap.data?.roles ?? [], selectedRoles.value),
 );
-const visibleRoles = computed(() => {
-  const roles = heatmap.data?.roles ?? [];
-  return selectedRoles.value.length
-    ? roles.filter((role) => selectedRoles.value.includes(role.designation))
-    : roles;
-});
 const months = computed(() => monthGroups(heatmap.data?.weeks ?? []));
 
 const stateClass = cva("", {
