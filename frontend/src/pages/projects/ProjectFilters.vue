@@ -214,7 +214,18 @@ const externalFilterCount = computed(
         :options="currencyOptions"
         placeholder="Currency"
         aria-label="Currency"
-      />
+      >
+        <template v-if="currency" #suffix="{ clear }">
+          <button
+            type="button"
+            class="inline-flex shrink-0 items-center justify-center rounded-1 text-ink-gray-6 outline-none hover:text-ink-gray-8 focus-visible:ring focus-visible:ring-outline-gray-3"
+            aria-label="Clear currency"
+            @click.stop="clear()"
+          >
+            <span class="lucide-x size-4" aria-hidden="true" />
+          </button>
+        </template>
+      </Combobox>
       <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- aria-label reaches frappe-ui's trigger -->
       <Select
         v-model="phase"
