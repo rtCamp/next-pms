@@ -19,6 +19,7 @@ import InvoiceBurnWidget from "./InvoiceBurnWidget.vue";
 import ContractsWidget from "./ContractsWidget.vue";
 import { applyHiddenWidgets, defaultLayout, hiddenWidgets } from "./layout";
 import LifetimeWidget from "./LifetimeWidget.vue";
+import RatesWidget from "./RatesWidget.vue";
 import TaskCompletionWidget from "./TaskCompletionWidget.vue";
 import TrackingSkeleton from "./TrackingSkeleton.vue";
 import type { WidgetKey } from "./types";
@@ -31,7 +32,7 @@ interface WidgetEntry {
   props?: Record<string, unknown>;
 }
 
-const WIDGETS: Partial<Record<WidgetKey, WidgetEntry>> = {
+const WIDGETS: Record<WidgetKey, WidgetEntry> = {
   financials: { component: FinancialsWidget },
   task_completion: { component: TaskCompletionWidget },
   hours_usage: { component: HoursUsageWidget },
@@ -50,6 +51,7 @@ const WIDGETS: Partial<Record<WidgetKey, WidgetEntry>> = {
     },
   },
   contracts: { component: ContractsWidget },
+  rates: { component: RatesWidget },
   lifetime_vs_billed: {
     component: LifetimeWidget,
     props: {
@@ -152,25 +154,23 @@ async function saveHidden(next: WidgetKey[]) {
       :class="cn('grid gap-3', ROW_COLUMNS[row.length])"
     >
       <template v-for="key in row" :key="key">
-        <template v-if="WIDGETS[key]">
-          <WidgetShell
-            v-if="editing && customizable(key)"
-            :label="customizable(key)!.label"
-            @remove="remove(key, customizable(key)!.label)"
-          >
-            <component
-              :is="WIDGETS[key]!.component"
-              v-bind="WIDGETS[key]!.props"
-              :layout="row.length === 1 ? 'row' : 'stacked'"
-            />
-          </WidgetShell>
+        <WidgetShell
+          v-if="editing && customizable(key)"
+          :label="customizable(key)!.label"
+          @remove="remove(key, customizable(key)!.label)"
+        >
           <component
-            :is="WIDGETS[key]!.component"
-            v-else
-            v-bind="WIDGETS[key]!.props"
+            :is="WIDGETS[key].component"
+            v-bind="WIDGETS[key].props"
             :layout="row.length === 1 ? 'row' : 'stacked'"
           />
-        </template>
+        </WidgetShell>
+        <component
+          :is="WIDGETS[key].component"
+          v-else
+          v-bind="WIDGETS[key].props"
+          :layout="row.length === 1 ? 'row' : 'stacked'"
+        />
       </template>
     </div>
 

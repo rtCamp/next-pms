@@ -29,6 +29,15 @@ export interface ProjectBudget {
   sales_invoice?: string;
 }
 
+/** A row of the Project's `custom_project_billing_team`: a member's rate. */
+export interface ProjectBillingTeam {
+  name?: string;
+  employee: string;
+  user_name?: string;
+  hourly_billing_rate?: number;
+  valid_from: string;
+}
+
 /** The fields of a `Project` this page reads. */
 export interface ProjectDoc {
   name: string;
@@ -42,4 +51,5 @@ export interface ProjectDoc {
   customer?: string;
   custom_currency?: string;
   custom_project_budget_hours?: ProjectBudget[];
+  custom_project_billing_team?: ProjectBillingTeam[];
 }
