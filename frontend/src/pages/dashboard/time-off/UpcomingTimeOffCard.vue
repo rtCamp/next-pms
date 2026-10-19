@@ -32,13 +32,12 @@ const approving = ref<EmployeeOnLeave | null>(null);
 const rejecting = ref<EmployeeOnLeave | null>(null);
 
 async function settle(
-  request: Promise<unknown>,
-  failed: () => unknown,
+  request: () => Promise<unknown>,
   message: string,
 ): Promise<boolean> {
-  await request;
-  const error = failed();
-  if (error) {
+  try {
+    await request();
+  } catch (error) {
     toast.error(errorMessage(error));
     return false;
   }
@@ -47,18 +46,16 @@ async function settle(
   return true;
 }
 
-function approve(name: string) {
+function approve(leaveId: string) {
   return settle(
-    approveCall.submit({ name }),
-    () => approveCall.error,
+    () => approveCall.submit({ name: leaveId }),
     "Leave application approved",
   );
 }
 
-function reject(name: string, reason: string) {
+function reject(leaveId: string, reason: string) {
   return settle(
-    rejectCall.submit({ name, reason }),
-    () => rejectCall.error,
+    () => rejectCall.submit({ name: leaveId, reason }),
     "Leave application rejected",
   );
 }

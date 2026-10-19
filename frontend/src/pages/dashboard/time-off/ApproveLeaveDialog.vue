@@ -7,7 +7,7 @@ import type { EmployeeOnLeave } from "./leaves";
 const props = defineProps<{
   leave: EmployeeOnLeave | null;
   /** Resolves `true` once the leave is approved. */
-  approve: (name: string) => Promise<boolean>;
+  approve: (leaveId: string) => Promise<boolean>;
 }>();
 
 const emit = defineEmits<{ close: [] }>();
