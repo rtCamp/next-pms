@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { Spinner, toast } from "frappe-ui";
+import { Button, Spinner, toast } from "frappe-ui";
 import { move } from "@dnd-kit/helpers";
 import {
   DragDropProvider,
@@ -84,8 +84,15 @@ async function onDragEnd(event: DragEndEvent) {
 </script>
 
 <template>
-  <div v-if="!kanban.loaded" class="flex h-64 items-center justify-center">
-    <Spinner class="size-6" />
+  <div
+    v-if="!kanban.loaded"
+    class="flex h-64 flex-col items-center justify-center gap-3"
+  >
+    <template v-if="kanban.failed && !kanban.loading">
+      <p class="text-base text-ink-gray-6">Couldn't load the projects.</p>
+      <Button label="Retry" @click="kanban.reload()" />
+    </template>
+    <Spinner v-else class="size-6" />
   </div>
   <DragDropProvider
     v-else

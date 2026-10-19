@@ -23,6 +23,7 @@ export function useProjectKanban() {
 
   const data = ref<ProjectKanbanResponse["data"]>({});
   const loaded = ref(false);
+  const failed = ref(false);
   /** A card is being dragged; realtime reloads wait until it lands. */
   const dragging = ref(false);
   let latestRequest = 0;
@@ -42,6 +43,7 @@ export function useProjectKanban() {
     // submit() rejects when the request fails; the error is read from the call below.
     const response = await kanban.submit(queryParams.value).catch(() => null);
     if (request !== latestRequest) return;
+    failed.value = !response;
     if (!response) {
       toast.error(errorMessage(kanban.error));
       return;
@@ -68,6 +70,8 @@ export function useProjectKanban() {
   return reactive({
     data,
     loaded,
+    /** The last load failed; the board shows the previous data, if any. */
+    failed,
     loading: computed(() => kanban.loading),
     dragging,
     reload,
