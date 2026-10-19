@@ -17,6 +17,7 @@ import { queryString } from "@/utils/query";
 import { DEFAULT_TAB, TAB_PARAM, type ProjectTabKey } from "./constants";
 import EmailTab from "./email/EmailTab.vue";
 import ProjectDetailsHeader from "./ProjectDetailsHeader.vue";
+import RagStatsTab from "./rag-stats/RagStatsTab.vue";
 import { selectedTab, visibleTabs } from "./tabs";
 import { provideProjectDetails } from "./useProjectDetails";
 
@@ -24,6 +25,7 @@ defineOptions({ inheritAttrs: false });
 
 const TAB_PANELS: Partial<Record<ProjectTabKey, Component>> = {
   email: EmailTab,
+  "rag-stats": RagStatsTab,
 };
 
 const route = useRoute();
