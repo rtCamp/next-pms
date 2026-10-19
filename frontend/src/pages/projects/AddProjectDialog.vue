@@ -165,8 +165,6 @@ function close() {
 </script>
 
 <template>
-  <!-- React's dialog sat 120px from the top; frappe-ui adds a 32px margin above the
-       panel, hence 88. -->
   <Dialog
     v-model:open="open"
     title="Add Project"
