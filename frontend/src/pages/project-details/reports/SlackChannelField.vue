@@ -83,21 +83,23 @@ async function save() {
   <div class="flex flex-col gap-1.5">
     <FormLabel id="slack-channel" label="Slack Channel" />
     <div class="flex items-center gap-2">
-      <Combobox
-        id="slack-channel"
-        v-model:query="query"
-        class="flex-1"
-        :model-value="current || null"
-        :options="lookup.options"
-        :loading="lookup.loading"
-        :filterable="false"
-        :disabled="!editing || saving"
-        :placeholder="editing ? 'Select channel' : 'Not set'"
-        empty-text="No channels found"
-        open-on-focus
-        variant="outline"
-        @update:model-value="select"
-      />
+      <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -- Enter picks a channel; it must not also submit the report form around this field -->
+      <div class="min-w-0 flex-1" @keydown.enter.prevent>
+        <Combobox
+          id="slack-channel"
+          v-model:query="query"
+          :model-value="current || null"
+          :options="lookup.options"
+          :loading="lookup.loading"
+          :filterable="false"
+          :disabled="!editing || saving"
+          :placeholder="editing ? 'Select channel' : 'Not set'"
+          empty-text="No channels found"
+          open-on-focus
+          variant="outline"
+          @update:model-value="select"
+        />
+      </div>
       <template v-if="editing">
         <Button
           variant="ghost"
