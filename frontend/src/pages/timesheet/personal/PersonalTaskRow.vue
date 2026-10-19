@@ -52,8 +52,8 @@ const starred = computed(() => like.liked);
       <InlineTimeEntry
         :key="`${taskKey}-${date}`"
         :date="date"
-        :employee="session.employee ?? ''"
-        :task-key="taskKey"
+        :employee-id="session.employee ?? ''"
+        :task-id="taskKey"
         :entries="entries"
         :cell="cell"
         :disabled="cell.disabled"

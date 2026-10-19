@@ -38,8 +38,8 @@ const unsavedChanges = useUnsavedChanges();
       <InlineTimeEntry
         :key="`${taskKey}-${date}`"
         :date="date"
-        :employee="employeeId"
-        :task-key="taskKey"
+        :employee-id="employeeId"
+        :task-id="taskKey"
         :entries="entries"
         :cell="cell"
         :disabled="cell.disabled"

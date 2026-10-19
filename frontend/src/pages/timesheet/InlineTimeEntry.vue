@@ -26,9 +26,9 @@ const props = withDefaults(
     /** The day, `YYYY-MM-DD`. */
     date: string;
     /** Employee the time is logged for. */
-    employee: string;
+    employeeId: string;
     /** Task ID the time is logged against. */
-    taskKey: string;
+    taskId: string;
     /** The task's entries on the day. */
     entries: TimeEntry[];
     /** The day's cell, for its non-billable mark. */
@@ -205,7 +205,7 @@ async function submit() {
           {
             name: entry.name,
             parent: entry.parent,
-            task: props.taskKey,
+            task: props.taskId,
             date: form.date,
             description: form.comment,
             hours: form.duration,
@@ -214,13 +214,13 @@ async function submit() {
         ],
       });
       toast.success("Time Entry updated successfully");
-    } else if (props.employee && props.date) {
+    } else if (props.employeeId && props.date) {
       await saveCall.submit({
         date: form.date,
         description: form.comment,
-        task: props.taskKey,
+        task: props.taskId,
         hours: form.duration,
-        employee: props.employee,
+        employee: props.employeeId,
       });
       toast.success("Time Entry submitted successfully");
     }
