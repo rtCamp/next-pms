@@ -58,7 +58,7 @@ src/
                    pages/projects/ also has kanban/ and views/ (saved views)
   components/      components frappe-ui lacks, one folder each; see components/Components.md
   composables/     shared use* composables: lookups, the like toggle, URL query updates, editor attributes,
-                   infinite scroll, project phases
+                   values saved in localStorage (useSavedState), notifications, infinite scroll, project phases
   icons/           custom icons lucide lacks, as Vue SFCs exported from icons/index.ts; everything else uses lucide-* (P4)
   utils/           helpers shared by components and pages (date.ts, text.ts, cn.ts); add one only when something needs it
 ```

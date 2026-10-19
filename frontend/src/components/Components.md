@@ -35,7 +35,7 @@ across components live in `src/utils/`.
 | `Filter/` | `Filter`, `FilterLinkValue` (the `#link-value` input: searches the field's doctype or `customMethod`), `DEFAULT_OPERATORS` |
 | `LoadingOverlay/` | `LoadingOverlay` |
 | `MonthPicker/` | `MonthPicker` |
-| `NotificationTray/` | `NotificationTray` |
+| `NotificationTray/` | `NotificationTray`, `notificationIcon` |
 | `PhaseIcon/` | `PhaseIcon` (a project phase's colour), `PROJECT_PHASE_COLORS` |
 | `ProgressBar/` | `ProgressBar` |
 | `RichText/` | `RichText` (read-only editor HTML, e.g. comments) |

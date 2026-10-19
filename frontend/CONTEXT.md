@@ -83,6 +83,18 @@ _Avoid_: report (a `Project Report` is a separate doctype), note.
 (`PMS Growth Initiative`).
 _Avoid_: opportunity, lead.
 
+## Dashboards
+
+**Leadership / Manager dashboard** — the two overview pages (`/dashboard/leadership`, `/dashboard/manager`),
+each a grid of widgets. The manager dashboard's breadcrumb reads "Management".
+
+**Widget** — one card on a dashboard (KPI card, stat card, heatmap, calendar timeline…). Its filter is saved in
+`localStorage` under the React app's key.
+_Avoid_: tile, panel, card (for the whole widget; `WidgetCard` is only its frame).
+
+**Notification** — a `NextPMS Notifications` record for the signed-in user, read in the dashboard widget and the
+notification tray (`useNotifications`).
+
 ## App
 
 **Boot data** — the session data the server puts on `window.boot` (user, site name, timezones, feature flags).
