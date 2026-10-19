@@ -28,6 +28,9 @@ import { computed } from "vue";
 import { cn } from "@/utils/cn";
 import { BAR_HEIGHT, BAR_MARGIN, CELL_HEIGHT } from "./constants";
 import GanttCrosshatch from "./GanttCrosshatch.vue";
+import type { ResizeEdge } from "./geometry";
+
+const EDGES: ResizeEdge[] = ["start", "end"];
 
 const props = withDefaults(
   defineProps<{
@@ -49,9 +52,12 @@ const props = withDefaults(
      * row's "+" looks for free days.
      */
     passive?: boolean;
+    /** Shows grips on both edges that start a resize. */
+    resizable?: boolean;
   }>(),
   {
     label: "",
+    resizable: false,
     crosshatch: false,
     billable: undefined,
     ai: false,
@@ -59,6 +65,11 @@ const props = withDefaults(
     passive: false,
   },
 );
+
+const emit = defineEmits<{
+  /** An edge's grip was pressed. */
+  resizeStart: [edge: ResizeEdge, event: PointerEvent];
+}>();
 
 defineSlots<{
   /** Replaces the label, the "Ai" tag and the billable dot. */
@@ -108,6 +119,25 @@ const hatched = computed(
         aria-hidden="true"
       />
     </slot>
+    <template v-if="resizable && !passive">
+      <span
+        v-for="edge in EDGES"
+        :key="edge"
+        class="absolute inset-y-0 flex w-2.5 shrink-0 cursor-ew-resize touch-none items-center"
+        :class="
+          edge === 'start'
+            ? 'left-0 justify-start pl-1'
+            : 'right-0 justify-end pr-1'
+        "
+        aria-hidden="true"
+        @pointerdown="emit('resizeStart', edge, $event)"
+        @click.stop
+      >
+        <span
+          class="pointer-events-none block h-4 w-0.5 shrink-0 rounded-8 bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100"
+        />
+      </span>
+    </template>
     <span
       v-if="outline"
       class="pointer-events-none absolute inset-0 inline-flex rounded-4 border border-dashed border-outline-amber-6"

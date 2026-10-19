@@ -9,11 +9,13 @@ import GanttEmployeeCard from "./GanttEmployeeCard.vue";
 import GanttProjectCard from "./GanttProjectCard.vue";
 import GanttRowHeader from "./GanttRowHeader.vue";
 import GanttProjectSummaryBar from "./GanttProjectSummaryBar.vue";
+import GanttRowDraft from "./GanttRowDraft.vue";
 import GanttRowOverlay from "./GanttRowOverlay.vue";
 import GanttTimeoffBar from "./GanttTimeoffBar.vue";
 import type { ProjectRow } from "./rows";
 import { useCollapsiblePresence } from "./useCollapsiblePresence";
 import { useGanttGrid } from "./useGanttGrid";
+import { useRowDraft } from "./useRowDraft";
 
 defineOptions({ inheritAttrs: false });
 
@@ -36,6 +38,16 @@ const children = useCollapsiblePresence(
   COLLAPSE_DURATION_MS,
 );
 
+const draft = useRowDraft({
+  enabled: () => canManage.value,
+  occupied: () => props.row.summaryBars,
+  target: () => ({
+    projectId: props.row.id,
+    projectName: props.row.name,
+    customerName: props.row.customer,
+  }),
+});
+
 function addEmployee() {
   grid.emit("add", {
     projectId: props.row.id,
@@ -46,7 +58,12 @@ function addEmployee() {
 </script>
 
 <template>
-  <tr class="touch-pan-y">
+  <tr
+    class="touch-pan-y"
+    @pointermove="draft.onPointerMove"
+    @pointerdown="draft.onPointerDown"
+    @pointerleave="draft.onPointerLeave"
+  >
     <GanttRowHeader
       :label="row.name"
       top-level
@@ -80,6 +97,7 @@ function addEmployee() {
         :bar="bar"
         :row="row"
       />
+      <GanttRowDraft :draft="draft" />
     </GanttRowOverlay>
   </tr>
 
@@ -89,6 +107,14 @@ function addEmployee() {
       :key="employee.id ?? employee.name"
       :visible="children.visible.value"
       :bottom-border="employeeIndex === row.employees.length - 1 && !canManage"
+      :occupied="[...employee.allocations, ...employee.leaveBars]"
+      :target="{
+        employeeId: employee.id,
+        employeeName: employee.name,
+        projectId: row.id,
+        projectName: row.name,
+        customerName: row.customer,
+      }"
       @transitionend="children.onTransitionEnd"
     >
       <template #header="{ height }">

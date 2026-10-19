@@ -7,11 +7,13 @@ import GanttAllocationBar from "./GanttAllocationBar.vue";
 import GanttChildRow from "./GanttChildRow.vue";
 import GanttEmployeeCard from "./GanttEmployeeCard.vue";
 import GanttRowHeader from "./GanttRowHeader.vue";
+import GanttRowDraft from "./GanttRowDraft.vue";
 import GanttRowOverlay from "./GanttRowOverlay.vue";
 import GanttSummaryBar from "./GanttSummaryBar.vue";
 import type { EmployeeRow } from "./rows";
 import { useCollapsiblePresence } from "./useCollapsiblePresence";
 import { useGanttGrid } from "./useGanttGrid";
+import { useRowDraft } from "./useRowDraft";
 
 defineOptions({ inheritAttrs: false });
 
@@ -31,6 +33,12 @@ const children = useCollapsiblePresence(
   COLLAPSE_DURATION_MS,
 );
 
+const draft = useRowDraft({
+  enabled: () => canManage.value,
+  occupied: () => props.row.summaryBars,
+  target: () => ({ employeeId: props.row.id, employeeName: props.row.name }),
+});
+
 function addProject() {
   grid.emit("add", {
     employeeId: props.row.id,
@@ -40,7 +48,12 @@ function addProject() {
 </script>
 
 <template>
-  <tr class="touch-pan-y">
+  <tr
+    class="touch-pan-y"
+    @pointermove="draft.onPointerMove"
+    @pointerdown="draft.onPointerDown"
+    @pointerleave="draft.onPointerLeave"
+  >
     <GanttRowHeader
       :label="row.name"
       top-level
@@ -76,6 +89,7 @@ function addProject() {
         :bar="bar"
         :row="row"
       />
+      <GanttRowDraft :draft="draft" />
     </GanttRowOverlay>
   </tr>
 
@@ -85,6 +99,14 @@ function addProject() {
       :key="project.id ?? project.name"
       :visible="children.visible.value"
       :bottom-border="projectIndex === row.projects.length - 1 && !canManage"
+      :occupied="project.allocations"
+      :target="{
+        employeeId: row.id,
+        employeeName: row.name,
+        projectId: project.id,
+        projectName: project.name,
+        customerName: project.customer,
+      }"
       @transitionend="children.onTransitionEnd"
     >
       <template #header="{ height }">

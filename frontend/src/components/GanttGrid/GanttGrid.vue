@@ -180,6 +180,20 @@ function startColumnResize(event: PointerEvent) {
         </tbody>
       </table>
 
+      <button
+        type="button"
+        tabindex="-1"
+        aria-hidden="true"
+        class="absolute bottom-0 right-0 z-10 bg-surface-base/50 transition-opacity duration-150 ease-out"
+        :class="
+          grid.activeEdit.value
+            ? 'pointer-events-auto cursor-pointer opacity-100'
+            : 'pointer-events-none opacity-0'
+        "
+        :style="{ top: `${HEADER_HEIGHT}px`, left: `${headerWidth}px` }"
+        @click="grid.guard()"
+      />
+
       <div class="pointer-events-none absolute inset-0 z-50">
         <div class="sticky left-0 top-0 h-full w-0">
           <div

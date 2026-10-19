@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { fn } from "storybook/test";
+import { UnsavedChangesDialog } from "@/components/UnsavedChangesDialog";
+import { provideUnsavedChanges } from "@/composables/useUnsavedChanges";
 import GanttGrid from "./GanttGrid.vue";
 import {
   EMPLOYEES,
@@ -13,6 +15,22 @@ const meta = {
   component: GanttGrid,
   tags: ["autodocs"],
   parameters: { layout: "fullscreen" },
+  // The page provides the unsaved-changes guard a pending resize or draft registers with.
+  decorators: [
+    (story) => ({
+      components: { story, UnsavedChangesDialog },
+      setup: () => ({ unsaved: provideUnsavedChanges() }),
+      template: `
+        <story />
+        <UnsavedChangesDialog
+          :open="unsaved.dialogOpen.value"
+          @keep-editing="unsaved.keepEditing()"
+          @discard="unsaved.discardChanges()"
+          @save="unsaved.saveChanges()"
+        />
+      `,
+    }),
+  ],
   args: {
     variant: "team",
     startDate: START_DATE,

@@ -1,14 +1,21 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { CELL_HEIGHT } from "./constants";
+import GanttRowDraft from "./GanttRowDraft.vue";
 import GanttRowOverlay from "./GanttRowOverlay.vue";
+import type { BarMetrics } from "./geometry";
 import { useGanttGrid } from "./useGanttGrid";
+import { useRowDraft, type DraftTarget } from "./useRowDraft";
 
 const props = defineProps<{
   /** The row is open; while it animates closed it can't be reached. */
   visible: boolean;
   /** The last child with no add row below it draws the group's bottom border. */
   bottomBorder: boolean;
+  /** Bars that take their days, so a new allocation can't be drawn there. */
+  occupied: BarMetrics[];
+  /** Who and what an allocation drawn in the row is for. */
+  target: DraftTarget;
 }>();
 
 defineSlots<{
@@ -20,6 +27,11 @@ defineSlots<{
 
 const grid = useGanttGrid();
 const height = computed(() => (props.visible ? CELL_HEIGHT : 0));
+const draft = useRowDraft({
+  enabled: () => grid.hasRoleAccess.value && props.visible,
+  occupied: () => props.occupied,
+  target: () => props.target,
+});
 </script>
 
 <template>
@@ -27,6 +39,9 @@ const height = computed(() => (props.visible ? CELL_HEIGHT : 0));
     class="touch-pan-y"
     :class="!visible && 'pointer-events-none'"
     :aria-hidden="!visible || undefined"
+    @pointermove="draft.onPointerMove"
+    @pointerdown="draft.onPointerDown"
+    @pointerleave="draft.onPointerLeave"
   >
     <slot name="header" :height="height" />
     <td
@@ -42,6 +57,7 @@ const height = computed(() => (props.visible ? CELL_HEIGHT : 0));
     />
     <GanttRowOverlay :height="height">
       <slot v-if="visible" />
+      <GanttRowDraft :draft="draft" />
     </GanttRowOverlay>
   </tr>
 </template>

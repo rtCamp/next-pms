@@ -5,13 +5,24 @@ import {
   reactive,
   readonly,
   ref,
+  shallowRef,
   watch,
   type InjectionKey,
 } from "vue";
+import {
+  useUnsavedChanges,
+  useUnsavedChangesSource,
+} from "@/composables/useUnsavedChanges";
 import { MIN_ROW_HEADER_WIDTH, ROW_HEADER_WIDTH } from "./constants";
 import { buildTimeline, columnWidthFor, type TimelineRange } from "./geometry";
 import { prepareEmployeeRows, prepareProjectRows } from "./rows";
 import type { GanttGridEmits, GanttGridProps } from "./types";
+
+/** A resized bar or a draft waiting for Save or Cancel. */
+export interface ActiveEdit {
+  save: () => void;
+  discard: () => void;
+}
 
 type Emit = <E extends keyof GanttGridEmits>(
   event: E,
@@ -22,6 +33,15 @@ function createGanttGrid(props: Readonly<GanttGridProps>, emit: Emit) {
   const headerWidth = ref(ROW_HEADER_WIDTH);
   const containerWidth = ref(0);
   const expanded = reactive(new Set<string>());
+  const activeEdit = shallowRef<ActiveEdit | null>(null);
+
+  const unsaved = useUnsavedChanges();
+  useUnsavedChangesSource({
+    hasUnsavedChanges: () => activeEdit.value !== null,
+    // Saving opens the page's dialog, so there is no saved moment to continue from.
+    saveChanges: () => activeEdit.value?.save(),
+    discardChanges: () => activeEdit.value?.discard(),
+  });
 
   const variant = computed(() => props.variant);
   const showWeekend = computed(() => props.showWeekend ?? true);
@@ -91,10 +111,16 @@ function createGanttGrid(props: Readonly<GanttGridProps>, emit: Emit) {
   }
 
   function toggleRow(key: string) {
-    const expanding = !expanded.has(key);
-    if (expanding) expanded.add(key);
-    else expanded.delete(key);
-    emit("toggle", key, expanding);
+    if (!expanded.has(key)) {
+      expanded.add(key);
+      emit("toggle", key, true);
+      return;
+    }
+    // Collapsing can unmount an edited bar, so it waits on unsaved changes.
+    unsaved.requestGuardedAction(() => {
+      expanded.delete(key);
+      emit("toggle", key, false);
+    });
   }
 
   /** Whether the row after `index` is expanded while this one isn't, for its bottom border. */
@@ -124,6 +150,15 @@ function createGanttGrid(props: Readonly<GanttGridProps>, emit: Emit) {
     isExpanded,
     isNextExpanded,
     toggleRow,
+    activeEdit: readonly(activeEdit),
+    setActiveEdit: (edit: ActiveEdit) => {
+      activeEdit.value = edit;
+    },
+    clearActiveEdit: (edit: ActiveEdit) => {
+      if (activeEdit.value === edit) activeEdit.value = null;
+    },
+    /** Runs `action`, or asks about the unsaved edit first. */
+    guard: (action?: () => void) => unsaved.requestGuardedAction(action),
     emit,
   };
 }
@@ -132,7 +167,11 @@ export type GanttGridContext = ReturnType<typeof createGanttGrid>;
 
 const ganttGridKey: InjectionKey<GanttGridContext> = Symbol("ganttGrid");
 
-/** Creates the grid's shared state from its props and provides it to its rows and bars. */
+/**
+ * Creates the grid's shared state from its props and provides it to its rows and bars.
+ * Needs `provideUnsavedChanges()` above the grid: a pending resize or draft is the
+ * page's unsaved change.
+ */
 export function provideGanttGrid(
   props: Readonly<GanttGridProps>,
   emit: Emit,
