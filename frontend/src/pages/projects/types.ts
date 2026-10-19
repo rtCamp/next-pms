@@ -47,7 +47,7 @@ export interface ProjectListItem {
   rag_status?: string | null;
   phase: string | null;
   billing_type: string | null;
-  currency: string;
+  currency: string | null;
   project_type: string | null;
   burn_rate_per_week: number | null;
   cost_burn: CostBurn;

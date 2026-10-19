@@ -64,6 +64,11 @@ describe("formatCurrency", () => {
     expect(formatCurrency(1234567.5)).toBe("₹12,34,567.50");
   });
 
+  it("treats a missing currency as INR", () => {
+    expect(formatCurrency(1234567.5, null)).toBe("₹12,34,567.50");
+    expect(formatCurrency(1234567.5, "")).toBe("₹12,34,567.50");
+  });
+
   it("shows no decimals for zero-decimal currencies", () => {
     expect(formatCurrency(1234.56, "JPY")).toMatch(/^[￥¥]1,235$/);
   });
