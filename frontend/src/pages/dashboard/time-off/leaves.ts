@@ -14,6 +14,12 @@ export interface EmployeeOnLeave {
   custom_first_halfsecond_half: string | null;
   description: string | null;
   user_image: string | null;
+  /** `false` for a leave the user is only notified about. Older backends omit it. */
+  can_approve?: boolean;
+}
+
+export function awaitsApproval(leave: EmployeeOnLeave): boolean {
+  return leave.status === "Open" && leave.can_approve !== false;
 }
 
 export function leaveDayType(leave: EmployeeOnLeave): string {

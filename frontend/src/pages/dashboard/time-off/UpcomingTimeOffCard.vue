@@ -4,7 +4,12 @@ import { Avatar, Badge, Button, Skeleton, toast, useCall } from "frappe-ui";
 import { useDashboardCall } from "@/pages/dashboard/dashboardCall";
 import { errorMessage } from "@/utils/errors";
 import ApproveLeaveDialog from "./ApproveLeaveDialog.vue";
-import { leaveWindow, openLeavesFirst, type EmployeeOnLeave } from "./leaves";
+import {
+  awaitsApproval,
+  leaveWindow,
+  openLeavesFirst,
+  type EmployeeOnLeave,
+} from "./leaves";
 import RejectLeaveDialog from "./RejectLeaveDialog.vue";
 
 defineOptions({ inheritAttrs: false });
@@ -24,9 +29,7 @@ const rejectCall = useCall<unknown, { name: string; reason: string }>({
 });
 
 const leaves = computed(() => openLeavesFirst(leavesCall.data ?? []));
-const pendingCount = computed(
-  () => leaves.value.filter((leave) => leave.status === "Open").length,
-);
+const pendingCount = computed(() => leaves.value.filter(awaitsApproval).length);
 
 const approving = ref<EmployeeOnLeave | null>(null);
 const rejecting = ref<EmployeeOnLeave | null>(null);
@@ -122,7 +125,7 @@ function reject(leaveId: string, reason: string) {
             size="lg"
             :label="leave.status"
           />
-          <div v-if="leave.status === 'Open'" class="flex gap-1.5">
+          <div v-if="awaitsApproval(leave)" class="flex gap-1.5">
             <Button
               variant="solid"
               theme="green"
