@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, watch } from "vue";
-import { Skeleton } from "frappe-ui";
+import { ErrorMessage, Skeleton } from "frappe-ui";
 import { cva } from "class-variance-authority";
 import { useSavedState } from "@/composables/useSavedState";
 import { HEATMAP_ROLES_KEY } from "@/pages/dashboard/constants";
@@ -10,6 +10,7 @@ import {
   roleOptions as toRoleOptions,
 } from "@/pages/dashboard/roles";
 import WidgetFilter from "@/pages/dashboard/WidgetFilter.vue";
+import { errorMessage } from "@/utils/errors";
 import {
   HEATMAP_LEGEND,
   cellState,
@@ -58,7 +59,11 @@ const stateClass = cva("", {
 </script>
 
 <template>
-  <template v-if="heatmap.loading || !heatmap.data">
+  <template v-if="heatmap.error && !heatmap.data">
+    <h3 class="text-lg-semibold text-ink-gray-8">Heatmap</h3>
+    <ErrorMessage :message="errorMessage(heatmap.error)" />
+  </template>
+  <template v-else-if="heatmap.loading || !heatmap.data">
     <Skeleton class="h-6 w-24" />
     <div class="flex flex-col gap-2" aria-busy="true">
       <Skeleton v-for="row in 7" :key="row" class="h-6 w-full" />

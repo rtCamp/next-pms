@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Skeleton } from "frappe-ui";
+import { ErrorMessage, Skeleton } from "frappe-ui";
 import { useSavedState } from "@/composables/useSavedState";
 import { FORECAST_ROLES_KEY } from "@/pages/dashboard/constants";
 import { useDashboardCall } from "@/pages/dashboard/dashboardCall";
@@ -9,6 +9,7 @@ import {
   roleOptions as toRoleOptions,
 } from "@/pages/dashboard/roles";
 import WidgetFilter from "@/pages/dashboard/WidgetFilter.vue";
+import { errorMessage } from "@/utils/errors";
 import { forecastSegments, type ForecastRole } from "./forecast";
 
 defineOptions({ inheritAttrs: false });
@@ -27,7 +28,13 @@ const segments = computed(() =>
 </script>
 
 <template>
-  <template v-if="forecast.loading || !forecast.data">
+  <template v-if="forecast.error && !forecast.data">
+    <h3 class="text-lg-semibold text-ink-gray-8">
+      Forecast breakdown for the next month
+    </h3>
+    <ErrorMessage :message="errorMessage(forecast.error)" />
+  </template>
+  <template v-else-if="forecast.loading || !forecast.data">
     <div class="flex items-start justify-between gap-4" aria-busy="true">
       <Skeleton class="h-6 w-44" />
       <Skeleton class="h-8 w-44 shrink-0" />

@@ -9,6 +9,7 @@ import {
   filterBySelected,
   roleOptions as toRoleOptions,
 } from "@/pages/dashboard/roles";
+import { errorMessage } from "@/utils/errors";
 import { formatHours } from "@/utils/format";
 import { utilisationSlices, type TimeUtilisationRole } from "./utilisation";
 
@@ -42,6 +43,7 @@ const slices = computed(() =>
       center-label="Hours"
       :format="(value: number) => formatHours(value)"
       :loading="utilisation.loading"
+      :error="utilisation.error ? errorMessage(utilisation.error) : null"
     />
   </div>
 </template>
