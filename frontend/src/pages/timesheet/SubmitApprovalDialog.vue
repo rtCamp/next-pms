@@ -119,10 +119,10 @@ async function submit() {
   >
     <form class="space-y-4" novalidate @submit.prevent="submit">
       <div
-        class="flex items-center justify-between rounded-8 bg-surface-gray-1 px-4 py-2.5 text-base"
+        class="flex items-center justify-between rounded-6 bg-surface-gray-1 px-4 py-2.5 text-base"
       >
         <span class="text-ink-gray-7">{{ weekLabel }}</span>
-        <span class="font-medium text-ink-green-4">
+        <span class="font-medium text-ink-green-8">
           {{ floatToTime(week.totalHours) }}
         </span>
       </div>

@@ -225,7 +225,7 @@ watch(reason, () => (reasonError.value = ""));
             {{ target.projectName }}
           </p>
         </div>
-        <span class="shrink-0 text-lg-medium tabular-nums text-ink-green-4">
+        <span class="shrink-0 text-lg-medium tabular-nums text-ink-green-8">
           {{ floatToTime(week.totalHours) }}
         </span>
       </div>
@@ -233,7 +233,7 @@ watch(reason, () => (reasonError.value = ""));
 
     <div v-if="view === 'approval'" class="space-y-4">
       <div v-if="weeklyRejectionReason" class="space-y-1 text-base">
-        <p class="font-medium text-ink-red-4">Weekly Rejection Reason:</p>
+        <p class="font-medium text-ink-red-8">Weekly Rejection Reason:</p>
         <p class="whitespace-pre-line text-ink-red-5">
           {{ weeklyRejectionReason }}
         </p>
@@ -269,7 +269,7 @@ watch(reason, () => (reasonError.value = ""));
               </span>
             </button>
             <div class="flex items-center gap-3">
-              <span class="text-lg-medium tabular-nums text-ink-green-4">
+              <span class="text-lg-medium tabular-nums text-ink-green-8">
                 {{ floatToTime(day.totalHours) }}
               </span>
               <Checkbox
@@ -296,7 +296,7 @@ watch(reason, () => (reasonError.value = ""));
 
     <div v-else class="space-y-4">
       <div
-        class="flex items-center justify-between gap-2 rounded-6 bg-surface-gray-2 p-2 text-base-medium"
+        class="flex items-center justify-between gap-2 rounded-5 bg-surface-gray-2 p-2 text-base-medium"
       >
         <div class="min-w-0">
           <div class="flex items-center gap-2">
@@ -319,7 +319,7 @@ watch(reason, () => (reasonError.value = ""));
             {{ target.projectName }}
           </span>
         </div>
-        <span class="shrink-0 text-ink-red-4">
+        <span class="shrink-0 text-ink-red-8">
           {{ floatToTime(week.totalHours) }}
         </span>
       </div>

@@ -135,7 +135,7 @@ watch(description, () => (descriptionError.value = ""));
     <div v-if="editing && !locked" class="flex flex-col gap-2">
       <Button variant="ghost" aria-label="Save entry" @click="save">
         <template #icon>
-          <span class="lucide-check size-4 text-ink-green-4" />
+          <span class="lucide-check size-4 text-ink-green-8" />
         </template>
       </Button>
       <Button variant="ghost" aria-label="Cancel edit" @click="cancel">
@@ -147,7 +147,7 @@ watch(description, () => (descriptionError.value = ""));
     <template v-else>
       <span
         class="relative size-fit text-base tabular-nums"
-        :class="isRejected ? 'text-ink-red-4' : 'text-ink-gray-6'"
+        :class="isRejected ? 'text-ink-red-8' : 'text-ink-gray-6'"
       >
         {{ floatToTime(isRejected ? entry.rejectedHours : entry.hours) }}
         <span
