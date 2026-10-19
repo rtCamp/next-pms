@@ -1,8 +1,9 @@
 import { computed, onScopeDispose } from "vue";
-import { dayjs, useList } from "frappe-ui";
+import { dayjs, toast, useList } from "frappe-ui";
 import type { NotificationEntry } from "@/components/NotificationTray";
 import { useSession } from "@/session";
 import { useSocket } from "@/socket";
+import { errorMessage } from "@/utils/errors";
 
 const NOTIFICATION_DOCTYPE = "NextPMS Notifications";
 const NOTIFICATION_LIMIT = 20;
@@ -79,18 +80,27 @@ export function useNotifications() {
 
   const docs = computed(() => list.data ?? []);
 
+  /** Marks the notifications viewed; a failure shows a toast and doesn't reject. */
+  async function markViewed(ids: string[]) {
+    try {
+      await Promise.all(
+        ids.map((name) => list.setValue.submit({ name, viewed: 1 })),
+      );
+    } catch (error) {
+      toast.error(errorMessage(error));
+    }
+  }
+
   async function markAsViewed(id: string) {
     const doc = docs.value.find((row) => row.name === id);
     if (!doc || doc.viewed) return;
-    await list.setValue.submit({ name: id, viewed: 1 });
+    await markViewed([id]);
   }
 
   async function markAllAsViewed() {
     const unread = docs.value.filter((doc) => !doc.viewed);
     if (!unread.length) return;
-    await Promise.all(
-      unread.map((doc) => list.setValue.submit({ name: doc.name, viewed: 1 })),
-    );
+    await markViewed(unread.map((doc) => doc.name));
   }
 
   return {
