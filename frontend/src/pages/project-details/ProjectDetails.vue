@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from "vue";
+import { computed, watch, type Component } from "vue";
 import { useRoute } from "vue-router";
 import {
   Button,
@@ -15,11 +15,16 @@ import StatusMessage from "@/layout/StatusMessage.vue";
 import { errorMessage } from "@/utils/errors";
 import { queryString } from "@/utils/query";
 import { DEFAULT_TAB, TAB_PARAM, type ProjectTabKey } from "./constants";
+import EmailTab from "./email/EmailTab.vue";
 import ProjectDetailsHeader from "./ProjectDetailsHeader.vue";
 import { selectedTab, visibleTabs } from "./tabs";
 import { provideProjectDetails } from "./useProjectDetails";
 
 defineOptions({ inheritAttrs: false });
+
+const TAB_PANELS: Partial<Record<ProjectTabKey, Component>> = {
+  email: EmailTab,
+};
 
 const route = useRoute();
 const patchQuery = useQueryPatch();
@@ -92,7 +97,8 @@ watch(
         :value="tab.value"
         class="min-h-0 flex-1 overflow-auto px-5 py-4"
       >
-        <p class="py-10 text-center text-p-sm text-ink-gray-5">
+        <component :is="TAB_PANELS[tab.value]" v-if="TAB_PANELS[tab.value]" />
+        <p v-else class="py-10 text-center text-p-sm text-ink-gray-5">
           Not ported yet
         </p>
       </TabPanel>
