@@ -69,6 +69,24 @@ _Avoid_: booking, assignment, schedule.
 **Team / Project allocations** — the two allocation views: by employee (`/allocations/team`) and by project
 (`/allocations/project`).
 
+**Allocation segment** — the part of an allocation drawn as one bar: the whole allocation, or a run of days between
+per-day overrides that change its hours. A segment reduced to zero hours stays as an empty placeholder bar
+(`fullyReduced`). In code: `Allocation` in `components/GanttGrid`.
+_Avoid_: block, slot.
+
+**Summary row** — the top row of an employee (Team allocations) or a project (Project allocations) in `GanttGrid`,
+drawn from the allocations of the rows under it. An employee's summary merges consecutive days with the same booked
+hours into one bar; a project's totals its employees' hours per run of weekdays.
+
+**Capacity status** — how an employee's booked hours on a day compare with their capacity (8h a day when unset):
+`Full`, `Nh free` (under) or `Nh over`; it colours the employee's summary bars green, amber or violet. Weekdays with
+nothing booked show as grey free-capacity bars. In code: `capacityStatus` in `GanttGrid/summary.ts`.
+_Avoid_: utilisation, load.
+
+**Draft allocation** — the bar drawn by dragging from a free day's "+" in `GanttGrid`, before the Add allocation
+dialog saves it.
+_Avoid_: placeholder (that's the zero-hour segment), ghost.
+
 ## Projects
 
 **Project** — a Frappe `Project`, extended by next-pms with phases, budgets, contacts, timelines, status updates,
