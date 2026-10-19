@@ -35,7 +35,7 @@ const COLUMNS = [
   { key: "actions", label: "", width: "28px", right: true },
 ] as const;
 
-const { doc, setValue, reload: reloadProject } = useProjectDetails();
+const { doc, setValue } = useProjectDetails();
 const { tracking, reload: reloadTracking } = useTracking();
 
 const rows = computed(() =>
@@ -69,7 +69,6 @@ async function write(
   message: string,
 ): Promise<void> {
   await setValue({ custom_project_budget_hours: rows });
-  reloadProject();
   await reloadTracking();
   toast.success(message);
 }

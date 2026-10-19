@@ -31,7 +31,7 @@ const COLUMNS = [
   { key: "actions", label: "", width: "28px", right: true },
 ] as const;
 
-const { doc, setValue, reload: reloadProject } = useProjectDetails();
+const { doc, setValue } = useProjectDetails();
 const { tracking, reload: reloadTracking, money } = useTracking();
 
 type Item =
@@ -76,7 +76,6 @@ const current = () => doc.value?.custom_project_billing_team ?? [];
 
 async function write(rows: ReturnType<typeof current>, message: string) {
   await setValue({ custom_project_billing_team: rows });
-  reloadProject();
   await reloadTracking();
   toast.success(message);
 }

@@ -5,7 +5,7 @@ import { useRemoteLookup } from "@/composables/useRemoteLookup";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
 import { errorMessage } from "@/utils/errors";
 
-const { doc, setValue, reload } = useProjectDetails();
+const { doc, setValue } = useProjectDetails();
 
 const slackChannel = computed(() => doc.value?.custom_slack_channel_slug ?? "");
 const editing = ref(false);
@@ -69,7 +69,6 @@ async function save() {
   saving.value = true;
   try {
     await setValue({ custom_slack_channel_slug: draft.value });
-    reload();
     toast.success("Slack channel updated");
     editing.value = false;
   } catch (error) {
