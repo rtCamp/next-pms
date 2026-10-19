@@ -247,11 +247,15 @@ function createProjectViews() {
       const [newest] = created ?? [];
       if (newest) applyView({ ...newest, name: String(newest.name) });
     } else {
+      // The URL holds the active view's filters, so they only belong to that view.
+      const isActive = state.view.name === activeView.value?.name;
       await updateViewCall.submit({
         view: {
           ...state.view,
           ...(state.layout ? viewLayoutFields(state.layout) : {}),
-          filters: { ...state.view.filters, ...currentFilters.value },
+          filters: isActive
+            ? { ...state.view.filters, ...currentFilters.value }
+            : state.view.filters,
           label: details.label,
           icon: details.icon,
           public: details.isPublic ? 1 : 0,
