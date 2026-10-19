@@ -10,6 +10,7 @@ const { doc, setValue, reload } = useProjectDetails();
 const slackChannel = computed(() => doc.value?.custom_slack_channel_slug ?? "");
 const editing = ref(false);
 const draft = ref("");
+const draftLabel = ref("");
 const query = ref("");
 const saving = ref(false);
 
@@ -25,7 +26,8 @@ interface SlackChannel {
 const lookup = useRemoteLookup<SlackChannel[] | null, SlackChannel>({
   method: "frappe.client.get_list",
   enabled: editing,
-  query,
+  // In input mode the combobox puts the selected label in the query; not a search.
+  query: () => (query.value === draftLabel.value ? "" : query.value),
   selected: () =>
     current.value ? { label: current.value, value: current.value } : null,
   params: (search) => ({
@@ -46,6 +48,7 @@ const lookup = useRemoteLookup<SlackChannel[] | null, SlackChannel>({
 
 function startEditing() {
   draft.value = slackChannel.value;
+  draftLabel.value = slackChannel.value;
   query.value = "";
   editing.value = true;
 }
@@ -53,6 +56,13 @@ function startEditing() {
 function cancelEditing() {
   query.value = "";
   editing.value = false;
+}
+
+function select(value: string | number | null | undefined) {
+  draft.value = value ? String(value) : "";
+  draftLabel.value =
+    lookup.options.find((option) => option.value === draft.value)?.label ??
+    draft.value;
 }
 
 async function save() {
@@ -87,7 +97,7 @@ async function save() {
         empty-text="No channels found"
         open-on-focus
         variant="outline"
-        @update:model-value="draft = String($event ?? '')"
+        @update:model-value="select"
       />
       <template v-if="editing">
         <Button
