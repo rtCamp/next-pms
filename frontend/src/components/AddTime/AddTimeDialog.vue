@@ -33,6 +33,20 @@ const projectQuery = ref("");
 const taskQuery = ref("");
 const showCalendarEvents = ref(false);
 
+// AddTime resets the entry on open too, but its watcher runs after the ones below,
+// which would first fetch with the previous entry.
+watch(
+  [open, () => props.prefill],
+  ([isOpen]) => {
+    if (!isOpen) return;
+    entry.value = entryFromPrefill(props.prefill);
+    employeeQuery.value = "";
+    projectQuery.value = "";
+    taskQuery.value = "";
+  },
+  { flush: "sync" },
+);
+
 const employeeId = computed(() =>
   props.pickEmployee ? entry.value.employeeId : (session.employee ?? ""),
 );
