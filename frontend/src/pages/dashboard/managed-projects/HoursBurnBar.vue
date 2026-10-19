@@ -20,7 +20,6 @@ const usedPercent = computed(() =>
       indicator-class="bg-surface-blue-4"
       :label="`${formatHours(used)} used of ${formatHours(total)}`"
     />
-    <!-- Two hover zones over the bar, as in React: the used part and the rest. -->
     <div class="absolute inset-0 flex">
       <Tooltip :text="`${formatHours(used)} used`">
         <div :style="{ width: `${usedPercent}%` }" />
