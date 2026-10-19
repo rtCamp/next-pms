@@ -12,7 +12,8 @@ let lastNavigation: Promise<unknown> = Promise.resolve();
 /**
  * Returns `patchQuery(patch, options)`, which sets query params on the current route
  * with `router.replace` (no history entry), or `router.push` when `options.push` is set.
- * An empty, `null` or `undefined` value removes the param.
+ * An empty, `null` or `undefined` value removes the param. The returned promise settles
+ * when the navigation that carries the patch ends.
  */
 export function useQueryPatch() {
   const router = useRouter();
@@ -30,7 +31,10 @@ export function useQueryPatch() {
     return push ? router.push(location) : router.replace(location);
   }
 
-  return function patchQuery(patch: QueryPatch, options?: { push?: boolean }) {
+  return function patchQuery(
+    patch: QueryPatch,
+    options?: { push?: boolean },
+  ): Promise<unknown> {
     if (!pending) {
       pending = {};
       // A failed navigation must not stop the patches queued after it.
@@ -38,5 +42,6 @@ export function useQueryPatch() {
     }
     Object.assign(pending, patch);
     if (options?.push) pendingPush = true;
+    return lastNavigation;
   };
 }

@@ -67,7 +67,7 @@ export function useProjectFilters() {
   function setCurrency(currency: string) {
     const dropSort =
       !currency && MONETARY_SORT_FIELDS.includes(sort.value.field);
-    patchQuery({
+    return patchQuery({
       currency,
       ...(dropSort ? { sortField: "", sortOrder: "" } : {}),
     });

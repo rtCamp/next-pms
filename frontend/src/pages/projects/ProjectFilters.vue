@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { Combobox, MultiSelect, Select, TextInput } from "frappe-ui";
 import { ColumnSelector } from "@/components/ColumnSelector";
 import { Filter, FilterLinkValue, type FilterField } from "@/components/Filter";
@@ -21,7 +21,7 @@ import {
   AVAILABLE_PROJECT_COLUMNS,
   useProjectColumns,
 } from "./useProjectColumns";
-import { defaultCurrency, useProjectFilters } from "./useProjectFilters";
+import { useProjectFilters } from "./useProjectFilters";
 
 const props = defineProps<{
   /** The kanban has no columns or sort, so their controls are left out. */
@@ -106,10 +106,6 @@ const {
 } = useProjectColumns();
 const session = useSession();
 const projectPhases = useProjectPhases();
-
-onMounted(() => {
-  if (!filters.value.currency) setCurrency(defaultCurrency());
-});
 
 // Debounced here rather than with TextInput's `debounce`, which re-emits the typed
 // text on blur and would undo a revert that cleared it in the meantime.

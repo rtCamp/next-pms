@@ -6,6 +6,7 @@ import ProjectKanban from "./kanban/ProjectKanban.vue";
 import ProjectFilters from "./ProjectFilters.vue";
 import ProjectListView from "./ProjectListView.vue";
 import ProjectsHeader from "./ProjectsHeader.vue";
+import { defaultCurrency, useProjectFilters } from "./useProjectFilters";
 import { provideProjectViews } from "./views/useProjectViews";
 import ViewChanges from "./views/ViewChanges.vue";
 import ViewDialog from "./views/ViewDialog.vue";
@@ -14,6 +15,14 @@ import ViewsDropdown from "./views/ViewsDropdown.vue";
 defineOptions({ inheritAttrs: false });
 
 const views = provideProjectViews();
+
+// The default currency goes into the URL before the list mounts, so its first
+// request already carries it.
+const { filters, setCurrency } = useProjectFilters();
+const currencyReady = ref(Boolean(filters.value.currency));
+if (!currencyReady.value) {
+  setCurrency(defaultCurrency()).finally(() => (currencyReady.value = true));
+}
 
 const listView = useTemplateRef("listView");
 const kanbanView = useTemplateRef("kanbanView");
@@ -32,7 +41,7 @@ function refresh() {
 </script>
 
 <template>
-  <template v-if="views.activeView">
+  <template v-if="views.activeView && currencyReady">
     <ProjectsHeader @add-project="addProject()">
       <template #breadcrumbs>
         <nav aria-label="Breadcrumb" class="flex min-w-0 items-center">
