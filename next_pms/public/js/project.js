@@ -2,6 +2,9 @@
 // License: GNU General Public License v3. See license.txtxe
 frappe.ui.form.on("Project", {
   setup: function (frm) {
+    frm.set_query("tech_stack", function () {
+      return { filters: { disabled: 0 } };
+    });
     frm.set_query("custom_client_point_of_contact", function () {
       if (!frm.doc.customer) {
         return {

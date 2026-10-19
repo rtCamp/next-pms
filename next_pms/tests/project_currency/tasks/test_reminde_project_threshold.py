@@ -9,6 +9,7 @@ from frappe.utils import add_days, nowdate
 from next_pms.install import setup_project_threshold_reminder_template
 from next_pms.project_currency.constant import PROJECT_THRESHOLD_REMINDER_EMAIL_TEMPLATE
 from next_pms.project_currency.tasks.reminde_project_threshold import send_reminder_mail
+from next_pms.tests.utils import make_tech_stack
 
 PM_USER = "threshold-reminder-pm@example.com"
 VIEWER_USER = "threshold-reminder-viewer@example.com"
@@ -102,6 +103,7 @@ class TestSendReminderMail(IntegrationTestCase):
                 "company": cls.company,
                 "status": "Open",
                 "custom_billing_type": billing_type,
+                "tech_stack": make_tech_stack(),
                 "custom_send_reminder_when_approaching_project_threshold_limit": 1,
                 "custom_reminder_threshold_percentage": 80,
                 "custom_email_template": TEMPLATE_NAME,

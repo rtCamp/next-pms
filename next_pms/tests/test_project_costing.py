@@ -7,7 +7,7 @@ from frappe.utils import add_days, flt, getdate, nowdate
 from next_pms.project_currency.api import project_timesheet_billing_recalculation
 from next_pms.project_currency.background_jobs import project_costing
 from next_pms.project_currency.overrides.timesheet import TimesheetOverwrite
-from next_pms.tests.utils import make_employee
+from next_pms.tests.utils import make_employee, make_tech_stack
 
 
 class TestCostingJobEnqueue(IntegrationTestCase):
@@ -326,6 +326,7 @@ class TestCostingWorkerBusinessValues(IntegrationTestCase):
                 "company": "Facebook",
                 "customer": "Meta",
                 "custom_billing_type": "Non-Billable",
+                "tech_stack": make_tech_stack(),
                 **overrides,
             }
         )

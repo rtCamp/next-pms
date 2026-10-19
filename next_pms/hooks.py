@@ -112,7 +112,7 @@ after_install = "next_pms.install.after_install"
 # Name of the app being installed is passed as an argument
 
 # before_app_install = "next_pms.utils.before_app_install"
-# after_app_install = "next_pms.utils.after_app_install"
+after_app_install = "next_pms.install.after_app_install"
 
 # Integration Cleanup
 # -------------------
@@ -294,6 +294,8 @@ doc_events = {
         "on_trash": ["next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache"],
     },
     "Project": {
+        "before_insert": "next_pms.project_currency.doc_events.project.before_insert",
+        "validate": "next_pms.project_currency.doc_events.project.validate",
         "on_update": [
             "next_pms.project_currency.doc_events.project.on_update",
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
