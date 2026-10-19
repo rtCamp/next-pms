@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Button, Dropdown, Tooltip } from "frappe-ui";
+import { Button, Dropdown } from "frappe-ui";
+import TruncatedText from "@/pages/project-details/TruncatedText.vue";
 import { cn } from "@/utils/cn";
 import { formatPercentage } from "@/utils/format";
 import type { WidgetLayout } from "./types";
@@ -116,11 +117,10 @@ const isRow = computed(() => props.layout === "row");
           <span class="truncate pr-6 text-base text-ink-gray-5">
             {{ row.label }}
           </span>
-          <Tooltip :text="row.value">
-            <span class="truncate text-2xl-medium text-ink-gray-8">
-              {{ row.value }}
-            </span>
-          </Tooltip>
+          <TruncatedText
+            class="text-2xl-medium text-ink-gray-8"
+            :text="row.value"
+          />
         </div>
       </template>
     </div>

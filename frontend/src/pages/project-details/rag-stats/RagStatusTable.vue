@@ -8,6 +8,7 @@ import {
   ListRow,
   ListRows,
 } from "frappe-ui/list";
+import TruncatedText from "@/pages/project-details/TruncatedText.vue";
 import type { RagColumn, RagHistory, RagTrigger } from "./types";
 
 defineProps<{
@@ -40,9 +41,7 @@ function formatDate(date: string | null | undefined) {
           :key="column.key"
           class="min-w-0 text-base text-ink-gray-6"
         >
-          <Tooltip v-if="column.key === 'type'" :text="item.type_label">
-            <span class="truncate">{{ item.type_label }}</span>
-          </Tooltip>
+          <TruncatedText v-if="column.key === 'type'" :text="item.type_label" />
           <template v-else-if="column.key === 'trigger_date'">
             <Tooltip
               v-if="item.trigger_date && item.date_precision === 'Approximate'"

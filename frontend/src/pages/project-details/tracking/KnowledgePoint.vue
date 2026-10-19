@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Tooltip } from "frappe-ui";
+import TruncatedText from "@/pages/project-details/TruncatedText.vue";
 import { cn } from "@/utils/cn";
 
 defineProps<{ title: string; value: string; href?: string }>();
@@ -23,8 +23,6 @@ const CARD =
     "
   >
     <span class="truncate text-base text-ink-gray-5">{{ title }}</span>
-    <Tooltip :text="value">
-      <span class="truncate text-2xl-medium text-ink-gray-8">{{ value }}</span>
-    </Tooltip>
+    <TruncatedText class="text-2xl-medium text-ink-gray-8" :text="value" />
   </component>
 </template>
