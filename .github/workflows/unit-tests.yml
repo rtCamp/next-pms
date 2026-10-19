@@ -93,4 +93,5 @@ jobs:
         working-directory: /home/runner/frappe-bench
         run: |
           bench --site test_site set-config allow_tests true
+          bench --site test_site set-config -p rtcamp_disposable_test_site 1
           bench --site test_site run-tests --app next_pms

@@ -1,4 +1,4 @@
-// Builds on vite.config.ts so story tests resolve frappe-ui (its Vite plugin and
+// Builds on vite.config.ts so unit and story tests resolve frappe-ui (its Vite plugin and
 // the esbuild resolver for `frappe-ui/editor`) the same way the app does.
 import { defineConfig, mergeConfig } from "vitest/config";
 import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
@@ -23,6 +23,21 @@ export default mergeConfig(
   defineConfig({
     test: {
       projects: [
+        {
+          extends: true,
+          test: {
+            name: "unit",
+            include: ["src/**/*.test.ts"],
+            browser: {
+              enabled: true,
+              headless: true,
+              // Nothing renders, so a failure screenshot is a blank page.
+              screenshotFailures: false,
+              provider: playwright(),
+              instances: [{ browser: "chromium" }],
+            },
+          },
+        },
         {
           extends: true,
           plugins: [storybookTest({ configDir: ".storybook" })],
