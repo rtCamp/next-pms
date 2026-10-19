@@ -220,6 +220,7 @@ const externalFilterCount = computed(
             type="button"
             class="inline-flex shrink-0 items-center justify-center rounded-1 text-ink-gray-6 outline-none hover:text-ink-gray-8 focus-visible:ring focus-visible:ring-outline-gray-3"
             aria-label="Clear currency"
+            @pointerdown.stop
             @click.stop="clear()"
           >
             <span class="lucide-x size-4" aria-hidden="true" />
