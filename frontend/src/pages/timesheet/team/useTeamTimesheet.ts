@@ -79,6 +79,8 @@ function createTeamTimesheet() {
   /** The query the shown pages answer, and its filter arguments for the members. */
   const loaded = ref<{ key: string; filterArgs: TeamFilterArgs } | null>(null);
   const pending = ref<RequestKind | null>(null);
+  // Set after a failed request so a still-visible sentinel can't retry it in a loop.
+  const failed = ref(false);
   let latestRequest = 0;
 
   const weeks = computed(() =>
@@ -93,6 +95,7 @@ function createTeamTimesheet() {
 
   const hasMoreWeeks = computed(
     () =>
+      !failed.value &&
       !query.value.dateBounded &&
       Boolean(pages.value.at(-1)?.payload.has_more_weeks),
   );
@@ -108,11 +111,13 @@ function createTeamTimesheet() {
     } catch (error) {
       if (request !== latestRequest) return;
       pending.value = null;
+      failed.value = true;
       toast.error(errorMessage(error));
       return;
     }
     if (request !== latestRequest || !response) return;
     pending.value = null;
+    failed.value = false;
     const page = { date, payload: response };
     if (kind === "next") {
       pages.value = [...pages.value, page];

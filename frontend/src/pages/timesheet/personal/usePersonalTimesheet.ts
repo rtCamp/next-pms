@@ -67,6 +67,8 @@ function createPersonalTimesheet() {
 
   const pages = ref<Page[]>([]);
   const pending = ref<RequestKind | null>(null);
+  // Set after a failed request so a still-visible sentinel can't retry it in a loop.
+  const failed = ref(false);
   let latestRequest = 0;
 
   const filtersAreActive = computed(
@@ -107,6 +109,7 @@ function createPersonalTimesheet() {
   });
 
   const hasMoreWeeks = computed(() => {
+    if (failed.value) return false;
     if (!filtersAreActive.value) return true;
     const oldestWeek = Object.values(timesheetData.value.data).at(-1);
     const limit = dayjs(oldestWeek?.start_date ?? query.value.weekDate)
@@ -132,11 +135,13 @@ function createPersonalTimesheet() {
     } catch (error) {
       if (request !== latestRequest) return;
       pending.value = null;
+      failed.value = true;
       toast.error(errorMessage(error));
       return;
     }
     if (request !== latestRequest || !response) return;
     pending.value = null;
+    failed.value = false;
     const page = { startDate, payload: response };
     pages.value = kind === "next" ? [...pages.value, page] : [page];
   }

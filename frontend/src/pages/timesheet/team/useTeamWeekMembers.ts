@@ -34,9 +34,13 @@ export function useTeamWeekMembers(options: UseTeamWeekMembersOptions) {
 
   const pages = ref<TeamMembersPayload[]>([]);
   const loading = ref(false);
+  // Set after a failed request so a still-visible sentinel can't retry it in a loop.
+  const failed = ref(false);
 
   const members = computed(() => pages.value.flatMap((page) => page.members));
-  const hasMore = computed(() => Boolean(pages.value.at(-1)?.has_more));
+  const hasMore = computed(
+    () => !failed.value && Boolean(pages.value.at(-1)?.has_more),
+  );
 
   async function fetchPage(index: number) {
     loading.value = true;
@@ -47,8 +51,10 @@ export function useTeamWeekMembers(options: UseTeamWeekMembersOptions) {
         page_length: TEAM_MEMBER_PAGE_LENGTH,
         start: index * TEAM_MEMBER_PAGE_LENGTH,
       });
+      failed.value = false;
       if (page) pages.value = [...pages.value, page];
     } catch (error) {
+      failed.value = true;
       toast.error(errorMessage(error));
     } finally {
       loading.value = false;

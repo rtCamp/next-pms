@@ -47,10 +47,14 @@ export function useProjectWeekProjects(options: UseProjectWeekProjectsOptions) {
 
   const pages = ref<ProjectWeekProjectsPayload[]>([]);
   const loading = ref(false);
+  // Set after a failed request so a still-visible sentinel can't retry it in a loop.
+  const failed = ref(false);
   let reloadRequest = 0;
 
   const projects = computed(() => pages.value.flatMap((page) => page.projects));
-  const hasMore = computed(() => Boolean(pages.value.at(-1)?.has_more));
+  const hasMore = computed(
+    () => !failed.value && Boolean(pages.value.at(-1)?.has_more),
+  );
   const hasActiveFilter = Boolean(
     options.filterArgs.search || options.filterArgs.filters,
   );
@@ -68,11 +72,13 @@ export function useProjectWeekProjects(options: UseProjectWeekProjectsOptions) {
     loading.value = true;
     try {
       const page = await call.submit(params(index));
+      failed.value = false;
       // A reload may have replaced the pages meanwhile.
       if (page && pages.value.length === index) {
         pages.value = [...pages.value, page];
       }
     } catch (error) {
+      failed.value = true;
       toast.error(errorMessage(error));
     } finally {
       loading.value = false;
