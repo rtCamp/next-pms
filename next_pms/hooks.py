@@ -433,9 +433,3 @@ export_python_type_annotations = True
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
-# Read-only tools for the rtCamp MCP server, used when the rtcamp_mcp app is installed
-rtcamp_mcp_tools = [
-    "next_pms.mcp_tools.timesheet_summary",
-    "next_pms.mcp_tools.capacity",
-    "next_pms.mcp_tools.project_health",
-]
