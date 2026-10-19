@@ -36,12 +36,12 @@ export const StarredClearsImport: Story = {
   },
 };
 
-export const CellClickEmitsDay: Story = {
+export const CellClickEmitsDayAndDate: Story = {
   play: async ({ canvasElement, args }) => {
     await userEvent.click(
       within(canvasElement).getByRole("button", { name: "08:45" }),
     );
-    await expect(args.onCellClick).toHaveBeenCalledWith(2);
+    await expect(args.onCellClick).toHaveBeenCalledWith(2, "2025-12-31");
   },
 };
 

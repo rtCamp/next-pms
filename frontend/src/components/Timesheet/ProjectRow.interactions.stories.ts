@@ -40,13 +40,13 @@ export const KeyboardToggles: Story = {
   },
 };
 
-export const CellClickEmitsDay: Story = {
+export const CellClickEmitsDayAndDate: Story = {
   play: async ({ canvasElement, args }) => {
     const empty = within(canvasElement).getAllByRole("button", {
       name: "Add time",
     });
     await userEvent.click(empty[0]);
-    await expect(args.onCellClick).toHaveBeenCalledWith(2);
+    await expect(args.onCellClick).toHaveBeenCalledWith(2, "2025-12-31");
     await expect(toggle(canvasElement)).toHaveAttribute(
       "aria-expanded",
       "true",
