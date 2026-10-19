@@ -34,6 +34,7 @@ across components live in `src/utils/`.
 | `DurationInput/` | `DurationInput` |
 | `ErrorFallback/` | `ErrorFallback` |
 | `Filter/` | `Filter`, `FilterLinkValue` (the `#link-value` input: searches the field's doctype or `customMethod`), `DEFAULT_OPERATORS` |
+| `GanttGrid/` | `GanttGrid` (the Team and Project allocations grid: weeks of day columns, employee or project rows with their allocation bars; renders and emits, fetches nothing) and its row and event types |
 | `LoadingOverlay/` | `LoadingOverlay` |
 | `MonthPicker/` | `MonthPicker` |
 | `NotificationTray/` | `NotificationTray`, `notificationIcon` |

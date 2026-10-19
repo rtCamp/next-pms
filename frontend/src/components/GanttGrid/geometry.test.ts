@@ -198,8 +198,6 @@ describe("buildTimeline", () => {
       startDate: day(28, 8),
       weekCount: 2,
       showWeekend: true,
-      headerWidth: 240,
-      containerWidth: 0,
       today: day(30, 8),
     });
     expect(timeline.weekStart).toEqual(day(28, 8));
@@ -226,8 +224,6 @@ describe("buildTimeline", () => {
       startDate: day(21),
       weekCount: 1,
       showWeekend: false,
-      headerWidth: 240,
-      containerWidth: 0,
     });
     expect(timeline.daysPerWeek).toBe(5);
     expect(timeline.weeks[0].label).toBe("Oct 19 - 23");

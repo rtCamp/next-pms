@@ -37,7 +37,6 @@ export interface Timeline {
   weekStart: Date;
   daysPerWeek: number;
   columnCount: number;
-  columnWidth: number;
   weeks: TimelineWeek[];
   /** Indexes of the Saturday and Sunday columns, when they are shown. */
   weekendColumns: number[];
@@ -254,13 +253,11 @@ function weekLabel(start: Date, end: Date): string {
   return `${from.format("MMM D")} - ${to.format(from.month() === to.month() ? "D" : "MMM D")}`;
 }
 
-/** The columns and week header of the grid. */
+/** The day columns and week header of the grid. */
 export function buildTimeline(options: {
   startDate: Date;
   weekCount: number;
   showWeekend: boolean;
-  headerWidth: number;
-  containerWidth: number;
   today?: Date;
 }): Timeline {
   const { weekCount, showWeekend } = options;
@@ -289,12 +286,6 @@ export function buildTimeline(options: {
     weekStart,
     daysPerWeek,
     columnCount,
-    columnWidth: columnWidthFor(
-      weekCount,
-      daysPerWeek,
-      options.headerWidth,
-      options.containerWidth,
-    ),
     weeks,
     weekendColumns: weeks.flatMap((week, weekIndex) =>
       week.days.flatMap((day, dayIndex) =>
