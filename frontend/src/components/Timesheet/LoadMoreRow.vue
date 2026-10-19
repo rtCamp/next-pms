@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
+import { shallowRef, useTemplateRef } from "vue";
 import { Skeleton } from "frappe-ui";
+import { useInfiniteScroll } from "@/composables/useInfiniteScroll";
 import type { LoadMoreRowProps } from "./types";
 
 const props = withDefaults(defineProps<LoadMoreRowProps>(), {
@@ -16,29 +17,14 @@ const emit = defineEmits<{
   loadMore: [];
 }>();
 
-const placeholder = useTemplateRef<HTMLElement>("placeholder");
-const visible = ref(false);
-let observer: IntersectionObserver | undefined;
-
-watch(placeholder, (element) => {
-  observer?.disconnect();
-  visible.value = false;
-  if (!element) return;
-  observer = new IntersectionObserver(([entry]) => {
-    visible.value = Boolean(entry?.isIntersecting);
-  });
-  observer.observe(element);
+useInfiniteScroll({
+  root: shallowRef(null),
+  sentinel: useTemplateRef<HTMLElement>("placeholder"),
+  // The rows live in the parent; a request ending is when a page may have arrived.
+  count: () => Number(props.loading),
+  canLoad: () => !props.loading && props.hasMore,
+  load: () => emit("loadMore"),
 });
-
-onBeforeUnmount(() => observer?.disconnect());
-
-// Still in view once a page arrives means the rows don't fill the area yet.
-watch(
-  () => [visible.value, props.loading, props.hasMore] as const,
-  ([isVisible, loading, hasMore]) => {
-    if (isVisible && !loading && hasMore) emit("loadMore");
-  },
-);
 </script>
 
 <template>
