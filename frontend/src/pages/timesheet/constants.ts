@@ -58,9 +58,6 @@ export const IMPORTED_TASKS_STORAGE_KEY = "next-pms:importedTasks";
 /** Weeks expanded on load when the user has no setting. */
 export const DEFAULT_AUTO_EXPAND_WEEKS = 4;
 
-/** Hours a day the time-entry form allows when the employee's are unknown. */
-export const FALLBACK_DAILY_WORKING_HOURS = 8;
-
 const EQUALITY_OPERATORS = [
   { label: "Equals", value: "=" },
   { label: "Not Equals", value: "!=" },

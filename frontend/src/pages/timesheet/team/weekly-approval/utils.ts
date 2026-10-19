@@ -1,11 +1,11 @@
 import { dayjs } from "frappe-ui";
 import {
   dailyExpectedHours,
+  FALLBACK_DAILY_WORKING_HOURS,
   leaveHoursOn,
   toTaskStatus,
   type TimesheetLeave,
 } from "@/components/Timesheet";
-import { FALLBACK_DAILY_WORKING_HOURS } from "@/pages/timesheet/constants";
 import type { TimesheetData } from "@/pages/timesheet/types";
 import type { ApprovalDay, ApprovalEntry, ApprovalWeek } from "./types";
 

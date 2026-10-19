@@ -1,5 +1,6 @@
 import { cva } from "class-variance-authority";
 import type { BadgeProps } from "frappe-ui";
+import { CommentKit } from "frappe-ui/editor";
 import {
   APPROVAL_STATUSES,
   type ApprovalStatusValue,
@@ -142,3 +143,18 @@ export const TIME_ENTRY_STATUS_CLASS: Partial<
   "Partially Approved": "text-ink-green-8",
   "Partially Rejected": "text-ink-red-8",
 };
+
+/** Hours a day the time-entry forms allow when the employee's are unknown. */
+export const FALLBACK_DAILY_WORKING_HOURS = 8;
+
+/** The time-entry comment editor's kit: the React editor had no media, mentions, tags or emoji. */
+export const TIME_ENTRY_COMMENT_KIT = CommentKit.configure({
+  mention: false,
+  tag: false,
+  emoji: false,
+  image: false,
+  imageGroup: false,
+  imageViewer: false,
+  video: false,
+  attachment: false,
+});

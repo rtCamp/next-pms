@@ -15,8 +15,10 @@ export { default as LoadMoreRow } from "./LoadMoreRow.vue";
 export {
   APPROVAL_STATUS_BADGE,
   APPROVAL_STATUS_PARAMS,
+  FALLBACK_DAILY_WORKING_HOURS,
   NO_APPROVAL_STATUS,
   SUBMIT_ACTION_LABEL,
+  TIME_ENTRY_COMMENT_KIT,
   TOTAL_HOURS_THEME,
   approvalStatusFromParam,
   canSubmitForApproval,

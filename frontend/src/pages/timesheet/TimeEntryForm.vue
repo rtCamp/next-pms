@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from "vue";
 import { Button, DatePicker, ErrorMessage, FormLabel } from "frappe-ui";
-import { CommentKit, Editor, EditorContent } from "frappe-ui/editor";
+import { Editor, EditorContent } from "frappe-ui/editor";
 import { DurationInput } from "@/components/DurationInput";
+import { TIME_ENTRY_COMMENT_KIT } from "@/components/Timesheet";
 import { useEditorAttributes } from "@/composables/useEditorAttributes";
 
 export interface TimeEntryFormErrors {
@@ -42,19 +43,7 @@ defineSlots<{
   default?: () => unknown;
 }>();
 
-// The React editor had no media, mentions, tags or emoji.
-const extensions = [
-  CommentKit.configure({
-    mention: false,
-    tag: false,
-    emoji: false,
-    image: false,
-    imageGroup: false,
-    imageViewer: false,
-    video: false,
-    attachment: false,
-  }),
-];
+const extensions = [TIME_ENTRY_COMMENT_KIT];
 
 const editorRef = useTemplateRef("editor");
 useEditorAttributes(editorRef, () => ({

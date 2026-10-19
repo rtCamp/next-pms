@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { dayjs, toast, useCall } from "frappe-ui";
+import { FALLBACK_DAILY_WORKING_HOURS } from "@/components/Timesheet";
 import { useEmployeeLookup } from "@/composables/useEmployeeLookup";
 import { useProjectLookup } from "@/composables/useProjectLookup";
 import { useTaskLookup } from "@/composables/useTaskLookup";
@@ -20,8 +21,6 @@ const props = withDefaults(
 );
 const open = defineModel<boolean>("open", { required: true });
 
-/** Hours a day the form allows when the employee's are unknown. */
-const FALLBACK_DAILY_WORKING_HOURS = 8;
 /** Days of calendar events offered from the entry's date on. */
 const CALENDAR_EVENT_DAYS = 7;
 

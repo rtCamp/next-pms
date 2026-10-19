@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue";
 import { Alert, Button, ErrorMessage } from "frappe-ui";
-import { CommentKit, Editor, EditorContent } from "frappe-ui/editor";
+import { Editor, EditorContent } from "frappe-ui/editor";
 import { ApprovalStatus } from "@/components/ApprovalStatus";
 import { DurationInput } from "@/components/DurationInput";
 import { RichText } from "@/components/RichText";
 import { TaskStatus } from "@/components/TaskStatus";
+import { TIME_ENTRY_COMMENT_KIT } from "@/components/Timesheet";
 import { useEditorAttributes } from "@/composables/useEditorAttributes";
 import { floatToTime } from "@/utils/format";
 import { stripTags } from "@/utils/text";
@@ -25,19 +26,7 @@ const emit = defineEmits<{
   save: [values: { hours: number; description: string }];
 }>();
 
-// The React editor had no media, mentions, tags or emoji.
-const extensions = [
-  CommentKit.configure({
-    mention: false,
-    tag: false,
-    emoji: false,
-    image: false,
-    imageGroup: false,
-    imageViewer: false,
-    video: false,
-    attachment: false,
-  }),
-];
+const extensions = [TIME_ENTRY_COMMENT_KIT];
 
 const isRejected = computed(() => props.entry.rejectedHours > 0);
 const locked = computed(

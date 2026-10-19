@@ -13,12 +13,15 @@ import {
   type ApprovalStatusValue,
 } from "@/components/ApprovalStatus";
 import { RichText } from "@/components/RichText";
-import type { TaskRowTimeEntry, TimeEntry } from "@/components/Timesheet";
+import {
+  FALLBACK_DAILY_WORKING_HOURS,
+  type TaskRowTimeEntry,
+  type TimeEntry,
+} from "@/components/Timesheet";
 import { useUnsavedChangesSource } from "@/composables/useUnsavedChanges";
 import { errorMessage } from "@/utils/errors";
 import { floatToTime } from "@/utils/format";
 import { stripTags } from "@/utils/text";
-import { FALLBACK_DAILY_WORKING_HOURS } from "./constants";
 import TimeEntryForm, { type TimeEntryFormErrors } from "./TimeEntryForm.vue";
 
 const props = withDefaults(

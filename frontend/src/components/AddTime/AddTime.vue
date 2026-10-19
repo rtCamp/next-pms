@@ -9,9 +9,10 @@ import {
   ErrorMessage,
   FormLabel,
 } from "frappe-ui";
-import { CommentKit, Editor, EditorContent } from "frappe-ui/editor";
+import { Editor, EditorContent } from "frappe-ui/editor";
 import { DurationInput } from "@/components/DurationInput";
 import { TaskStatus, type TaskStatusValue } from "@/components/TaskStatus";
+import { TIME_ENTRY_COMMENT_KIT } from "@/components/Timesheet";
 import { useEditorAttributes } from "@/composables/useEditorAttributes";
 import { errorMessage } from "@/utils/errors";
 import CalendarEvents from "./CalendarEvents.vue";
@@ -62,20 +63,7 @@ const saving = ref<"addAnother" | "close" | null>(null);
 const entryKey = ref(0);
 let selectedEventIds = new Set<string>();
 
-// The React editor had no media, mentions, tags or emoji.
-const extensions = [
-  CommentKit.configure({
-    mention: false,
-    tag: false,
-    emoji: false,
-    image: false,
-    imageGroup: false,
-    imageViewer: false,
-    video: false,
-    attachment: false,
-  }),
-  IdentifiedListItem,
-];
+const extensions = [TIME_ENTRY_COMMENT_KIT, IdentifiedListItem];
 
 const editorRef = useTemplateRef("editor");
 useEditorAttributes(editorRef, () => ({
