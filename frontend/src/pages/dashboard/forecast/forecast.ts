@@ -28,7 +28,7 @@ export function forecastSegments(roles: ForecastRole[]): ForecastSegment[] {
       key: "allocated",
       label: "Allocated hours",
       value: share(allocated),
-      colorClass: "bg-surface-green-5",
+      colorClass: "bg-surface-green-7",
     },
     {
       key: "tentative",

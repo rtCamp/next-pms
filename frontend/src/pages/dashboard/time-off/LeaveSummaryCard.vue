@@ -15,7 +15,7 @@ const reason = computed(() => props.leave.description?.trim());
 
 <template>
   <div
-    class="flex flex-col gap-3 rounded-4 border border-outline-gray-1 bg-surface-gray-1 p-3"
+    class="flex flex-col gap-3 rounded-6 border border-outline-gray-1 bg-surface-gray-1 p-3"
   >
     <div class="flex items-center gap-3">
       <Avatar

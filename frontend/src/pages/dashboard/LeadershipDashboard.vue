@@ -38,7 +38,7 @@ const kpis = useDashboardCall<LeadershipKpis>("get_leadership_kpis", () =>
 <template>
   <DashboardHeader title="Leadership" />
   <div class="mx-auto w-full max-w-[1200px] space-y-6 p-5">
-    <h2 class="text-2xl-semibold text-ink-gray-8">Hey, {{ greetingName }}</h2>
+    <h2 class="text-3xl-semibold text-ink-gray-8">Hey, {{ greetingName }}</h2>
     <section aria-label="Leadership dashboard" class="grid grid-cols-12 gap-3">
       <WidgetCard v-for="key in KPI_KEYS" :key="key" class="col-span-4">
         <KpiCard

@@ -103,7 +103,7 @@ function reject(leaveId: string, reason: string) {
         class="flex items-center gap-3 border-b border-l-4 border-b-outline-gray-1 px-3 py-2.5 last:border-b-0"
         :class="
           leave.status === 'Open'
-            ? 'border-l-outline-amber-2 bg-surface-amber-1'
+            ? 'border-l-outline-amber-3 bg-surface-amber-1'
             : 'border-l-transparent'
         "
       >

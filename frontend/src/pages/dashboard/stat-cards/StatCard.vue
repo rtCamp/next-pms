@@ -17,7 +17,7 @@ const props = defineProps<{
 }>();
 
 const cardClass =
-  "flex flex-1 flex-col gap-2 rounded-4 border border-outline-gray-1 bg-surface-base p-3";
+  "flex flex-1 flex-col gap-2 rounded-6 border border-outline-gray-1 bg-surface-elevation-1 p-3";
 
 const display = computed(() => formatNumber(props.value));
 </script>
@@ -35,7 +35,7 @@ const display = computed(() => formatNumber(props.value));
   >
     <span class="truncate text-base text-ink-gray-5">{{ label }}</span>
     <div class="flex items-baseline gap-1">
-      <span class="text-2xl-medium text-ink-gray-8">{{ display }}</span>
+      <span class="text-3xl-medium text-ink-gray-8">{{ display }}</span>
       <span v-if="subLabel" class="truncate text-base text-ink-gray-5">
         {{ subLabel }}
       </span>

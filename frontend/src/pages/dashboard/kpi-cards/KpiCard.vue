@@ -40,7 +40,7 @@ const display = computed(() => {
     </div>
   </div>
   <Skeleton v-if="loading" class="h-8 w-32" />
-  <span v-else class="truncate text-2xl-medium text-ink-gray-8">
+  <span v-else class="truncate text-3xl-medium text-ink-gray-8">
     {{ display }}
   </span>
 </template>

@@ -12,7 +12,7 @@ const attrs = useAttrs();
     v-bind="{ ...attrs, class: undefined }"
     :class="
       cn(
-        'flex flex-col gap-2 rounded-4 border border-outline-gray-1 bg-surface-base p-3',
+        'flex flex-col gap-2 rounded-6 border border-outline-gray-1 bg-surface-elevation-1 p-3',
         attrs.class as string,
       )
     "

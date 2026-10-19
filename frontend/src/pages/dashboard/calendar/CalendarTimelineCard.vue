@@ -53,7 +53,7 @@ const rangeLabel = computed(() =>
         <Skeleton class="h-8 w-32" />
       </div>
     </div>
-    <div class="grid overflow-hidden rounded-4" :style="columnStyle">
+    <div class="grid overflow-hidden rounded-6" :style="columnStyle">
       <div
         v-for="day in DEFAULT_VISIBLE_DAYS"
         :key="day"

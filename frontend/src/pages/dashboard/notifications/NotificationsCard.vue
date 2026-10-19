@@ -52,7 +52,7 @@ function onClick(event: MouseEvent, notification: NotificationEntry) {
         @click="onClick($event, item)"
       >
         <span
-          class="flex size-8 shrink-0 items-center justify-center rounded-4 bg-surface-gray-2"
+          class="flex size-8 shrink-0 items-center justify-center rounded-6 bg-surface-gray-2"
           aria-hidden="true"
         >
           <span :class="notificationIcon(item)" class="size-4.5" />
