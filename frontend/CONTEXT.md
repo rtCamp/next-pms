@@ -88,7 +88,17 @@ _Avoid_: stage, status (status is a separate field).
 **RAG status** — a project's red / amber / green health (`custom_project_rag_status`), shown as a coloured dot.
 _Avoid_: risk (a `Risk` is a separate doctype), health.
 
-**Project budget** — purchased, consumed and remaining hours for a project over a period (`Project Budget`).
+**Project budget** — purchased, consumed and remaining hours for a project over a period (`Project Budget`, the
+project's `custom_project_budget_hours` rows). The Tracking tab lists them as **contracts**, each optionally tied to a
+sales order and invoice.
+
+**Project rate** — a member's hourly billing rate on a project from a valid-from date (`Project Billing Team`, the
+project's `custom_project_billing_team` rows), shown under the project's flat rate on the Tracking tab.
+_Avoid_: billing team (for a single rate).
+
+**Tracking layout** — the order and visibility of the Tracking tab's widgets, shared by everyone on the project: one
+public `PMS View Setting` row of type `Tracking`. Only Projects Managers change it, and only the task completion,
+budget burn and cost burn widgets can be hidden.
 
 **Status update** — a written project update with a status, comments and pinning (`Project Status Update`).
 _Avoid_: report (a `Project Report` is a separate doctype), note.
@@ -116,7 +126,8 @@ notification tray (`useNotifications`).
 **Boot data** — the session data the server puts on `window.boot` (user, site name, timezones, feature flags).
 In development `src/boot.ts` fetches it before the app mounts.
 
-**View** — a named set of filters, sort and column layout for a list page, saved as a `PMS View Setting` row. The
+**View** — a named set of filters, sort and column layout for a list page, saved as a `PMS View Setting` row (a
+tracking layout is a different kind of row and never shows as a view). The
 projects page has two built-in views (List, Kanban) and the user's own and public saved views, picked with the
 `view` query param.
 _Avoid_: filter preset, layout (the column layout is one part of a view).
