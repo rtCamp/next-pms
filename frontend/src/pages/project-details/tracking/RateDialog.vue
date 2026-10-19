@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
 import {
+  Avatar,
   Button,
   Combobox,
   DatePicker,
@@ -62,6 +63,7 @@ for (const key of Object.keys(emptyForm()) as (keyof RateForm)[]) {
 interface EmployeeItem {
   name: string;
   employee_name: string;
+  image?: string | null;
 }
 
 const lookup = useRemoteLookup<{ data: EmployeeItem[] } | null, EmployeeItem>({
@@ -83,6 +85,7 @@ const lookup = useRemoteLookup<{ data: EmployeeItem[] } | null, EmployeeItem>({
   toOption: (employee) => ({
     label: employee.employee_name,
     value: employee.name,
+    image: employee.image ?? undefined,
   }),
 });
 
@@ -149,7 +152,16 @@ async function submit() {
             ? 'This project doesn\'t have any assigned team members'
             : undefined
         "
-      />
+      >
+        <template #item-prefix="{ item }">
+          <Avatar
+            size="xs"
+            shape="circle"
+            :label="item.label"
+            :image="item.image"
+          />
+        </template>
+      </Combobox>
       <TextInput
         v-model="form.hourlyRate"
         label="Hourly rate"

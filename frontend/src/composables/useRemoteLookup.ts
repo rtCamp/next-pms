@@ -16,6 +16,8 @@ export interface LookupOption {
   description?: string;
   /** frappe-ui class icon, e.g. `"lucide-folder"`. */
   icon?: string;
+  /** Avatar image of a person option. */
+  image?: string;
   disabled?: boolean;
 }
 
