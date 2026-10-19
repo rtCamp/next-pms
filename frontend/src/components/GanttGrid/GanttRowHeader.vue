@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { CELL_HEIGHT } from "./constants";
+import { HoverCard } from "frappe-ui";
+import {
+  CARD_LEAVE_DELAY_MS,
+  CELL_HEIGHT,
+  ROW_CARD_DELAY_MS,
+} from "./constants";
 import { useGanttGrid } from "./useGanttGrid";
 
 const props = withDefaults(
@@ -37,9 +42,19 @@ defineSlots<{
   badge?: () => unknown;
   /** The line under the name. */
   subtitle?: () => unknown;
+  /** Opens beside the cell on hover, or when its toggle has focus. */
+  card?: () => unknown;
 }>();
 
 const grid = useGanttGrid();
+
+const toggleAttrs = computed(() => ({
+  type: "button" as const,
+  class:
+    "absolute inset-0 z-10 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-outline-gray-3",
+  "aria-label": `Toggle ${props.label}`,
+  "aria-expanded": props.expanded,
+}));
 
 const style = computed(() => ({
   width: `${grid.headerWidth.value}px`,
@@ -59,12 +74,27 @@ const style = computed(() => ({
       class="relative overflow-hidden transition-all duration-200 ease-in-out"
       :style="{ height: `${height}px` }"
     >
+      <HoverCard
+        v-if="$slots.card"
+        side="right"
+        align="center"
+        :offset="-42"
+        :hover-delay="ROW_CARD_DELAY_MS"
+        :leave-delay="CARD_LEAVE_DELAY_MS"
+      >
+        <template #trigger>
+          <button
+            v-if="canExpand"
+            v-bind="toggleAttrs"
+            @click="emit('toggle')"
+          />
+          <span v-else class="absolute inset-0 z-10" />
+        </template>
+        <slot name="card" />
+      </HoverCard>
       <button
-        v-if="canExpand"
-        type="button"
-        class="absolute inset-0 z-10 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-outline-gray-3"
-        :aria-label="`Toggle ${label}`"
-        :aria-expanded="expanded"
+        v-else-if="canExpand"
+        v-bind="toggleAttrs"
         @click="emit('toggle')"
       />
       <div

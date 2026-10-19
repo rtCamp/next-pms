@@ -5,6 +5,8 @@ import { CELL_HEIGHT, COLLAPSE_DURATION_MS } from "./constants";
 import GanttAddRow from "./GanttAddRow.vue";
 import GanttAllocationBar from "./GanttAllocationBar.vue";
 import GanttChildRow from "./GanttChildRow.vue";
+import GanttEmployeeCard from "./GanttEmployeeCard.vue";
+import GanttProjectCard from "./GanttProjectCard.vue";
 import GanttRowHeader from "./GanttRowHeader.vue";
 import GanttProjectSummaryBar from "./GanttProjectSummaryBar.vue";
 import GanttRowOverlay from "./GanttRowOverlay.vue";
@@ -59,6 +61,9 @@ function addEmployee() {
         <Badge :label="row.badge" size="sm" variant="subtle" theme="gray" />
       </template>
       <template v-if="subtitle" #subtitle>{{ subtitle }}</template>
+      <template #card>
+        <GanttProjectCard :project="row" :can-open="canManage" />
+      </template>
     </GanttRowHeader>
     <td
       v-for="(week, weekIndex) in grid.timeline.value.weeks"
@@ -73,6 +78,7 @@ function addEmployee() {
         v-for="bar in row.summaryBars"
         :key="bar.startDate.getTime()"
         :bar="bar"
+        :row="row"
       />
     </GanttRowOverlay>
   </tr>
@@ -110,12 +116,18 @@ function addEmployee() {
           <template v-if="employee.designation" #subtitle>
             {{ employee.designation }}
           </template>
+          <template #card>
+            <GanttEmployeeCard :employee="employee" :can-open="canManage" />
+          </template>
         </GanttRowHeader>
       </template>
       <GanttAllocationBar
         v-for="(bar, barIndex) in employee.allocations"
         :key="`${bar.id ?? barIndex}-${bar.startDate.getTime()}`"
         :bar="bar"
+        :row-bars="employee.allocations"
+        :employee-name="employee.name"
+        :employee-image="employee.image"
       />
       <GanttTimeoffBar
         v-for="bar in employee.leaveBars"

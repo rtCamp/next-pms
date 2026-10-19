@@ -5,6 +5,7 @@ import { CELL_HEIGHT, COLLAPSE_DURATION_MS } from "./constants";
 import GanttAddRow from "./GanttAddRow.vue";
 import GanttAllocationBar from "./GanttAllocationBar.vue";
 import GanttChildRow from "./GanttChildRow.vue";
+import GanttEmployeeCard from "./GanttEmployeeCard.vue";
 import GanttRowHeader from "./GanttRowHeader.vue";
 import GanttRowOverlay from "./GanttRowOverlay.vue";
 import GanttSummaryBar from "./GanttSummaryBar.vue";
@@ -55,6 +56,9 @@ function addProject() {
       </template>
       <template v-if="row.designation" #subtitle>
         {{ row.designation }}
+      </template>
+      <template #card>
+        <GanttEmployeeCard :employee="row" :can-open="canManage" />
       </template>
     </GanttRowHeader>
     <td
@@ -111,6 +115,8 @@ function addProject() {
         v-for="(bar, barIndex) in project.allocations"
         :key="`${bar.id ?? barIndex}-${bar.startDate.getTime()}`"
         :bar="bar"
+        :row-bars="project.allocations"
+        :employee-name="row.name"
       />
     </GanttChildRow>
     <GanttAddRow

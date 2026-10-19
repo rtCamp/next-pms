@@ -104,6 +104,17 @@ const BEN_ATLAS_AI: Allocation = {
   aiReason: "Ben is free that week and designed the first phase.",
   createdOn: day(14),
 };
+const BEN_ATLAS_REVIEW: Allocation = {
+  id: "RA-0009",
+  employeeId: BEN.id,
+  projectId: ATLAS.id,
+  hours: 2,
+  startDate: day(28),
+  endDate: day(3, 10),
+  billable: false,
+  createdOn: day(15),
+  updatedOn: day(15),
+};
 const DANA_ATLAS: Allocation = {
   id: "RA-0005",
   employeeId: DANA.id,
@@ -172,7 +183,7 @@ export const EMPLOYEES: GanttEmployee[] = [
   },
   {
     ...BEN,
-    projects: [{ ...ATLAS, allocations: [BEN_ATLAS_AI] }],
+    projects: [{ ...ATLAS, allocations: [BEN_ATLAS_AI, BEN_ATLAS_REVIEW] }],
     leaves: [BEN_HALF_DAY],
   },
   { ...CHEN, projects: [], leaves: [] },
@@ -195,7 +206,11 @@ export const PROJECTS: GanttProjectGroup[] = [
         allocations: [ASHA_ATLAS],
         leaves: [ASHA_LEAVE, ASHA_HOLIDAY],
       },
-      { ...BEN, allocations: [BEN_ATLAS_AI], leaves: [BEN_HALF_DAY] },
+      {
+        ...BEN,
+        allocations: [BEN_ATLAS_AI, BEN_ATLAS_REVIEW],
+        leaves: [BEN_HALF_DAY],
+      },
       { ...DANA, allocations: [DANA_ATLAS, DANA_ATLAS_REDUCED] },
     ],
   },

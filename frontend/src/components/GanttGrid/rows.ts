@@ -227,3 +227,20 @@ export function allocationSummaryText(
     totalHours: `${bar.hours * bar.fullNumDays} hours`,
   };
 }
+
+/** The project's page in the app, opened from cards. */
+export function projectHref(projectId: string): string {
+  return `/next-pms/projects/${encodeURIComponent(projectId)}`;
+}
+
+/** The employee's Desk form, opened from cards. */
+export function employeeHref(employeeId: string): string {
+  return `/desk/employee/${encodeURIComponent(employeeId)}`;
+}
+
+/** An allocation listed in a bar's card, with the employee it belongs to. */
+export interface CardEntry {
+  bar: AllocationBar;
+  employeeName?: string;
+  employeeImage?: string;
+}

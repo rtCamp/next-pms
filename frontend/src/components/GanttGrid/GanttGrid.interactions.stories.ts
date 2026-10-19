@@ -201,7 +201,7 @@ export const ProjectSummaryTotalsTheWeek: Story = {
   args: projectVariant,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getAllByText("50h / week")).toHaveLength(3);
+    await expect(canvas.getAllByText("50h / week")).toHaveLength(2);
     await userEvent.click(toggle(canvasElement, "Atlas Redesign"));
     await waitFor(() =>
       expect(canvas.getByText("4h/day for 12 days")).toBeVisible(),
@@ -209,11 +209,200 @@ export const ProjectSummaryTotalsTheWeek: Story = {
   },
 };
 
-export const TimeOffBarNamesTheHoliday: Story = {
+export const TimeOffBarNamesTheHalfDay: Story = {
   play: async ({ canvasElement }) => {
-    await userEvent.hover(within(canvasElement).getByText("Dussehra"));
+    await userEvent.hover(within(canvasElement).getByText("Second half off"));
     await waitFor(() =>
-      expect(screen.getByRole("tooltip")).toHaveTextContent("Dussehra"),
+      expect(screen.getByRole("tooltip")).toHaveTextContent("Second half off"),
     );
+  },
+};
+
+const bar = (canvasElement: HTMLElement, name: string) =>
+  within(canvasElement).getByRole("button", { name });
+
+async function expand(canvasElement: HTMLElement, name: string) {
+  await userEvent.click(toggle(canvasElement, name));
+  await waitFor(() => expect(toggle(canvasElement, name)).toBeVisible());
+}
+
+async function openCard(element: HTMLElement, text: string) {
+  await userEvent.hover(element);
+  await waitFor(() => expect(screen.getByText(text)).toBeVisible());
+}
+
+export const BarCardDescribesTheAllocation: Story = {
+  play: async ({ canvasElement }) => {
+    await expand(canvasElement, "Asha Rao");
+    const allocation = await within(canvasElement).findByRole("button", {
+      name: "4h/day for 12 days",
+    });
+    await openCard(allocation, "Oct 19, 2026 – Oct 30, 2026");
+    await expect(screen.getByText("4h/day (48 hours)")).toBeVisible();
+    await expect(screen.getByText("Confirmed")).toBeVisible();
+    await expect(screen.getByText("Billable")).toBeVisible();
+    await expect(screen.getByText("Last edited on Oct 12")).toBeVisible();
+    await expect(
+      screen.getByRole("link", { name: "Open project" }),
+    ).toHaveAttribute("href", "/next-pms/projects/PROJ-0001");
+  },
+};
+
+export const CardEditEmitsEdit: Story = {
+  play: async ({ canvasElement, args }) => {
+    await expand(canvasElement, "Asha Rao");
+    const allocation = await within(canvasElement).findByRole("button", {
+      name: "4h/day for 12 days",
+    });
+    await openCard(allocation, "Oct 19, 2026 – Oct 30, 2026");
+    await userEvent.click(
+      screen.getByRole("button", { name: "Edit allocation" }),
+    );
+    await expect(args.onEdit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allocationId: "RA-0001",
+        employeeName: "Asha Rao",
+        projectName: "Atlas Redesign",
+        hoursPerDay: 4,
+        startDate: new Date(2026, 9, 19),
+        endDate: new Date(2026, 9, 30),
+      }),
+    );
+  },
+};
+
+export const CardDeleteEmitsDeleteWithTheSeries: Story = {
+  play: async ({ canvasElement, args }) => {
+    await expand(canvasElement, "Dana Ortiz");
+    const recurring = await within(canvasElement).findByRole("button", {
+      name: "8h/day for 5 days",
+    });
+    await openCard(recurring, "Nov 2, 2026 – Nov 6, 2026");
+    await userEvent.click(
+      screen.getByRole("button", { name: "Delete allocation" }),
+    );
+    await expect(args.onDelete).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allocationId: "RA-0007",
+        recurrenceId: "REC-0001",
+      }),
+      {
+        projectName: "Beacon API",
+        dateRange: "Nov 2, 2026 – Nov 6, 2026",
+        hoursPerDay: "8h/day",
+        totalHours: "40 hours",
+      },
+    );
+  },
+};
+
+export const StackedAllocationsShareACard: Story = {
+  play: async ({ canvasElement }) => {
+    await expand(canvasElement, "Ben Ito");
+    const ai = await within(canvasElement).findByRole("button", {
+      name: "6h/day for 5 days Ai",
+    });
+    await openCard(ai, "Oct 26, 2026 – Oct 30, 2026");
+    // The non-billable allocation under it is listed too.
+    await expect(screen.getByText("Oct 28, 2026 – Nov 3, 2026")).toBeVisible();
+    await expect(screen.getByText("Ai created on Oct 14")).toBeVisible();
+  },
+};
+
+export const SummaryCardAddsForItsDays: Story = {
+  play: async ({ canvasElement, args }) => {
+    await openCard(
+      bar(canvasElement, "2h over"),
+      "Oct 21, 2026 – Oct 23, 2026",
+    );
+    await expect(screen.getByText("Oct 19, 2026 – Oct 23, 2026")).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Add" }));
+    await expect(args.onAdd).toHaveBeenCalledWith({
+      employeeId: "HR-EMP-0004",
+      employeeName: "Dana Ortiz",
+      startDate: new Date(2026, 9, 21),
+      endDate: new Date(2026, 9, 23),
+    });
+  },
+};
+
+export const TimeOffCardNamesTheLeave: Story = {
+  play: async ({ canvasElement }) => {
+    await openCard(
+      bar(canvasElement, "2 days off"),
+      "Oct 26, 2026 – Nov 6, 2026",
+    );
+    await expect(screen.getAllByText("2 days off")).toHaveLength(2);
+  },
+};
+
+export const ProjectSummaryCardListsEmployees: Story = {
+  args: projectVariant,
+  play: async ({ canvasElement }) => {
+    const [firstWeek] = within(canvasElement).getAllByRole("button", {
+      name: "50h / week",
+    });
+    await openCard(firstWeek, "Asha Rao");
+    await expect(screen.getByText("Dana Ortiz")).toBeVisible();
+    await expect(
+      screen.getAllByRole("link", { name: "Open employee" })[0],
+    ).toHaveAttribute("href", "/desk/employee/HR-EMP-0001");
+  },
+};
+
+export const EmployeeHeaderCardShowsDetails: Story = {
+  play: async ({ canvasElement }) => {
+    await openCard(toggle(canvasElement, "Asha Rao"), "Engineering");
+    await expect(screen.getByText("₹1,200 / hour")).toBeVisible();
+    await expect(screen.getByText("40h / week")).toBeVisible();
+    await expect(screen.getByText("Ravi Kumar")).toBeVisible();
+    await expect(
+      screen.getByRole("link", { name: "Open employee" }),
+    ).toHaveAttribute("href", "/desk/employee/HR-EMP-0001");
+  },
+};
+
+export const ProjectHeaderCardShowsDetails: Story = {
+  args: projectVariant,
+  play: async ({ canvasElement }) => {
+    await openCard(toggle(canvasElement, "Atlas Redesign"), "312.5h remaining");
+    await expect(screen.getByText("Sep 1, 2026 - Dec 31, 2026")).toBeVisible();
+    await expect(
+      screen.getByRole("link", { name: "Open project" }),
+    ).toHaveAttribute("href", "/next-pms/projects/PROJ-0001");
+  },
+};
+
+export const ReadOnlyCardsHaveNoActions: Story = {
+  args: { hasRoleAccess: false, canManageAiAllocations: false },
+  play: async ({ canvasElement }) => {
+    await openCard(
+      bar(canvasElement, "2h over"),
+      "Oct 21, 2026 – Oct 23, 2026",
+    );
+    await expect(
+      screen.queryByRole("button", { name: "Edit allocation" }),
+    ).not.toBeInTheDocument();
+    await expect(
+      screen.queryByRole("button", { name: "Add" }),
+    ).not.toBeInTheDocument();
+    await expect(
+      screen.queryByRole("link", { name: "Open project" }),
+    ).not.toBeInTheDocument();
+  },
+};
+
+export const AiAllocationsNeedTheirOwnPermission: Story = {
+  args: { canManageAiAllocations: false },
+  play: async ({ canvasElement }) => {
+    await expand(canvasElement, "Ben Ito");
+    const ai = await within(canvasElement).findByRole("button", {
+      name: "6h/day for 5 days Ai",
+    });
+    await openCard(ai, "Oct 26, 2026 – Oct 30, 2026");
+    // Only the allocation the user made by hand can be changed.
+    await expect(
+      screen.getAllByRole("button", { name: "Edit allocation" }),
+    ).toHaveLength(1);
   },
 };
