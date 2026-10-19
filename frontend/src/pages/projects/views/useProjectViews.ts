@@ -113,17 +113,24 @@ function createProjectViews() {
   /**
    * Selects a view: writes its filters, sort and column layout to the URL. Filters the
    * view has no value for are kept, unless `reset`; `layout: false` keeps the URL's
-   * column layout.
+   * column layout. On the page's first apply (`initial`), a view without a currency
+   * keeps the default one the page started with.
    */
   function applyView(
     view: ProjectView,
-    options: { replace?: boolean; reset?: boolean; layout?: boolean } = {},
+    options: {
+      replace?: boolean;
+      reset?: boolean;
+      layout?: boolean;
+      initial?: boolean;
+    } = {},
   ) {
     appliedView = view.name;
     const patch: Record<string, string | null> = { view: view.name };
     for (const key of FILTER_PARAM_KEYS) {
       const value = view.filters?.[key];
       if (value) patch[key] = savedFilterValue(view, key);
+      else if (key === "currency" && options.initial) continue;
       else if (value === null || options.reset) patch[key] = null;
     }
     if (options.layout !== false) {
@@ -148,7 +155,7 @@ function createProjectViews() {
         const fallback =
           views.value.find((candidate) => candidate.default === 1) ??
           views.value[0];
-        if (fallback) applyView(fallback, { replace: true });
+        if (fallback) applyView(fallback, { replace: true, initial: true });
         return;
       }
       if (appliedView === view.name) return;
@@ -158,6 +165,7 @@ function createProjectViews() {
       applyView(view, {
         replace: true,
         layout: appliedView !== undefined || !hasLayout,
+        initial: appliedView === undefined,
       });
     },
     { immediate: true },
