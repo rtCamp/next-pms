@@ -100,7 +100,7 @@ useInfiniteScroll({
   root: useTemplateRef("scroller"),
   sentinel: useTemplateRef("sentinel"),
   count: () => taskList.rows.length,
-  canLoad: () => !taskList.isLoading && taskList.hasMore,
+  canLoad: () => taskList.canLoadMore,
   load: () => taskList.loadMore(),
 });
 </script>

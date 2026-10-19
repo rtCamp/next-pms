@@ -34,6 +34,8 @@ function createTaskList() {
   const hasMore = ref(true);
   const loaded = ref(false);
   const pending = ref<RequestKind | null>(null);
+  // Set after a failed request so a still-visible sentinel can't retry it in a loop.
+  const failed = ref(false);
   // Only the newest request may write the rows; an older one can land after it.
   let latestRequest = 0;
 
@@ -68,6 +70,7 @@ function createTaskList() {
       .catch(() => null);
     if (request !== latestRequest) return;
     pending.value = null;
+    failed.value = !response;
     if (!response) {
       toast.error(errorMessage(taskList.error));
       return;
@@ -78,8 +81,12 @@ function createTaskList() {
     loaded.value = true;
   }
 
+  const canLoadMore = computed(
+    () => !pending.value && hasMore.value && !failed.value,
+  );
+
   function loadMore() {
-    if (pending.value || !hasMore.value) return;
+    if (!canLoadMore.value) return;
     fetchRows(rows.value.length, TASK_LIST_PAGE_SIZE, "next");
   }
 
@@ -115,6 +122,8 @@ function createTaskList() {
     isFilterRequest: computed(() => loaded.value && pending.value === "query"),
     isNextPageLoading: computed(() => pending.value === "next"),
     isLoading: computed(() => pending.value !== null),
+    /** False while loading, at the end, or after a failed request until one succeeds. */
+    canLoadMore,
     loadMore,
     refresh,
     deleteTask,

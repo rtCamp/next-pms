@@ -81,7 +81,7 @@ useInfiniteScroll({
   root: scroller,
   sentinel: useTemplateRef("sentinel"),
   count: () => projectList.rows.length,
-  canLoad: () => !projectList.isLoading && projectList.hasMore,
+  canLoad: () => projectList.canLoadMore,
   load: () => projectList.loadMore(),
 });
 
