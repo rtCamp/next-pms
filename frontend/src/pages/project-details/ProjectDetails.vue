@@ -20,6 +20,7 @@ import ProjectDetailsHeader from "./ProjectDetailsHeader.vue";
 import RagStatsTab from "./rag-stats/RagStatsTab.vue";
 import ReportsTab from "./reports/ReportsTab.vue";
 import { selectedTab, visibleTabs } from "./tabs";
+import TrackingTab from "./tracking/TrackingTab.vue";
 import { provideProjectDetails } from "./useProjectDetails";
 
 defineOptions({ inheritAttrs: false });
@@ -28,6 +29,7 @@ const TAB_PANELS: Partial<Record<ProjectTabKey, Component>> = {
   email: EmailTab,
   "rag-stats": RagStatsTab,
   reports: ReportsTab,
+  tracking: TrackingTab,
 };
 
 const route = useRoute();

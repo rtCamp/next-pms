@@ -27,4 +27,6 @@ export interface ProjectDoc {
   custom_project_repository_connections?: ProjectRepositoryConnection[];
   custom_project_drive_link?: string;
   custom_slack_channel_slug?: string;
+  customer?: string;
+  custom_currency?: string;
 }
