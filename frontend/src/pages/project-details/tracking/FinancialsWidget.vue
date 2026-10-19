@@ -47,6 +47,7 @@ const isRow = computed(() => props.layout === "row");
         :href="salesOrderHref"
       />
     </div>
+    <!-- eslint-disable-next-line better-tailwindcss/no-restricted-classes -- the preset has no flex-grow scale; React gave the block twice the card's width -->
     <div :class="cn('flex flex-1', isRow && 'lg:flex-[2]')">
       <FinancialsBlock :show-project-value="false" :layout="layout" />
     </div>
