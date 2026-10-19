@@ -1,5 +1,6 @@
 import { TimelinePage } from "./timeline";
 import { expect } from "@playwright/test";
+import { scaleTimeout } from "../../utils/timeouts";
 
 // Filter-panel fields whose value control is a free-text input rather than a
 // dropdown. "Skill" is declared `type: "string"` in the app's filter config
@@ -143,7 +144,7 @@ export class TeamPage extends TimelinePage {
     await this.filterEmployeeByName(employeeName);
     await this.memberRow(employeeName)
       .first()
-      .waitFor({ state: "visible", timeout: 20000 });
+      .waitFor({ state: "visible", timeout: scaleTimeout(20000) });
 
     const allocationName = await this.addAllocation(
       projectName,
@@ -174,7 +175,7 @@ export class TeamPage extends TimelinePage {
    */
   async getMemberRowText(employeeName) {
     const row = this.memberRow(employeeName).first();
-    await row.waitFor({ state: "visible", timeout: 15000 });
+    await row.waitFor({ state: "visible", timeout: scaleTimeout(15000) });
 
     return (await row.innerText()).replace(/\s+/g, " ").trim();
   }
@@ -201,7 +202,7 @@ export class TeamPage extends TimelinePage {
    */
   async clickFirstEmployeeFromTable() {
     const expand = this.firstMemberExpandButton;
-    await expand.waitFor({ state: "visible", timeout: 15000 });
+    await expand.waitFor({ state: "visible", timeout: scaleTimeout(15000) });
 
     // Every member row is covered by a full-size transparent button
     // (absolute inset-0 z-10) that swallows pointer events, so a normal click on
@@ -311,14 +312,14 @@ export class TeamPage extends TimelinePage {
     const combobox = this.page
       .getByRole("combobox", { name: ariaLabel })
       .first();
-    await combobox.waitFor({ state: "visible", timeout: 15000 });
+    await combobox.waitFor({ state: "visible", timeout: scaleTimeout(15000) });
     await combobox.click({ force: true });
     await this.page.waitForTimeout(1000);
 
     const option = this.page
       .getByRole("option", { name: value, exact: true })
       .first();
-    await option.waitFor({ state: "visible", timeout: 10000 });
+    await option.waitFor({ state: "visible", timeout: scaleTimeout(10000) });
     await option.click();
     await this.page.waitForTimeout(1500);
     await this.page.keyboard.press("Escape");
@@ -431,7 +432,7 @@ export class TeamPage extends TimelinePage {
     if ((await option.count()) === 0) {
       option = this.page.getByRole("option", { name: value }).first();
     }
-    await option.waitFor({ state: "visible", timeout: 10000 });
+    await option.waitFor({ state: "visible", timeout: scaleTimeout(10000) });
     await option.click();
 
     await this.page

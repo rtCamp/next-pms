@@ -13,6 +13,15 @@ export interface ProjectContact {
   doctype: "Project Contact";
 }
 
+export interface TechStackItem {
+  name: string;
+  technology: string;
+  parent: string;
+  parentfield: string;
+  parenttype: string;
+  doctype: "Tech Stack Item";
+}
+
 export interface ProjectRepositoryConnection {
   name: string;
   creation: string;
@@ -82,6 +91,7 @@ export interface ProjectDoc {
   expected_end_date?: string;
   priority?: "Medium" | "Low" | "High";
   custom_host?: string;
+  tech_stack?: TechStackItem[];
   is_active?: "Yes" | "No";
   status?: "Open" | "Completed" | "Cancelled";
   custom_project_phase: string;

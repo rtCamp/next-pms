@@ -12,8 +12,9 @@ from frappe.model.workflow import apply_workflow, get_workflow_name
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Sum
 from frappe.utils import add_days, cint, flt, get_datetime, getdate, today
-from pypika import Case
+from pypika import Case, Criterion
 from pypika.functions import Date
+from pypika.terms import ExistsCriterion
 
 from next_pms.api.utils import (
     error_logger,
@@ -990,15 +991,20 @@ def _get_forecast_breakdown(days: int) -> dict:
 
 @whitelist(methods=["GET"])
 def get_employees_on_leave() -> list:
-    """Return direct reports of the current user with approved or open leaves today or upcoming.
+    """Return approved or open leaves, today or upcoming, that the current user should see.
+
+    Covers leaves of the user's direct reports and leaves that list the user in the
+    Leave Application's Notify Users (``custom_notify_users``) when that field exists.
 
     Returns
     -------
     list of dict
         name, employee, employee_name, from_date, to_date, status,
         leave_type, total_leave_days, half_day, custom_first_halfsecond_half,
-        description, user_image.
-        Empty list if the user has no employee record or no direct reports.
+        description, user_image, can_approve.
+        ``can_approve`` is true only for the user's direct reports; notified-only rows
+        are read-only and carry no description.
+        Empty list if the user has no employee record or nothing to show.
         Ordered by from_date ascending.
     """
     only_for(ALL_ROLES, message=True)
@@ -1007,22 +1013,41 @@ def get_employees_on_leave() -> list:
     if not manager_employee:
         return []
 
-    return _get_employees_on_leave(manager_employee)
+    return _get_employees_on_leave(manager_employee, frappe.session.user)
 
 
 @redis_cache()
-def _get_employees_on_leave(manager_employee: str) -> list:
-    reportee_ids = frappe.get_all(
-        "Employee",
-        filters={"reports_to": manager_employee, "status": "Active"},
-        pluck="name",
+def _get_employees_on_leave(manager_employee: str, user: str) -> list:
+    reportee_ids = set(
+        frappe.get_all(
+            "Employee",
+            filters={"reports_to": manager_employee, "status": "Active"},
+            pluck="name",
+        )
     )
-    if not reportee_ids:
+    has_notify_users = frappe.get_meta("Leave Application").has_field("custom_notify_users")
+    if not reportee_ids and not has_notify_users:
         return []
 
     LeaveApplication = DocType("Leave Application")
     Employee = DocType("Employee")
     User = DocType("User")
+
+    visibility = []
+    if reportee_ids:
+        visibility.append(LeaveApplication.employee.isin(list(reportee_ids)))
+    if has_notify_users:
+        NotifyLeaveUser = DocType("Notify Leave User")
+        visibility.append(
+            ExistsCriterion(
+                frappe.qb.from_(NotifyLeaveUser)
+                .select(NotifyLeaveUser.name)
+                .where(NotifyLeaveUser.parent == LeaveApplication.name)
+                .where(NotifyLeaveUser.parenttype == "Leave Application")
+                .where(NotifyLeaveUser.parentfield == "custom_notify_users")
+                .where(NotifyLeaveUser.user == user)
+            )
+        )
 
     has_first_half_column = frappe.db.has_column("Leave Application", "custom_first_halfsecond_half")
 
@@ -1054,13 +1079,16 @@ def _get_employees_on_leave(manager_employee: str) -> list:
             | ((LeaveApplication.docstatus == 0) & (LeaveApplication.status == "Open"))
         )
         .where(LeaveApplication.to_date >= frappe.utils.today())
-        .where(LeaveApplication.employee.isin(reportee_ids))
+        .where(Criterion.any(visibility))
         .orderby(LeaveApplication.from_date)
         .run(as_dict=True)
     )
 
-    if not has_first_half_column:
-        for row in results:
+    for row in results:
+        row["can_approve"] = row.employee in reportee_ids
+        if not row["can_approve"]:
+            row["description"] = None
+        if not has_first_half_column:
             row["custom_first_halfsecond_half"] = None
 
     return results
@@ -1070,9 +1098,9 @@ def _get_employees_on_leave(manager_employee: str) -> list:
 def approve_leave_application(name: str) -> None:
     """Approve an open Leave Application on behalf of the current user.
 
-    Runs with the caller's permissions so HRMS's leave-approver validation applies.
-    Uses the active Leave Application workflow when one exists; otherwise marks the
-    document Approved and submits it.
+    Only the reporting manager of the leave's employee may approve. Runs with the caller's
+    permissions so HRMS's leave-approver validation applies. Uses the active Leave
+    Application workflow when one exists; otherwise marks the document Approved and submits it.
     """
     only_for(ALL_ROLES, message=True)
 
@@ -1084,8 +1112,9 @@ def approve_leave_application(name: str) -> None:
 def reject_leave_application(name: str, reason: str) -> None:
     """Reject an open Leave Application on behalf of the current user.
 
-    Stores the reason in ``custom_rejection_reason`` before the status transition,
-    then follows the same workflow-or-submit path as approval.
+    Only the reporting manager of the leave's employee may reject. Stores the reason in
+    ``custom_rejection_reason`` before the status transition, then follows the same
+    workflow-or-submit path as approval.
     """
     only_for(ALL_ROLES, message=True)
 
@@ -1101,6 +1130,12 @@ def reject_leave_application(name: str, reason: str) -> None:
 
 def _get_open_leave_application(name: str, action: str):
     leave = frappe.get_doc("Leave Application", name)
+    manager_employee = get_employee_from_user()
+    if not manager_employee or frappe.db.get_value("Employee", leave.employee, "reports_to") != manager_employee:
+        frappe.throw(
+            _("Only the reporting manager can action this leave application."),
+            frappe.PermissionError,
+        )
     if leave.docstatus != 0 or leave.status != "Open":
         frappe.throw(_("Only open leave applications can be {0}.").format(action))
     return leave

@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 import { getFormattedCurrentDate } from "../../utils/dateUtils";
+import { scaleTimeout } from "../../utils/timeouts";
 
 // Callers pass either an ISO date from getFormattedDate ("2026-09-01") or a
 // year-less short date from the other date utils ("Sep 3"). The short form has
@@ -214,9 +215,11 @@ export class TimelinePage {
     // sleep: each of these dialogs picks three values, and the old 1000ms +
     // 500ms per field pushed the whole flow close to the 30s test timeout.
     const option = this.page.getByRole("option", { name: value }).first();
-    await option.waitFor({ state: "visible", timeout: 15000 });
+    await option.waitFor({ state: "visible", timeout: scaleTimeout(15000) });
     await option.click();
-    await option.waitFor({ state: "hidden", timeout: 5000 }).catch(() => {});
+    await option
+      .waitFor({ state: "hidden", timeout: scaleTimeout(5000) })
+      .catch(() => {});
   }
 
   /**
@@ -257,7 +260,7 @@ export class TimelinePage {
     await this.dateRangeInput.click();
     await this.page
       .getByRole("grid")
-      .waitFor({ state: "visible", timeout: 10000 });
+      .waitFor({ state: "visible", timeout: scaleTimeout(10000) });
 
     // Walk to the target month. Every caller allocates within a few days of
     // today, so this usually does not iterate at all.
@@ -290,7 +293,7 @@ export class TimelinePage {
     await dayCell.click();
     await this.page
       .getByRole("grid")
-      .waitFor({ state: "hidden", timeout: 5000 })
+      .waitFor({ state: "hidden", timeout: scaleTimeout(5000) })
       .catch(() => {});
   }
 
@@ -373,7 +376,10 @@ export class TimelinePage {
   async openEditAllocationDialog() {
     await this.openAllocationPopover();
     await this.editAllocationAction.first().click();
-    await this.allocationDialog.waitFor({ state: "visible", timeout: 15000 });
+    await this.allocationDialog.waitFor({
+      state: "visible",
+      timeout: scaleTimeout(15000),
+    });
     await this.page.waitForTimeout(800);
   }
 
@@ -574,7 +580,7 @@ export class TimelinePage {
   async getVisibleWeekRanges() {
     await this.weekRangeSpans
       .first()
-      .waitFor({ state: "attached", timeout: 15000 });
+      .waitFor({ state: "attached", timeout: scaleTimeout(15000) });
     // One round trip for all of them - there are a quarter's worth of columns.
     return (await this.weekRangeSpans.allInnerTexts()).map((t) => t.trim());
   }
@@ -585,7 +591,7 @@ export class TimelinePage {
   async getVisibleDayHeaders() {
     await this.dayHeaderSpans
       .first()
-      .waitFor({ state: "attached", timeout: 15000 });
+      .waitFor({ state: "attached", timeout: scaleTimeout(15000) });
     return (await this.dayHeaderSpans.allInnerTexts()).map((t) => t.trim());
   }
 

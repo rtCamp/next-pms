@@ -8,27 +8,15 @@ import { z } from "zod";
  */
 import type { LinkedRecord } from "../types";
 
-export const STATUS_OPTIONS = [
-  { value: "Open", label: "Open" },
-  { value: "Backlog", label: "Backlog" },
-  { value: "In Progress", label: "In Progress" },
-  { value: "Closed", label: "Closed" },
-  { value: "Cancelled", label: "Cancelled" },
-] as const;
-
 export const PRIORITY_OPTIONS = [
   { value: "Low", label: "Low" },
   { value: "Medium", label: "Medium" },
   { value: "High", label: "High" },
 ] as const;
 
-export type TodoStatus = (typeof STATUS_OPTIONS)[number]["value"];
+export type TodoStatus = string;
 export type TodoPriority = (typeof PRIORITY_OPTIONS)[number]["value"];
 
-const statusValues = STATUS_OPTIONS.map((o) => o.value) as [
-  TodoStatus,
-  ...TodoStatus[],
-];
 const priorityValues = PRIORITY_OPTIONS.map((o) => o.value) as [
   TodoPriority,
   ...TodoPriority[],
@@ -41,7 +29,7 @@ export const buildCreateTodoSchema = (hasCustomFields: boolean) =>
         ? z.string().trim().min(1, { message: "Title is required." })
         : z.string(),
       description: z.string(),
-      status: z.enum(statusValues),
+      status: z.string().min(1),
       assignee: z.string().trim().min(1, { message: "Assignee is required." }),
       startAt: hasCustomFields
         ? z.string().trim().min(1, { message: "Start is required." })

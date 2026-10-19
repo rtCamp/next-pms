@@ -90,7 +90,7 @@ export function TodoRow({
   const isClosed = todo.status === "Closed";
 
   const assigneeHref = `/desk/user/${encodeURIComponent(todo.allocated_to)}`;
-  const StatusIcon = STATUS_ICON[todo.status];
+  const StatusIcon = STATUS_ICON[todo.status] ?? StatusOpen;
 
   return (
     <div className={rowVariants({ condensed })}>
@@ -149,7 +149,7 @@ export function TodoRow({
           onClick={() =>
             updateTodoStatus(todo.name, isClosed ? "Open" : "Closed")
           }
-          className={`shrink-0 transition-colors ${STATUS_COLOR[todo.status]}`}
+          className={`shrink-0 transition-colors ${STATUS_COLOR[todo.status] ?? STATUS_COLOR.Open}`}
         >
           <StatusIcon className="size-5" />
         </button>
