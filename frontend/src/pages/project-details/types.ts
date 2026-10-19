@@ -17,6 +17,18 @@ export interface ProjectRepositoryConnection {
   github_repository?: string;
 }
 
+/** A row of the Project's `custom_project_budget_hours`: a contract. */
+export interface ProjectBudget {
+  name?: string;
+  start_date: string;
+  end_date: string;
+  hours_purchased: number;
+  consumed_hours?: number;
+  remaining_hours?: number;
+  sales_order?: string;
+  sales_invoice?: string;
+}
+
 /** The fields of a `Project` this page reads. */
 export interface ProjectDoc {
   name: string;
@@ -29,4 +41,5 @@ export interface ProjectDoc {
   custom_slack_channel_slug?: string;
   customer?: string;
   custom_currency?: string;
+  custom_project_budget_hours?: ProjectBudget[];
 }

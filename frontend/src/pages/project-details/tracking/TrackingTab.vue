@@ -16,6 +16,7 @@ import CostBurnWidget from "./CostBurnWidget.vue";
 import FinancialsWidget from "./FinancialsWidget.vue";
 import HoursUsageWidget from "./HoursUsageWidget.vue";
 import InvoiceBurnWidget from "./InvoiceBurnWidget.vue";
+import ContractsWidget from "./ContractsWidget.vue";
 import { applyHiddenWidgets, defaultLayout, hiddenWidgets } from "./layout";
 import LifetimeWidget from "./LifetimeWidget.vue";
 import TaskCompletionWidget from "./TaskCompletionWidget.vue";
@@ -48,6 +49,7 @@ const WIDGETS: Partial<Record<WidgetKey, WidgetEntry>> = {
       field: "expected_lifetime_value",
     },
   },
+  contracts: { component: ContractsWidget },
   lifetime_vs_billed: {
     component: LifetimeWidget,
     props: {
