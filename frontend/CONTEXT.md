@@ -65,8 +65,12 @@ _Avoid_: ticket, issue, todo (a `ToDo` is a separate Frappe doctype).
 **Task status** — a task's `status`: `Open`, `Working`, `Pending Review`, `Overdue`, `Template`, `Completed`,
 `Cancelled`. In code: `TaskStatusValue` and `TASK_STATUSES` from `components/TaskStatus` (P16).
 
-**Project phase** — a named, coloured stage a project moves through (`Project Phase`).
+**Project phase** — a named, coloured stage a project moves through (`Project Phase`). The kanban has a column per
+phase, ordered by `position`. In code: `useProjectPhases()` and `PhaseIcon`.
 _Avoid_: stage, status (status is a separate field).
+
+**RAG status** — a project's red / amber / green health (`custom_project_rag_status`), shown as a coloured dot.
+_Avoid_: risk (a `Risk` is a separate doctype), health.
 
 **Project budget** — purchased, consumed and remaining hours for a project over a period (`Project Budget`).
 
@@ -95,6 +99,11 @@ notification tray (`useNotifications`).
 
 **Boot data** — the session data the server puts on `window.boot` (user, site name, timezones, feature flags).
 In development `src/boot.ts` fetches it before the app mounts.
+
+**View** — a named set of filters, sort and column layout for a list page, saved as a `PMS View Setting` row. The
+projects page has two built-in views (List, Kanban) and the user's own and public saved views, picked with the
+`view` query param.
+_Avoid_: filter preset, layout (the column layout is one part of a view).
 
 **Composable** — a `use*` function. frappe-ui's data composables (`useCall`, `useList`, `useDoc`, `useDoctype`,
 `useNewDoc`) are how pages talk to the server.

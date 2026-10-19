@@ -37,6 +37,7 @@ Storybook 10 (Vue 3 + Vite) with the MCP, Docs, Vitest, A11y and Themes addons, 
 | `npm run lint` / `lint:fix` | ESLint over `.vue`, `.ts` and stories: Vue, TypeScript, Storybook, Tailwind class, accessibility and composable rules; formatting is Prettier's |
 | `npm run storybook` | Storybook on port 6006 (also serves the Storybook MCP at `/mcp`) |
 | `npm run test-storybook` | Runs every story as a test in headless Chromium (Vitest), including an accessibility check |
+| `npm run test-unit` | Runs the `*.test.ts` unit tests for `src/utils/` in headless Chromium (Vitest) |
 | `npm run build-storybook` | Static Storybook in `storybook-static/` |
 
 ## Layout
@@ -52,11 +53,12 @@ src/
   layout/          AppSidebar (frappe-ui Sidebar), AppSidebarSection, the nav links (sidebarSections.ts), the
                    Apps menu (apps.ts) and StatusMessage for the status pages
   pages/           route components; WorkInProgress stands in for pages not rebuilt yet. A rebuilt page gets a
-                   folder (pages/tasks/): the route component, its parts and dialogs, cells/, and page-only
-                   use* composables (provide/inject state, filters and columns kept in the URL)
+                   folder (pages/tasks/, pages/projects/): the route component, its parts and dialogs, cells/, and
+                   page-only use* composables (provide/inject state, filters and columns kept in the URL);
+                   pages/projects/ also has kanban/ and views/ (saved views)
   components/      components frappe-ui lacks, one folder each; see components/Components.md
   composables/     shared use* composables: lookups, the like toggle, URL query updates, editor attributes,
-                   values saved in localStorage (useSavedState), notifications
+                   values saved in localStorage (useSavedState), notifications, infinite scroll, project phases
   icons/           custom icons lucide lacks, as Vue SFCs exported from icons/index.ts; everything else uses lucide-* (P4)
   utils/           helpers shared by components and pages (date.ts, text.ts, cn.ts); add one only when something needs it
 ```
@@ -76,7 +78,8 @@ Never edit the build output in `../next_pms/public/frontend` by hand.
 
 - **Skills** in `.agents/skills/` (symlinked into `.claude/skills/`): `frappe-ui` for any UI or data code;
   `vue-best-practices`, `vue-router-best-practices`, `vue-debug-guides`, `create-adaptable-composable` for Vue
-  questions; `port-frappe-ui-react-component` (ours) for porting React components. Vendored versions are pinned in
+  questions; `port-frappe-ui-react-component` (ours) for porting React components, and its "Translate the tokens"
+  section before copying any class from React code (pages too). Vendored versions are pinned in
   `skills-lock.json`; update with `npx skills update`, which overwrites local edits, so corrections go in
   [Skill overrides](#skill-overrides) below.
 - **Storybook MCP** at `http://localhost:6006/mcp` (needs `npm run storybook` running): `docs-list` / `docs-show`
@@ -86,15 +89,16 @@ Never edit the build output in `../next_pms/public/frontend` by hand.
   `useCall`/`useList`/`useDoc` result is a reactive object, so read its `data`, `loading` and `error` in the
   component's setup state (`useList` also takes `debug: true`). The `vue-debug-guides` skill covers reactivity and
   async debugging.
-- **Browser checks** run against the Vite URL. If the page redirects to the Frappe login, ask the human to log in;
-  never fill in the login form yourself.
+- **Page checks** are Playwright e2e tests in `../tests/e2e/` (`npm run e2e:tests` from the repo root), not manual
+  browser checks. Never fill in the Frappe login form yourself.
 
 ## Skill overrides
 
 These win over the vendored skills.
 
-- **vue-testing-best-practices** doesn't apply here. Tests are Storybook stories with `play` functions running in
-  browser Vitest (P5, P6), not Vue Test Utils or node Vitest.
+- **vue-testing-best-practices** doesn't apply here. Components are tested with Storybook stories with `play`
+  functions (P5, P6), not Vue Test Utils. The shared helpers in `src/utils/` get a sibling `*.test.ts`, run by
+  browser Vitest (`npm run test-unit`), not node Vitest. A component's own `utils.ts` is covered by its stories.
 - **vue-best-practices**: read its reference files only when a task needs one, not all of them up front. Components
   follow the folder layout in [`src/components/Components.md`](src/components/Components.md), not its feature
   folders.
@@ -114,8 +118,9 @@ These win over the vendored skills.
 - Every component ships stories, and its behaviour is covered by interaction stories (P5).
 - Add an npm dependency when it is truly needed or clearly improves the code or the UX, and say why in the PR or
   report.
-- Before handing off: `npm run lint`, `npm run type-check`, `npm run test-storybook -- --run`, and Prettier on changed
-  files (P10).
+- Every helper in `src/utils/` has unit tests in a sibling `*.test.ts`.
+- Before handing off: `npm run lint`, `npm run type-check`, `npm run test-unit -- --run`,
+  `npm run test-storybook -- --run`, and Prettier on changed files (P10).
 - Don't change routes or backend endpoints as part of frontend work; that needs its own task.
 
 ## Do not

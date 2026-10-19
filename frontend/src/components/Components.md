@@ -32,10 +32,11 @@ across components live in `src/utils/`.
 | `DayChip/` | `DayChip` |
 | `DurationInput/` | `DurationInput` |
 | `ErrorFallback/` | `ErrorFallback` |
-| `Filter/` | `Filter`, `DEFAULT_OPERATORS` |
+| `Filter/` | `Filter`, `FilterLinkValue` (the `#link-value` input: searches the field's doctype or `customMethod`), `DEFAULT_OPERATORS` |
 | `LoadingOverlay/` | `LoadingOverlay` |
 | `MonthPicker/` | `MonthPicker` |
 | `NotificationTray/` | `NotificationTray`, `notificationIcon` |
+| `PhaseIcon/` | `PhaseIcon` (a project phase's colour), `PROJECT_PHASE_COLORS` |
 | `ProgressBar/` | `ProgressBar` |
 | `RichText/` | `RichText` (read-only editor HTML, e.g. comments) |
 | `SortSelector/` | `SortSelector` |

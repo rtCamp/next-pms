@@ -1,6 +1,6 @@
 ---
 name: port-frappe-ui-react-component
-description: Port a component from the old React frontend (the next-pms design-system or the frappe-ui-react kit) into the next-pms Vue app (frontend/src/components/) with Storybook stories and interaction tests. Use when asked to port, migrate or recreate a React component (MonthPicker, Filter, ColumnSelector, TaskStatus, ApprovalStatus, timesheet rows, CalendarTimeline, NotificationTray…) in Vue, or to fill a gap frappe-ui doesn't cover.
+description: Port a component from the old React frontend (the next-pms design-system or the frappe-ui-react kit) into the next-pms Vue app (frontend/src/components/) with Storybook stories and interaction tests. Use when asked to port, migrate or recreate a React component (MonthPicker, Filter, ColumnSelector, TaskStatus, ApprovalStatus, timesheet rows, CalendarTimeline, NotificationTray…) in Vue, or to fill a gap frappe-ui doesn't cover. Also use before copying any Tailwind class from React code into Vue, page code included (cells, cards, headers): frappe-ui 1.0 shifted the token scales.
 ---
 
 # Port a React component to Vue
@@ -61,8 +61,11 @@ Then:
 ### Translate the tokens
 
 frappe-ui 1.0 renamed tokens, shifted the colour steps and font sizes, and replaced the radius scale. A token copied
-as-is either generates no CSS or renders a different shade, and no visual test catches the shade. Translate with
-frappe-ui's codemod, on a copy of the React files, never on Vue files:
+as-is either generates no CSS or renders a different shade, and neither lint nor a visual test catches the shade:
+`text-ink-red-3` is a valid class in both, and in Vue it renders a dark, muted red instead of React's bright one.
+This applies to every class taken from React, wherever it lands: a page's cells and cards (the projects page's RAG
+dot and phase icon shipped untranslated) as much as a component here. Translate with frappe-ui's codemod, on a copy
+of the React files, never on Vue files:
 
 ```bash
 T=$(mktemp -d)
@@ -83,15 +86,36 @@ What it changes, for reference when a class reaches you some other way:
 | `ink-<colour>-2` / `-3` / `-4` | `-5` / `-6` / `-8` |
 | `outline-gray-5` | `-7` |
 | `outline-<colour>-2` / `-3` / `-4` | `-3` / `-4` / `-5` |
+| `outline-gray-modals`, `outline-gray-modal` | `outline-elevation-2` |
 | `surface-white`, `ink-white`, `outline-white` | `surface-base`, `ink-base`, `outline-base` |
 | `surface-cards`, `surface-modal`, `surface-selected`, `surface-menu-bar` | `surface-elevation-1`, `-2`, `-3`, `surface-sidebar` |
 | `text-xl` (18px), `text-2xl` (20px), `text-3xl` (24px) | `text-2xl`, `text-3xl`, `text-4xl` |
 | `text-base font-medium` | `text-base-medium` |
+| `rounded-sm` (4px), `rounded` (8px), `-md` (10px), `-lg` (12px), `-xl` (16px), `-2xl` (20px) | `rounded-1`, `-4`, `-5`, `-6`, `-7`, `-8`; sides too (`rounded-t-2xl` → `rounded-t-8`) |
 
 `<colour>` is red, blue, green, amber or violet. Full map:
 `frontend/node_modules/frappe-ui/tailwind/migrate-tokens-v2.js`; valid colour names:
 `frontend/node_modules/frappe-ui/tailwind/tokens/colors.js`. The default line height changed from 1.15 to 1.35;
 use `leading-tighter` where React relied on 1.15.
+
+The codemod only knows those five. frappe-ui-react added its own `ink-cyan-*` and `ink-pink-*` on the same steps
+(`ink-cyan-3` and `ink-red-3` are both the `-500` shade), and the codemod leaves them alone. Shift them by hand like
+the five: `ink-cyan-3` → `ink-cyan-6`.
+
+Translate a radius by its pixel value, not by Tailwind's default scale: the old kit's `rounded-2xl` was 20px
+(`rounded-8`), where stock Tailwind's is 16px (`rounded-7`). The codemod skips a bare `rounded` it reads as an English
+word, so grep for it afterwards. A border colour is an `outline-*` token, so `border-outline-gray-modals` becomes
+`border-outline-elevation-2`, a lighter grey than `outline-gray-2`.
+
+The translation is done when every colour, font-size and radius class that came from React has gone through the
+codemod or this section, checked by grepping the files you wrote:
+
+```bash
+grep -nE "(ink|surface|outline)-[a-z]+-[0-9]|text-(xl|2xl|3xl)\b|rounded" <files>
+```
+
+Each hit is either the codemod's output or a class you wrote yourself; anything copied straight from React gets
+translated.
 
 The design-system used Tailwind 4, which allows any spacing step. The frappe-ui preset allows half steps from 0.5 to
 19.5 and whole steps from 1 to 128 (`h-4.5`, `w-18`, `min-w-100`). Quarter steps (`w-4.25`) and larger values become

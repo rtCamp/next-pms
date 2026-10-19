@@ -5,6 +5,7 @@ interface Boot {
   time_zone?: { system?: string | null; user?: string | null };
   user?: { name: string; roles?: string[] };
   currencies?: string[];
+  sysdefaults?: { currency?: string };
   /** Server-side filters to add to lookups; `project` limits a contractor to their projects. */
   global_filters?: { project?: unknown[][] };
   [key: string]: unknown;

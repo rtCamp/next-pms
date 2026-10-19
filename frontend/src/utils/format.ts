@@ -44,7 +44,11 @@ const ZERO_DECIMAL_CURRENCIES = ["JPY", "KRW", "VND", "IDR"];
  * An amount in the currency's own number format and symbol, e.g.
  * `formatCurrency(1234.5, "USD")` → `"$1,234.50"`. Unlisted currencies use the Indian format.
  */
-export function formatCurrency(value: number, currency = "INR"): string {
+export function formatCurrency(
+  value: number,
+  currencyCode?: string | null,
+): string {
+  const currency = currencyCode || "INR";
   const fractionDigits = ZERO_DECIMAL_CURRENCIES.includes(currency) ? 0 : 2;
   return new Intl.NumberFormat(CURRENCY_LOCALES[currency] ?? "en-IN", {
     style: "currency",
