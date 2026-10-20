@@ -183,8 +183,12 @@ async function submit() {
         :error="errors.validFrom"
         variant="outline"
         placeholder="Select date"
-        format="MMM D, YYYY"
-      />
+        format="YYYY-MM-DD"
+      >
+        <template #suffix>
+          <span class="lucide-calendar size-4" aria-hidden="true" />
+        </template>
+      </DatePicker>
       <ErrorMessage v-if="submitError" :message="submitError" />
     </form>
 

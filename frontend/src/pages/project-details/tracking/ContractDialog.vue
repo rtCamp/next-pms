@@ -132,8 +132,12 @@ async function submit() {
           :error="errors.startDate"
           variant="outline"
           placeholder="Select date"
-          format="MMM D, YYYY"
-        />
+          format="YYYY-MM-DD"
+        >
+          <template #suffix>
+            <span class="lucide-calendar size-4" aria-hidden="true" />
+          </template>
+        </DatePicker>
         <DatePicker
           v-model="form.endDate"
           class="flex-1"
@@ -142,8 +146,12 @@ async function submit() {
           :error="errors.endDate"
           variant="outline"
           placeholder="Select date"
-          format="MMM D, YYYY"
-        />
+          format="YYYY-MM-DD"
+        >
+          <template #suffix>
+            <span class="lucide-calendar size-4" aria-hidden="true" />
+          </template>
+        </DatePicker>
       </div>
       <TextInput
         v-model="form.hoursBought"

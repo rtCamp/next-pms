@@ -101,6 +101,9 @@ async function generate() {
         :max="today"
         :typeable="false"
       >
+        <template #suffix>
+          <span class="lucide-calendar size-4" aria-hidden="true" />
+        </template>
         <template #actions="{ setRange, close }">
           <Button
             v-for="preset in presets"
