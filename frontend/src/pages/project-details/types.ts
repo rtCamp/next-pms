@@ -38,6 +38,12 @@ export interface ProjectBillingTeam {
   valid_from: string;
 }
 
+/** A row of the Project's `custom_customer_contacts`. */
+export interface ProjectCustomerContact {
+  name?: string;
+  contact: string;
+}
+
 /** The fields of a `Project` this page reads. */
 export interface ProjectDoc {
   name: string;
@@ -52,4 +58,11 @@ export interface ProjectDoc {
   custom_currency?: string;
   custom_project_budget_hours?: ProjectBudget[];
   custom_project_billing_team?: ProjectBillingTeam[];
+  custom_billing_type?: string;
+  custom_project_rag_status?: string;
+  /** User ID of the project manager. */
+  custom_project_manager?: string | null;
+  /** User ID of the lead engineer. */
+  custom_engineering_manager?: string | null;
+  custom_customer_contacts?: ProjectCustomerContact[];
 }

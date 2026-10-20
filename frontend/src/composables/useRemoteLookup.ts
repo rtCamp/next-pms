@@ -23,7 +23,11 @@ export interface LookupOption {
 
 type LookupParams = Record<string, string | number | undefined>;
 
-export interface RemoteLookupOptions<TResponse, TItem> {
+export interface RemoteLookupOptions<
+  TResponse,
+  TItem,
+  TOption extends LookupOption = LookupOption,
+> {
   /** Whitelisted method, e.g. `"frappe.client.get_list"`. */
   method: string;
   /** Fetch only while this is true, e.g. while a dialog is open. Default: `true`. */
@@ -36,9 +40,9 @@ export interface RemoteLookupOptions<TResponse, TItem> {
   params: (query: string) => LookupParams;
   /** The rows in the response. */
   getItems: (response: TResponse | null) => TItem[];
-  toOption: (item: TItem) => LookupOption;
+  toOption: (item: TItem) => TOption;
   /** Options kept in the list when the latest results don't include them, e.g. the current value. */
-  selected?: MaybeRefOrGetter<LookupOption | null | undefined>;
+  selected?: MaybeRefOrGetter<TOption | null | undefined>;
   /** Other inputs of `params`; a change searches again at once, e.g. a project scope. */
   refetchOn?: () => unknown;
 }
@@ -48,9 +52,11 @@ export interface RemoteLookupOptions<TResponse, TItem> {
  * options. Pair it with `<Combobox :filterable="false">`, since the server does the
  * filtering.
  */
-export function useRemoteLookup<TResponse, TItem>(
-  options: RemoteLookupOptions<TResponse, TItem>,
-) {
+export function useRemoteLookup<
+  TResponse,
+  TItem,
+  TOption extends LookupOption = LookupOption,
+>(options: RemoteLookupOptions<TResponse, TItem, TOption>) {
   const debouncedQuery = ref(toValue(options.query));
   let timer: ReturnType<typeof setTimeout> | undefined;
   watch(
@@ -83,7 +89,7 @@ export function useRemoteLookup<TResponse, TItem>(
     { immediate: true },
   );
 
-  const lookupOptions = computed<LookupOption[]>(() => {
+  const lookupOptions = computed<TOption[]>(() => {
     const results = options.getItems(call.data).map(options.toOption);
     const selected = toValue(options.selected);
     if (
