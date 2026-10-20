@@ -123,7 +123,7 @@ function remove(row: RateRow) {
         aria-label="Project rates"
         class="min-w-min list-row-px-2"
       >
-        <ListHeader>
+        <ListHeader class="data-[slot=list-header]:h-[19px]">
           <ListHeaderCell
             v-for="column in COLUMNS"
             :key="column.key"

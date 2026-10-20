@@ -32,7 +32,7 @@ function formatDate(date: string | null | undefined) {
       :aria-label="label"
       class="min-w-min list-gap-4 list-row-px-2"
     >
-      <ListHeader>
+      <ListHeader class="data-[slot=list-header]:h-6">
         <ListHeaderCell v-for="column in columns" :key="column.key">
           {{ column.label }}
         </ListHeaderCell>

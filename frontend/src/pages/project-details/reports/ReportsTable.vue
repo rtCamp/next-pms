@@ -40,7 +40,7 @@ const rows = computed(() => sortReports(props.reports));
         aria-label="Project reports"
         class="min-w-min list-gap-4 list-row-px-2"
       >
-        <ListHeader>
+        <ListHeader class="data-[slot=list-header]:h-6">
           <ListHeaderCell
             v-for="column in REPORT_COLUMNS"
             :key="column.key"
