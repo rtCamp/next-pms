@@ -14,6 +14,7 @@ import { useQueryPatch } from "@/composables/useQueryPatch";
 import StatusMessage from "@/layout/StatusMessage.vue";
 import { errorMessage } from "@/utils/errors";
 import { queryString } from "@/utils/query";
+import AboutSidebar from "./about/AboutSidebar.vue";
 import { DEFAULT_TAB, TAB_PARAM, type ProjectTabKey } from "./constants";
 import EmailTab from "./email/EmailTab.vue";
 import ProjectDetailsHeader from "./ProjectDetailsHeader.vue";
@@ -124,7 +125,7 @@ watch(
         </p>
       </TabPanel>
     </Tabs>
-    <div class="w-1/4 max-md:min-w-60 max-md:shrink-0" />
+    <AboutSidebar class="w-1/4 max-md:min-w-60 max-md:shrink-0" />
   </div>
   <StatusMessage
     v-else-if="errorType === 'DoesNotExistError'"
