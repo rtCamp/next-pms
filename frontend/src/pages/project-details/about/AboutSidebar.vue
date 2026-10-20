@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import { onMounted, ref, useTemplateRef } from "vue";
+import { ref } from "vue";
 import { Button } from "frappe-ui";
-import { Accordion } from "frappe-ui/experimental";
+import { AccordionRoot } from "reka-ui";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
 import { errorMessage } from "@/utils/errors";
 import AddCustomersDialog from "./AddCustomersDialog.vue";
-import { SECTIONS, type SectionKey } from "./constants";
 import BudgetSection from "./BudgetSection.vue";
+import { SECTIONS, type SectionKey } from "./constants";
 import CustomersSection from "./CustomersSection.vue";
 import DetailsSection from "./DetailsSection.vue";
 import LinksSection from "./LinksSection.vue";
 import MembersSection from "./MembersSection.vue";
 import ProgressSection from "./ProgressSection.vue";
 import SectionSkeleton from "./SectionSkeleton.vue";
+import SidebarSection from "./SidebarSection.vue";
 import SummarySection from "./SummarySection.vue";
 import { provideProjectSidebar } from "./useProjectSidebar";
 
 const { projectId } = useProjectDetails();
 const { sidebar, loading, error, reload } = provideProjectSidebar();
 
-const ITEMS = SECTIONS.map((section) => ({ ...section }));
 const OPEN = SECTIONS.map((section) => section.value);
 
 const SKELETON_LINES: Record<SectionKey, number> = {
@@ -32,20 +32,7 @@ const SKELETON_LINES: Record<SectionKey, number> = {
   customers: 2,
 };
 
-const accordion = useTemplateRef<{ $el: HTMLElement }>("accordion");
-const headers = ref<Partial<Record<SectionKey, HTMLElement>>>({});
 const addCustomersOpen = ref(false);
-
-// Header actions sit in the item's heading, beside the trigger button: the
-// Accordion's item-suffix slot renders inside the button.
-onMounted(() => {
-  const items =
-    accordion.value?.$el.querySelectorAll<HTMLElement>("[data-slot=item]");
-  items?.forEach((item, index) => {
-    const heading = item.querySelector("[data-slot=trigger]")?.parentElement;
-    if (heading) headers.value[SECTIONS[index].value] = heading;
-  });
-});
 </script>
 
 <template>
@@ -77,50 +64,48 @@ onMounted(() => {
         @click="reload()"
       />
     </div>
-    <Accordion
-      v-show="!error"
-      ref="accordion"
+    <AccordionRoot
+      v-else
       type="multiple"
-      heading-tag="h3"
-      :items="ITEMS"
       :default-value="OPEN"
-      class="min-h-0 flex-1 overflow-y-auto [&>[data-slot=item]>[data-slot=content]>div:empty]:hidden [&>[data-slot=item]>[data-slot=content]>div]:px-5 [&>[data-slot=item]>[data-slot=content]>div]:pb-4 [&>[data-slot=item]>*>[data-slot=trigger]>.lucide-chevron-down]:text-ink-gray-7 [&>[data-slot=item]>*>[data-slot=trigger][data-state=closed]>.lucide-chevron-down]:-rotate-90 [&>[data-slot=item]>*>[data-slot=trigger][data-state=open]>.lucide-chevron-down]:rotate-0 [&>[data-slot=item]>*>[data-slot=trigger]]:min-w-0 [&>[data-slot=item]>*>[data-slot=trigger]]:flex-row-reverse [&>[data-slot=item]>*>[data-slot=trigger]]:gap-3 [&>[data-slot=item]>*>[data-slot=trigger]]:rounded-1 [&>[data-slot=item]>*>[data-slot=trigger]]:px-5 [&>[data-slot=item]>*>[data-slot=trigger]]:py-3 [&>[data-slot=item]>*>[data-slot=trigger]]:leading-tighter"
+      class="min-h-0 flex-1 overflow-y-auto"
     >
-      <template #item-content="{ item }">
+      <SidebarSection
+        v-for="section in SECTIONS"
+        :key="section.value"
+        :value="section.value"
+        :title="section.title"
+      >
+        <template v-if="section.value === 'details'" #actions>
+          <Button
+            icon="lucide-arrow-up-right"
+            label="Open in Desk"
+            tooltip="Open in Desk"
+            :href="`/desk/project/${encodeURIComponent(projectId)}`"
+          />
+        </template>
+        <template v-else-if="section.value === 'customers'" #actions>
+          <Button
+            icon="lucide-plus"
+            label="Add customer"
+            @click="addCustomersOpen = true"
+          />
+        </template>
         <SectionSkeleton
           v-if="loading"
-          :lines="SKELETON_LINES[item.value as SectionKey]"
+          :lines="SKELETON_LINES[section.value]"
         />
         <template v-else-if="sidebar">
-          <SummarySection v-if="item.value === 'summary'" />
-          <DetailsSection v-else-if="item.value === 'details'" />
-          <LinksSection v-else-if="item.value === 'links'" />
-          <BudgetSection v-else-if="item.value === 'budget'" />
-          <ProgressSection v-else-if="item.value === 'progress'" />
-          <MembersSection v-else-if="item.value === 'members'" />
-          <CustomersSection v-else-if="item.value === 'customers'" />
+          <SummarySection v-if="section.value === 'summary'" />
+          <DetailsSection v-else-if="section.value === 'details'" />
+          <LinksSection v-else-if="section.value === 'links'" />
+          <BudgetSection v-else-if="section.value === 'budget'" />
+          <ProgressSection v-else-if="section.value === 'progress'" />
+          <MembersSection v-else-if="section.value === 'members'" />
+          <CustomersSection v-else-if="section.value === 'customers'" />
         </template>
-      </template>
-    </Accordion>
-    <Teleport v-if="headers.details" :to="headers.details">
-      <div class="flex shrink-0 items-center py-3 pr-5">
-        <Button
-          icon="lucide-arrow-up-right"
-          label="Open in Desk"
-          tooltip="Open in Desk"
-          :href="`/desk/project/${encodeURIComponent(projectId)}`"
-        />
-      </div>
-    </Teleport>
-    <Teleport v-if="headers.customers" :to="headers.customers">
-      <div class="flex shrink-0 items-center py-3 pr-5">
-        <Button
-          icon="lucide-plus"
-          label="Add customer"
-          @click="addCustomersOpen = true"
-        />
-      </div>
-    </Teleport>
+      </SidebarSection>
+    </AccordionRoot>
     <AddCustomersDialog v-model:open="addCustomersOpen" />
   </section>
 </template>
