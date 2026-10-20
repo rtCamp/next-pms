@@ -5,11 +5,16 @@ import { Accordion } from "frappe-ui/experimental";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
 import { errorMessage } from "@/utils/errors";
 import { SECTIONS, type SectionKey } from "./constants";
+import BudgetSection from "./BudgetSection.vue";
+import DetailsSection from "./DetailsSection.vue";
+import LinksSection from "./LinksSection.vue";
+import ProgressSection from "./ProgressSection.vue";
 import SectionSkeleton from "./SectionSkeleton.vue";
+import SummarySection from "./SummarySection.vue";
 import { provideProjectSidebar } from "./useProjectSidebar";
 
 const { projectId } = useProjectDetails();
-const { loading, error, reload } = provideProjectSidebar();
+const { sidebar, loading, error, reload } = provideProjectSidebar();
 
 const ITEMS = SECTIONS.map((section) => ({ ...section }));
 const OPEN = SECTIONS.map((section) => section.value);
@@ -82,6 +87,13 @@ onMounted(() => {
           v-if="loading"
           :lines="SKELETON_LINES[item.value as SectionKey]"
         />
+        <template v-else-if="sidebar">
+          <SummarySection v-if="item.value === 'summary'" />
+          <DetailsSection v-else-if="item.value === 'details'" />
+          <LinksSection v-else-if="item.value === 'links'" />
+          <BudgetSection v-else-if="item.value === 'budget'" />
+          <ProgressSection v-else-if="item.value === 'progress'" />
+        </template>
       </template>
     </Accordion>
     <Teleport v-if="headers.details" :to="headers.details">
