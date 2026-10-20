@@ -4,7 +4,7 @@ export const RAG_API = "/api/v2/method/rtcamp.api.project_rag";
 
 export const TRIGGER_COLUMNS: RagColumn[] = [
   { key: "type", label: "Type", width: "180px" },
-  { key: "alert", label: "Alert", width: "minmax(0,1fr)" },
+  { key: "alert", label: "Alert", width: "minmax(200px,1fr)" },
   { key: "trigger_date", label: "Trigger Date", width: "160px" },
 ];
 

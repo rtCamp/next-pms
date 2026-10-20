@@ -109,13 +109,15 @@ function handleCancel() {
       :label="avatarName"
       :image="avatarImage ?? undefined"
     />
+    <!-- eslint-disable better-tailwindcss/no-restricted-classes -- frappe-ui has no 40px input size with 14px text and 12px padding -->
     <TextInput
-      size="lg"
-      class="w-full"
+      variant="outline"
+      class="w-full [&_[data-slot=control]]:h-10 [&_[data-slot=control]]:px-3"
       :placeholder="placeholder"
       :aria-label="placeholder"
       @focus="expanded = true"
     />
+    <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
   </div>
 
   <div v-else class="flex w-full flex-col gap-2">

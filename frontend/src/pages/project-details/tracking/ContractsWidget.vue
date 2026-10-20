@@ -30,8 +30,8 @@ const COLUMNS = [
   { key: "hoursBought", label: "Hours bought", width: "88px", right: true },
   { key: "hoursUsed", label: "Hours used", width: "88px", right: true },
   { key: "hoursLeft", label: "Hours left", width: "88px", right: true },
-  { key: "salesOrder", label: "Sales order", width: "minmax(0,1fr)" },
-  { key: "salesInvoice", label: "Sales invoice", width: "minmax(0,1fr)" },
+  { key: "salesOrder", label: "Sales order", width: "minmax(120px,1fr)" },
+  { key: "salesInvoice", label: "Sales invoice", width: "minmax(120px,1fr)" },
   { key: "actions", label: "", width: "28px", right: true },
 ] as const;
 
@@ -108,57 +108,66 @@ function remove(row: ContractRow) {
         @click="addOpen = true"
       />
     </div>
-    <List
-      :columns="COLUMNS.map((column) => column.width)"
-      aria-label="Contracts"
-    >
-      <ListHeader>
-        <ListHeaderCell
-          v-for="column in COLUMNS"
-          :key="column.key"
-          :class="'right' in column && 'justify-end'"
+    <div class="overflow-x-auto">
+      <List
+        :columns="COLUMNS.map((column) => column.width)"
+        :row-height="40"
+        aria-label="Contracts"
+        class="min-w-min list-gap-4 list-row-px-2"
+      >
+        <ListHeader>
+          <ListHeaderCell
+            v-for="column in COLUMNS"
+            :key="column.key"
+            :class="'right' in column && 'justify-end'"
+          >
+            {{ column.label }}
+          </ListHeaderCell>
+        </ListHeader>
+        <p
+          v-if="!rows.length"
+          class="py-10 text-center text-sm text-ink-gray-4"
         >
-          {{ column.label }}
-        </ListHeaderCell>
-      </ListHeader>
-      <p v-if="!rows.length" class="py-10 text-center text-sm text-ink-gray-4">
-        No contracts yet
-      </p>
-      <ListRows v-else v-slot="{ item }" :items="rows" row-key="id">
-        <ListRow>
-          <ListCell class="min-w-0 text-base text-ink-gray-6">
-            <span class="truncate">{{
-              formatContractDate(item.startDate)
-            }}</span>
-          </ListCell>
-          <ListCell class="min-w-0 text-base text-ink-gray-6">
-            <span class="truncate">{{ formatContractDate(item.endDate) }}</span>
-          </ListCell>
-          <ListCell class="min-w-0 justify-end text-base text-ink-gray-6">
-            <span class="truncate">{{ item.hoursBought }}</span>
-          </ListCell>
-          <ListCell class="min-w-0 justify-end text-base text-ink-gray-6">
-            <span class="truncate">{{ item.hoursUsed }}</span>
-          </ListCell>
-          <ListCell class="min-w-0 justify-end text-base text-ink-gray-6">
-            <span class="truncate">{{ item.hoursLeft }}</span>
-          </ListCell>
-          <ListCell class="min-w-0 text-base text-ink-gray-6">
-            <span class="truncate">{{ item.salesOrder }}</span>
-          </ListCell>
-          <ListCell class="min-w-0 text-base text-ink-gray-6">
-            <span class="truncate">{{ item.salesInvoice }}</span>
-          </ListCell>
-          <ListCell class="justify-end">
-            <RowActions
-              label="Contract actions"
-              @edit="editing = item"
-              @delete="remove(item)"
-            />
-          </ListCell>
-        </ListRow>
-      </ListRows>
-    </List>
+          No contracts yet
+        </p>
+        <ListRows v-else v-slot="{ item }" :items="rows" row-key="id">
+          <ListRow>
+            <ListCell class="min-w-0 text-base text-ink-gray-6">
+              <span class="truncate">{{
+                formatContractDate(item.startDate)
+              }}</span>
+            </ListCell>
+            <ListCell class="min-w-0 text-base text-ink-gray-6">
+              <span class="truncate">{{
+                formatContractDate(item.endDate)
+              }}</span>
+            </ListCell>
+            <ListCell class="min-w-0 justify-end text-base text-ink-gray-6">
+              <span class="truncate">{{ item.hoursBought }}</span>
+            </ListCell>
+            <ListCell class="min-w-0 justify-end text-base text-ink-gray-6">
+              <span class="truncate">{{ item.hoursUsed }}</span>
+            </ListCell>
+            <ListCell class="min-w-0 justify-end text-base text-ink-gray-6">
+              <span class="truncate">{{ item.hoursLeft }}</span>
+            </ListCell>
+            <ListCell class="min-w-0 text-base text-ink-gray-6">
+              <span class="truncate">{{ item.salesOrder }}</span>
+            </ListCell>
+            <ListCell class="min-w-0 text-base text-ink-gray-6">
+              <span class="truncate">{{ item.salesInvoice }}</span>
+            </ListCell>
+            <ListCell class="justify-end">
+              <RowActions
+                label="Contract actions"
+                @edit="editing = item"
+                @delete="remove(item)"
+              />
+            </ListCell>
+          </ListRow>
+        </ListRows>
+      </List>
+    </div>
     <ContractDialog v-model:open="addOpen" mode="add" :save="add" />
     <ContractDialog
       v-model:open="editOpen"

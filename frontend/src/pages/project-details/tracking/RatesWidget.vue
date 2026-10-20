@@ -25,7 +25,7 @@ import { withoutRow } from "./contracts";
 import { useTracking } from "./useTracking";
 
 const COLUMNS = [
-  { key: "name", label: "Members", width: "minmax(0,1fr)" },
+  { key: "name", label: "Members", width: "minmax(150px,1fr)" },
   { key: "amount", label: "Hourly rates", width: "104px", right: true },
   { key: "date", label: "Valid from", width: "120px" },
   { key: "actions", label: "", width: "28px", right: true },
@@ -114,63 +114,78 @@ function remove(row: RateRow) {
         @click="addOpen = true"
       />
     </div>
-    <List
-      :columns="COLUMNS.map((column) => column.width)"
-      aria-label="Project rates"
-    >
-      <ListHeader>
-        <ListHeaderCell
-          v-for="column in COLUMNS"
-          :key="column.key"
-          :class="'right' in column && 'justify-end'"
+    <div class="overflow-x-auto">
+      <List
+        :columns="COLUMNS.map((column) => column.width)"
+        :row-height="40"
+        aria-label="Project rates"
+        class="min-w-min list-row-px-2"
+      >
+        <ListHeader>
+          <ListHeaderCell
+            v-for="column in COLUMNS"
+            :key="column.key"
+            :class="'right' in column && 'justify-end'"
+          >
+            {{ column.label }}
+          </ListHeaderCell>
+        </ListHeader>
+        <p
+          v-if="!items.length"
+          class="py-10 text-center text-sm text-ink-gray-4"
         >
-          {{ column.label }}
-        </ListHeaderCell>
-      </ListHeader>
-      <p v-if="!items.length" class="py-10 text-center text-sm text-ink-gray-4">
-        No project rates yet
-      </p>
-      <ListRows v-else v-slot="{ item }" :items="items" row-key="id">
-        <ListRow
-          v-if="item.kind === 'flat'"
-          class="rounded-5 bg-surface-gray-2"
-        >
-          <ListCell class="min-w-0">
-            <span class="truncate text-base-medium text-ink-gray-7">
-              Flat rate
-            </span>
-          </ListCell>
-          <ListCell class="justify-end text-base tabular-nums text-ink-gray-6">
-            <span class="truncate">{{ item.amount }}</span>
-          </ListCell>
-          <ListCell class="text-base tabular-nums text-ink-gray-6">
-            <span class="truncate">{{ formatRateDate(item.date) }}</span>
-          </ListCell>
-          <ListCell />
-        </ListRow>
-        <ListRow v-else>
-          <ListCell class="min-w-0 gap-2">
-            <Avatar size="xs" :label="item.employeeName" :image="item.image" />
-            <span class="truncate text-base-medium text-ink-gray-7">
-              {{ item.employeeName }}
-            </span>
-          </ListCell>
-          <ListCell class="justify-end text-base tabular-nums text-ink-gray-6">
-            <span class="truncate">{{ item.amount }}</span>
-          </ListCell>
-          <ListCell class="text-base tabular-nums text-ink-gray-6">
-            <span class="truncate">{{ formatRateDate(item.date) }}</span>
-          </ListCell>
-          <ListCell class="justify-end">
-            <RowActions
-              :label="`Rate actions for ${item.employeeName}`"
-              @edit="editing = item"
-              @delete="remove(item)"
-            />
-          </ListCell>
-        </ListRow>
-      </ListRows>
-    </List>
+          No project rates yet
+        </p>
+        <ListRows v-else v-slot="{ item }" :items="items" row-key="id">
+          <ListRow
+            v-if="item.kind === 'flat'"
+            class="mt-2 rounded-5 bg-surface-gray-2"
+          >
+            <ListCell class="min-w-0">
+              <span class="truncate text-base-medium text-ink-gray-7">
+                Flat rate
+              </span>
+            </ListCell>
+            <ListCell
+              class="justify-end text-base tabular-nums text-ink-gray-6"
+            >
+              <span class="truncate">{{ item.amount }}</span>
+            </ListCell>
+            <ListCell class="text-base tabular-nums text-ink-gray-6">
+              <span class="truncate">{{ formatRateDate(item.date) }}</span>
+            </ListCell>
+            <ListCell />
+          </ListRow>
+          <ListRow v-else>
+            <ListCell class="min-w-0 gap-2">
+              <Avatar
+                size="xs"
+                :label="item.employeeName"
+                :image="item.image"
+              />
+              <span class="truncate text-base-medium text-ink-gray-7">
+                {{ item.employeeName }}
+              </span>
+            </ListCell>
+            <ListCell
+              class="justify-end text-base tabular-nums text-ink-gray-6"
+            >
+              <span class="truncate">{{ item.amount }}</span>
+            </ListCell>
+            <ListCell class="text-base tabular-nums text-ink-gray-6">
+              <span class="truncate">{{ formatRateDate(item.date) }}</span>
+            </ListCell>
+            <ListCell class="justify-end">
+              <RowActions
+                :label="`Rate actions for ${item.employeeName}`"
+                @edit="editing = item"
+                @delete="remove(item)"
+              />
+            </ListCell>
+          </ListRow>
+        </ListRows>
+      </List>
+    </div>
     <RateDialog v-model:open="addOpen" mode="add" :save="add" />
     <RateDialog
       v-model:open="editOpen"
