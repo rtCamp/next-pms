@@ -16,11 +16,7 @@ export const daysFromNow = (days) => {
   return date;
 };
 
-/** `YYYY-MM-DD` of a day in the current month, which is what the date picker offers. */
-export const dayOfThisMonth = (day) => {
-  const today = new Date();
-  return getFormattedDate(new Date(today.getFullYear(), today.getMonth(), day));
-};
+export { dayOfThisMonth } from "../utils/dateUtils";
 
 /**
  * Two days of the current month for a milestone and a touchpoint. The milestone

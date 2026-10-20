@@ -185,3 +185,11 @@ export const getFormattedPastWorkday = (offset) => {
     day: dayOfWeek, // e.g., "Mon"
   };
 };
+
+/**
+ * `YYYY-MM-DD` of a day in the current month, which is what a date picker offers.
+ */
+export const dayOfThisMonth = (day) => {
+  const today = new Date();
+  return getFormattedDate(new Date(today.getFullYear(), today.getMonth(), day));
+};
