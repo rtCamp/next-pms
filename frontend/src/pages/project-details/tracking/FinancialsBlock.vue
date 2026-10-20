@@ -78,11 +78,13 @@ const isRow = computed(() => props.layout === "row");
           label="Switch financial figures"
         />
         <template #item-suffix="{ selected }">
-          <span
-            v-if="selected"
-            class="lucide-check size-4 shrink-0 text-ink-gray-8"
-            aria-hidden="true"
-          />
+          <template v-if="selected">
+            <span
+              class="lucide-check size-4 shrink-0 text-ink-gray-8"
+              aria-hidden="true"
+            />
+            <span class="sr-only">(selected)</span>
+          </template>
         </template>
       </Dropdown>
     </div>
