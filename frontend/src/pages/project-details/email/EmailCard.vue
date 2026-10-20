@@ -144,7 +144,7 @@ const preview = computed(() => stripTags(props.email.body));
             class="flex items-center gap-1.5 rounded-4 border border-outline-gray-2 px-2 py-1 text-sm text-ink-gray-7 transition-colors hover:bg-surface-gray-2"
           >
             <span
-              class="lucide-file size-3.5 shrink-0 text-ink-gray-5"
+              class="lucide-file-text size-3.5 shrink-0 text-ink-gray-5"
               aria-hidden="true"
             />
             <span class="max-w-48 truncate">
