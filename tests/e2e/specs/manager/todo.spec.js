@@ -13,7 +13,7 @@ import {
   seedTodo,
   seedTodos,
 } from "../../helpers/todoHelper";
-import { getDocument } from "../../utils/api/apiClient";
+import { getDocList, getDocument } from "../../utils/api/apiClient";
 import { loadTestCase } from "../../utils/testCase";
 import { scaleTimeout } from "../../utils/timeouts";
 
@@ -288,16 +288,19 @@ test.describe("Manager: Project ToDos", () => {
     await todoPage.answerDialog("Cancel");
 
     // The delete runs after the dialog's button is clicked, so wait for it.
-    const gone = (item) =>
+    // By title: a deleted item's name is handed out again, so another test can own it.
+    const gone = (title) =>
       expect
-        .poll(() => getDocument(TIMELINE_ITEM, item.name), {
-          timeout: scaleTimeout(30000),
-        })
-        .toBeNull();
+        .poll(
+          async () =>
+            (await getDocList(TIMELINE_ITEM, [["title", "=", title]])).length,
+          { timeout: scaleTimeout(30000) },
+        )
+        .toBe(0);
 
     await todoPage.chooseListAction(data.milestone, "Delete");
     await todoPage.answerDialog("Delete");
-    await gone(milestone);
+    await gone(data.milestone);
     await expect(todoPage.listRow(data.milestone)).toHaveCount(0);
 
     await todoPage.gotoCalendarList(projectId, "touchpoints");
@@ -306,7 +309,7 @@ test.describe("Manager: Project ToDos", () => {
       "Its linked ToDos will not be deleted.",
     );
     await todoPage.answerDialog("Delete");
-    await gone(touchpoint);
+    await gone(data.touchpoint);
 
     // Every ToDo survives, and none is linked to anything any more.
     await todoPage.gotoTodos(projectId);
