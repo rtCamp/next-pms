@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch, type Component } from "vue";
+import { computed, nextTick, useTemplateRef, watch, type Component } from "vue";
 import { useRoute } from "vue-router";
 import {
   Button,
@@ -70,6 +70,19 @@ watch(
   { immediate: true },
 );
 
+const tabBar = useTemplateRef<HTMLElement>("tabBar");
+
+watch(
+  [activeTab, tabBar],
+  async () => {
+    await nextTick();
+    tabBar.value
+      ?.querySelector('[role="tab"][aria-selected="true"]')
+      ?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  },
+  { immediate: true },
+);
+
 // React titles the tab with the bare project name. Re-applied after every
 // navigation, which resets the title from the route meta.
 watch(
@@ -89,14 +102,16 @@ watch(
       class="flex w-3/4 flex-col border-r border-outline-elevation-2 max-md:min-w-full"
       @update:model-value="selectTab"
     >
-      <TabList class="shrink-0 overflow-x-auto px-5">
-        <TabTrigger
-          v-for="tab in tabs"
-          :key="tab.value"
-          :value="tab.value"
-          :label="tab.label"
-        />
-      </TabList>
+      <div ref="tabBar" class="shrink-0 overflow-x-auto">
+        <TabList class="h-10 min-w-max px-5">
+          <TabTrigger
+            v-for="tab in tabs"
+            :key="tab.value"
+            :value="tab.value"
+            :label="tab.label"
+          />
+        </TabList>
+      </div>
       <TabPanel
         v-for="tab in tabs"
         :key="tab.value"
