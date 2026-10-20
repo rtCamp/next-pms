@@ -7,6 +7,7 @@ import { Breadcrumbs } from "@rtcamp/frappe-ui-react";
  * Internal dependencies.
  */
 import { Header } from "@/layout/header";
+import { MANAGER_WIDGET_HELP } from "@/pages/dashboard/help";
 import { useUser } from "@/providers/user";
 import AssignedProjects from "../widget/assigned-projects";
 import CalendarTimelineCard from "../widget/calendar-timeline";
@@ -52,13 +53,13 @@ export default function ManagerDashboard() {
             <ManagerStatCards />
           </div>
           <WidgetCard className="h-[300px] col-span-8 overflow-y-auto scrollbar-thin">
-            <HeatmapCard />
+            <HeatmapCard help={MANAGER_WIDGET_HELP.heatmap} />
           </WidgetCard>
           <WidgetCard className="h-[300px] col-span-4 overflow-y-auto scrollbar-thin">
             <NotificationsCard />
           </WidgetCard>
           <WidgetCard className="col-span-12">
-            <CalendarTimelineCard />
+            <CalendarTimelineCard help={MANAGER_WIDGET_HELP.calendar} />
           </WidgetCard>
           <WidgetCard className="h-[300px] col-span-12 overflow-y-auto scrollbar-thin">
             <AssignedProjects />

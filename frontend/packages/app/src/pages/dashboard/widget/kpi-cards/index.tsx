@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { MonthPicker, Skeleton } from "@rtcamp/frappe-ui-react";
 import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
@@ -8,6 +9,7 @@ import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { currencyFormat, formatPercentage } from "@/lib/utils";
+import { LEADERSHIP_KPI_HELP } from "@/pages/dashboard/help";
 import { LeadershipKPIResponse } from "./types";
 import { useLeadershipKpi } from "./useLeadershipKpi";
 
@@ -26,13 +28,16 @@ export default function LeadershipKpiCard({
   month: string;
   onMonthChange: (month: string) => void;
 }) {
-  const { data, isLoading } = useLeadershipKpi(kpikey, month);
+  const { data, isLoading } = useLeadershipKpi(month);
 
   return (
     <>
       <div className="w-full flex justify-between">
-        <span className="truncate text-base text-ink-gray-5">
-          {KPI_LABELS[kpikey]}
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate text-base text-ink-gray-5">
+            {KPI_LABELS[kpikey]}
+          </span>
+          <InfoHoverCard help={LEADERSHIP_KPI_HELP[kpikey]} />
         </span>
         <MonthPicker
           value={month}
@@ -48,8 +53,10 @@ export default function LeadershipKpiCard({
         <span className="truncate text-2xl font-medium text-ink-gray-8">
           {data
             ? kpikey === "profit_margin"
-              ? formatPercentage(data.current)
-              : currencyFormat("USD").format(data.current)
+              ? data.revenue.current
+                ? formatPercentage(data.profit_margin.current)
+                : "N/A"
+              : currencyFormat("USD").format(data[kpikey].current)
             : "—"}
         </span>
       )}

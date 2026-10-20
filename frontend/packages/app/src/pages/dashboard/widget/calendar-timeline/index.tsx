@@ -6,10 +6,12 @@ import {
   CalendarTimeline,
   DEFAULT_VISIBLE_DAYS,
   getWeekStart,
+  InfoHoverCard,
 } from "@next-pms/design-system/components";
 import type {
   CalendarEventColor,
   CalendarTimelineEvent,
+  FieldHelp,
 } from "@next-pms/design-system/components";
 import { useSavedState } from "@next-pms/hooks";
 import { Button, DatePicker, MultiSelect } from "@rtcamp/frappe-ui-react";
@@ -33,7 +35,7 @@ const TYPE_COLOR: Record<string, CalendarEventColor> = {
   Touchpoint: "blue",
 };
 
-export default function CalendarTimelineCard() {
+export default function CalendarTimelineCard({ help }: { help: FieldHelp }) {
   const [rangeStart, setRangeStart] = useState<Date>(() =>
     getWeekStart(new Date()),
   );
@@ -89,33 +91,36 @@ export default function CalendarTimelineCard() {
       today={new Date()}
       headerSlot={
         <>
-          <DatePicker
-            value={format(rangeStart, "yyyy-MM-dd")}
-            placement="bottom-start"
-            clearable={false}
-            onChange={(val) => {
-              const picked = Array.isArray(val) ? val[0] : val;
-              if (picked) setRangeStart(getWeekStart(parseISO(picked)));
-            }}
-          >
-            {() => (
-              <Button
-                type="button"
-                variant="ghost"
-                className="flex shrink-0 items-center gap-2"
-                iconRight={() => (
-                  <SmallDown className="size-4 shrink-0 text-ink-gray-5" />
-                )}
-              >
-                <span className="whitespace-nowrap text-lg font-semibold text-ink-gray-8">
-                  {`${format(rangeStart, "MMM d")} – ${format(
-                    addDays(rangeStart, DEFAULT_VISIBLE_DAYS - 1),
-                    "MMM d, yyyy",
-                  )}`}
-                </span>
-              </Button>
-            )}
-          </DatePicker>
+          <div className="flex min-w-0 items-center gap-1.5">
+            <DatePicker
+              value={format(rangeStart, "yyyy-MM-dd")}
+              placement="bottom-start"
+              clearable={false}
+              onChange={(val) => {
+                const picked = Array.isArray(val) ? val[0] : val;
+                if (picked) setRangeStart(getWeekStart(parseISO(picked)));
+              }}
+            >
+              {() => (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="flex shrink-0 items-center gap-2"
+                  iconRight={() => (
+                    <SmallDown className="size-4 shrink-0 text-ink-gray-5" />
+                  )}
+                >
+                  <span className="whitespace-nowrap text-lg font-semibold text-ink-gray-8">
+                    {`${format(rangeStart, "MMM d")} – ${format(
+                      addDays(rangeStart, DEFAULT_VISIBLE_DAYS - 1),
+                      "MMM d, yyyy",
+                    )}`}
+                  </span>
+                </Button>
+              )}
+            </DatePicker>
+            <InfoHoverCard help={help} />
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1">
               <Button

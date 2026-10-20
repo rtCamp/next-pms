@@ -3,6 +3,7 @@
  */
 import { useMemo } from "react";
 import { mergeClassNames } from "@next-pms/design-system";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { useSavedState } from "@next-pms/hooks";
 import { MultiSelect } from "@rtcamp/frappe-ui-react";
 import type { MultiSelectOption } from "@rtcamp/frappe-ui-react";
@@ -11,6 +12,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { LEADERSHIP_WIDGET_HELP } from "@/pages/dashboard/help";
 import { ForecastBreakdownCardSkeleton } from "./skeleton";
 import type { ForecastBreakdownResponse } from "./types";
 
@@ -52,26 +54,36 @@ export default function ForecastBreakdownCard() {
     { allocated: 0, tentative: 0, unallocated: 0 },
   );
   const total = totals.allocated + totals.tentative + totals.unallocated;
-  const toPct = (value: number) =>
-    total > 0 ? Math.round((value / total) * 100) : 0;
+  // Largest-remainder rounding, so the three percentages always add up to 100.
+  const exact = [totals.allocated, totals.tentative, totals.unallocated].map(
+    (value) => (total > 0 ? (value / total) * 100 : 0),
+  );
+  const pcts = exact.map(Math.floor);
+  const leftover =
+    total > 0 ? 100 - pcts.reduce((sum, pct) => sum + pct, 0) : 0;
+  exact
+    .map((value, index) => ({ index, fraction: value - pcts[index] }))
+    .sort((a, b) => b.fraction - a.fraction)
+    .slice(0, leftover)
+    .forEach(({ index }) => (pcts[index] += 1));
 
   const segments = [
     {
       key: "allocated",
       label: "Allocated hours",
-      value: toPct(totals.allocated),
+      value: pcts[0],
       colorClass: "bg-surface-green-5",
     },
     {
       key: "tentative",
       label: "Tentatively allocated hours",
-      value: toPct(totals.tentative),
+      value: pcts[1],
       colorClass: "bg-surface-green-4",
     },
     {
       key: "unallocated",
       label: "Unallocated hours",
-      value: toPct(totals.unallocated),
+      value: pcts[2],
       colorClass: "bg-surface-gray-3",
     },
   ];
@@ -79,9 +91,12 @@ export default function ForecastBreakdownCard() {
   return (
     <>
       <div className="flex items-start justify-between gap-4">
-        <h3 className="text-lg font-semibold text-ink-gray-8">
-          Forecast breakdown for the next month
-        </h3>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <h3 className="text-lg font-semibold text-ink-gray-8">
+            Forecast breakdown for the next month
+          </h3>
+          <InfoHoverCard help={LEADERSHIP_WIDGET_HELP.forecast} />
+        </div>
         <div className="w-44 shrink-0">
           <MultiSelect
             popupClassName="scrollbar-thin"
