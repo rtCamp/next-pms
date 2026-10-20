@@ -118,9 +118,9 @@ These win over the vendored skills.
   - `DATA.md` says `submit()` returns before the request when `refetch: true`. It awaits the request in both modes
     (`useCall.ts`).
 - **frappe-ui skill mapping**: use our `MonthPicker` for picking a month, not `Select` as the skill suggests.
-- **Experimental `Accordion`** (`frappe-ui/experimental`): its `item-suffix` slot renders inside the trigger button,
-  so a header action there nests a button in a button. Put actions beside the trigger instead, as
-  `pages/project-details/about/AboutSidebar.vue` does.
+- **Accordions with header actions**: frappe-ui's experimental `Accordion` renders `item-suffix` inside the trigger
+  button, so an action there nests a button in a button. The About sidebar builds its sections from reka-ui's
+  Accordion parts instead, with the actions beside the trigger (`pages/project-details/about/SidebarSection.vue`).
 
 ## Working rules
 
