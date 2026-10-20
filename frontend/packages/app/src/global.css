@@ -19,6 +19,7 @@
 
     --animate-fade-in: fade-in 0.2s ease;
     --animate-fade-left: fade-left 0.2s ease;
+    --animate-fade-right: fade-right 0.2s ease;
 }
 
 @layer utilities {
@@ -181,6 +182,17 @@ html,
   0% {
     opacity: 0;
     transform: translateX(2rem);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade-right {
+  0% {
+    opacity: 0;
+    transform: translateX(-2rem);
   }
   100% {
     opacity: 1;
