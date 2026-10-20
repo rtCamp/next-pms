@@ -59,7 +59,8 @@ src/
                    Views that share a shell keep the shared parts at the folder root and one subfolder per view
                    (pages/timesheet/: layout, filters, dialogs; personal/, team/, project/)
                    A page with tabs keeps the shell at the folder root and one subfolder per tab
-                   (pages/project-details/: the shell and useProjectDetails; email/, reports/, tracking/, …)
+                   (pages/project-details/: the shell and useProjectDetails; about/ for the About sidebar; email/,
+                   reports/, tracking/, …)
   components/      components frappe-ui lacks, one folder each; see components/Components.md
   composables/     shared use* composables: lookups, the like toggle, URL query updates, editor attributes,
                    values saved in localStorage (useSavedState), notifications, infinite scroll, project phases,
@@ -117,6 +118,9 @@ These win over the vendored skills.
   - `DATA.md` says `submit()` returns before the request when `refetch: true`. It awaits the request in both modes
     (`useCall.ts`).
 - **frappe-ui skill mapping**: use our `MonthPicker` for picking a month, not `Select` as the skill suggests.
+- **Experimental `Accordion`** (`frappe-ui/experimental`): its `item-suffix` slot renders inside the trigger button,
+  so a header action there nests a button in a button. Put actions beside the trigger instead, as
+  `pages/project-details/about/AboutSidebar.vue` does.
 
 ## Working rules
 

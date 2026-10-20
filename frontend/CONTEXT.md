@@ -96,6 +96,11 @@ sales order and invoice.
 project's `custom_project_billing_team` rows), shown under the project's flat rate on the Tracking tab.
 _Avoid_: billing team (for a single rate).
 
+**About sidebar** — the "About this project" column beside the Project details tabs: summary, details, links,
+budget burn, hours progress, members (project manager, lead engineer and the users the project is shared with) and
+customer contacts. Adding a member shares the Project with their user.
+_Avoid_: info panel, project sidebar (the app's navigation sidebar is a different thing).
+
 **Tracking layout** — the order and visibility of the Tracking tab's widgets, shared by everyone on the project: one
 public `PMS View Setting` row of type `Tracking`. Only Projects Managers change it, and only the task completion,
 budget burn and cost burn widgets can be hidden.
