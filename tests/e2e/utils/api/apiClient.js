@@ -298,6 +298,21 @@ export const cancelDocument = async (doctype, name, role = "admin") => {
 
 // ------------------------------------------------------------------------------------------
 
+/**
+ * What Frappe said about a failed request, for the error a caller throws. A bare
+ * "417 EXPECTATION FAILED" hides the validation message that explains it.
+ */
+const failureDetail = async (res) => {
+  const body = await res.text().catch(() => "");
+  const detail =
+    body.match(/"exception":"([^"]*)"/)?.[1] ??
+    body.match(/"message":"([^"]*)"/)?.[1] ??
+    "";
+  return detail ? ` - ${detail}` : "";
+};
+
+// ------------------------------------------------------------------------------------------
+
 export const updateDocument = async (doctype, name, data, role = "admin") => {
   const requestContext = await request.newContext({
     baseURL,
@@ -316,7 +331,7 @@ export const updateDocument = async (doctype, name, data, role = "admin") => {
     );
     if (!res.ok()) {
       throw new Error(
-        `Could not update ${doctype} ${name}: ${res.status()} ${res.statusText()}`,
+        `Could not update ${doctype} ${name}: ${res.status()} ${res.statusText()}${await failureDetail(res)}`,
       );
     }
     return (await res.json())?.data;
@@ -346,7 +361,7 @@ export const createDocument = async (doctype, data, role = "admin") => {
     );
     if (!res.ok()) {
       throw new Error(
-        `Could not create ${doctype}: ${res.status()} ${res.statusText()}`,
+        `Could not create ${doctype}: ${res.status()} ${res.statusText()}${await failureDetail(res)}`,
       );
     }
     return (await res.json())?.data;

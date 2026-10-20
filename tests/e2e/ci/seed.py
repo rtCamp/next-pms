@@ -32,7 +32,7 @@ PERSONAS = {
 REPORTEES = ("EMP", "EMP3")
 FILLERS = 12  # TC57 needs members outside the manager's team on the first 10-row page
 
-CUSTOMERS = {"Acme Corporation": "INR", "QA-INR": "INR", "QA: EUR": "EUR", "rtCamp": "INR"}
+CUSTOMERS = {"Acme Corporation": "INR", "QA-INR": "INR", "QA-USD": "USD", "QA: EUR": "EUR", "rtCamp": "INR"}
 PROJECT_TYPES = ("Fixed Cost", "Non Billable", "Retainer", "TnM")
 BUSINESS_UNITS = ("Polaris", "Jupiter", "NB")
 # directed pair -> rate; round numbers so cost assertions (toBeCloseTo 3 digits) are stable
@@ -182,6 +182,19 @@ def masters():
     for name in PROJECT_TYPES:
         if not frappe.db.exists("Project Type", name):
             frappe.get_doc({"doctype": "Project Type", "project_type": name}).insert()
+    # The Currency & Billing tests bill projects with a Sales Order, which needs a service Item.
+    if not frappe.db.exists("Item", "E2E Service"):
+        frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_code": "E2E Service",
+                "item_name": "E2E Service",
+                "item_group": "Services",
+                "stock_uom": "Nos",
+                "is_stock_item": 0,
+                "is_sales_item": 1,
+            }
+        ).insert()
     # The Add Leave dialog lists LWP types only.
     if not frappe.db.exists("Leave Type", "Unpaid Time Off"):
         frappe.get_doc({"doctype": "Leave Type", "leave_type_name": "Unpaid Time Off", "is_lwp": 1}).insert()

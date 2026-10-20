@@ -193,3 +193,12 @@ export const dayOfThisMonth = (day) => {
   const today = new Date();
   return getFormattedDate(new Date(today.getFullYear(), today.getMonth(), day));
 };
+
+/** `YYYY-MM-DD` of today, or of the Friday before when today falls on a weekend. */
+export const lastWorkday = () => {
+  const date = new Date();
+  while (date.getDay() === 0 || date.getDay() === 6) {
+    date.setDate(date.getDate() - 1);
+  }
+  return getFormattedDate(date);
+};

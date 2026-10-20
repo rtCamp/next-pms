@@ -23,6 +23,10 @@ import {
 } from "../helpers/employeeHelper";
 import { createUserGroupForEmployee } from "../helpers/teamTabHelper";
 import { createAllocationsForTestCases } from "../helpers/resourceManagementHelpers";
+import {
+  createBillingDataForTestCases,
+  ensureUsdCustomer,
+} from "../helpers/billingHelper";
 
 const globalSetup = async () => {
   console.log("🚀 Starting global setup...");
@@ -107,6 +111,7 @@ const globalSetup = async () => {
 
   // 4) Generate data for each TC in sequence
   console.log("🛠 Generating test data per TC ID...");
+  await ensureUsdCustomer();
   for (const tcId of allTCIds) {
     console.log(`➡️ Processing ${tcId}`);
     await createEmployees([tcId], jsonDir);
@@ -126,6 +131,8 @@ const globalSetup = async () => {
     // Must follow createTimeEntries - there is nothing to submit before it.
     await submitTimesheetForTestCases([tcId], jsonDir);
     await calculateHourlyBilling([tcId], jsonDir);
+    // After the project and its tasks exist: it logs time and bills what the project holds.
+    await createBillingDataForTestCases([tcId], jsonDir);
     await updateLeaveEntries([tcId], jsonDir);
     await createUserGroupForEmployee([tcId], jsonDir);
   }

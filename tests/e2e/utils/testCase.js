@@ -2,20 +2,28 @@ import path from "path";
 import { readJSONFile } from "./fileUtils";
 import { getDocList } from "./api/apiClient";
 
+/** The id of the project a create payload seeded, looked up by its name. */
+export const findProjectId = async (projectPayload) => {
+  const [project] = await getDocList(
+    "Project",
+    [["project_name", "=", projectPayload.project_name]],
+    { fields: ["name"] },
+  );
+  if (!project) {
+    throw new Error(
+      `globalSetup did not create "${projectPayload.project_name}"`,
+    );
+  }
+  return project.name;
+};
+
 /**
  * A test case's data stub plus the id of the project seeded for it. The stub
  * only gets its project id at teardown, so the project is looked up by name.
  */
 export const loadTestCase = async (jsonDir, tc) => {
   const data = (await readJSONFile(path.join(jsonDir, `${tc}.json`)))[tc];
-  const [project] = await getDocList(
-    "Project",
-    [["project_name", "=", data.payloadCreateProject.project_name]],
-    { fields: ["name"] },
-  );
-  if (!project) throw new Error(`globalSetup did not create ${tc}'s project`);
-
-  return { data, projectId: project.name };
+  return { data, projectId: await findProjectId(data.payloadCreateProject) };
 };
 
 /**

@@ -20,6 +20,7 @@ import managerGrowthData from "../data/manager/growth";
 import managerNotesData from "../data/manager/notes";
 import managerTodoData from "../data/manager/todo";
 import managerTaskListData from "../data/manager/taskList";
+import managerCurrencyBillingData from "../data/manager/currencyBilling";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import {
   createProject,
@@ -38,6 +39,7 @@ import {
 import { getExchangeRate } from "../utils/api/erpNextRequests";
 import { getEmployeeDetails } from "../utils/api/employeeRequests";
 import { filterApi, shareProjectWithUser } from "../utils/api/frappeRequests";
+import { deleteSalesOrdersOfProject } from "./billingHelper";
 import { deleteLeave } from "../utils/api/leaveRequests";
 import { getWeekRange } from "../utils/dateUtils";
 import { deleteEmployeeByName } from "./employeeHelper";
@@ -870,6 +872,19 @@ export const cleanUpProjects = async (data) => {
         }
       }
 
+      // A submitted Sales Order blocks the project's delete until it is cancelled.
+      if (projectId) {
+        try {
+          failures.push(...(await deleteSalesOrdersOfProject(projectId)));
+        } catch (err) {
+          failures.push(`Sales Orders of ${projectId}`);
+          console.error(
+            `Failed to delete the Sales Orders of ${projectId}:`,
+            err.message,
+          );
+        }
+      }
+
       // Records that link to the project and would block its delete. ToDos go
       // first: they reference the project, and deleting one unlinks it from its owner.
       if (projectId) {
@@ -1098,6 +1113,7 @@ export const readAndCleanAllOrphanData = async () => {
     ...managerNotesData,
     ...managerTodoData,
     ...managerTaskListData,
+    ...managerCurrencyBillingData,
   };
 
   await deleteLeaveOfEmployee();
