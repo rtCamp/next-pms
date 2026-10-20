@@ -32,7 +32,7 @@ const total = computed(() => burn.value?.total_project_amount ?? null);
       indicator-class="bg-surface-violet-7"
       secondary-indicator-class="bg-surface-blue-7"
     />
-    <div class="flex flex-col gap-2 text-base text-ink-gray-7">
+    <div class="flex flex-col gap-2 text-base leading-tighter text-ink-gray-7">
       <LegendItem
         swatch-class="bg-surface-violet-7"
         label="Invoiced and paid"

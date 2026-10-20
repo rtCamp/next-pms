@@ -22,7 +22,12 @@ const CARD =
       )
     "
   >
-    <span class="truncate text-base text-ink-gray-5">{{ title }}</span>
-    <TruncatedText class="text-2xl-medium text-ink-gray-8" :text="value" />
+    <span class="truncate text-base leading-tighter text-ink-gray-5">{{
+      title
+    }}</span>
+    <TruncatedText
+      class="text-2xl-medium leading-tighter text-ink-gray-8"
+      :text="value"
+    />
   </component>
 </template>

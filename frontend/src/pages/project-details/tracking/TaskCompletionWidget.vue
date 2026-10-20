@@ -28,7 +28,9 @@ const isRow = computed(() => props.layout === "row");
     aria-label="Task completion"
     class="flex flex-1 flex-col gap-3 rounded-7 border border-outline-gray-1 bg-surface-elevation-1 p-3"
   >
-    <h3 class="text-base-medium text-ink-gray-8">Task completion</h3>
+    <h3 class="text-base-medium leading-tighter text-ink-gray-8">
+      Task completion
+    </h3>
     <div
       :class="
         cn(
@@ -74,14 +76,16 @@ const isRow = computed(() => props.layout === "row");
           />
         </svg>
         <div class="absolute inset-x-0 bottom-1 flex flex-col items-center">
-          <span class="text-lg-semibold text-ink-gray-8">{{ percent }}%</span>
-          <span class="text-xs text-ink-gray-6">completed</span>
+          <span class="text-lg-semibold leading-tighter text-ink-gray-8"
+            >{{ percent }}%</span
+          >
+          <span class="text-xs leading-tighter text-ink-gray-6">completed</span>
         </div>
       </div>
       <dl
         :class="
           cn(
-            'flex w-full max-w-60 flex-col gap-2 text-base text-ink-gray-6',
+            'flex w-full max-w-60 flex-col gap-2 text-base leading-tighter text-ink-gray-6',
             isRow && 'md:flex-1',
           )
         "

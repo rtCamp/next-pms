@@ -129,7 +129,9 @@ async function saveHidden(next: WidgetKey[]) {
   </div>
   <div v-else class="flex flex-col gap-6">
     <div class="flex items-center justify-between gap-2">
-      <h2 class="text-2xl-semibold text-ink-gray-8">Tracking</h2>
+      <h2 class="text-2xl-semibold leading-tighter text-ink-gray-8">
+        Tracking
+      </h2>
       <div v-if="canCustomize" class="flex items-center gap-2">
         <Button
           v-if="editing"

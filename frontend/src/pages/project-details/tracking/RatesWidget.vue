@@ -106,7 +106,9 @@ function remove(row: RateRow) {
     class="flex min-w-0 flex-1 flex-col gap-3 rounded-7 border border-outline-gray-1 bg-surface-elevation-1 p-3"
   >
     <div class="flex items-center justify-between">
-      <h3 class="text-base-semibold text-ink-gray-8">Project rates</h3>
+      <h3 class="text-base-semibold leading-tighter text-ink-gray-8">
+        Project rates
+      </h3>
       <Button
         variant="subtle"
         icon="lucide-plus"
@@ -132,7 +134,7 @@ function remove(row: RateRow) {
         </ListHeader>
         <p
           v-if="!items.length"
-          class="py-10 text-center text-sm text-ink-gray-4"
+          class="py-10 text-center text-sm leading-tighter text-ink-gray-4"
         >
           No project rates yet
         </p>
@@ -142,16 +144,20 @@ function remove(row: RateRow) {
             class="mt-2 rounded-5 bg-surface-gray-2"
           >
             <ListCell class="min-w-0">
-              <span class="truncate text-base-medium text-ink-gray-7">
+              <span
+                class="truncate text-base-medium leading-tighter text-ink-gray-7"
+              >
                 Flat rate
               </span>
             </ListCell>
             <ListCell
-              class="justify-end text-base tabular-nums text-ink-gray-6"
+              class="justify-end text-base leading-tighter tabular-nums text-ink-gray-6"
             >
               <span class="truncate">{{ item.amount }}</span>
             </ListCell>
-            <ListCell class="text-base tabular-nums text-ink-gray-6">
+            <ListCell
+              class="text-base leading-tighter tabular-nums text-ink-gray-6"
+            >
               <span class="truncate">{{ formatRateDate(item.date) }}</span>
             </ListCell>
             <ListCell />
@@ -163,16 +169,20 @@ function remove(row: RateRow) {
                 :label="item.employeeName"
                 :image="item.image"
               />
-              <span class="truncate text-base-medium text-ink-gray-7">
+              <span
+                class="truncate text-base-medium leading-tighter text-ink-gray-7"
+              >
                 {{ item.employeeName }}
               </span>
             </ListCell>
             <ListCell
-              class="justify-end text-base tabular-nums text-ink-gray-6"
+              class="justify-end text-base leading-tighter tabular-nums text-ink-gray-6"
             >
               <span class="truncate">{{ item.amount }}</span>
             </ListCell>
-            <ListCell class="text-base tabular-nums text-ink-gray-6">
+            <ListCell
+              class="text-base leading-tighter tabular-nums text-ink-gray-6"
+            >
               <span class="truncate">{{ formatRateDate(item.date) }}</span>
             </ListCell>
             <ListCell class="justify-end">

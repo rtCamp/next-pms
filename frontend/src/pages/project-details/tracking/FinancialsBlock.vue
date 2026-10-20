@@ -121,11 +121,11 @@ const isRow = computed(() => props.layout === "row");
             )
           "
         >
-          <span class="truncate pr-6 text-base text-ink-gray-5">
+          <span class="truncate pr-6 text-base leading-tighter text-ink-gray-5">
             {{ row.label }}
           </span>
           <TruncatedText
-            class="text-2xl-medium text-ink-gray-8"
+            class="text-2xl-medium leading-tighter text-ink-gray-8"
             :text="row.value"
           />
         </div>

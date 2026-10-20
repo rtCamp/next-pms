@@ -22,7 +22,7 @@ const total = computed(() => tracking.value?.budget_burn?.total_budget ?? 0);
       indicator-class="bg-surface-green-7"
       secondary-indicator-class="bg-surface-green-3"
     />
-    <div class="flex flex-col gap-2 text-base text-ink-gray-7">
+    <div class="flex flex-col gap-2 text-base leading-tighter text-ink-gray-7">
       <LegendItem
         swatch-class="bg-surface-green-7"
         label="Actual budget burn"

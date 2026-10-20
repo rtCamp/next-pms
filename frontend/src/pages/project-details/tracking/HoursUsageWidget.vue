@@ -27,7 +27,7 @@ const remaining = computed(() => tracking.value?.hours_remaining ?? 0);
       indicator-class="bg-surface-blue-7"
       secondary-indicator-class="bg-surface-blue-2"
     />
-    <div class="flex flex-col gap-2 text-base">
+    <div class="flex flex-col gap-2 text-base leading-tighter">
       <LegendItem
         swatch-class="bg-surface-blue-7"
         label="Billable hours utilised"

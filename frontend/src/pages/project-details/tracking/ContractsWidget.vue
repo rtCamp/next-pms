@@ -100,7 +100,9 @@ function remove(row: ContractRow) {
     class="flex min-w-0 flex-1 flex-col gap-3 rounded-7 border border-outline-gray-1 bg-surface-elevation-1 p-3"
   >
     <div class="flex items-center justify-between">
-      <h3 class="text-base-semibold text-ink-gray-8">Contracts</h3>
+      <h3 class="text-base-semibold leading-tighter text-ink-gray-8">
+        Contracts
+      </h3>
       <Button
         variant="subtle"
         icon="lucide-plus"
@@ -126,35 +128,41 @@ function remove(row: ContractRow) {
         </ListHeader>
         <p
           v-if="!rows.length"
-          class="py-10 text-center text-sm text-ink-gray-4"
+          class="py-10 text-center text-sm leading-tighter text-ink-gray-4"
         >
           No contracts yet
         </p>
         <ListRows v-else v-slot="{ item }" :items="rows" row-key="id">
           <ListRow>
-            <ListCell class="min-w-0 text-base text-ink-gray-6">
+            <ListCell class="min-w-0 text-base leading-tighter text-ink-gray-6">
               <span class="truncate">{{
                 formatContractDate(item.startDate)
               }}</span>
             </ListCell>
-            <ListCell class="min-w-0 text-base text-ink-gray-6">
+            <ListCell class="min-w-0 text-base leading-tighter text-ink-gray-6">
               <span class="truncate">{{
                 formatContractDate(item.endDate)
               }}</span>
             </ListCell>
-            <ListCell class="min-w-0 justify-end text-base text-ink-gray-6">
+            <ListCell
+              class="min-w-0 justify-end text-base leading-tighter text-ink-gray-6"
+            >
               <span class="truncate">{{ item.hoursBought }}</span>
             </ListCell>
-            <ListCell class="min-w-0 justify-end text-base text-ink-gray-6">
+            <ListCell
+              class="min-w-0 justify-end text-base leading-tighter text-ink-gray-6"
+            >
               <span class="truncate">{{ item.hoursUsed }}</span>
             </ListCell>
-            <ListCell class="min-w-0 justify-end text-base text-ink-gray-6">
+            <ListCell
+              class="min-w-0 justify-end text-base leading-tighter text-ink-gray-6"
+            >
               <span class="truncate">{{ item.hoursLeft }}</span>
             </ListCell>
-            <ListCell class="min-w-0 text-base text-ink-gray-6">
+            <ListCell class="min-w-0 text-base leading-tighter text-ink-gray-6">
               <span class="truncate">{{ item.salesOrder }}</span>
             </ListCell>
-            <ListCell class="min-w-0 text-base text-ink-gray-6">
+            <ListCell class="min-w-0 text-base leading-tighter text-ink-gray-6">
               <span class="truncate">{{ item.salesInvoice }}</span>
             </ListCell>
             <ListCell class="justify-end">
