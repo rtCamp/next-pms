@@ -4,8 +4,10 @@ import { Button } from "frappe-ui";
 import { Accordion } from "frappe-ui/experimental";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
 import { errorMessage } from "@/utils/errors";
+import AddCustomersDialog from "./AddCustomersDialog.vue";
 import { SECTIONS, type SectionKey } from "./constants";
 import BudgetSection from "./BudgetSection.vue";
+import CustomersSection from "./CustomersSection.vue";
 import DetailsSection from "./DetailsSection.vue";
 import LinksSection from "./LinksSection.vue";
 import MembersSection from "./MembersSection.vue";
@@ -32,6 +34,7 @@ const SKELETON_LINES: Record<SectionKey, number> = {
 
 const accordion = useTemplateRef<{ $el: HTMLElement }>("accordion");
 const headers = ref<Partial<Record<SectionKey, HTMLElement>>>({});
+const addCustomersOpen = ref(false);
 
 // Header actions sit in the item's heading, beside the trigger button: the
 // Accordion's item-suffix slot renders inside the button.
@@ -95,6 +98,7 @@ onMounted(() => {
           <BudgetSection v-else-if="item.value === 'budget'" />
           <ProgressSection v-else-if="item.value === 'progress'" />
           <MembersSection v-else-if="item.value === 'members'" />
+          <CustomersSection v-else-if="item.value === 'customers'" />
         </template>
       </template>
     </Accordion>
@@ -108,5 +112,15 @@ onMounted(() => {
         />
       </div>
     </Teleport>
+    <Teleport v-if="headers.customers" :to="headers.customers">
+      <div class="flex shrink-0 items-center py-3 pr-5">
+        <Button
+          icon="lucide-plus"
+          label="Add customer"
+          @click="addCustomersOpen = true"
+        />
+      </div>
+    </Teleport>
+    <AddCustomersDialog v-model:open="addCustomersOpen" />
   </section>
 </template>
