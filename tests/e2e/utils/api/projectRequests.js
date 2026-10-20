@@ -5,6 +5,9 @@ import {
   fetchWithRetry,
   deleteWithLockRetry,
   deleteDocument,
+  createDocument,
+  getDocList,
+  getDoctypeFields,
 } from "./apiClient";
 import { deleteAllocationsByEmployee } from "../../helpers/employeeHelper";
 
@@ -51,16 +54,40 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
 
 // ------------------------------------------------------------------------------------------
 
+let techStackRows;
+
+// Newer builds make a Tech Stack mandatory on a new billable project; older ones have no such field.
+const getTechStackRows = async () => {
+  if (techStackRows) return techStackRows;
+  const fields = await getDoctypeFields("Project");
+  if (!fields.some(({ fieldname }) => fieldname === "tech_stack")) {
+    techStackRows = [];
+    return techStackRows;
+  }
+  const [technology] = await getDocList("Technology", [["disabled", "=", 0]], {
+    limit: 1,
+  });
+  const { name } =
+    technology ??
+    (await createDocument("Technology", { technology_name: "E2E Technology" }));
+  techStackRows = [{ technology: name }];
+  return techStackRows;
+};
+
+const needsTechStack = ({ custom_billing_type: billingType, tech_stack }) =>
+  !tech_stack && billingType !== undefined && billingType !== "Non-Billable";
+
 /**
  * Create a new Project entry.
  */
 export const createProject = async (payload) => {
-  ////console.log("Payload received in create project is:", payload);
+  const rows = needsTechStack(payload) ? await getTechStackRows() : [];
+  const data = rows.length ? { ...payload, tech_stack: rows } : payload;
   const result = await apiRequest(
     "/api/resource/Project",
     {
       method: "POST",
-      data: payload,
+      data,
     },
     "admin",
   );
