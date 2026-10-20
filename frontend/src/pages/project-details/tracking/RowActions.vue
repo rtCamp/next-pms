@@ -16,7 +16,7 @@ const options = [
 </script>
 
 <template>
-  <Dropdown :options="options" side="right">
+  <Dropdown :options="options" side="bottom" align="end">
     <Button variant="ghost" icon="lucide-ellipsis" :label="label" />
   </Dropdown>
 </template>
