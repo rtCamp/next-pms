@@ -3,6 +3,7 @@ import { computed, ref, watch } from "vue";
 import { Avatar, Button, Dialog, Spinner, TextInput } from "frappe-ui";
 import { useRemoteLookup } from "@/composables/useRemoteLookup";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
+import { errorMessage } from "@/utils/errors";
 import { useProjectSidebar } from "./useProjectSidebar";
 
 const open = defineModel<boolean>("open", { required: true });
@@ -88,6 +89,13 @@ const rows = computed(() =>
         >
           <Spinner class="size-4" />
         </div>
+        <p
+          v-else-if="lookup.error"
+          role="alert"
+          class="py-6 text-center text-base leading-tighter text-ink-red-6"
+        >
+          {{ errorMessage(lookup.error) }}
+        </p>
         <p
           v-else-if="!rows.length"
           class="py-6 text-center text-base leading-tighter text-ink-gray-5"

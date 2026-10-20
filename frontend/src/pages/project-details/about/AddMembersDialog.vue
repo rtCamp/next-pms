@@ -10,6 +10,7 @@ import {
   Tooltip,
 } from "frappe-ui";
 import { useEmployeeLookup } from "@/composables/useEmployeeLookup";
+import { errorMessage } from "@/utils/errors";
 import { removeBlockedReason, roleLabels } from "./sidebar";
 import { useProjectSidebar } from "./useProjectSidebar";
 
@@ -69,6 +70,13 @@ const rows = computed(() => {
         >
           <Spinner class="size-4" />
         </div>
+        <p
+          v-else-if="lookup.error"
+          role="alert"
+          class="py-6 text-center text-base leading-tighter text-ink-red-6"
+        >
+          {{ errorMessage(lookup.error) }}
+        </p>
         <p
           v-else-if="!rows.length"
           class="py-6 text-center text-base leading-tighter text-ink-gray-5"
