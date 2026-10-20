@@ -44,11 +44,16 @@ function createProjectSidebar() {
     immediate: false,
   });
 
+  /** Keys of the writes queued or running, e.g. `member:<user>`. */
+  const busy = reactive(new Set<string>());
+  let queue: Promise<void> = Promise.resolve();
+
   // A Project change, from a realtime update or any save on the page, can change
-  // what the sidebar shows.
+  // what the sidebar shows. A queued write refetches when it's done instead.
   watch(
     () => doc.value?.modified,
     (modified, previous) => {
+      if (busy.size) return;
       if (previous && modified !== previous) call.reload();
     },
   );
@@ -61,10 +66,6 @@ function createProjectSidebar() {
   const customers = computed(() =>
     sidebar.value ? toCustomers(sidebar.value) : [],
   );
-
-  /** Keys of the writes queued or running, e.g. `member:<user>`. */
-  const busy = reactive(new Set<string>());
-  let queue: Promise<void> = Promise.resolve();
 
   /**
    * Runs writes one at a time, as each call aborts its own previous request, and
@@ -81,6 +82,7 @@ function createProjectSidebar() {
         toast.error(errorMessage(error));
       } finally {
         await call.reload();
+        if (call.error) toast.error(errorMessage(call.error));
         busy.delete(key);
       }
     });
