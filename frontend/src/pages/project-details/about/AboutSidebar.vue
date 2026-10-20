@@ -8,6 +8,7 @@ import { SECTIONS, type SectionKey } from "./constants";
 import BudgetSection from "./BudgetSection.vue";
 import DetailsSection from "./DetailsSection.vue";
 import LinksSection from "./LinksSection.vue";
+import MembersSection from "./MembersSection.vue";
 import ProgressSection from "./ProgressSection.vue";
 import SectionSkeleton from "./SectionSkeleton.vue";
 import SummarySection from "./SummarySection.vue";
@@ -93,6 +94,7 @@ onMounted(() => {
           <LinksSection v-else-if="item.value === 'links'" />
           <BudgetSection v-else-if="item.value === 'budget'" />
           <ProgressSection v-else-if="item.value === 'progress'" />
+          <MembersSection v-else-if="item.value === 'members'" />
         </template>
       </template>
     </Accordion>
