@@ -22,12 +22,14 @@ const shown = computed(() =>
 
 <template>
   <div class="flex flex-col gap-1">
+    <!-- eslint-disable better-tailwindcss/no-restricted-classes -- a thin scrollbar as React's list; no utility for scrollbar-width -->
     <div
       :class="[
         'flex flex-col',
         expanded && 'max-h-32 overflow-y-auto pr-1 [scrollbar-width:thin]',
       ]"
     >
+      <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
       <div v-for="item in shown" :key="itemKey(item)">
         <slot :item="item" />
       </div>

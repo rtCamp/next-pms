@@ -32,7 +32,9 @@ function formatDate(date: string | null | undefined) {
       :aria-label="label"
       class="min-w-min list-gap-4 list-row-px-2"
     >
+      <!-- eslint-disable better-tailwindcss/no-restricted-classes -- React's 24px header; frappe-ui's ListHeader is 32px and takes no size prop -->
       <ListHeader class="data-[slot=list-header]:h-6">
+        <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
         <ListHeaderCell v-for="column in columns" :key="column.key">
           {{ column.label }}
         </ListHeaderCell>

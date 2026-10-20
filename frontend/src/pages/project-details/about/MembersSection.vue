@@ -16,10 +16,14 @@ const addOpen = ref(false);
 </script>
 
 <template>
+  <!-- eslint-disable better-tailwindcss/no-restricted-classes -- container for ManagerField's 12rem query; no container-query plugin in the preset -->
   <div class="[container-type:inline-size]">
+    <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
+    <!-- eslint-disable better-tailwindcss/no-restricted-classes -- label column sized to its content, as React; no grid-cols step for auto 1fr -->
     <div
       class="mb-4 grid grid-cols-[auto_1fr] gap-x-3 gap-y-4.5 text-base leading-tighter text-ink-gray-5"
     >
+      <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
       <ManagerField
         manager-role="project_manager"
         label="Project Manager"

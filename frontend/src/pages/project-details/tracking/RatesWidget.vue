@@ -123,7 +123,9 @@ function remove(row: RateRow) {
         aria-label="Project rates"
         class="min-w-min list-row-px-2"
       >
+        <!-- eslint-disable better-tailwindcss/no-restricted-classes -- React's 19px header; frappe-ui's ListHeader is 32px and takes no size prop -->
         <ListHeader class="data-[slot=list-header]:h-[19px]">
+          <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
           <ListHeaderCell
             v-for="column in COLUMNS"
             :key="column.key"

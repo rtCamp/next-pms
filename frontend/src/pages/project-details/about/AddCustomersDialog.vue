@@ -74,9 +74,11 @@ const rows = computed(() =>
         </template>
       </TextInput>
 
+      <!-- eslint-disable better-tailwindcss/no-restricted-classes -- a thin scrollbar as React's list; no utility for scrollbar-width -->
       <div
         class="h-55 overflow-y-auto rounded-6 border border-outline-gray-2 px-2.5 py-2 [scrollbar-width:thin]"
       >
+        <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
         <p
           v-if="!customer"
           class="py-6 text-center text-base leading-tighter text-ink-gray-5"

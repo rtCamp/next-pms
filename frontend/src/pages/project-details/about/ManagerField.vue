@@ -48,6 +48,7 @@ const value = computed({
       :class="{ 'cursor-pointer': manager }"
     >
       <span class="text-nowrap">{{ label }}</span>
+      <!-- eslint-disable better-tailwindcss/no-restricted-classes -- React's 12rem container query; no container-query plugin in the preset -->
       <Combobox
         v-model="value"
         v-model:query="query"
@@ -63,6 +64,7 @@ const value = computed({
         placeholder="N/A"
         :aria-label="label"
       />
+      <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
     </div>
   </MemberHoverCard>
 </template>

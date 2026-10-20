@@ -34,9 +34,11 @@ defineSlots<{
         <slot name="actions" />
       </div>
     </AccordionHeader>
+    <!-- eslint-disable better-tailwindcss/no-restricted-classes -- reka-ui exposes the panel state only as data-state -->
     <AccordionContent
       class="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down motion-reduce:animate-none"
     >
+      <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
       <div class="px-5 pb-4 empty:hidden">
         <slot />
       </div>

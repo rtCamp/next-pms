@@ -21,9 +21,11 @@ const rows = computed(() => {
 </script>
 
 <template>
+  <!-- eslint-disable better-tailwindcss/no-restricted-classes -- label column sized to its content, as React; no grid-cols step for auto 1fr -->
   <dl
     class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-4.5 text-base leading-tighter text-ink-gray-5"
   >
+    <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
     <template v-for="row in rows" :key="row.label">
       <dt>{{ row.label }}</dt>
       <dd class="flex min-w-0 items-center gap-2">
