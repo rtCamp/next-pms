@@ -88,6 +88,7 @@ async function save() {
         <Combobox
           id="slack-channel"
           v-model:query="query"
+          class="w-full"
           :model-value="current || null"
           :options="lookup.options"
           :loading="lookup.loading"
@@ -119,7 +120,7 @@ async function save() {
       <Button
         v-else
         variant="ghost"
-        icon="lucide-pencil"
+        icon="lucide-square-pen"
         label="Edit Slack channel"
         @click="startEditing"
       />

@@ -17,7 +17,7 @@ defineProps<{
       :class="['size-2 shrink-0 rounded-full', swatchClass]"
       aria-hidden="true"
     />
-    <span class="min-w-0 flex-1">
+    <span class="flex min-w-0 flex-1">
       <Tooltip v-if="labelTooltip" :text="labelTooltip">
         <span class="truncate text-ink-gray-6">{{ label }}</span>
       </Tooltip>
