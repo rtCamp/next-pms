@@ -41,10 +41,12 @@ async function add(repositoryId: string) {
     position="top"
   >
     <div class="flex flex-col gap-3">
+      <!-- eslint-disable better-tailwindcss/no-restricted-classes -- React's 36px gap before the text; frappe-ui's TextInput leaves 32px beside a prefix -->
       <TextInput
         v-model="query"
         role="searchbox"
         variant="subtle"
+        class="[&_[data-slot=control]]:ps-9"
         placeholder="Search repositories"
         aria-label="Search repositories"
       >
@@ -55,6 +57,7 @@ async function add(repositoryId: string) {
           />
         </template>
       </TextInput>
+      <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
 
       <!-- eslint-disable better-tailwindcss/no-restricted-classes -- a thin scrollbar as React's list; no utility for scrollbar-width -->
       <div
@@ -96,7 +99,7 @@ async function add(repositoryId: string) {
               >
                 {{ row.label }}
               </span>
-              <span class="truncate text-sm text-ink-gray-5">
+              <span class="truncate text-p-sm text-ink-gray-5">
                 {{ row.fullPath }}
               </span>
             </div>
