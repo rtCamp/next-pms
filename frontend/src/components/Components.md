@@ -39,7 +39,7 @@ across components live in `src/utils/`.
 | `NotificationTray/` | `NotificationTray`, `notificationIcon` |
 | `PhaseIcon/` | `PhaseIcon` (a project phase's colour), `PROJECT_PHASE_COLORS` |
 | `ProgressBar/` | `ProgressBar` |
-| `RichText/` | `RichText` (read-only editor HTML, e.g. comments) |
+| `RichText/` | `RichText` (read-only editor HTML, e.g. comments; `kit="richText"` for long-form text), `richTextExtensions()` (the rich-text editor's extensions) |
 | `SortSelector/` | `SortSelector` |
 | `TaskBadges/` | `TaskBadges` (a task's due date and project) |
 | `TaskLog/` | `TaskLog` (view), `TaskLogDialog` (loads its data), `useTaskLog`, `TASK_LOG_RANGES`, `DEFAULT_TASK_LOG_RANGE` |

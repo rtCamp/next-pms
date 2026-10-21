@@ -58,7 +58,8 @@ time is logged on it. Kept per week in `localStorage` under `next-pms:importedTa
 _Avoid_: pinned task, favourite.
 
 **Unsaved changes guard** — the page-level check that asks Save / Discard / Keep Editing before an action or
-navigation would drop an open, edited entry (`provideUnsavedChanges` in `composables/useUnsavedChanges.ts`).
+navigation would drop an open, edited entry (`provideUnsavedChanges` in `composables/useUnsavedChanges.ts`). The
+Timesheet pages and the Project details page (the Overview tab's edits) provide one.
 
 ## Planning
 
@@ -104,6 +105,15 @@ _Avoid_: info panel, project sidebar (the app's navigation sidebar is a differen
 **Tracking layout** — the order and visibility of the Tracking tab's widgets, shared by everyone on the project: one
 public `PMS View Setting` row of type `Tracking`. Only Projects Managers change it, and only the task completion,
 budget burn and cost burn widgets can be hidden.
+
+**Optional project field** — a Project field the page shows that another app adds (Sourcing's source, territory
+and previous CMS; the NDA, case study and testimonial Checks). The boot data says which exist
+(`optional_project_fields`); read it with `hasProjectField()` and leave a missing field out of the UI and the save.
+
+**Repository connection** — a GitHub repository linked to a project (`custom_project_repository_connections` rows
+pointing at `GitHub Repository`, a doctype from another app). Listed on the Overview tab when the doctype exists
+(`has_repository_connections`); adding or unlinking one saves at once, outside the tab's edit mode.
+_Avoid_: repo link, integration.
 
 **Status update** — a written project update with a status, comments and pinning (`Project Status Update`).
 _Avoid_: report (a `Project Report` is a separate doctype), note.

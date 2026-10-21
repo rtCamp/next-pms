@@ -60,7 +60,7 @@ src/
                    (pages/timesheet/: layout, filters, dialogs; personal/, team/, project/)
                    A page with tabs keeps the shell at the folder root and one subfolder per tab
                    (pages/project-details/: the shell and useProjectDetails; about/ for the About sidebar; email/,
-                   reports/, tracking/, …)
+                   overview/, reports/, tracking/, …)
   components/      components frappe-ui lacks, one folder each; see components/Components.md
   composables/     shared use* composables: lookups, the like toggle, URL query updates, editor attributes,
                    values saved in localStorage (useSavedState), notifications, infinite scroll, project phases,
