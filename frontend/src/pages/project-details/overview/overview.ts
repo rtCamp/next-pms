@@ -108,19 +108,21 @@ function sameValue(field: OverviewField, a: string, b: string) {
 }
 
 /**
- * The fields the draft changes on `doc`, as Project values to save: Checks as 0 / 1,
- * the rest as strings. Optional fields the site lacks are left out.
+ * The fields the user changed: where `draft` differs from `seed`, the values the
+ * draft started from. Comparing with the seed rather than the latest Project keeps
+ * a change someone else saved meanwhile from being overwritten with the old value.
+ * Returned as Project values to save: Checks as 0 / 1, the rest as strings.
+ * Optional fields the site lacks are left out.
  */
 export function changedFields(
   draft: OverviewDraft,
-  doc: ProjectDoc,
+  seed: OverviewDraft,
   hasField: (fieldname: string) => boolean = hasProjectField,
 ): Partial<ProjectDoc> {
-  const saved = toDraft(doc);
   const changes: Record<string, string | number> = {};
   for (const field of OVERVIEW_FIELDS) {
     if (OPTIONAL_FIELDS.includes(field) && !hasField(field)) continue;
-    if (sameValue(field, draft[field], saved[field])) continue;
+    if (sameValue(field, draft[field], seed[field])) continue;
     changes[field] = (CHECK_FIELDS as readonly OverviewField[]).includes(field)
       ? Number(draft[field] === "1")
       : draft[field];

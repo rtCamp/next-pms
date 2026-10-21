@@ -13,11 +13,12 @@ function createOverview() {
   // Seeded from the Project on Edit and never from a later reload, so a realtime
   // update while editing keeps what the user typed.
   const draft = ref<OverviewDraft | null>(null);
+  let seed: OverviewDraft | null = null;
   const saving = ref(false);
 
   const editing = computed(() => draft.value !== null);
   const changes = computed(() =>
-    draft.value && doc.value ? changedFields(draft.value, doc.value) : {},
+    draft.value && seed ? changedFields(draft.value, seed) : {},
   );
   const dirty = computed(() => Object.keys(changes.value).length > 0);
 
@@ -27,7 +28,9 @@ function createOverview() {
   ]);
 
   function edit() {
-    if (doc.value) draft.value = toDraft(doc.value);
+    if (!doc.value) return;
+    seed = toDraft(doc.value);
+    draft.value = { ...seed };
   }
 
   function cancel() {
