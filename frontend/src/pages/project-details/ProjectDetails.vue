@@ -36,7 +36,9 @@ const TAB_PANELS: Partial<Record<ProjectTabKey, Component>> = {
 const route = useRoute();
 const patchQuery = useQueryPatch();
 
-const projectId = computed(() => String(route.params.projectId ?? ""));
+// Read once: another project remounts the page (App.vue keys the route view by
+// path), and a write still queued as this page unmounts must not follow the URL.
+const projectId = String(route.params.projectId ?? "");
 const { doc, error, reload } = provideProjectDetails(projectId);
 
 const errorType = computed(() =>

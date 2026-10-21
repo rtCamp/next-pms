@@ -25,7 +25,10 @@ const apps = useCall<AppLink[]>({
             @logout="session.logout()"
           />
         </template>
-        <RouterView />
+        <!-- A new path is a new page, so /projects/A to /projects/B doesn't carry A's state over. -->
+        <RouterView v-slot="{ Component, route: viewRoute }">
+          <component :is="Component" :key="viewRoute.path" />
+        </RouterView>
       </DesktopShell>
     </div>
   </FrappeUIProvider>
