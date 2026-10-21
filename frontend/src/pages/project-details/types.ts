@@ -14,7 +14,8 @@ export interface ProjectReportRow {
 
 /** A row of the Project's `custom_project_repository_connections`. */
 export interface ProjectRepositoryConnection {
-  name: string;
+  /** Absent on a row about to be added. */
+  name?: string;
   /** When the row was added; a datetime, e.g. `"2026-10-21 09:30:00.000000"`. */
   creation?: string;
   /** A `GitHub Repository` name, e.g. `"rtCamp/next-pms"`. */

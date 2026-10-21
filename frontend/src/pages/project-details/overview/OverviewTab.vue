@@ -6,6 +6,7 @@ import CommunicationSection from "./CommunicationSection.vue";
 import { SOURCING_FIELDS } from "./constants";
 import MarketingSection from "./MarketingSection.vue";
 import OverviewSection from "./OverviewSection.vue";
+import RepositoriesSection from "./RepositoriesSection.vue";
 import OverviewEditor from "./OverviewEditor.vue";
 import SourcingSection from "./SourcingSection.vue";
 import SpecificsSection from "./SpecificsSection.vue";
@@ -15,6 +16,7 @@ const { values, draft, editing, saving, dirty, edit, cancel, save } =
   provideOverview();
 
 const showSourcing = SOURCING_FIELDS.some(hasProjectField);
+const showRepositories = Boolean(window.boot?.has_repository_connections);
 const RICH_TEXT_CLASS =
   "prose-sm w-full max-w-full leading-normal text-ink-gray-7";
 </script>
@@ -80,5 +82,6 @@ const RICH_TEXT_CLASS =
     <SourcingSection v-if="showSourcing" />
     <CommunicationSection />
     <MarketingSection />
+    <RepositoriesSection v-if="showRepositories" />
   </div>
 </template>
