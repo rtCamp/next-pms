@@ -12,9 +12,13 @@ export interface ProjectReportRow {
   failure_reason?: string;
 }
 
+/** A row of the Project's `custom_project_repository_connections`. */
 export interface ProjectRepositoryConnection {
   name: string;
-  github_repository?: string;
+  /** When the row was added; a datetime, e.g. `"2026-10-21 09:30:00.000000"`. */
+  creation?: string;
+  /** A `GitHub Repository` name, e.g. `"rtCamp/next-pms"`. */
+  github_repository?: string | null;
 }
 
 /** A row of the Project's `custom_project_budget_hours`: a contract. */
@@ -65,4 +69,31 @@ export interface ProjectDoc {
   /** User ID of the lead engineer. */
   custom_engineering_manager?: string | null;
   custom_customer_contacts?: ProjectCustomerContact[];
+  /** HTML, or plain text when typed in Desk (a Small Text field). */
+  custom_executive_summary?: string | null;
+  /** HTML. */
+  custom_key_goals?: string | null;
+  priority?: "Low" | "Medium" | "High" | null;
+  custom_complexity?: "" | "C1" | "C2" | "C3" | null;
+  custom_key_account?: "" | "Yes" | "No" | null;
+  /** A `Host` name. */
+  custom_host?: string | null;
+  /** A `UTM Source` name. Optional field, see `hasProjectField`. */
+  custom_source?: string | null;
+  /** A `Territory` name. Optional field. */
+  custom_territory?: string | null;
+  /** Optional field. */
+  custom_previous_cms?: string | null;
+  /** A `Contact` name. */
+  custom_client_point_of_contact?: string | null;
+  /** A `Project Time Report Frequency` name. */
+  custom_time_report_frequency?: string | null;
+  /** Optional field. */
+  custom_restricted_under_nda?: 0 | 1 | null;
+  /** Optional field. */
+  custom_permission_for_case_study?: 0 | 1 | null;
+  /** Optional field. */
+  custom_permission_for_testimonial?: 0 | 1 | null;
+  /** A `Contact` name. */
+  custom_testimonial_contact?: string | null;
 }
