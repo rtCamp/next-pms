@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { Avatar, Button, Dialog, Spinner, TextInput } from "frappe-ui";
-import { useRemoteLookup } from "@/composables/useRemoteLookup";
+import { useCustomerContactLookup } from "@/pages/project-details/useCustomerContactLookup";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
 import { errorMessage } from "@/utils/errors";
 import { useProjectSidebar } from "./useProjectSidebar";
@@ -19,31 +19,10 @@ watch(open, (isOpen) => {
   if (!isOpen) query.value = "";
 });
 
-interface ContactItem {
-  name: string;
-  full_name?: string | null;
-}
-
-const lookup = useRemoteLookup<ContactItem[] | null, ContactItem>({
-  method: "frappe.client.get_list",
-  enabled: () => open.value && Boolean(customer.value),
+const lookup = useCustomerContactLookup({
+  customer,
+  enabled: open,
   query,
-  refetchOn: () => customer.value,
-  params: (search) => ({
-    doctype: "Contact",
-    fields: JSON.stringify(["name", "full_name"]),
-    filters: JSON.stringify([
-      ["Dynamic Link", "link_doctype", "=", "Customer"],
-      ["Dynamic Link", "link_name", "=", customer.value],
-      ...(search ? [["full_name", "like", `%${search}%`]] : []),
-    ]),
-    limit_page_length: 20,
-  }),
-  getItems: (response) => response ?? [],
-  toOption: (contact) => ({
-    label: contact.full_name || contact.name,
-    value: contact.name,
-  }),
 });
 
 const rows = computed(() =>
