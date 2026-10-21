@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ProjectDoc } from "@/pages/project-details/types";
-import { toDraft, toEditorHtml, yesNoLabel } from "./overview";
+import { changedFields, toDraft, toEditorHtml, yesNoLabel } from "./overview";
 
 const DOC: ProjectDoc = {
   name: "PROJ-0001",
@@ -60,5 +60,91 @@ describe("yesNoLabel", () => {
     ["", "—"],
   ])("reads %j as %s", (value, label) => {
     expect(yesNoLabel(value)).toBe(label);
+  });
+});
+
+describe("changedFields", () => {
+  const doc: ProjectDoc = {
+    ...DOC,
+    priority: "Medium",
+    custom_host: null,
+    custom_executive_summary: "<p>Summary</p>",
+    custom_key_goals: null,
+    custom_restricted_under_nda: 0,
+  };
+  const all = () => true;
+
+  it("is empty when nothing changed", () => {
+    expect(changedFields(toDraft(doc), doc, all)).toEqual({});
+  });
+
+  it("returns only the changed fields", () => {
+    const draft = { ...toDraft(doc), priority: "High", custom_host: "AWS" };
+    expect(changedFields(draft, doc, all)).toEqual({
+      priority: "High",
+      custom_host: "AWS",
+    });
+  });
+
+  it("is empty again after a change is reverted", () => {
+    const draft = { ...toDraft(doc), priority: "High" };
+    draft.priority = "Medium";
+    expect(changedFields(draft, doc, all)).toEqual({});
+  });
+
+  it("saves a cleared field as an empty string", () => {
+    const draft = { ...toDraft(doc), priority: "" };
+    expect(changedFields(draft, doc, all)).toEqual({ priority: "" });
+  });
+
+  it("saves Checks as 0 or 1, and leaves an untouched blank Check alone", () => {
+    const draft = {
+      ...toDraft(doc),
+      custom_restricted_under_nda: "1",
+      custom_permission_for_testimonial: "",
+    };
+    expect(changedFields(draft, doc, all)).toEqual({
+      custom_restricted_under_nda: 1,
+    });
+    expect(
+      changedFields(
+        { ...toDraft(doc), custom_permission_for_case_study: "0" },
+        doc,
+        all,
+      ),
+    ).toEqual({ custom_permission_for_case_study: 0 });
+  });
+
+  it("leaves out optional fields the site lacks", () => {
+    const draft = {
+      ...toDraft(doc),
+      custom_source: "Google",
+      custom_restricted_under_nda: "1",
+      custom_previous_cms: "Drupal",
+    };
+    const has = (field: string) => field === "custom_previous_cms";
+    expect(changedFields(draft, doc, has)).toEqual({
+      custom_previous_cms: "Drupal",
+    });
+  });
+
+  it("treats an emptied editor as unchanged from an empty field", () => {
+    const draft = { ...toDraft(doc), custom_key_goals: "<p></p>" };
+    expect(changedFields(draft, doc, all)).toEqual({});
+  });
+
+  it("doesn't save Desk plain text that wasn't edited", () => {
+    const plain = { ...doc, custom_executive_summary: "One\nTwo" };
+    expect(changedFields(toDraft(plain), plain, all)).toEqual({});
+  });
+
+  it("saves edited rich text as HTML", () => {
+    const draft = {
+      ...toDraft(doc),
+      custom_executive_summary: "<p>Summary <strong>now</strong></p>",
+    };
+    expect(changedFields(draft, doc, all)).toEqual({
+      custom_executive_summary: "<p>Summary <strong>now</strong></p>",
+    });
   });
 });

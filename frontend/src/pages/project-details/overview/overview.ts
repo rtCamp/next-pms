@@ -1,4 +1,5 @@
 import type { ProjectDoc } from "@/pages/project-details/types";
+import { hasProjectField } from "@/utils/boot";
 import { EMPTY } from "./constants";
 
 /** The Project fields the Overview tab shows and edits. */
@@ -90,4 +91,39 @@ export function yesNoLabel(value: string): string {
   if (value === "1") return "Yes";
   if (value === "0") return "No";
   return EMPTY;
+}
+
+// The editor writes an emptied field as an empty paragraph.
+function isEmptyHtml(html: string) {
+  return html.replace(/<p>(<br\s*\/?>)?<\/p>/g, "").trim() === "";
+}
+
+function sameValue(field: OverviewField, a: string, b: string) {
+  if (a === b) return true;
+  return (
+    (RICH_TEXT_FIELDS as readonly OverviewField[]).includes(field) &&
+    isEmptyHtml(a) &&
+    isEmptyHtml(b)
+  );
+}
+
+/**
+ * The fields the draft changes on `doc`, as Project values to save: Checks as 0 / 1,
+ * the rest as strings. Optional fields the site lacks are left out.
+ */
+export function changedFields(
+  draft: OverviewDraft,
+  doc: ProjectDoc,
+  hasField: (fieldname: string) => boolean = hasProjectField,
+): Partial<ProjectDoc> {
+  const saved = toDraft(doc);
+  const changes: Record<string, string | number> = {};
+  for (const field of OVERVIEW_FIELDS) {
+    if (OPTIONAL_FIELDS.includes(field) && !hasField(field)) continue;
+    if (sameValue(field, draft[field], saved[field])) continue;
+    changes[field] = (CHECK_FIELDS as readonly OverviewField[]).includes(field)
+      ? Number(draft[field] === "1")
+      : draft[field];
+  }
+  return changes as Partial<ProjectDoc>;
 }
