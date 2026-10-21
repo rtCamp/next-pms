@@ -19,6 +19,7 @@ import { queryString } from "@/utils/query";
 import AboutSidebar from "./about/AboutSidebar.vue";
 import { DEFAULT_TAB, TAB_PARAM, type ProjectTabKey } from "./constants";
 import EmailTab from "./email/EmailTab.vue";
+import OverviewTab from "./overview/OverviewTab.vue";
 import ProjectDetailsHeader from "./ProjectDetailsHeader.vue";
 import RagStatsTab from "./rag-stats/RagStatsTab.vue";
 import ReportsTab from "./reports/ReportsTab.vue";
@@ -29,6 +30,7 @@ import { provideProjectDetails } from "./useProjectDetails";
 defineOptions({ inheritAttrs: false });
 
 const TAB_PANELS: Partial<Record<ProjectTabKey, Component>> = {
+  overview: OverviewTab,
   email: EmailTab,
   "rag-stats": RagStatsTab,
   reports: ReportsTab,
