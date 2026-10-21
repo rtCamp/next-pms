@@ -5,10 +5,10 @@ import type { RichTextProps } from "./types";
 
 defineOptions({ inheritAttrs: false });
 
-const props = defineProps<RichTextProps>();
+const props = withDefaults(defineProps<RichTextProps>(), { kit: "comment" });
 const attrs = useAttrs();
 
-const html = computed(() => renderRichText(props.content));
+const html = computed(() => renderRichText(props.content, props.kit));
 
 // Same typography as frappe-ui's EditorContent: `prose-v3` unless a size is set.
 const rootClass = computed(() => {
@@ -23,7 +23,10 @@ function onCopy(event: ClipboardEvent) {
   if (!selection || selection.isCollapsed || !event.clipboardData) return;
   const container = document.createElement("div");
   container.append(selection.getRangeAt(0).cloneContents());
-  event.clipboardData.setData("text/plain", plainText(container.innerHTML));
+  event.clipboardData.setData(
+    "text/plain",
+    plainText(container.innerHTML, props.kit),
+  );
   event.clipboardData.setData("text/html", container.innerHTML);
   event.preventDefault();
 }

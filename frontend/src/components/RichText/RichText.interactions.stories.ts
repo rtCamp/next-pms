@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { expect, within } from "storybook/test";
 import RichText from "./RichText.vue";
 import visual from "./RichText.stories";
-import { CODE, TWO_PARAGRAPHS, UNSAFE } from "./RichText.fixtures";
+import { CODE, RICH_TEXT, TWO_PARAGRAPHS, UNSAFE } from "./RichText.fixtures";
 
 const meta = {
   ...visual,
@@ -69,5 +69,41 @@ export const CopiesOneLinePerBlock: Story = {
     await expect(clipboardData.getData("text/plain")).toBe(
       "First line\nSecond line",
     );
+  },
+};
+
+export const ShowsRichTextKitContent: Story = {
+  args: { content: RICH_TEXT, kit: "richText" },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("table");
+    await expect(
+      within(table).getByRole("columnheader", { name: "Milestone" }),
+    ).toBeVisible();
+    await expect(
+      within(table).getByRole("cell", { name: "Beta" }),
+    ).toBeVisible();
+
+    const done = canvas.getByRole("checkbox", { name: "Kick-off" });
+    await expect(done).toBeChecked();
+    await expect(done).toBeDisabled();
+    await expect(
+      canvas.getByRole("checkbox", { name: "Launch" }),
+    ).not.toBeChecked();
+
+    await expect(canvas.getByText("Q4").closest("mark")).not.toBeNull();
+    await expect(canvas.getByText(/Goals for/).closest("p")).toHaveStyle({
+      textAlign: "center",
+    });
+  },
+};
+
+export const CommentKitDropsRichTextNodes: Story = {
+  args: { content: RICH_TEXT },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.queryByRole("table")).toBeNull();
+    await expect(canvas.queryByRole("checkbox")).toBeNull();
+    await expect(canvas.getByText("Beta")).toBeVisible();
   },
 };
