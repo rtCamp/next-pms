@@ -48,7 +48,7 @@ const rows = computed(() => {
     <div class="flex flex-col gap-3">
       <TextInput
         v-model="query"
-        type="search"
+        role="searchbox"
         variant="subtle"
         placeholder="Search members"
         aria-label="Search members"
