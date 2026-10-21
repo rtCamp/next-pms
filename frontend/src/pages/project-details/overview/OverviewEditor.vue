@@ -31,7 +31,7 @@ useEditorAttributes(editorRef, () => ({
     :editable="!disabled"
   >
     <EditorContent
-      class="prose-sm w-full max-w-full rounded-5 p-2 leading-normal text-ink-gray-7 ring-1 ring-outline-gray-2 focus:ring-outline-gray-4"
+      class="prose-sm w-full max-w-full rounded-5 p-2 leading-normal prose-p:my-2 text-ink-gray-7 ring-1 ring-outline-gray-2 focus:ring-outline-gray-4"
     />
   </Editor>
 </template>

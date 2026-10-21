@@ -17,8 +17,9 @@ const { values, draft, editing, saving, dirty, edit, cancel, save } =
 
 const showSourcing = SOURCING_FIELDS.some(hasProjectField);
 const showRepositories = Boolean(window.boot?.has_repository_connections);
+// React's paragraphs keep 8px margins, the first and last too.
 const RICH_TEXT_CLASS =
-  "prose-sm w-full max-w-full leading-normal text-ink-gray-7";
+  "prose-sm w-full max-w-full leading-normal text-ink-gray-7 prose-p:my-2";
 </script>
 
 <template>
