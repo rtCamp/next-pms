@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, normalizeClass, useAttrs } from "vue";
+import { RICH_TEXT_KIT_CLASS } from "./kits";
 import { plainText, renderRichText } from "./render";
 import type { RichTextProps } from "./types";
 
@@ -14,7 +15,12 @@ const html = computed(() => renderRichText(props.content, props.kit));
 const rootClass = computed(() => {
   const incoming = normalizeClass(attrs.class);
   const sized = /(?:^|\s)prose-(?:sm|base|lg|xl|2xl)(?:\s|$)/.test(incoming);
-  return ["ProseMirror prose max-w-none", !sized && "prose-v3", incoming];
+  return [
+    "ProseMirror prose max-w-none",
+    !sized && "prose-v3",
+    props.kit === "richText" && RICH_TEXT_KIT_CLASS,
+    incoming,
+  ];
 });
 
 // Copied text gets one line per block instead of the DOM's extra blank lines.

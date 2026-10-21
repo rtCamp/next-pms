@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useTemplateRef } from "vue";
 import { Editor, EditorContent } from "frappe-ui/editor";
-import { richTextExtensions } from "@/components/RichText";
+import { RICH_TEXT_KIT_CLASS, richTextExtensions } from "@/components/RichText";
 import { useEditorAttributes } from "@/composables/useEditorAttributes";
 
 const props = defineProps<{
@@ -31,6 +31,7 @@ useEditorAttributes(editorRef, () => ({
     :editable="!disabled"
   >
     <EditorContent
+      :class="RICH_TEXT_KIT_CLASS"
       class="prose-sm w-full max-w-full rounded-5 p-2 leading-normal prose-p:my-2 text-ink-gray-7 ring-1 ring-outline-gray-2 focus:ring-outline-gray-4"
     />
   </Editor>
