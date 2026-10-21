@@ -832,7 +832,12 @@ export const cleanUpProjects = async (data) => {
           continue;
         }
         try {
-          const { deleted } = await deleteTimesheetbyID(timesheetId, "admin");
+          let { deleted } = await deleteTimesheetbyID(timesheetId, "admin");
+          if (!deleted) {
+            // A submitted (approved or pending) timesheet has to be cancelled first.
+            await cancelDocument("Timesheet", timesheetId).catch(() => {});
+            ({ deleted } = await deleteTimesheetbyID(timesheetId, "admin"));
+          }
           if (!deleted) failures.push(`Timesheet ${timesheetId}`);
         } catch (err) {
           failures.push(`Timesheet ${timesheetId}`);
