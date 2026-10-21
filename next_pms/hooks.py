@@ -173,16 +173,6 @@ fixtures = [
             ]
         ],
     },
-    {
-        "dt": "Custom DocPerm",
-        "or_filters": [
-            [
-                "parent",
-                "in",
-                ["Task", "Project", "Timesheet"],
-            ]
-        ],
-    },
 ]
 
 
