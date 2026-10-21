@@ -26,6 +26,7 @@ def after_install():
     setup_role_permissions()
     setup_project_permissions_for_managers()
     setup_time_report_frequency()
+    setup_custom_docperms()
 
 
 def setup_timesheet_rejection_reason_field():
@@ -347,6 +348,133 @@ def setup_project_permissions_for_managers():
                 add_permission(doctype, role, permlevel)
             for perm_key, perm_val in (base_permissions if permlevel == 0 else field_permissions).items():
                 update_permission_property(doctype, role, permlevel, perm_key, perm_val)
+
+
+CUSTOM_DOCPERMS: tuple[tuple[str, str, int, int, tuple[str, ...]], ...] = (
+    # (doctype, role, permlevel, if_owner, granted permission types)
+    ("Project", "Desk User", 1, 0, ("read", "export")),
+    ("Project", "Employee", 0, 1, ("select", "read", "create", "export")),
+    (
+        "Project",
+        "Projects Manager",
+        0,
+        0,
+        ("select", "read", "write", "create", "delete", "report", "export", "import", "share", "print", "email"),
+    ),
+    ("Project", "Projects Manager", 1, 0, ("read", "write", "export")),
+    ("Project", "Projects Manager", 2, 0, ("read", "write", "export")),
+    ("Project", "Projects User", 0, 0, ("read", "write", "create", "delete", "report", "share", "print", "email")),
+    ("Project", "Projects User", 1, 0, ("read", "export")),
+    ("Project", "Projects User", 2, 0, ("read", "write", "export")),
+    (
+        "Project",
+        "Timesheet Manager",
+        0,
+        0,
+        ("select", "read", "write", "create", "delete", "report", "export", "import", "share", "print", "email"),
+    ),
+    ("Project", "Timesheet Manager", 1, 0, ("read", "write", "export")),
+    ("Project", "Timesheet Manager", 2, 0, ("read", "write", "export")),
+    ("Project", "Timesheet User", 0, 0, ("read",)),
+    ("Project", "Timesheet User", 1, 0, ("read", "export")),
+    ("Project", "Timesheet User", 2, 0, ("read", "export")),
+    ("Task", "Employee", 0, 0, ("read", "write", "create")),
+    (
+        "Task",
+        "Projects Manager",
+        0,
+        0,
+        ("select", "read", "write", "create", "delete", "report", "export", "import", "share"),
+    ),
+    ("Task", "Projects Manager", 1, 0, ("read", "write", "export")),
+    (
+        "Task",
+        "Projects User",
+        0,
+        0,
+        ("select", "read", "write", "create", "delete", "report", "share", "print", "email"),
+    ),
+    ("Task", "Projects User", 1, 0, ("read", "write", "export")),
+    (
+        "Timesheet",
+        "Accounts User",
+        0,
+        0,
+        ("read", "write", "create", "delete", "submit", "cancel", "amend", "report", "email"),
+    ),
+    ("Timesheet", "Accounts User", 1, 0, ("read", "write")),
+    ("Timesheet", "Employee", 0, 0, ("read", "write", "create", "delete")),
+    (
+        "Timesheet",
+        "HR User",
+        0,
+        0,
+        (
+            "read",
+            "write",
+            "create",
+            "delete",
+            "submit",
+            "cancel",
+            "amend",
+            "report",
+            "export",
+            "share",
+            "print",
+            "email",
+        ),
+    ),
+    ("Timesheet", "Projects Manager", 0, 0, ("submit",)),
+    ("Timesheet", "Projects Manager", 1, 0, ("read", "write", "export")),
+    (
+        "Timesheet",
+        "Projects User",
+        0,
+        0,
+        ("read", "write", "create", "delete", "submit", "cancel", "amend", "report", "share", "print", "email"),
+    ),
+    ("Timesheet", "Projects User", 1, 0, ("read", "write", "export")),
+)
+
+
+def setup_custom_docperms() -> None:
+    """Create the Project / Task / Timesheet role permissions previously shipped as the
+    Custom DocPerm fixture. A rule is inserted only when no Custom DocPerm exists for its
+    doctype, role, permlevel and if_owner combination; existing rules are left untouched."""
+    import frappe
+    from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
+    from frappe.permissions import setup_custom_perms
+
+    existing_roles = set(frappe.get_all("Role", pluck="name"))
+    touched_doctypes = set()
+
+    for doctype, role, permlevel, if_owner, ptypes in CUSTOM_DOCPERMS:
+        if role not in existing_roles:
+            continue
+
+        setup_custom_perms(doctype)
+        if frappe.db.exists(
+            "Custom DocPerm", {"parent": doctype, "role": role, "permlevel": permlevel, "if_owner": if_owner}
+        ):
+            continue
+
+        # ignore_permissions: runs from install/patch context as Administrator to seed role permissions
+        frappe.get_doc(
+            {
+                "doctype": "Custom DocPerm",
+                "parent": doctype,
+                "parenttype": "DocType",
+                "parentfield": "permissions",
+                "role": role,
+                "permlevel": permlevel,
+                "if_owner": if_owner,
+                **dict.fromkeys(ptypes, 1),
+            }
+        ).insert(ignore_permissions=True)
+        touched_doctypes.add(doctype)
+
+    for doctype in touched_doctypes:
+        validate_permissions_for_doctype(doctype)
 
 
 def add_project_manager_perm():
