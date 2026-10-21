@@ -53,7 +53,7 @@ const options = [
     <div role="cell" class="truncate text-base leading-tighter text-ink-gray-6">
       {{ created }}
     </div>
-    <div role="cell" class="flex justify-end">
+    <div role="cell" class="flex">
       <Button
         v-if="busy"
         variant="ghost"
