@@ -52,6 +52,7 @@ const value = computed({
 </script>
 
 <template>
+  <!-- eslint-disable better-tailwindcss/no-restricted-classes -- React's 26px field; frappe-ui's Combobox sizes are 24 or 28px -->
   <Combobox
     v-model="value"
     v-model:query="query"
@@ -62,7 +63,9 @@ const value = computed({
     :placeholder="placeholder"
     :aria-label="label"
     open-on-focus
+    class="data-[slot=trigger]:min-h-6.5"
   >
+    <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
     <!-- The selected value is always an option, so the list may not be empty. -->
     <template v-if="searchError && !lookup.options.length" #empty>
       <span role="alert" class="text-ink-red-6">{{ searchError }}</span>
