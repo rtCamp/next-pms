@@ -27,6 +27,7 @@ import {
   createBillingDataForTestCases,
   ensureUsdCustomer,
 } from "../helpers/billingHelper";
+import { createWeekTimeForTestCases } from "../helpers/weekTimeHelper";
 
 const globalSetup = async () => {
   console.log("🚀 Starting global setup...");
@@ -133,6 +134,7 @@ const globalSetup = async () => {
     await calculateHourlyBilling([tcId], jsonDir);
     // After the project and its tasks exist: it logs time and bills what the project holds.
     await createBillingDataForTestCases([tcId], jsonDir);
+    await createWeekTimeForTestCases([tcId], jsonDir);
     await updateLeaveEntries([tcId], jsonDir);
     await createUserGroupForEmployee([tcId], jsonDir);
   }
