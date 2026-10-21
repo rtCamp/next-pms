@@ -47,14 +47,25 @@ function createProjectSidebar() {
   /** Keys of the writes queued or running, e.g. `member:<user>`. */
   const busy = reactive(new Set<string>());
   let queue: Promise<void> = Promise.resolve();
+  /** The Project's `modified` when the latest refetch started. */
+  let refreshedFor: string | undefined;
+  let refreshes = 0;
+
+  async function refresh() {
+    const run = ++refreshes;
+    refreshedFor = doc.value?.modified;
+    await call.reload();
+    // A newer refetch aborted this one and reports its own result.
+    if (run === refreshes && call.error) toast.error(errorMessage(call.error));
+  }
 
   // A Project change, from a realtime update or any save on the page, can change
-  // what the sidebar shows. A queued write refetches when it's done instead.
+  // what the sidebar shows. While writes are queued, the queue refetches instead.
   watch(
     () => doc.value?.modified,
     (modified, previous) => {
-      if (busy.size) return;
-      if (previous && modified !== previous) call.reload();
+      if (busy.size || !previous || modified === previous) return;
+      refresh();
     },
   );
 
@@ -70,7 +81,8 @@ function createProjectSidebar() {
   /**
    * Runs writes one at a time, as each call aborts its own previous request, and
    * refetches the sidebar after each so the next one checks the latest members.
-   * A key already queued is ignored (double clicks).
+   * A key already queued is ignored (double clicks). When the queue drains, a
+   * Project change that came in after the last refetch started refetches again.
    */
   function enqueue(key: string, write: () => Promise<void>) {
     if (busy.has(key)) return queue;
@@ -81,9 +93,9 @@ function createProjectSidebar() {
       } catch (error) {
         toast.error(errorMessage(error));
       } finally {
-        await call.reload();
-        if (call.error) toast.error(errorMessage(call.error));
+        await refresh();
         busy.delete(key);
+        if (!busy.size && doc.value?.modified !== refreshedFor) await refresh();
       }
     });
     return queue;
