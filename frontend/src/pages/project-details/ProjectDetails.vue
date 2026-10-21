@@ -10,7 +10,9 @@ import {
   Tabs,
   TabTrigger,
 } from "frappe-ui";
+import { UnsavedChangesDialog } from "@/components/UnsavedChangesDialog";
 import { useQueryPatch } from "@/composables/useQueryPatch";
+import { provideUnsavedChanges } from "@/composables/useUnsavedChanges";
 import StatusMessage from "@/layout/StatusMessage.vue";
 import { errorMessage } from "@/utils/errors";
 import { queryString } from "@/utils/query";
@@ -40,6 +42,7 @@ const patchQuery = useQueryPatch();
 // path), and a write still queued as this page unmounts must not follow the URL.
 const projectId = String(route.params.projectId ?? "");
 const { doc, error, reload } = provideProjectDetails(projectId);
+const unsavedChanges = provideUnsavedChanges();
 
 const errorType = computed(() =>
   error.value instanceof FrappeResponseError ? error.value.type : null,
@@ -164,4 +167,10 @@ watch(
   <div v-else class="flex h-64 items-center justify-center">
     <Spinner class="size-6" />
   </div>
+  <UnsavedChangesDialog
+    :open="unsavedChanges.dialogOpen.value"
+    @keep-editing="unsavedChanges.keepEditing()"
+    @discard="unsavedChanges.discardChanges()"
+    @save="unsavedChanges.saveChanges()"
+  />
 </template>
