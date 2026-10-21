@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { Combobox } from "frappe-ui";
 import { useEmployeeLookup } from "@/composables/useEmployeeLookup";
+import { errorMessage } from "@/utils/errors";
 import MemberHoverCard from "./MemberHoverCard.vue";
 import { managerOptions } from "./sidebar";
 import type { AboutMember, ManagerRole } from "./types";
@@ -28,6 +29,9 @@ const lookup = useEmployeeLookup({
 });
 
 const options = computed(() => managerOptions(lookup.options, props.manager));
+const searchError = computed(() =>
+  lookup.error ? errorMessage(lookup.error) : null,
+);
 const busy = computed(() => isBusy(`manager:${props.managerRole}`));
 
 const value = computed({
@@ -63,7 +67,17 @@ const value = computed({
         open-on-focus
         placeholder="N/A"
         :aria-label="label"
-      />
+      >
+        <!-- The current manager is always an option, so the list may not be empty. -->
+        <template v-if="searchError && !options.length" #empty>
+          <span role="alert" class="text-ink-red-6">{{ searchError }}</span>
+        </template>
+        <template v-else-if="searchError" #footer>
+          <p role="alert" class="px-3 py-1.5 text-base text-ink-red-6">
+            {{ searchError }}
+          </p>
+        </template>
+      </Combobox>
       <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
     </div>
   </MemberHoverCard>
