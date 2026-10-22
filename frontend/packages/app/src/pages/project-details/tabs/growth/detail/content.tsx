@@ -56,11 +56,15 @@ export function GrowthDetailContent({
   const customer = useProjectDetail((s) => s.project?.customer);
   const { data: customerRateData } = useFrappeGetDocList<{
     custom_hourly_rate?: number;
-  }>("Customer", {
-    fields: ["custom_hourly_rate"],
-    filters: [["name", "=", customer ?? ""]],
-    limit: 1,
-  });
+  }>(
+    "Customer",
+    {
+      fields: ["custom_hourly_rate"],
+      filters: [["name", "=", customer ?? ""]],
+      limit: 1,
+    },
+    customer ? undefined : null,
+  );
   const refreshList = useGrowth((c) => c.actions.refresh);
   const { userId, roles } = useUser(({ state }) => ({
     userId: state.userId,
