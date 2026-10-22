@@ -115,8 +115,8 @@ function openFeedback(row: TeamFeedbackRow) {
       >
         No feedback available.
       </p>
-      <div v-if="page.loading" class="flex flex-col gap-2 px-2 py-2">
-        <Skeleton v-for="index in 3" :key="index" class="h-8 w-full" />
+      <div v-if="page.loading" class="flex flex-col gap-px">
+        <Skeleton v-for="index in 3" :key="index" class="h-10 w-full" />
       </div>
       <LoadError
         v-else-if="page.error"
