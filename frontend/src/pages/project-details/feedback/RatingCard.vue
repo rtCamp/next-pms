@@ -10,7 +10,9 @@ defineProps<{ rating: FeedbackRating }>();
   <div
     class="flex flex-col justify-between gap-2 overflow-hidden rounded-6 border border-outline-gray-1 bg-surface-base p-3"
   >
-    <span class="text-base text-ink-gray-5">{{ rating.label }}</span>
+    <span class="text-base leading-tighter text-ink-gray-5">
+      {{ rating.label }}
+    </span>
     <div class="flex items-center justify-between">
       <Rating
         :model-value="toStars(rating.value, rating.star_max)"
@@ -20,7 +22,9 @@ defineProps<{ rating: FeedbackRating }>();
         disabled
         :aria-label="rating.label"
       />
-      <span class="text-base text-ink-gray-7">{{ rating.percent ?? 0 }}%</span>
+      <span class="text-base leading-tighter text-ink-gray-7">
+        {{ rating.percent ?? 0 }}%
+      </span>
     </div>
   </div>
 </template>

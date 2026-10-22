@@ -105,7 +105,7 @@ onBeforeUnmount(() => observer?.disconnect());
           @click="emit('select', month)"
         >
           <span
-            class="text-2xs"
+            class="text-2xs leading-tighter"
             :class="
               month.key === selected ? 'text-ink-gray-3' : 'text-ink-gray-4'
             "
@@ -113,7 +113,7 @@ onBeforeUnmount(() => observer?.disconnect());
             {{ dayjs(new Date(month.year, month.month)).format("MMM") }}
           </span>
           <span
-            class="text-base-medium"
+            class="text-base-medium leading-tighter"
             :class="scoreClass(month.score, month.key === selected)"
           >
             <Spinner v-if="loading" class="size-4" />

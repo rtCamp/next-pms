@@ -36,7 +36,7 @@ const responses = computed(() =>
   <!-- eslint-disable-next-line better-tailwindcss/no-restricted-classes -- React's fixed 240px breakdown column -->
   <div v-else class="grid grid-cols-[240px_1fr] gap-6">
     <section>
-      <h3 class="mb-3.5 text-lg-medium text-ink-gray-7">
+      <h3 class="mb-3.5 text-lg-medium leading-tighter text-ink-gray-7">
         {{ monthName }} Feedback Breakdown
       </h3>
       <p
@@ -54,7 +54,9 @@ const responses = computed(() =>
       </div>
     </section>
     <section>
-      <h3 class="mb-3.5 text-lg-medium text-ink-gray-7">Responses</h3>
+      <h3 class="mb-3.5 text-lg-medium leading-tighter text-ink-gray-7">
+        Responses
+      </h3>
       <p v-if="!responses.length" class="text-base text-ink-gray-5">
         No responses submitted for this month.
       </p>
