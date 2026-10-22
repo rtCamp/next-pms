@@ -22,10 +22,6 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
     });
 
     this.searchInput = page.getByPlaceholder("Search tasks");
-    // The button after the search box; it names the status once one is chosen.
-    this.approvalFilter = this.searchInput.locator(
-      "xpath=following::button[1]",
-    );
 
     this.addTimeDialog = page.getByRole("dialog", { name: "Add time" });
     this.addTimeOffDialog = page.getByRole("dialog", { name: "Add time off" });
@@ -33,12 +29,12 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
       name: "Submit for approval",
     });
 
-    this.dateField = this.addTimeDialog.getByRole("combobox", {
-      name: /^Date/,
+    this.dateField = this.addTimeDialog.getByRole("button", {
+      name: /^\d{4}-\d{2}-\d{2}$/,
     });
-    this.halfDayField = this.addTimeOffDialog.getByRole("combobox", {
-      name: /^Half day date/i,
-    });
+    this.halfDayField = this.addTimeOffDialog
+      .getByRole("button")
+      .filter({ has: page.getByRole("textbox", { name: /Half Day Date/ }) });
   }
 
   // --------------------------------------
@@ -82,43 +78,39 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
   }
 
   async expandWeek(label) {
-    const toggle = this.weekToggle(label);
-    await toggle.waitFor({ timeout: scaleTimeout(30000) });
-    if ((await toggle.getAttribute("aria-expanded")) === "false") {
-      await toggle.click();
+    const header = this.weekHeader(label);
+    await header.waitFor({ timeout: scaleTimeout(30000) });
+    if ((await header.getAttribute("aria-expanded")) === "false") {
+      await header.click();
     }
   }
 
-  /** The first row of a week's body: the hours of every project and task together. */
-  totalRow(label) {
-    return this.weekRows(label).first();
+  /** The rows of a week: its Total row first, then project and task rows. */
+  rows(label) {
+    return this.weekRegion(label).locator("div.border-b.transition-colors");
   }
 
-  /** The Total row's own label; a search hides the row, and this with it. */
-  totalLabel(label) {
-    return this.weekRegion(label).getByText("Projects", { exact: true });
+  totalRow(label) {
+    return this.rows(label).first();
   }
 
   /** A project or task row, by the exact text it carries. */
   row(label, name) {
-    return this.weekRows(label).filter({
+    return this.rows(label).filter({
       has: this.page.getByText(name, { exact: true }),
     });
   }
 
-  /**
-   * The Time-off row's days, Monday to Friday; they are plain text, not buttons. The weekend
-   * cells print their own labels ("Saturday"), so the days after Friday are left out.
-   */
+  /** The Time-off row's seven days, Monday first; they are plain text, not buttons. */
   async timeOffHours(label) {
     const row = this.row(label, "Time-off");
     // The row is only there once the week has a leave or a holiday.
-    if ((await row.count()) === 0) return Array(5).fill("-");
+    if ((await row.count()) === 0) return Array(7).fill("-");
     const lines = (await row.innerText())
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean);
-    return lines.slice(1, 6);
+    return lines.slice(1, 8);
   }
 
   submitButton(label) {
@@ -167,37 +159,19 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
       .click();
   }
 
-  /** What a day cell opens: its entries, each with a comment, and an Add time button. */
-  get cellPopover() {
-    return this.page.locator('[data-slot="content"]').last();
-  }
-
-  /** The entry in the open popover that carries `comment`; its pencil shows on hover. */
-  async openEntryEditor(comment) {
-    const entry = this.cellPopover
-      .locator("div")
-      .filter({
-        has: this.page.getByRole("button", { name: "Edit entry" }),
-        hasText: comment,
-      })
-      .last();
-    await entry.hover();
-    await entry.getByRole("button", { name: "Edit entry" }).click();
-  }
-
   /** Changes the hours of the entry carrying `comment` in a task row's day cell. */
   async updateEntry(cell, { comment, duration }) {
     await cell.click();
-    await this.openEntryEditor(comment);
-    const popover = this.cellPopover;
+    const popover = this.page.getByRole("dialog").last();
+    const entry = popover.filter({ hasText: comment }).first();
+    await entry.getByRole("button").filter({ hasText: /^$/ }).first().click();
     const field = popover.getByPlaceholder("00:00");
     await field.fill(duration);
     // The masked field only commits on blur; without it the save posts the old value.
     await field.blur();
     await popover.getByRole("button", { name: "Save entry" }).click();
-    await popover
-      .getByRole("button", { name: "Save entry" })
-      .waitFor({ state: "hidden", timeout: scaleTimeout(10000) });
+    // Saving goes back to the day's list of entries, which stays open.
+    await popover.getByRole("button", { name: "Add time" }).waitFor();
     await this.page.keyboard.press("Escape");
     await popover.waitFor({ state: "hidden", timeout: scaleTimeout(10000) });
   }
@@ -205,20 +179,28 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
   /** Deletes the entry carrying `comment` in a task row's day cell. */
   async deleteEntry(cell, comment) {
     await cell.click();
-    await this.openEntryEditor(comment);
-    await this.cellPopover
-      .getByRole("button", { name: "Delete entry" })
+    const popover = this.page.getByRole("dialog").last();
+    const item = popover
+      .getByRole("region")
+      .filter({ hasText: comment })
+      .first()
+      .locator("xpath=..");
+    await item.hover();
+    await item
+      .locator('button[class*="absolute"][class*="right-0"]')
+      .first()
       .click();
+    await popover.getByRole("button", { name: "Delete entry" }).click();
   }
 
   // --------------------------------------
   // Time-off and submitting
   // --------------------------------------
 
-  /** The dialog's From and To fields. */
+  /** The dialog's From and To fields; the picker names both by the date they hold. */
   get dateFields() {
-    return this.addTimeOffDialog.getByRole("combobox", {
-      name: /^(From|To)/,
+    return this.addTimeOffDialog.getByRole("button", {
+      name: /^\d{4}-\d{2}-\d{2}$/,
     });
   }
 
@@ -228,7 +210,7 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
     await this.pickDate(this.dateFields.nth(1), to);
     if (duration) {
       await this.addTimeOffDialog
-        .getByRole("radio", { name: duration, exact: true })
+        .getByRole("button", { name: duration, exact: true })
         .click();
     }
     if (type) {

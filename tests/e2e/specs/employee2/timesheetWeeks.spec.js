@@ -119,18 +119,20 @@ test.describe("Employee: Personal timesheet weeks", () => {
     await weeks.expandWeek(LAST);
     await expect(weeks.row(LAST, alphaTask)).toBeVisible();
     await expect(weeks.row(LAST, betaTask)).toBeVisible();
-    const totalLabel = weeks.totalLabel(LAST);
-    await expect(totalLabel).toBeVisible();
+    const totalButton = weeks
+      .weekRegion(LAST)
+      .getByRole("button", { name: "Projects", exact: true });
+    await expect(totalButton).toBeVisible();
 
     await weeks.search(alphaTask);
     await expect(page).toHaveURL(/search=/);
     await expect(weeks.row(LAST, alphaTask)).toBeVisible();
     await expect(weeks.row(LAST, betaTask)).toHaveCount(0);
-    await expect(totalLabel).toHaveCount(0);
+    await expect(totalButton).toHaveCount(0);
 
     await weeks.search("");
     await expect(weeks.row(LAST, betaTask)).toBeVisible();
-    await expect(totalLabel).toBeVisible();
+    await expect(totalButton).toBeVisible();
   });
 
   test("TC210: The Approval status filter narrows the weeks to those with that status", async ({
@@ -177,6 +179,15 @@ test.describe("Employee: Personal timesheet weeks", () => {
       await expect(weeks.weekHeader(THREE)).toHaveCount(0);
     });
 
+    await test.step("Task", async () => {
+      await weeks.goto();
+      await weeks.filterBy("Task", betaTask);
+      await expect(weeks.row(LAST, betaTask)).toBeVisible();
+      await expect(weeks.row(LAST, alphaTask)).toHaveCount(0);
+      await expect(weeks.row(THREE, betaTask)).toBeVisible();
+      await expect(weeks.weekHeader(TWO)).toHaveCount(0);
+    });
+
     await test.step("Date", async () => {
       await weeks.goto();
       // Monday to Wednesday of the submitted week: only the weeks it touches stay.
@@ -191,17 +202,6 @@ test.describe("Employee: Personal timesheet weeks", () => {
       await expect(weeks.row(LAST, alphaProject)).toBeVisible();
       await expect(weeks.row(THREE, betaProject)).toBeVisible();
       await expect(page).not.toHaveURL(/compositeFilters/);
-    });
-
-    await test.step("Task", async () => {
-      // App defect: the Value list searches Projects whatever the field, so no task can be picked.
-      test.skip(true, "Filter panel lists projects for a Task condition");
-      await weeks.goto();
-      await weeks.filterBy("Task", betaTask);
-      await expect(weeks.row(LAST, betaTask)).toBeVisible();
-      await expect(weeks.row(LAST, alphaTask)).toHaveCount(0);
-      await expect(weeks.row(THREE, betaTask)).toBeVisible();
-      await expect(weeks.weekHeader(TWO)).toHaveCount(0);
     });
   });
 

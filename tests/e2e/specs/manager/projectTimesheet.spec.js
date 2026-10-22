@@ -60,8 +60,8 @@ test.describe("Manager: Project timesheet", () => {
 
     // A member opens onto the task they logged it against.
     const pending = projects.memberRow(LAST, alpha, member.Pending);
-    await projects.toggle(pending);
-    const tasks = projects.memberTasks(LAST, alpha, member.Pending);
+    await projects.toggle(pending, member.Pending);
+    const tasks = projects.memberPanel(LAST, alpha, member.Pending);
     await expect(tasks.getByText(task, { exact: true })).toBeVisible();
     await expect(projects.cells(tasks).first()).toHaveText("01:00");
   });
@@ -73,31 +73,22 @@ test.describe("Manager: Project timesheet", () => {
     const pending = projects.memberRow(LAST, alpha, member.Pending);
     await expect(pending).toBeVisible();
 
-    await projects.toggle(row);
-    await expect(projects.toggleButton(row)).toHaveAttribute(
-      "aria-expanded",
-      "false",
-    );
+    await projects.toggle(row, alpha);
+    await expect(row).toHaveAttribute("aria-expanded", "false");
     await expect(pending).toHaveCount(0);
 
-    await projects.toggle(row);
+    await projects.toggle(row, alpha);
     await expect(pending).toBeVisible();
     // Members start closed.
-    await expect(projects.toggleButton(pending)).toHaveAttribute(
-      "aria-expanded",
-      "false",
-    );
+    await expect(pending).toHaveAttribute("aria-expanded", "false");
     await expect(
-      projects.memberTasks(LAST, alpha, member.Pending).getByText(task),
+      projects.memberPanel(LAST, alpha, member.Pending).getByText(task),
     ).toHaveCount(0);
 
-    await projects.toggle(pending);
-    await expect(projects.toggleButton(pending)).toHaveAttribute(
-      "aria-expanded",
-      "true",
-    );
+    await projects.toggle(pending, member.Pending);
+    await expect(pending).toHaveAttribute("aria-expanded", "true");
     await expect(
-      projects.memberTasks(LAST, alpha, member.Pending).getByText(task),
+      projects.memberPanel(LAST, alpha, member.Pending).getByText(task),
     ).toBeVisible();
   });
 
@@ -155,6 +146,17 @@ test.describe("Manager: Project timesheet", () => {
   test("TC225: The filters on the Project tab narrow the weeks and rows by member and project", async () => {
     allure.story("Timesheet");
 
+    await test.step("Member", async () => {
+      await projects.goto({ search: FIXTURE });
+      await projects.filterBy("Member", member.Pending);
+      await expect(
+        projects.memberRow(LAST, alpha, member.Pending),
+      ).toBeVisible();
+      await expect(projects.memberRow(LAST, alpha, member.Draft)).toHaveCount(
+        0,
+      );
+    });
+
     await test.step("Project", async () => {
       await projects.goto({ search: FIXTURE });
       await projects.filterBy("Project", beta);
@@ -164,19 +166,6 @@ test.describe("Manager: Project timesheet", () => {
 
     await test.step("No Approval status filter", async () => {
       await expect(projects.approvalFilter).toHaveCount(0);
-    });
-
-    await test.step("Member", async () => {
-      // App defect: the Value list searches Projects whatever the field, so no member can be picked.
-      test.skip(true, "Filter panel lists projects for a Member condition");
-      await projects.goto({ search: FIXTURE });
-      await projects.filterBy("Member", member.Pending);
-      await expect(
-        projects.memberRow(LAST, alpha, member.Pending),
-      ).toBeVisible();
-      await expect(projects.memberRow(LAST, alpha, member.Draft)).toHaveCount(
-        0,
-      );
     });
   });
 

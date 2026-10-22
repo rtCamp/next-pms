@@ -1,11 +1,12 @@
 import { expect } from "allure-playwright";
+import { escapeRegExp } from "../utils/stringUtils";
 import { scaleTimeout } from "../utils/timeouts";
 
-// A day cell prints its hours, or a dash with a space either side.
-const DAY_CELL = /^\s*(\d{2}:\d{2}|-)\s*$/;
+// A day cell prints its hours, or a dash.
+const DAY_CELL = /^(\d{2}:\d{2}|-)$/;
 
-// How a week is labelled: "This week", "Last week", or its dates ("Oct 5 - 11, 2026").
-const WEEK_LABEL = "(?:This week|Last week|[A-Z][a-z]{2} \\d+(?:, \\d{4})? - )";
+// A week with no timesheet has nothing after its label, so the name may end there.
+const weekName = (label) => new RegExp(`^${escapeRegExp(label)}(?: |$)`);
 
 /**
  * What the Personal and Project timesheet tabs share: the weeks they list, the
@@ -25,6 +26,9 @@ export class TimesheetTabPage {
     this.filterField = page.getByPlaceholder("Field");
     this.filterOperator = page.getByPlaceholder("Operator");
     this.filterValue = page.getByPlaceholder("Value");
+    this.approvalFilter = page.getByRole("combobox", {
+      name: "Select options",
+    });
     // `.first()`: a previous toast with the same text can still be on screen.
     this.toast = (text) =>
       page
@@ -36,43 +40,20 @@ export class TimesheetTabPage {
   // --------------------------------------
   // Weeks
   // --------------------------------------
-  //
-  // A week is a block of two parts: a header row (chevron, label, status, dates, Total, the
-  // submit button) and a body of sibling rows. Nothing in it is a landmark, so the chevron,
-  // named "Toggle <label>", is what finds the rest.
 
-  /** The chevron that opens and closes a week; its name is the only text it has. */
-  weekToggle(label) {
-    return this.page.getByRole("button", {
-      name: `Toggle ${label}`,
-      exact: true,
-    });
-  }
-
-  get weekToggles() {
-    return this.page.getByRole("button", {
-      name: new RegExp(`^Toggle ${WEEK_LABEL}`),
-    });
-  }
-
-  /** The header rows of every week listed, newest first. */
   get weekHeaders() {
-    return this.weekToggles.locator("xpath=ancestor::div[2]");
+    return this.page.getByRole("button", {
+      name: /^(This week|Last week|[A-Z][a-z]{2} \d+(, \d{4})? - )/,
+    });
   }
 
-  /** The header row of a week, by its label ("This week", "Oct 5 - 11, 2026"). */
+  /** The header button of a week, by its label ("This week", "Oct 5 - 11, 2026"). */
   weekHeader(label) {
-    return this.weekToggle(label).locator("xpath=ancestor::div[2]");
+    return this.page.getByRole("button", { name: weekName(label) });
   }
 
-  /** The whole week: header row and body. */
   weekRegion(label) {
-    return this.weekToggle(label).locator("xpath=ancestor::div[4]");
-  }
-
-  /** The rows of a week's body, flat and in the order they are drawn. */
-  weekRows(label) {
-    return this.weekRegion(label).locator("xpath=./div[2]/div");
+    return this.page.getByRole("region", { name: weekName(label) });
   }
 
   /** The day cells of a row, Monday first; their text is the hours or a dash. */
@@ -135,29 +116,29 @@ export class TimesheetTabPage {
 
   /** Pages the open calendar to the month of `isoDate` and clicks that day. */
   async clickDay(isoDate) {
-    const [year, month] = isoDate.split("-").map(Number);
+    const [year, month, day] = isoDate.split("-").map(Number);
+    const target = new Date(year, month - 1, day);
     const heading = this.page.getByRole("button", {
-      name: "cycle-calendar-view",
+      name: "Toggle calendar view",
     });
     await heading.waitFor({ timeout: scaleTimeout(10000) });
     for (let paged = 0; paged < 24; paged++) {
-      // "Oct 2026"
-      const [shownMonth, shownYear] = (await heading.innerText()).split(" ");
-      const shown = new Date(`${shownMonth} 1, ${shownYear}`);
+      const shown = new Date(`${await heading.innerText()} 1`);
       const gap =
-        (year - shown.getFullYear()) * 12 + (month - 1) - shown.getMonth();
+        (target.getFullYear() - shown.getFullYear()) * 12 +
+        target.getMonth() -
+        shown.getMonth();
       if (gap === 0) break;
       await this.page
         .getByRole("button", {
-          name: gap > 0 ? "next" : "previous",
-          exact: true,
+          name: gap > 0 ? "Next month" : "Previous month",
         })
         .click();
     }
-    // `data-value`: the cell's name reads "(Today)" on today, and the grid also
-    // shows a few days of the months either side.
+    // The grid also shows a few days of the months either side, in a lighter colour.
     await this.page
-      .locator(`[role="gridcell"][data-value="${isoDate}"]`)
+      .locator('[role="gridcell"]:not(.text-ink-gray-3)')
+      .filter({ hasText: new RegExp(`^${day}$`) })
       .click();
   }
 
@@ -177,7 +158,10 @@ export class TimesheetTabPage {
       .getByRole("option", { name: /^Date$/i })
       .first()
       .click();
-    await this.filterValue.last().click();
+    await this.page
+      .locator("span[role=button][aria-haspopup=dialog]")
+      .last()
+      .click();
     await this.clickDay(from);
     await this.clickDay(to);
     await this.closeFilterPanel();
