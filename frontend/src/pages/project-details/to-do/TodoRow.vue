@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Avatar, Button, Dropdown, Tooltip } from "frappe-ui";
-import { PRIORITY_DOT, STATUS_COLOR, STATUS_ICON } from "./constants";
-import { formatTodoDateTime, todoTitle } from "./todos";
+import { PRIORITY_DOT } from "./constants";
+import {
+  formatTodoDateTime,
+  statusColor,
+  statusIcon,
+  todoTitle,
+} from "./todos";
 import type { Todo } from "./types";
 import { useTodos } from "./useTodos";
 
@@ -80,14 +85,14 @@ const actions = computed(() => [
         type="button"
         class="flex shrink-0 transition-colors"
         :class="[
-          STATUS_COLOR[status],
+          statusColor(status),
           status === 'Open' && 'hover:text-ink-gray-8',
         ]"
         :aria-label="statusLabel"
         :aria-busy="todos.isStatusBusy(todo)"
         @click="todos.toggleDone(todo)"
       >
-        <span class="size-5" :class="STATUS_ICON[status]" aria-hidden="true" />
+        <span class="size-5" :class="statusIcon(status)" aria-hidden="true" />
       </button>
     </Tooltip>
     <Dropdown :options="actions" side="bottom" align="end">

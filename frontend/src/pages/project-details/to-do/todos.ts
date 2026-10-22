@@ -1,5 +1,13 @@
 import { dayjs } from "frappe-ui";
-import type { Todo, TodoDoc, TodoErrors, TodoForm, TodoUser } from "./types";
+import { STATUS_COLOR, STATUS_ICON, TODO_STATUSES } from "./constants";
+import type {
+  Todo,
+  TodoDoc,
+  TodoErrors,
+  TodoForm,
+  TodoStatus,
+  TodoUser,
+} from "./types";
 
 /** Whether the site has the rtcamp ToDo fields: title, start and end. */
 export function hasTodoCustomFields(): boolean {
@@ -132,4 +140,23 @@ export function deleteTodoMessage(
   todo: Pick<TodoDoc, "custom_title" | "description">,
 ) {
   return `Are you sure you want to delete the ToDo "${todoTitle(todo)}"? This action cannot be undone.`;
+}
+
+/** The status's icon; a status the app doesn't know, like Backlog, gets Open's. */
+export function statusIcon(status: string): string {
+  return STATUS_ICON[status as TodoStatus] ?? STATUS_ICON.Open;
+}
+
+/** The status's colour; a status the app doesn't know gets Open's. */
+export function statusColor(status: string): string {
+  return STATUS_COLOR[status as TodoStatus] ?? STATUS_COLOR.Open;
+}
+
+/** The status options, plus `current` when it isn't one of them, so it still shows. */
+export function statusOptions(current: string) {
+  const known = !current || TODO_STATUSES.includes(current as TodoStatus);
+  const statuses: string[] = known
+    ? TODO_STATUSES
+    : [...TODO_STATUSES, current];
+  return statuses.map((status) => ({ label: status, value: status }));
 }

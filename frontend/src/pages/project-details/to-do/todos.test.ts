@@ -5,6 +5,9 @@ import {
   emptyTodoForm,
   formatTodoDateTime,
   hasTodoCustomFields,
+  statusColor,
+  statusIcon,
+  statusOptions,
   todoFields,
   todoTitle,
   toTodoFields,
@@ -167,5 +170,36 @@ describe("deleteTodoMessage", () => {
     expect(deleteTodoMessage(doc())).toBe(
       'Are you sure you want to delete the ToDo "Write the brief"? This action cannot be undone.',
     );
+  });
+});
+
+describe("statusIcon and statusColor", () => {
+  it("returns the status's own icon and colour", () => {
+    expect(statusIcon("Closed")).toBe("lucide-circle-check");
+    expect(statusColor("Closed")).toBe("text-ink-gray-8");
+  });
+
+  it("falls back to Open's for a status the app doesn't know", () => {
+    expect(statusIcon("Backlog")).toBe(statusIcon("Open"));
+    expect(statusColor("In Progress")).toBe(statusColor("Open"));
+  });
+});
+
+describe("statusOptions", () => {
+  it("lists the known statuses", () => {
+    expect(statusOptions("Open").map((option) => option.value)).toEqual([
+      "Open",
+      "Closed",
+      "Cancelled",
+    ]);
+  });
+
+  it("adds the current status when it isn't known", () => {
+    expect(statusOptions("Backlog").map((option) => option.value)).toEqual([
+      "Open",
+      "Closed",
+      "Cancelled",
+      "Backlog",
+    ]);
   });
 });

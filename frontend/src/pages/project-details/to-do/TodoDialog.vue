@@ -16,14 +16,15 @@ import RichTextEditor from "@/pages/project-details/RichTextEditor.vue";
 import { useSession } from "@/session";
 import { systemToLocalDateTime } from "@/utils/date";
 import { errorMessage } from "@/utils/errors";
+import { PRIORITY_DOT, TODO_PRIORITIES } from "./constants";
 import {
-  PRIORITY_DOT,
-  STATUS_COLOR,
-  STATUS_ICON,
-  TODO_PRIORITIES,
-  TODO_STATUSES,
-} from "./constants";
-import { emptyTodoForm, todoToForm, validateTodo } from "./todos";
+  emptyTodoForm,
+  statusColor,
+  statusIcon,
+  statusOptions as todoStatusOptions,
+  todoToForm,
+  validateTodo,
+} from "./todos";
 import type { TodoErrors, TodoForm, TodoPriority, TodoStatus } from "./types";
 import { useTodos } from "./useTodos";
 
@@ -87,10 +88,7 @@ const assignee = computed({
   },
 });
 
-const statusOptions = TODO_STATUSES.map((status) => ({
-  label: status,
-  value: status,
-}));
+const statusOptions = computed(() => todoStatusOptions(form.status));
 const priorityOptions = TODO_PRIORITIES.map((priority) => ({
   label: priority,
   value: priority,
@@ -127,7 +125,7 @@ function personOf(option: unknown) {
 }
 
 function statusOf(option: unknown) {
-  return (option as { value: TodoStatus }).value;
+  return (option as { value: string }).value;
 }
 
 async function submit() {
@@ -177,17 +175,14 @@ async function submit() {
           <template #prefix>
             <span
               class="size-3.5"
-              :class="[STATUS_ICON[form.status], STATUS_COLOR[form.status]]"
+              :class="[statusIcon(form.status), statusColor(form.status)]"
               aria-hidden="true"
             />
           </template>
           <template #item-prefix="{ item }">
             <span
               class="size-3.5"
-              :class="[
-                STATUS_ICON[statusOf(item)],
-                STATUS_COLOR[statusOf(item)],
-              ]"
+              :class="[statusIcon(statusOf(item)), statusColor(statusOf(item))]"
               aria-hidden="true"
             />
           </template>
