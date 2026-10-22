@@ -66,8 +66,9 @@ function openFeedback(row: TeamFeedbackRow) {
     <div v-else class="overflow-x-auto">
       <List
         :columns="TEAM_COLUMNS.map((column) => column.width)"
+        :row-height="40"
         aria-label="Team feedback"
-        class="min-w-min"
+        class="min-w-min list-row-px-2"
       >
         <ListHeader>
           <ListHeaderCell v-for="column in TEAM_COLUMNS" :key="column.key">
