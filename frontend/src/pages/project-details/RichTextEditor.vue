@@ -16,7 +16,6 @@ const props = defineProps<{
 
 const model = defineModel<string>({ required: true });
 
-// No toolbar, as React: formatting comes from keyboard shortcuts and markdown.
 const extensions = richTextExtensions();
 
 const editorRef = useTemplateRef("editor");
