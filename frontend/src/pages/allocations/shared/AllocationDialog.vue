@@ -294,10 +294,12 @@ function avatarOf(option: unknown) {
             @click="openEditSchedule"
           />
         </div>
+        <!-- frappe-ui re-reads the shown range on blur, splitting it on commas: with
+             "MMM D, YYYY" a picked Nov 9–13, 2026 became Nov 9, 2001 – Jan 1, 2026. -->
         <DateRangePicker
           v-model="dateRange"
           variant="outline"
-          format="MMM D, YYYY"
+          format="MMM D YYYY"
           placeholder="Start Date - End Date"
           aria-label="Start and end date"
           :error="dateError"

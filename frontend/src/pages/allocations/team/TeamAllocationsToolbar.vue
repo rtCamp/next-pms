@@ -288,7 +288,7 @@ function clearAll() {
         @clear-all="clearAll"
       >
         <template #link-value="slotProps">
-          <FilterLinkValue v-bind="slotProps" />
+          <FilterLinkValue :key="slotProps.field.name" v-bind="slotProps" />
         </template>
       </Filter>
     </div>
