@@ -8,10 +8,14 @@ import { TimeOff } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { mergeClassNames as cn } from "../../../../utils";
+import InfoHoverCard from "../../../info-hover-card";
+import type { FieldHelp } from "../../../info-hover-card/types";
 
 export interface TimeOffRowProps {
   /** Label for the time-off row. */
   label?: string;
+  /** Info card shown next to the label. */
+  help?: FieldHelp;
   /** Array of time-off entries for each day of the week. */
   timeOffEntries: {
     time: string;
@@ -28,6 +32,7 @@ export interface TimeOffRowProps {
 
 export const TimeOffRow: React.FC<TimeOffRowProps> = ({
   label = "Time-off",
+  help,
   timeOffEntries,
   totalHours = "",
   renderPrefix,
@@ -49,7 +54,12 @@ export const TimeOffRow: React.FC<TimeOffRowProps> = ({
             <TimeOff className="text-ink-gray-8" size={16} />
           )}
         </span>
-        <span className="min-w-0 text-base font-medium truncate">{label}</span>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span className="min-w-0 text-base font-medium truncate">
+            {label}
+          </span>
+          {help && <InfoHoverCard help={help} />}
+        </div>
       </div>
       {timeOffEntries.map((timeOffEntry, index) => (
         <Tooltip

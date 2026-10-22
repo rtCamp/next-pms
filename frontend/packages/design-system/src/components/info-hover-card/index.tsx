@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { Fragment } from "react";
 import { Popover } from "@base-ui/react/popover";
 import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 import { Info } from "lucide-react";
@@ -9,8 +10,26 @@ import { Info } from "lucide-react";
  * Internal dependencies.
  */
 import { WIKI_BASE } from "./constants";
-import type { InfoHoverCardProps } from "./types";
+import type { InfoHoverCardProps, LegendItem } from "./types";
 import { mergeClassNames as cn } from "../../utils";
+
+function LegendSample({ item }: { item: LegendItem }) {
+  const { className, sample, icon: Icon, marker } = item;
+  if (Icon) return <Icon className={cn("size-3.5", className)} />;
+  return (
+    <span className={cn("relative tabular-nums", className)}>
+      {sample}
+      {marker && (
+        <span
+          className={cn(
+            "absolute -bottom-0.5 left-1/2 size-1 -translate-x-1/2 rounded-full",
+            marker,
+          )}
+        />
+      )}
+    </span>
+  );
+}
 
 /** A popover rather than a tooltip, so the wiki link inside stays clickable. */
 export default function InfoHoverCard({ help, className }: InfoHoverCardProps) {
@@ -49,6 +68,18 @@ export default function InfoHoverCard({ help, className }: InfoHoverCardProps) {
                 <p className="rounded-md bg-surface-gray-2 px-2 py-1.5 text-xs leading-snug text-ink-gray-8">
                   {help.formula}
                 </p>
+              )}
+              {help.legend && (
+                <dl className="grid grid-cols-[auto_1fr] items-baseline gap-2 text-xs leading-snug text-ink-gray-6">
+                  {help.legend.map((item) => (
+                    <Fragment key={item.label}>
+                      <dt className={cn("flex", item.icon && "self-center")}>
+                        <LegendSample item={item} />
+                      </dt>
+                      <dd className="text-pretty">{item.label}</dd>
+                    </Fragment>
+                  ))}
+                </dl>
               )}
               {help.details && (
                 <ul className="list-disc space-y-1 pl-4 text-xs leading-snug text-ink-gray-6">

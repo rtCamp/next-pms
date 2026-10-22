@@ -3,12 +3,18 @@
  */
 import { Breadcrumbs, type BreadcrumbsProps } from "@rtcamp/frappe-ui-react";
 import { mergeClassNames as cn } from "../../../../utils";
+import InfoHoverCard from "../../../info-hover-card";
+import type { FieldHelp } from "../../../info-hover-card/types";
 
 export interface HeaderRowProps {
   /** Props configuration for the Breadcrumbs component displayed in the header row. */
   breadcrumbs: BreadcrumbsProps;
   /** Array of day labels for each day of the week. */
   days: string[];
+  /** Info card shown after the breadcrumbs. */
+  help?: FieldHelp;
+  /** Info card shown after the Total label. */
+  totalHelp?: FieldHelp;
   /** Additional class names for the header row container. */
   className?: string;
 }
@@ -16,6 +22,8 @@ export interface HeaderRowProps {
 export const HeaderRow: React.FC<HeaderRowProps> = ({
   breadcrumbs,
   days,
+  help,
+  totalHelp,
   className,
 }) => {
   return (
@@ -25,8 +33,9 @@ export const HeaderRow: React.FC<HeaderRowProps> = ({
         className,
       )}
     >
-      <div className="flex items-center flex-1 shrink-0">
+      <div className="flex items-center flex-1 shrink-0 gap-1.5">
         <Breadcrumbs compactCrumbs={false} {...breadcrumbs} />
+        {help && <InfoHoverCard help={help} />}
       </div>
       {days.map((day, index) => (
         <div
@@ -41,7 +50,9 @@ export const HeaderRow: React.FC<HeaderRowProps> = ({
         <span>Total</span>
       </div>
 
-      <div className="w-12 shrink-0 h-7"></div>
+      <div className="w-12 shrink-0 h-7 flex items-center">
+        {totalHelp && <InfoHoverCard help={totalHelp} />}
+      </div>
     </div>
   );
 };

@@ -3,6 +3,11 @@
  */
 import type { FieldHelp } from "@next-pms/design-system/components";
 
+/**
+ * Internal dependencies.
+ */
+import { STATUS_ICONS } from "./widget/timesheet-summary/statusIcon";
+
 const KPI_WIKI = "Leadership-Dashboard#key-performance-indicators";
 
 export const LEADERSHIP_KPI_HELP = {
@@ -49,7 +54,7 @@ export const LEADERSHIP_WIDGET_HELP = {
       "How much of each role's working time is booked, week by week, for 16 weeks from this week.",
     formula: "Confirmed booked hours ÷ working hours, per role and week.",
     details: [
-      "Grey: fully booked. Light red: partly booked. Strong red: nothing booked. Red means free time, not overbooking.",
+      "Red means free time, not overbooking.",
       "Working hours skip weekends and holidays. Tentative bookings don't count.",
       "Can be up to a day old.",
     ],
@@ -82,8 +87,20 @@ export const LEADERSHIP_WIDGET_HELP = {
     title: "Calendar",
     summary:
       "Milestones and touchpoints from the Calendar tab of the projects you can access, for 14 days from a Monday.",
+    legend: [
+      {
+        label: "Phase or delivery",
+        sample: "Milestone",
+        className: "rounded-md bg-violet-100 px-1.5 py-0.5 text-violet-700",
+      },
+      {
+        label: "One-day check-in",
+        sample: "Touchpoint",
+        className: "rounded-md bg-blue-100 px-1.5 py-0.5 text-blue-700",
+      },
+    ],
     details: [
-      "Violet: milestone. Blue: touchpoint. Each shows on its start date.",
+      "Each entry shows on its start date.",
       "The project filter lists only projects with entries in this range. Your choice is remembered in this browser and shared by both dashboards.",
       "Can be up to 6 hours old.",
     ],
@@ -227,9 +244,27 @@ export const TEAM_TIMESHEETS_HELP = {
   status: {
     title: "Status",
     summary: "The approval status of the member's timesheets in the period.",
-    details: [
-      "Green tick: approved. Amber hourglass: not submitted, pending or partly approved. Red cross: rejected or partly rejected.",
-      "A spinner means the timesheets are still being processed.",
+    legend: [
+      {
+        label: "Approved",
+        icon: STATUS_ICONS.approved.Icon,
+        className: STATUS_ICONS.approved.className,
+      },
+      {
+        label: "Not yet approved",
+        icon: STATUS_ICONS.pending.Icon,
+        className: STATUS_ICONS.pending.className,
+      },
+      {
+        label: "Rejected or partly rejected",
+        icon: STATUS_ICONS.rejected.Icon,
+        className: STATUS_ICONS.rejected.className,
+      },
+      {
+        label: "Processing",
+        icon: STATUS_ICONS.processing.Icon,
+        className: STATUS_ICONS.processing.className,
+      },
     ],
     wiki: MANAGER_TIMESHEETS_WIKI,
   },
