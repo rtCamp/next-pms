@@ -195,6 +195,23 @@ def growth_deep_link(doc):
     return f"/next-pms/projects/{doc.project}?tab=growth&growth={doc.name}"
 
 
+def notify_growth_comment_mentions(doc, content):
+    """Notify users mentioned in a comment on a Growth Initiative, except the author."""
+    actor = frappe.session.user
+    recipients = {user for user in extract_mentions(content) if user != actor and frappe.db.exists("User", user)}
+    if not recipients:
+        return
+
+    project_name = frappe.db.get_value("Project", doc.project, "project_name") or doc.project
+    label = _('{0} mentioned you in the growth initiative "{1}" in {2}').format(
+        get_fullname(actor), truncate(doc.activity, 80), project_name
+    )
+    title = _("You got a Growth mention")
+    url = growth_deep_link(doc)
+    for user in recipients:
+        create_notification(user, title, label, "PMS Growth Initiative", doc.name, url=url)
+
+
 def growth_owner_on_update(doc, method=None):
     """Notify a user when they are assigned or reassigned as the activity owner of a Growth Initiative."""
     owner = doc.activity_owner

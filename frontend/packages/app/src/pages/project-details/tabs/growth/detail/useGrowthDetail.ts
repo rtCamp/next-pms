@@ -39,6 +39,7 @@ export function useGrowthDetail(growthId: string) {
         ["attached_to_doctype", "=", GROWTH_DOCTYPE],
         ["attached_to_name", "=", growthId],
       ],
+      orderBy: { field: "creation", order: "asc" },
       limit: 50,
     });
 

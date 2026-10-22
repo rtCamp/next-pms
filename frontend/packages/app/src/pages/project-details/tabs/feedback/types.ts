@@ -40,22 +40,6 @@ export interface FeedbackRatingCategory {
   rating: number;
 }
 
-export interface FeedbackComment {
-  name: string;
-  user: string;
-  user_full_name: string;
-  user_image: string | null;
-  comment: string;
-  reply_to: string | null;
-  created_at: string;
-  modified_at: string | null;
-  edited: boolean;
-  deleted: boolean;
-  deleted_at: string | null;
-  reply_count: number;
-  replies: FeedbackComment[];
-}
-
 export interface TeamFeedbackBreakdownResult {
   feedbackId: string;
   evaluationType: string;
