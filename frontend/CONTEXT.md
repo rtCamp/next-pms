@@ -87,6 +87,31 @@ _Avoid_: utilisation, load.
 dialog saves it.
 _Avoid_: placeholder (that's the zero-hour segment), ghost.
 
+**Recurring allocation** — one of the weekly copies an Add allocation with "Recurring" creates; the copies share a
+`recurrence_id` and form a series. Its employee, project and customer can't change, it is edited through Edit
+schedule ("This allocation" or "This and future"), and a delete asks which copies to remove (`only_this`,
+`this_and_future`, `all_in_series`).
+_Avoid_: repeating allocation, occurrence (for the whole series).
+
+**Day override** — a row of an allocation's `override` table that changes one day's hours or cancels the day. Its
+`source` is `Leave` when the leave sync derived it from leave or a holiday (rewritten on every save, so not edited
+day by day) or `Manual` when a person set it. Any override locks the Add / Edit form of a non-AI allocation; Edit
+schedule changes them.
+_Avoid_: exception, adjustment.
+
+**Edit schedule** — the dialog that changes an allocation's hours on picked days, saved as day overrides, or across
+its whole range, saved as new hours per day. In code: `EditScheduleDialog` and `buildSchedulePayload` in
+`pages/allocations/shared/`.
+
+**Allocation type** — the allocations pages' filter on status (Confirmed, Tentative), billable or not, AI-created,
+and (Team) employees with no allocation; kept in the `allocationType` query param. In code: `AllocationTypeValue`
+and the params builders in `pages/allocations/shared/filterParams.ts`.
+_Avoid_: allocation status (that's only the Confirmed / Tentative axis).
+
+**Allocation window** — the weeks an allocations page shows from its `date`: this week, this month or this quarter
+(1, 4 or 13 weeks, the `duration` param). Previous and Next move the date by the window's length.
+_Avoid_: range, period.
+
 ## Projects
 
 **Project** — a Frappe `Project`, extended by next-pms with phases, budgets, contacts, timelines, status updates,
