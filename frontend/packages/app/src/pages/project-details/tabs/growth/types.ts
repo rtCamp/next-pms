@@ -26,6 +26,7 @@ export interface ApiGrowthInitiativeItem {
 }
 
 export interface GrowthInitiativeItem extends ApiGrowthInitiativeItem {
+  project_name?: string | null;
   owner_details?: UserDetails | null;
   pm_details?: UserDetails | null;
 }
@@ -51,6 +52,7 @@ export interface NamedDoc {
 export interface GrowthStatusDoc extends NamedDoc {
   status_type: "Status" | "Closed Status";
   is_closed: 0 | 1;
+  creation: string;
 }
 
 export interface GrowthUpdateEntry {

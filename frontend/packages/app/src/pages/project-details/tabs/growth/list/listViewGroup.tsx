@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import type { ReactNode } from "react";
 import { Accordion } from "@base-ui/react/accordion";
 import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
@@ -17,6 +18,8 @@ interface GrowthGroupProps {
   label: string;
   columns: GrowthListColumn[];
   items: GrowthInitiativeItem[];
+  summary?: ReactNode;
+  currency?: string;
 }
 
 const rowMinWidth = (columns: GrowthListColumn[]) =>
@@ -30,6 +33,8 @@ export function GrowthGroup({
   label,
   columns,
   items,
+  summary,
+  currency,
 }: GrowthGroupProps) {
   const minWidth = rowMinWidth(columns);
   const openDetail = useGrowth((c) => c.actions.openDetail);
@@ -46,6 +51,11 @@ export function GrowthGroup({
           <span className="text-xs text-ink-gray-6 rounded-full bg-surface-gray-2 px-1.5 py-0.5">
             {items.length}
           </span>
+          {summary && (
+            <span className="flex flex-1 flex-wrap items-center justify-end gap-x-4 text-sm font-normal text-ink-gray-5">
+              {summary}
+            </span>
+          )}
         </Accordion.Trigger>
       </Accordion.Header>
 
@@ -86,7 +96,7 @@ export function GrowthGroup({
                   style={{ minWidth: col.width, flex: col.flex }}
                   className="flex min-w-0 px-2 py-1.5"
                 >
-                  <GrowthCell column={col} item={item} />
+                  <GrowthCell column={col} item={item} currency={currency} />
                 </div>
               ))}
               <div

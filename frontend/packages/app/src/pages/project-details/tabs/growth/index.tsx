@@ -3,65 +3,33 @@
  */
 import { useSearchParams } from "react-router";
 import { mergeClassNames as cn } from "@next-pms/design-system";
-import {
-  DeleteActionDialog,
-  Spinner,
-} from "@next-pms/design-system/components";
+import { Spinner } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
  */
 import { useProjectDetail } from "@/pages/project-details/context";
-import { GROWTH_DETAIL_PARAM, GROWTH_DOCTYPE } from "./constants";
+import { GROWTH_DETAIL_PARAM } from "./constants";
 import { useGrowth } from "./context";
-import { CreateGrowthModal } from "./create-growth";
 import { GrowthDetailView } from "./detail";
+import { GrowthDialogs } from "./dialogs";
 import { GrowthHeader } from "./header";
 import { GrowthListView } from "./list/listView";
 import { GrowthProvider } from "./provider";
-import { useLinkedTodoCount } from "../to-do/useLinkedTodoCount";
-import { getDeleteDescription } from "../to-do/utils";
 
 function GrowthContent() {
   const [searchParams] = useSearchParams();
   const growthId = searchParams.get(GROWTH_DETAIL_PARAM);
   const isLoading = useGrowth((c) => c.state.isLoading);
-  const isCreateOpen = useGrowth((c) => c.state.isCreateOpen);
-  const closeCreate = useGrowth((c) => c.actions.closeCreate);
-  const editName = useGrowth((c) => c.state.editName);
-  const deleteName = useGrowth((c) => c.state.deleteName);
-  const closeDelete = useGrowth((c) => c.actions.closeDelete);
-  const deleteGrowth = useGrowth((c) => c.actions.deleteGrowth);
   const projectId = useProjectDetail((s) => s.projectId);
   const project = useProjectDetail((s) => s.project);
-  const deleteTarget = useLinkedTodoCount<{ activity: string }>(
-    GROWTH_DOCTYPE,
-    deleteName,
-  );
 
   const dialogs = (
-    <>
-      <CreateGrowthModal
-        open={isCreateOpen}
-        onClose={closeCreate}
-        growthName={editName}
-        defaultProject={projectId}
-        defaultCustomer={project?.customer}
-        fallbackCurrency={project?.custom_currency}
-      />
-      {deleteName && deleteTarget.isReady && (
-        <DeleteActionDialog
-          title="Delete growth initiative"
-          description={getDeleteDescription(
-            "growth initiative",
-            deleteTarget.doc?.activity ?? deleteName,
-            deleteTarget.count > 0,
-          )}
-          onClose={closeDelete}
-          onConfirm={() => deleteGrowth(deleteName)}
-        />
-      )}
-    </>
+    <GrowthDialogs
+      defaultProject={projectId}
+      defaultCustomer={project?.customer}
+      fallbackCurrency={project?.custom_currency}
+    />
   );
 
   if (growthId) {

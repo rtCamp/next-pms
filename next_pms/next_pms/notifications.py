@@ -194,7 +194,7 @@ def growth_on_update(doc, method=None):
 def growth_deep_link(doc):
     if doc.project:
         return f"/next-pms/projects/{doc.project}?tab=growth&growth={doc.name}"
-    return f"/next-pms/growth/{doc.name}"
+    return f"/next-pms/growth?growth={doc.name}"
 
 
 def growth_context_name(doc):

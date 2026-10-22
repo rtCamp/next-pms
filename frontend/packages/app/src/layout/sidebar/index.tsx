@@ -27,6 +27,7 @@ import {
   Briefcase,
   BarChart2,
   Moon,
+  TrendingUp,
   Settings,
   Sun,
 } from "lucide-react";
@@ -160,6 +161,20 @@ const Sidebar = () => {
     projectItems.push(projects);
   }
 
+  const growth = {
+    label: "Growth",
+    icon: TrendingUp,
+    to: ROUTES.growth,
+    isActive: pathname === ROUTES.growth,
+    render: <LinkWithPreload to={ROUTES.growth} />,
+  };
+
+  const growthItems: SidebarSectionType["items"] = [];
+
+  if (hasAnyRole(roles, ROLE_ACCESS.growth)) {
+    growthItems.push(growth);
+  }
+
   const tasks = {
     label: "Tasks",
     icon: Summary,
@@ -246,6 +261,13 @@ const Sidebar = () => {
     });
   }
 
+  if (hasAnyRole(roles, ROLE_ACCESS.growth)) {
+    searchItems.push({
+      label: "Growth",
+      action: () => navigate(ROUTES.growth),
+    });
+  }
+
   if (hasAnyRole(roles, ROLE_ACCESS.reviewTimesheets)) {
     searchItems.push({
       label: "Timesheet - Team",
@@ -326,6 +348,7 @@ const Sidebar = () => {
               ...(timesheetItems.length === 1 ? timesheetItems : []),
               ...notificationItems,
               ...projectItems,
+              ...growthItems,
               ...taskItems,
               ...(dashboardItems.length === 1 ? dashboardItems : []),
             ],

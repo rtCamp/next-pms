@@ -4,12 +4,15 @@
 import frappe
 from frappe.deferred_insert import save_to_db
 from frappe.tests import IntegrationTestCase
+from frappe.utils import nowdate
 
 from next_pms.install import create_default_growth_masters
 from next_pms.next_projects.api.growth import (
     add_growth_comment,
     delete_growth_comment,
     get_growth_comments,
+    get_growth_pipeline,
+    move_growth_stage,
     update_growth_comment,
 )
 from next_pms.tests.utils import make_customer
@@ -191,3 +194,114 @@ class IntegrationTestGrowthComments(IntegrationTestCase):
             notifications[0].url,
             f"/next-pms/projects/{self.project.name}?tab=growth&growth={self.growth}",
         )
+
+
+PIPELINE_OWNER = "growth.pipeline.owner@example.com"
+PIPELINE_OTHER = "growth.pipeline.other@example.com"
+
+
+class IntegrationTestGrowthPipeline(IntegrationTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        create_default_growth_masters()
+        IntegrationTestGrowthComments.make_user(PIPELINE_OWNER, roles=("Projects User",))
+        IntegrationTestGrowthComments.make_user(PIPELINE_OTHER, roles=("Projects User",))
+        IntegrationTestGrowthComments.make_user(NO_ROLE_USER)
+        cls.usd_client = make_customer("Growth Pipeline USD Client", "USD")
+        cls.inr_client = make_customer("Growth Pipeline INR Client", "INR")
+        frappe.db.set_value("Customer", cls.usd_client, "custom_hourly_rate", 150)
+        if not frappe.db.exists("Currency Exchange", {"from_currency": "INR", "to_currency": "USD", "date": nowdate()}):
+            frappe.get_doc(
+                {
+                    "doctype": "Currency Exchange",
+                    "date": nowdate(),
+                    "from_currency": "INR",
+                    "to_currency": "USD",
+                    "exchange_rate": 0.012,
+                    "for_buying": 1,
+                    "for_selling": 1,
+                }
+            ).insert(ignore_permissions=True)
+        cls.usd_growth = cls.make_initiative(cls.usd_client, "USD idea", 1000)
+        cls.inr_growth = cls.make_initiative(cls.inr_client, "INR idea", 100000)
+
+    @classmethod
+    def make_initiative(cls, customer, activity, billable_outcome):
+        return (
+            frappe.get_doc(
+                {
+                    "doctype": DOCTYPE,
+                    "customer": customer,
+                    "activity": activity,
+                    "status": "Ideation",
+                    "client_priority": "High",
+                    "activity_owner": PIPELINE_OWNER,
+                    "billable_outcome": billable_outcome,
+                }
+            )
+            .insert(ignore_permissions=True)
+            .name
+        )
+
+    def tearDown(self):
+        frappe.set_user("Administrator")
+
+    def pipeline_row(self, name, **kwargs):
+        result = get_growth_pipeline(**kwargs)
+        return result, next(row for row in result["initiatives"] if row.name == name)
+
+    def test_amounts_are_converted_to_the_requested_currency(self):
+        result, usd = self.pipeline_row(self.usd_growth, currency="USD")
+        _, inr = self.pipeline_row(self.inr_growth, currency="USD")
+
+        self.assertEqual((usd.currency, usd.converted_outcome), ("USD", 1000))
+        self.assertEqual(inr.currency, "INR")
+        self.assertAlmostEqual(inr.converted_outcome, 1200)
+        self.assertEqual(result["clients"][self.usd_client]["hourly_rate"], 150)
+
+    def test_filters_narrow_the_pipeline(self):
+        names = {row.name for row in get_growth_pipeline(customer=self.inr_client)["initiatives"]}
+        self.assertEqual(names, {self.inr_growth})
+        names = {row.name for row in get_growth_pipeline(search="USD idea")["initiatives"]}
+        self.assertIn(self.usd_growth, names)
+        self.assertNotIn(self.inr_growth, names)
+
+    def test_can_write_follows_owner_gating(self):
+        frappe.set_user(PIPELINE_OWNER)
+        self.assertTrue(self.pipeline_row(self.usd_growth)[1].can_write)
+        frappe.set_user(PIPELINE_OTHER)
+        self.assertFalse(self.pipeline_row(self.usd_growth)[1].can_write)
+
+    def test_user_without_growth_access_is_refused(self):
+        frappe.set_user(NO_ROLE_USER)
+        with self.assertRaises(frappe.PermissionError):
+            get_growth_pipeline()
+
+    def test_unknown_currency_is_rejected(self):
+        with self.assertRaises(frappe.ValidationError):
+            get_growth_pipeline(currency="XXX")
+
+    def test_move_adds_a_status_update(self):
+        name = self.make_initiative(self.usd_client, "Move me", 500)
+        move_growth_stage(name, "In Progress", note="Pitched on the call")
+
+        doc = frappe.get_doc(DOCTYPE, name)
+        self.assertEqual(doc.status, "In Progress")
+        self.assertEqual(len(doc.update_log), 2)
+        latest = doc.update_log[-1]
+        self.assertEqual(
+            (latest.note, latest.client_priority, latest.billable_outcome), ("Pitched on the call", "High", 500)
+        )
+
+    def test_move_to_an_outcome_closes_the_initiative(self):
+        name = self.make_initiative(self.usd_client, "Close me", 500)
+        result = move_growth_stage(name, "Closed", closed_status="Won", billable_outcome=750)
+
+        self.assertEqual((result["status"], result["closed_status"]), ("Closed", "Won"))
+        self.assertEqual(frappe.db.get_value(DOCTYPE, name, "billable_outcome"), 750)
+
+    def test_only_writers_can_move(self):
+        frappe.set_user(PIPELINE_OTHER)
+        with self.assertRaises(frappe.PermissionError):
+            move_growth_stage(self.usd_growth, "In Progress")

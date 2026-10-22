@@ -67,6 +67,11 @@ export const routeConfig: Record<
     allowedRoles: ROLE_ACCESS.projects,
     title: "Projects",
   },
+  growth: {
+    Component: ReactLazyPreload(() => import("@/pages/growth")),
+    allowedRoles: ROLE_ACCESS.growth,
+    title: "Growth",
+  },
   task: {
     Component: ReactLazyPreload(() => import("@/pages/tasks/list")),
     allowedRoles: [],
@@ -113,6 +118,7 @@ export function Router() {
   const LeadershipDashboard = routeConfig["dashboard-leadership"].Component;
   const ManagerDashboard = routeConfig["dashboard-manager"].Component;
   const ProjectList = routeConfig.project.Component;
+  const GrowthPipeline = routeConfig.growth.Component;
   const TimesheetPersonal = routeConfig["timesheet-personal"].Component;
   const TimesheetTeam = routeConfig["timesheet-team"].Component;
   const TimesheetProject = routeConfig["timesheet-project"].Component;
@@ -174,6 +180,22 @@ export function Router() {
               element={
                 <Route title={routeConfig.project.title}>
                   <ProjectList />
+                </Route>
+              }
+            />
+          </BaseRoute>
+          <BaseRoute
+            element={
+              <RoleProtectedRoute
+                allowedRoles={routeConfig.growth.allowedRoles}
+              />
+            }
+          >
+            <BaseRoute
+              path={ROUTES.growth}
+              element={
+                <Route title={routeConfig.growth.title}>
+                  <GrowthPipeline />
                 </Route>
               }
             />

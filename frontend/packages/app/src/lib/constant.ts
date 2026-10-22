@@ -6,6 +6,7 @@ export const ROUTES = {
   "dashboard-leadership": "/dashboard/leadership",
   "dashboard-manager": "/dashboard/manager",
   project: "/projects",
+  growth: "/growth",
   task: "/tasks",
   "timesheet-personal": "/timesheet",
   "timesheet-team": "/timesheet/team",
@@ -52,6 +53,14 @@ export const ROLE_ACCESS = {
     "System Manager",
   ],
   manageAiAllocations: ["Delivery Manager"],
+  growth: [
+    "Projects Manager",
+    "Projects User",
+    "Timesheet Manager",
+    "Delivery Manager",
+    "Delivery User",
+    "System Manager",
+  ],
   notifications: [
     "Delivery Manager",
     "Delivery User",

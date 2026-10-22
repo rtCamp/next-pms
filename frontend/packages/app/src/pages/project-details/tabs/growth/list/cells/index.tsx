@@ -1,7 +1,7 @@
 /**
  * Internal dependencies.
  */
-import { formatProjectDate } from "@/lib/utils";
+import { currencyFormat, formatProjectDate } from "@/lib/utils";
 import { PriorityBadge } from "./priorityBadge";
 import { StatusBadge } from "./statusBadge";
 import { UserCell } from "./userCell";
@@ -10,14 +10,27 @@ import type { GrowthInitiativeItem, GrowthListColumn } from "../../types";
 interface GrowthCellProps {
   column: GrowthListColumn;
   item: GrowthInitiativeItem;
+  currency?: string;
 }
 
-export function GrowthCell({ column, item }: GrowthCellProps) {
+export function GrowthCell({ column, item, currency }: GrowthCellProps) {
   switch (column.key) {
     case "activity":
       return (
         <span className="truncate font-medium text-ink-gray-8">
           {item.activity}
+        </span>
+      );
+    case "project":
+      return (
+        <span className="truncate">
+          {item.project_name ?? item.project ?? "No project"}
+        </span>
+      );
+    case "billable_outcome":
+      return (
+        <span className="truncate tabular-nums">
+          {currencyFormat(currency).format(item.billable_outcome)}
         </span>
       );
     case "category":

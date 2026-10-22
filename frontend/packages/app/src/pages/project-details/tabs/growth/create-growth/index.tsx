@@ -56,10 +56,12 @@ import type { CreateGrowthModalProps } from "./types";
 const emptyCreateValues = (
   project?: string | null,
   customer?: string | null,
+  status?: string | null,
 ): GrowthFormValues => ({
   ...EMPTY_GROWTH_VALUES,
   project: project ?? "",
   customer: customer ?? "",
+  status: status ?? "",
   ideation_date: format(new Date(), "yyyy-MM-dd"),
 });
 
@@ -91,6 +93,7 @@ export function CreateGrowthModal({
   growthName,
   defaultProject,
   defaultCustomer,
+  defaultStatus,
   fallbackCurrency,
 }: CreateGrowthModalProps) {
   const refresh = useGrowth((c) => c.actions.refresh);
@@ -151,9 +154,10 @@ export function CreateGrowthModal({
         }
         refresh();
         if (meta.keepOpen) {
-          form.reset(emptyCreateValues(defaultProject, defaultCustomer), {
-            keepDefaultValues: true,
-          });
+          form.reset(
+            emptyCreateValues(defaultProject, defaultCustomer, defaultStatus),
+            { keepDefaultValues: true },
+          );
           return;
         }
         closeModal();
@@ -194,10 +198,19 @@ export function CreateGrowthModal({
       setEditorKey((key) => key + 1);
       return;
     }
-    form.reset(emptyCreateValues(defaultProject, defaultCustomer), {
-      keepDefaultValues: true,
-    });
-  }, [open, isEditMode, existing, form, defaultProject, defaultCustomer]);
+    form.reset(
+      emptyCreateValues(defaultProject, defaultCustomer, defaultStatus),
+      { keepDefaultValues: true },
+    );
+  }, [
+    open,
+    isEditMode,
+    existing,
+    form,
+    defaultProject,
+    defaultCustomer,
+    defaultStatus,
+  ]);
 
   const closeModal = useCallback(() => {
     onClose();

@@ -26,6 +26,7 @@ export interface GrowthContextProps {
     activityOwnersWithDetails: UserDetailsMap;
     projectManagersWithDetails: UserDetailsMap;
     isCreateOpen: boolean;
+    createStatus: string | null;
     editName: string | null;
     deleteName: string | null;
     statuses: GrowthStatusDoc[];
@@ -37,7 +38,7 @@ export interface GrowthContextProps {
     setFilters: (filters: Partial<GrowthFilters>) => void;
     setSort: (sort: GrowthSort | null) => void;
     refresh: () => void;
-    openCreate: () => void;
+    openCreate: (status?: string) => void;
     closeCreate: () => void;
     openEdit: (name: string) => void;
     openDetail: (name: string) => void;
@@ -59,6 +60,7 @@ export const GrowthContext = createContext<GrowthContextProps>({
     activityOwnersWithDetails: {},
     projectManagersWithDetails: {},
     isCreateOpen: false,
+    createStatus: null,
     editName: null,
     deleteName: null,
     statuses: [],

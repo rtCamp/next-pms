@@ -24,7 +24,7 @@ export function GrowthHeader() {
             variant="solid"
             label="Create"
             iconLeft={AddSm}
-            onClick={openCreate}
+            onClick={() => openCreate()}
           />
         )}
       </div>
