@@ -29,10 +29,8 @@ const options = FEEDBACK_VIEWS.map((option) => ({
         <span class="text-2xl-semibold text-ink-gray-7">{{ label }}</span>
       </Button>
     </Dropdown>
-    <Button
-      variant="solid"
-      label="Schedule Feedback"
-      :href="SCHEDULE_FEEDBACK_URL"
-    />
+    <Button variant="solid" :href="SCHEDULE_FEEDBACK_URL">
+      <span class="text-sm-medium leading-tighter">Schedule Feedback</span>
+    </Button>
   </div>
 </template>
