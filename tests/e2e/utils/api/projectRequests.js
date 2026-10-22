@@ -7,7 +7,6 @@ import {
   deleteDocument,
   createDocument,
   getDocList,
-  getDoctypeFields,
 } from "./apiClient";
 import { deleteAllocationsByEmployee } from "../../helpers/employeeHelper";
 
@@ -56,11 +55,12 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
 
 let techStackRows;
 
-// Newer builds make a Tech Stack mandatory on a new billable project; older ones have no such field.
+// Newer builds require a Tech Stack on a new billable project; older ones have no Technology
+// doctype. Staging's Project meta leaves the field out, so look for the doctype instead.
 const getTechStackRows = async () => {
   if (techStackRows) return techStackRows;
-  const fields = await getDoctypeFields("Project");
-  if (!fields.some(({ fieldname }) => fieldname === "tech_stack")) {
+  const [doctype] = await getDocList("DocType", [["name", "=", "Technology"]]);
+  if (!doctype) {
     techStackRows = [];
     return techStackRows;
   }
