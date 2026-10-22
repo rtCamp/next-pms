@@ -22,6 +22,7 @@ def after_install():
     setup_todo_permissions()
     setup_role_permissions()
     setup_project_permissions_for_managers()
+    setup_customer_read_permissions()
     setup_time_report_frequency()
 
 
@@ -258,6 +259,23 @@ def setup_role_permissions():
             add_permission(doctype, role, permlevel)
 
         update_permission_property(doctype, role, permlevel, "select", 1)
+
+
+def setup_customer_read_permissions():
+    """Let the roles that open growth initiatives, but not Delivery User, read the client's
+    Customer record so its hourly rate shows on the initiative detail page."""
+    import frappe
+    from frappe.permissions import add_permission, update_permission_property
+
+    doctype = "Customer"
+    permlevel = 0
+    for role in ("Projects User", "Delivery Manager", "Timesheet Manager", "System Manager"):
+        if not frappe.db.exists("Role", role):
+            continue
+        if not frappe.db.exists("Custom DocPerm", {"parent": doctype, "role": role, "permlevel": permlevel}):
+            add_permission(doctype, role, permlevel)
+
+        update_permission_property(doctype, role, permlevel, "read", 1)
 
 
 def setup_project_permissions_for_managers():
