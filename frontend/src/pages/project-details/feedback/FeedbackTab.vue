@@ -7,6 +7,7 @@ import { DEFAULT_VIEW, VIEW_PARAM, type FeedbackView } from "./constants";
 import { feedbackView } from "./feedback";
 import ClientFeedbackView from "./ClientFeedbackView.vue";
 import FeedbackToolbar from "./FeedbackToolbar.vue";
+import TeamFeedbackView from "./TeamFeedbackView.vue";
 import { provideClientFeedback } from "./useClientFeedback";
 
 const route = useRoute();
@@ -40,5 +41,6 @@ watch(
   <div>
     <FeedbackToolbar v-model="view" />
     <ClientFeedbackView v-if="view === 'client'" />
+    <TeamFeedbackView v-else />
   </div>
 </template>
