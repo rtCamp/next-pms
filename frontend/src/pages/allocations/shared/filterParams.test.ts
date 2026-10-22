@@ -4,6 +4,7 @@ import {
   compositeFiltersParam,
   normalizeAllocationTypes,
   parseAllocationTypes,
+  PROJECT_ALLOCATION_TYPE_OPTIONS,
   projectAllocationTypeParams,
   resolveAllocationTypes,
   sortedListParam,
@@ -21,6 +22,15 @@ describe("parseAllocationTypes", () => {
         "Tentative",
       ]),
     ).toEqual(["billable", "Tentative"]);
+  });
+
+  it("keeps only the given options", () => {
+    expect(
+      parseAllocationTypes(
+        ["no-allocation", "ai-created"],
+        PROJECT_ALLOCATION_TYPE_OPTIONS,
+      ),
+    ).toEqual(["ai-created"]);
   });
 });
 
@@ -96,6 +106,16 @@ describe("projectAllocationTypeParams", () => {
       is_billable: "1",
       is_ai_created: undefined,
     });
+  });
+
+  it("sends the AI flag and one non-billable flag", () => {
+    expect(projectAllocationTypeParams(["ai-created", "non-billable"])).toEqual(
+      {
+        allocation_status: undefined,
+        is_billable: "0",
+        is_ai_created: 1,
+      },
+    );
   });
 
   it("sends nothing for an axis with both options picked", () => {

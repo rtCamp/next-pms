@@ -19,6 +19,7 @@ import {
   shiftAnchorDate,
 } from "./dateWindow";
 import {
+  ALLOCATION_TYPE_OPTIONS,
   normalizeAllocationTypes,
   parseAllocationTypes,
   type AllocationTypeValue,
@@ -34,10 +35,13 @@ function jsonParam(values: unknown[]): string {
  * React page's keys and formats: `search`, `date` (`YYYY-MM-DD`, today when absent),
  * `duration` (absent for this quarter), and JSON lists in `allocationType`,
  * `compositeFilters` and each of `listParams` (e.g. `designation`). An empty value
- * removes its key.
+ * removes its key. `allocationType` keeps only the page's `allocationTypeOptions`.
  */
 export function useAllocationsQuery<TList extends string = never>(
-  options: { listParams?: readonly TList[] } = {},
+  options: {
+    listParams?: readonly TList[];
+    allocationTypeOptions?: readonly { value: AllocationTypeValue }[];
+  } = {},
 ) {
   const route = useRoute();
   const patchQuery = useQueryPatch();
@@ -55,6 +59,7 @@ export function useAllocationsQuery<TList extends string = never>(
     normalizeAllocationTypes(
       parseAllocationTypes(
         parseJSONArrayParam(queryString(route.query[ALLOCATION_TYPE_PARAM])),
+        options.allocationTypeOptions ?? ALLOCATION_TYPE_OPTIONS,
       ),
     ),
   );

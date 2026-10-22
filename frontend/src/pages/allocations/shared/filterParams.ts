@@ -25,6 +25,11 @@ export const ALLOCATION_TYPE_OPTIONS: {
   { label: "No allocation only", value: "no-allocation" },
 ];
 
+/** The Project page's "Allocation type" options: every one but "No allocation". */
+export const PROJECT_ALLOCATION_TYPE_OPTIONS = ALLOCATION_TYPE_OPTIONS.filter(
+  (option) => option.value !== "no-allocation",
+);
+
 /** What an "Allocation type" selection asks for, split into the filter's axes. */
 export interface AllocationTypeSelection {
   /** Statuses to keep; empty keeps both. */
@@ -41,11 +46,15 @@ export interface AllocationTypeSelection {
   isStatusApplicable: boolean;
 }
 
-/** The known options in a parsed `allocationType` list, in order and without repeats. */
-export function parseAllocationTypes(values: unknown[]): AllocationTypeValue[] {
-  const known = new Set<string>(
-    ALLOCATION_TYPE_OPTIONS.map((option) => option.value),
-  );
+/**
+ * The options of `options` in a parsed `allocationType` list, in order and without
+ * repeats.
+ */
+export function parseAllocationTypes(
+  values: unknown[],
+  options: readonly { value: AllocationTypeValue }[] = ALLOCATION_TYPE_OPTIONS,
+): AllocationTypeValue[] {
+  const known = new Set<string>(options.map((option) => option.value));
   return [
     ...new Set(
       values.filter(
