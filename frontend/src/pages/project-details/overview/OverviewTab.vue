@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { Button } from "frappe-ui";
 import { RichText } from "@/components/RichText";
+import RichTextEditor from "@/pages/project-details/RichTextEditor.vue";
 import { hasProjectField } from "@/utils/boot";
 import CommunicationSection from "./CommunicationSection.vue";
 import { SOURCING_FIELDS } from "./constants";
 import MarketingSection from "./MarketingSection.vue";
 import OverviewSection from "./OverviewSection.vue";
 import RepositoriesSection from "./RepositoriesSection.vue";
-import OverviewEditor from "./OverviewEditor.vue";
 import SourcingSection from "./SourcingSection.vue";
 import SpecificsSection from "./SpecificsSection.vue";
 import { provideOverview } from "./useOverview";
@@ -52,7 +52,7 @@ const RICH_TEXT_CLASS =
       />
     </div>
     <OverviewSection title="Details" class="gap-1">
-      <OverviewEditor
+      <RichTextEditor
         v-if="draft"
         v-model="draft.custom_executive_summary"
         label="Details"
@@ -66,7 +66,7 @@ const RICH_TEXT_CLASS =
       />
     </OverviewSection>
     <OverviewSection title="Key goals of the project" class="gap-1">
-      <OverviewEditor
+      <RichTextEditor
         v-if="draft"
         v-model="draft.custom_key_goals"
         label="Key goals of the project"
