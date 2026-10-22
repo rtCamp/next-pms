@@ -19,6 +19,7 @@ import { queryString } from "@/utils/query";
 import AboutSidebar from "./about/AboutSidebar.vue";
 import { DEFAULT_TAB, TAB_PARAM, type ProjectTabKey } from "./constants";
 import EmailTab from "./email/EmailTab.vue";
+import FeedbackTab from "./feedback/FeedbackTab.vue";
 import OverviewTab from "./overview/OverviewTab.vue";
 import ProjectDetailsHeader from "./ProjectDetailsHeader.vue";
 import RagStatsTab from "./rag-stats/RagStatsTab.vue";
@@ -39,6 +40,7 @@ const TAB_PANELS: Partial<Record<ProjectTabKey, Component>> = {
   reports: ReportsTab,
   tracking: TrackingTab,
   "to-do": TodosTab,
+  feedback: FeedbackTab,
 };
 
 const route = useRoute();
