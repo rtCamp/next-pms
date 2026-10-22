@@ -44,7 +44,9 @@ const periodDate = (date: string) => dayjs(date).format("MMM DD");
             :key="rating.fieldname"
             class="flex shrink-0 basis-36 flex-col gap-3 rounded-6 border border-outline-gray-1 bg-surface-elevation-2 p-3"
           >
-            <span class="text-sm text-ink-gray-5">{{ rating.label }}</span>
+            <span class="text-sm leading-tighter text-ink-gray-5">
+              {{ rating.label }}
+            </span>
             <div class="mt-auto">
               <Rating
                 :model-value="toStars(rating.value, rating.star_max)"
