@@ -3,6 +3,10 @@
  */
 import { useMemo, useState } from "react";
 import {
+  InfoHoverCard,
+  type FieldHelp,
+} from "@next-pms/design-system/components";
+import {
   Combobox,
   FormLabel,
   MultiSelect,
@@ -15,6 +19,7 @@ import {
 import { useDoctypeLinkLookup } from "@/hooks/useDoctypeLinkLookup";
 import { useUser } from "@/providers/user";
 import { WEEK_DAYS } from "./constants";
+import { SETTINGS_HELP } from "./help";
 
 type Option = { label: string; value: string };
 
@@ -76,9 +81,12 @@ export function SettingsCurrencyField({
 
   return (
     <div>
-      <FormLabel size="md" className="text-ink-gray-8!">
-        Default Currency
-      </FormLabel>
+      <div className="flex min-w-0 items-center gap-1.5">
+        <FormLabel size="md" className="text-ink-gray-8!">
+          Default Currency
+        </FormLabel>
+        <InfoHoverCard help={SETTINGS_HELP.defaultCurrency} />
+      </div>
       <Combobox
         options={currencies}
         value={value || null}
@@ -96,11 +104,13 @@ export function SettingsMultiSelectField({
   doctype,
   value,
   onChange,
+  help,
 }: {
   label: string;
   doctype: string;
   value: string[];
   onChange: (value: string[]) => void;
+  help?: FieldHelp;
 }) {
   const [query, setQuery] = useState("");
   const selectedOptions = useMemo(
@@ -116,9 +126,12 @@ export function SettingsMultiSelectField({
 
   return (
     <div>
-      <FormLabel size="md" className="text-ink-gray-8!">
-        {label}
-      </FormLabel>
+      <div className="flex min-w-0 items-center gap-1.5">
+        <FormLabel size="md" className="text-ink-gray-8!">
+          {label}
+        </FormLabel>
+        {help && <InfoHoverCard help={help} />}
+      </div>
       <MultiSelect
         options={options}
         value={value}

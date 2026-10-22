@@ -12,11 +12,17 @@ import { Close, DoubleCheck } from "@rtcamp/frappe-ui-react/icons";
 import NotificationItem from "./notificationItem";
 import type { NotificationEntry } from "./types";
 import { mergeClassNames as cn } from "../../utils";
+import InfoHoverCard from "../info-hover-card";
+import type { FieldHelp } from "../info-hover-card/types";
 
 export interface NotificationTrayProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   notifications: NotificationEntry[];
+  /** Info card shown after the tray title. */
+  help: FieldHelp;
+  /** Tooltip shown on each notification. */
+  itemTooltip: string;
   /**
    * Tailwind `left-*` utility matching the sidebar width, so the tray docks to
    * the right edge of the sidebar (e.g. "left-12" collapsed, "left-60" expanded).
@@ -33,6 +39,8 @@ export default function NotificationTray({
   open,
   onOpenChange,
   notifications,
+  help,
+  itemTooltip,
   offsetClassName = "left-0",
   onMarkAllRead,
   onNotificationClick,
@@ -53,9 +61,12 @@ export default function NotificationTray({
           )}
         >
           <div className="flex items-center justify-between gap-2 px-4 pb-2 pt-4">
-            <Dialog.Title className="text-sm font-medium text-ink-gray-8">
-              Notifications
-            </Dialog.Title>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <Dialog.Title className="text-sm font-medium text-ink-gray-8">
+                Notifications
+              </Dialog.Title>
+              <InfoHoverCard help={help} />
+            </div>
             <div className="flex items-center gap-0.5">
               <Tooltip text="Mark all as read">
                 <button
@@ -90,6 +101,7 @@ export default function NotificationTray({
                       <NotificationItem
                         key={notification.id}
                         notification={notification}
+                        tooltip={itemTooltip}
                         onSelect={onNotificationClick}
                       />
                     ))

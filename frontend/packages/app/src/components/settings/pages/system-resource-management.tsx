@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { Checkbox } from "@rtcamp/frappe-ui-react";
 
 /**
@@ -12,6 +13,7 @@ import {
   SettingsLinkField,
   SettingsMultiSelectField,
 } from "../fields";
+import { SETTINGS_HELP } from "../help";
 import type { SystemResourceManagementPageProps } from "../types";
 
 export function SystemResourceManagementPage({
@@ -46,13 +48,16 @@ export function SystemResourceManagementPage({
           Allocation Notifications
         </h3>
         <div className="mt-5 max-w-sm flex flex-col gap-5">
-          <Checkbox
-            label="Send Missing Allocation Reminder"
-            value={sendReminder}
-            onChange={(value) =>
-              updateField("send_missing_allocation_reminder", value ? 1 : 0)
-            }
-          />
+          <div className="flex min-w-0 items-center gap-1.5">
+            <Checkbox
+              label="Send Missing Allocation Reminder"
+              value={sendReminder}
+              onChange={(value) =>
+                updateField("send_missing_allocation_reminder", value ? 1 : 0)
+              }
+            />
+            <InfoHoverCard help={SETTINGS_HELP.missingAllocationReminder} />
+          </div>
           {sendReminder && (
             <>
               <SettingsDaySelect
