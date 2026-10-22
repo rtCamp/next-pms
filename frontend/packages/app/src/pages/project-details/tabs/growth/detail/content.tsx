@@ -5,16 +5,11 @@ import { useState } from "react";
 import { DeleteActionDialog } from "@next-pms/design-system/components";
 import { Button, StaticTextEditor } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
-import { useFrappeGetDocList } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import {
-  currencyFormat,
-  formatProjectDate,
-  getDefaultCurrency,
-} from "@/lib/utils";
+import { currencyFormat, formatProjectDate } from "@/lib/utils";
 import { ActivitySection } from "@/pages/project-details/components/activity/activitySection";
 import { AttachmentList } from "@/pages/project-details/components/attachmentList";
 import { DocumentLinkButton } from "@/pages/project-details/components/documentLinkButton";
@@ -27,6 +22,7 @@ import { AddUpdateModal } from "../add-update";
 import { GROWTH_DOCTYPE } from "../constants";
 import { useGrowth } from "../context";
 import type { EnrichedGrowthUpdateEntry, GrowthDetail } from "../types";
+import { useClientBilling } from "../useClientBilling";
 import { GrowthComments } from "./comments";
 import { UpdateEntry } from "./updateEntry";
 
@@ -50,20 +46,10 @@ export function GrowthDetailContent({
   onUpdateLogChange,
   onDeleteUpdateEntry,
 }: GrowthDetailContentProps) {
-  const currency = useProjectDetail(
-    (s) => s.project?.custom_currency || getDefaultCurrency(),
-  );
-  const customer = useProjectDetail((s) => s.project?.customer);
-  const { data: customerRateData } = useFrappeGetDocList<{
-    custom_hourly_rate?: number;
-  }>(
-    "Customer",
-    {
-      fields: ["custom_hourly_rate"],
-      filters: [["name", "=", customer ?? ""]],
-      limit: 1,
-    },
-    customer ? undefined : null,
+  const projectCurrency = useProjectDetail((s) => s.project?.custom_currency);
+  const { currency, hourlyRate } = useClientBilling(
+    growth.customer,
+    projectCurrency,
   );
   const refreshList = useGrowth((c) => c.actions.refresh);
   const { userId, roles } = useUser(({ state }) => ({
@@ -87,9 +73,9 @@ export function GrowthDetailContent({
     refreshList();
   };
 
-  const hourlyRate = customerRateData?.[0]?.custom_hourly_rate;
-
   const details = [
+    { label: "Client", value: growth.customer ?? "—" },
+    { label: "Project", value: growth.project ?? "No project" },
     { label: "Category", value: growth.category ?? "—" },
     {
       label: "Ideation date",
@@ -194,21 +180,32 @@ export function GrowthDetailContent({
       </section>
 
       <section className="mb-4.5">
-        <LinkedTodos
-          record={{
-            doctype: GROWTH_DOCTYPE,
-            name: growth.name,
-            title: growth.activity,
-            type: "Growth Initiative",
-          }}
-          canEdit={canEdit}
-          title={
-            <h3 className="text-lg font-medium text-ink-gray-7">
+        {growth.project ? (
+          <LinkedTodos
+            record={{
+              doctype: GROWTH_DOCTYPE,
+              name: growth.name,
+              title: growth.activity,
+              type: "Growth Initiative",
+            }}
+            canEdit={canEdit}
+            title={
+              <h3 className="text-lg font-medium text-ink-gray-7">
+                Action items
+              </h3>
+            }
+            emptyMessage="No action items yet."
+          />
+        ) : (
+          <>
+            <h3 className="mb-2 text-lg font-medium text-ink-gray-7">
               Action items
             </h3>
-          }
-          emptyMessage="No action items yet."
-        />
+            <p className="text-sm text-ink-gray-5">
+              Link a project to add action items.
+            </p>
+          </>
+        )}
       </section>
 
       <section className="mb-4.5">

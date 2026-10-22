@@ -178,7 +178,7 @@ def growth_on_update(doc, method=None):
         return
 
     actor = frappe.session.user
-    project_name = frappe.db.get_value("Project", doc.project, "project_name")
+    project_name = growth_context_name(doc)
     label = _("{0} updated the growth initiative status to {1} in {2}").format(
         get_fullname(actor), doc.status, project_name
     )
@@ -192,7 +192,16 @@ def growth_on_update(doc, method=None):
 
 
 def growth_deep_link(doc):
-    return f"/next-pms/projects/{doc.project}?tab=growth&growth={doc.name}"
+    if doc.project:
+        return f"/next-pms/projects/{doc.project}?tab=growth&growth={doc.name}"
+    return f"/next-pms/growth/{doc.name}"
+
+
+def growth_context_name(doc):
+    """The project a Growth Initiative sits in, else its client, for notification wording."""
+    if doc.project:
+        return frappe.db.get_value("Project", doc.project, "project_name") or doc.project
+    return frappe.db.get_value("Customer", doc.customer, "customer_name") or doc.customer
 
 
 def notify_growth_comment_mentions(doc, content):
@@ -202,7 +211,7 @@ def notify_growth_comment_mentions(doc, content):
     if not recipients:
         return
 
-    project_name = frappe.db.get_value("Project", doc.project, "project_name") or doc.project
+    project_name = growth_context_name(doc)
     label = _('{0} mentioned you in the growth initiative "{1}" in {2}').format(
         get_fullname(actor), truncate(doc.activity, 80), project_name
     )
@@ -223,7 +232,7 @@ def growth_owner_on_update(doc, method=None):
     if owner == previous_owner or owner == frappe.session.user:
         return
 
-    project_name = frappe.db.get_value("Project", doc.project, "project_name") or doc.project
+    project_name = growth_context_name(doc)
     label = _('{0} assigned you the growth initiative "{1}" in {2}').format(
         get_fullname(frappe.session.user), truncate(doc.activity, 80), project_name
     )

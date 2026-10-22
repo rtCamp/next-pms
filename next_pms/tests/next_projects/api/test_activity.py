@@ -8,6 +8,7 @@ from frappe.tests import IntegrationTestCase
 
 from next_pms.install import create_default_growth_masters
 from next_pms.next_projects.api.activity import build_table_changes, get_activity
+from next_pms.tests.utils import make_customer
 
 DOCTYPE = "PMS Growth Initiative"
 EDITOR_USER = "test.activity.editor@example.com"
@@ -22,9 +23,13 @@ class IntegrationTestActivity(IntegrationTestCase):
         cls._make_user(EDITOR_USER, ["Projects Manager"])
         cls._make_user(OUTSIDER_USER, [])
         frappe.clear_cache()
-        cls.project = frappe.get_doc({"doctype": "Project", "project_name": "Activity Test Project"}).insert(
-            ignore_permissions=True
-        )
+        cls.project = frappe.get_doc(
+            {
+                "doctype": "Project",
+                "project_name": "Activity Test Project",
+                "customer": make_customer("Growth Test Client"),
+            }
+        ).insert(ignore_permissions=True)
 
     @classmethod
     def tearDownClass(cls):

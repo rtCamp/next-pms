@@ -13,6 +13,8 @@ def validate_linked_todos(doc):
     todos = [row.todo for row in doc.get("linked_todos") if row.todo]
     if not todos:
         return
+    if not doc.project:
+        frappe.throw(_("Link a project to add action items."))
 
     duplicates = {todo for todo in todos if todos.count(todo) > 1}
     if duplicates:

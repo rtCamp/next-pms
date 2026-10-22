@@ -49,6 +49,7 @@ export function useGrowthData(filters: GrowthFilters, sort: GrowthSort | null) {
       fields: [
         "name",
         "project",
+        "customer",
         "activity",
         "category",
         "client_priority",

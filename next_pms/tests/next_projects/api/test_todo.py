@@ -11,6 +11,7 @@ from next_pms.next_projects.api.todo import (
     link_todo,
     unlink_todo,
 )
+from next_pms.tests.utils import make_customer
 
 PTI = "Project Timeline Item"
 GROWTH = "PMS Growth Initiative"
@@ -50,7 +51,13 @@ class LinkedTodoTestCase(IntegrationTestCase):
 
     @staticmethod
     def make_project(project_name):
-        return frappe.get_doc({"doctype": "Project", "project_name": project_name}).insert(ignore_permissions=True).name
+        return (
+            frappe.get_doc(
+                {"doctype": "Project", "project_name": project_name, "customer": make_customer("Growth Test Client")}
+            )
+            .insert(ignore_permissions=True)
+            .name
+        )
 
     def make_timeline_item(self, type="Milestone", project=None, title="Launch"):
         return frappe.get_doc(
@@ -195,7 +202,15 @@ class TestLinkedTodoValidation(LinkedTodoTestCase):
         initiative.append("linked_todos", {"todo": self.make_todo().name})
         initiative.save(ignore_permissions=True)
         initiative.project = self.other_project
-        with self.assertRaisesRegex(frappe.ValidationError, "does not belong to project"):
+        with self.assertRaisesRegex(frappe.ValidationError, "Unlink this growth initiative's action items"):
+            initiative.save(ignore_permissions=True)
+
+    def test_clearing_the_project_with_links_is_rejected(self):
+        initiative = self.make_initiative()
+        initiative.append("linked_todos", {"todo": self.make_todo().name})
+        initiative.save(ignore_permissions=True)
+        initiative.project = None
+        with self.assertRaisesRegex(frappe.ValidationError, "Unlink this growth initiative's action items"):
             initiative.save(ignore_permissions=True)
 
 
@@ -244,6 +259,20 @@ class TestCreateLinkedTodo(LinkedTodoTestCase):
             create_linked_todo(PTI, milestone.name, {"description": "Sneaky"})
         frappe.set_user("Administrator")
         self.assertEqual(frappe.db.count("ToDo"), before)
+
+    def test_initiative_without_a_project_cannot_get_action_items(self):
+        initiative = frappe.get_doc(
+            {
+                "doctype": GROWTH,
+                "customer": make_customer("Growth Test Client"),
+                "activity": "Client-only idea",
+                "status": "Ideation",
+            }
+        ).insert(ignore_permissions=True)
+        with self.assertRaisesRegex(frappe.ValidationError, "Link a project to add action items"):
+            create_linked_todo(GROWTH, initiative.name, {"description": "Kick-off"})
+        with self.assertRaisesRegex(frappe.ValidationError, "Link a project to add action items"):
+            link_todo(self.make_todo().name, GROWTH, initiative.name)
 
     def test_unsupported_doctype_is_rejected(self):
         with self.assertRaisesRegex(frappe.ValidationError, "cannot be linked"):

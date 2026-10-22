@@ -30,13 +30,11 @@ import {
  */
 import {
   currencyFormat,
-  getDefaultCurrency,
   mergeClassNames as cn,
   parseFrappeErrorMsg,
 } from "@/lib/utils";
 import { DisabledField } from "@/pages/project-details/components/disabledField";
 import { UpdateLogNote } from "@/pages/project-details/components/updateLogNote";
-import { useProjectDetail } from "@/pages/project-details/context";
 import {
   CLIENT_PRIORITY_OPTIONS,
   FORM_EDITOR_CLASS,
@@ -47,13 +45,21 @@ import { useGrowth } from "../context";
 import { PriorityBadge } from "../list/cells/priorityBadge";
 import { StatusBadge } from "../list/cells/statusBadge";
 import type { ApiGrowthDetail } from "../types";
+import { useClientBilling } from "../useClientBilling";
+import { ClientField } from "./clientField";
 import { EMPTY_GROWTH_VALUES } from "./constants";
 import { EmployeeField } from "./employeeField";
+import { ProjectField } from "./projectField";
 import { buildGrowthSchema, type GrowthFormValues } from "./schema";
 import type { CreateGrowthModalProps } from "./types";
 
-const emptyCreateValues = (): GrowthFormValues => ({
+const emptyCreateValues = (
+  project?: string | null,
+  customer?: string | null,
+): GrowthFormValues => ({
   ...EMPTY_GROWTH_VALUES,
+  project: project ?? "",
+  customer: customer ?? "",
   ideation_date: format(new Date(), "yyyy-MM-dd"),
 });
 
@@ -62,6 +68,8 @@ const toNameOptions = (docs: { name: string }[]) =>
 
 const toPayload = (value: GrowthFormValues) => ({
   activity: value.activity,
+  customer: value.customer,
+  project: value.project || null,
   category: value.category || null,
   description: value.description,
   desired_outcome: value.desired_outcome,
@@ -81,11 +89,10 @@ export function CreateGrowthModal({
   open,
   onClose,
   growthName,
+  defaultProject,
+  defaultCustomer,
+  fallbackCurrency,
 }: CreateGrowthModalProps) {
-  const projectId = useProjectDetail((s) => s.projectId);
-  const currency = useProjectDetail(
-    (s) => s.project?.custom_currency || getDefaultCurrency(),
-  );
   const refresh = useGrowth((c) => c.actions.refresh);
   const statuses = useGrowth((c) => c.state.statuses);
   const closedStatuses = useGrowth((c) => c.state.closedStatuses);
@@ -111,6 +118,7 @@ export function CreateGrowthModal({
     growthName ?? "",
     growthName ? undefined : null,
   );
+  const { currency } = useClientBilling(existing?.customer, fallbackCurrency);
 
   const isClosedStatus = useCallback(
     (status: string) =>
@@ -136,7 +144,6 @@ export function CreateGrowthModal({
           toast.success("Growth initiative updated");
         } else {
           await createDoc(GROWTH_DOCTYPE, {
-            project: projectId,
             ...toPayload(value),
             ...toUpdateLogPayload(value, isClosedStatus(value.status)),
           });
@@ -144,7 +151,9 @@ export function CreateGrowthModal({
         }
         refresh();
         if (meta.keepOpen) {
-          form.reset(emptyCreateValues(), { keepDefaultValues: true });
+          form.reset(emptyCreateValues(defaultProject, defaultCustomer), {
+            keepDefaultValues: true,
+          });
           return;
         }
         closeModal();
@@ -165,6 +174,8 @@ export function CreateGrowthModal({
       form.reset(
         {
           activity: existing.activity ?? "",
+          customer: existing.customer ?? "",
+          project: existing.project ?? "",
           category: existing.category ?? null,
           description: existing.description ?? "",
           client_priority: existing.client_priority ?? "",
@@ -183,8 +194,10 @@ export function CreateGrowthModal({
       setEditorKey((key) => key + 1);
       return;
     }
-    form.reset(emptyCreateValues(), { keepDefaultValues: true });
-  }, [open, isEditMode, existing, form]);
+    form.reset(emptyCreateValues(defaultProject, defaultCustomer), {
+      keepDefaultValues: true,
+    });
+  }, [open, isEditMode, existing, form, defaultProject, defaultCustomer]);
 
   const closeModal = useCallback(() => {
     onClose();
@@ -269,6 +282,38 @@ export function CreateGrowthModal({
               </div>
             )}
           />
+
+          <form.Field
+            name="customer"
+            children={(field) => (
+              <ClientField
+                enabled={open}
+                value={field.state.value}
+                error={
+                  field.state.meta.isValid
+                    ? undefined
+                    : field.state.meta.errors[0]?.message
+                }
+                onChange={field.handleChange}
+              />
+            )}
+          />
+
+          <form.Subscribe selector={(state) => state.values.customer}>
+            {(customer) => (
+              <form.Field
+                name="project"
+                children={(field) => (
+                  <ProjectField
+                    enabled={open}
+                    client={customer}
+                    value={field.state.value}
+                    onChange={field.handleChange}
+                  />
+                )}
+              />
+            )}
+          </form.Subscribe>
 
           <form.Field
             name="category"

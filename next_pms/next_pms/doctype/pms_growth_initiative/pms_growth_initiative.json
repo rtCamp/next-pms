@@ -9,6 +9,7 @@
  "field_order": [
   "details_section",
   "project",
+  "customer",
   "activity",
   "category",
   "client_priority",
@@ -44,7 +45,15 @@
    "in_standard_filter": 1,
    "label": "Project",
    "options": "Project",
-   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Client",
+   "options": "Customer",
    "search_index": 1
   },
   {
@@ -181,7 +190,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-22 20:00:00.000000",
+ "modified": "2026-10-22 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "PMS Growth Initiative",

@@ -6,8 +6,9 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import today
 
 from next_pms.install import create_default_growth_masters
+from next_pms.tests.utils import make_customer
 
-IGNORE_TEST_RECORD_DEPENDENCIES = ["User", "Project", "ToDo"]
+IGNORE_TEST_RECORD_DEPENDENCIES = ["User", "Project", "ToDo", "Customer"]
 
 DOCTYPE = "PMS Growth Initiative"
 STATUS_DOCTYPE = "PMS Growth Initiative Status"
@@ -41,6 +42,7 @@ class IntegrationTestPMSGrowthInitiative(IntegrationTestCase):
             {
                 "doctype": "Project",
                 "project_name": "Growth Initiative Test Project",
+                "customer": make_customer("Growth Test Client"),
             }
         ).insert(ignore_permissions=True)
 
@@ -88,6 +90,22 @@ class IntegrationTestPMSGrowthInitiative(IntegrationTestCase):
             frappe.get_doc({"doctype": STATUS_DOCTYPE, "name": name, **kwargs}).insert(ignore_permissions=True)
         self.addCleanup(frappe.delete_doc, STATUS_DOCTYPE, name, force=True, ignore_permissions=True)
         return frappe.get_doc(STATUS_DOCTYPE, name)
+
+    def test_client_comes_from_the_project(self):
+        self.assertEqual(self._make_initiative().customer, self.project.customer)
+
+    def test_project_of_another_client_is_rejected(self):
+        with self.assertRaisesRegex(frappe.ValidationError, "belongs to client"):
+            self._make_initiative(customer=make_customer("Growth Other Client"))
+
+    def test_initiative_can_belong_to_a_client_without_a_project(self):
+        initiative = self._make_initiative(project=None, customer=make_customer("Growth Other Client"))
+        self.assertIsNone(initiative.project)
+        self.assertEqual(initiative.project_manager, None)
+
+    def test_client_is_required_on_create(self):
+        with self.assertRaises(frappe.MandatoryError):
+            self._make_initiative(project=None)
 
     def test_ideation_date_defaults_to_today(self):
         initiative = self._make_initiative()

@@ -6,17 +6,20 @@ import { useMemo } from "react";
 /**
  * Internal dependencies.
  */
-import { currencyFormat, getDefaultCurrency } from "@/lib/utils";
+import { currencyFormat } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import type { GrowthInitiativeItem } from "../types";
+import { useClientBilling } from "../useClientBilling";
 
 interface TotalOutcomeProps {
   items: GrowthInitiativeItem[];
 }
 
 export function TotalOutcome({ items }: TotalOutcomeProps) {
-  const currency = useProjectDetail(
-    (s) => s.project?.custom_currency || getDefaultCurrency(),
+  const project = useProjectDetail((s) => s.project);
+  const { currency } = useClientBilling(
+    project?.customer,
+    project?.custom_currency,
   );
   const total = useMemo(
     () => items.reduce((sum, item) => sum + item.billable_outcome, 0),

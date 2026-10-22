@@ -11,7 +11,8 @@ export interface GrowthListColumn {
 
 export interface ApiGrowthInitiativeItem {
   name: string;
-  project: string;
+  project: string | null;
+  customer: string | null;
   activity: string;
   category: string | null;
   client_priority: ClientPriority | null;

@@ -11,6 +11,7 @@ import {
 /**
  * Internal dependencies.
  */
+import { useProjectDetail } from "@/pages/project-details/context";
 import { GROWTH_DETAIL_PARAM, GROWTH_DOCTYPE } from "./constants";
 import { useGrowth } from "./context";
 import { CreateGrowthModal } from "./create-growth";
@@ -31,6 +32,8 @@ function GrowthContent() {
   const deleteName = useGrowth((c) => c.state.deleteName);
   const closeDelete = useGrowth((c) => c.actions.closeDelete);
   const deleteGrowth = useGrowth((c) => c.actions.deleteGrowth);
+  const projectId = useProjectDetail((s) => s.projectId);
+  const project = useProjectDetail((s) => s.project);
   const deleteTarget = useLinkedTodoCount<{ activity: string }>(
     GROWTH_DOCTYPE,
     deleteName,
@@ -42,6 +45,9 @@ function GrowthContent() {
         open={isCreateOpen}
         onClose={closeCreate}
         growthName={editName}
+        defaultProject={projectId}
+        defaultCustomer={project?.customer}
+        fallbackCurrency={project?.custom_currency}
       />
       {deleteName && deleteTarget.isReady && (
         <DeleteActionDialog

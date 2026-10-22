@@ -34,18 +34,21 @@ class PMSGrowthInitiative(Document):
         category: DF.Link | None
         client_priority: DF.Literal["", "Low", "Medium", "High"]
         closed_status: DF.Link | None
+        customer: DF.Link | None
         description: DF.TextEditor | None
         desired_outcome: DF.TextEditor | None
         ideation_date: DF.Date
         is_closed: DF.Check
         linked_todos: DF.Table[PMSLinkedToDo]
-        project: DF.Link
+        project: DF.Link | None
         project_manager: DF.Link | None
         status: DF.Link
         update_log: DF.Table[PMSGrowthInitiativeUpdate]
     # end: auto-generated types
 
     def validate(self):
+        self._sync_customer_from_project()
+        self._prevent_project_change_with_action_items()
         self._default_project_manager()
         self._ensure_initial_update_log()
         self._carry_forward_unset_update_fields()
@@ -62,6 +65,26 @@ class PMSGrowthInitiative(Document):
         if self.update_log and self.update_log[-1].is_new():
             self.update_log[-1].closed_status = self.closed_status
         validate_linked_todos(self)
+
+    def _sync_customer_from_project(self):
+        project_customer = self.project and frappe.db.get_value("Project", self.project, "customer")
+        if project_customer and not self.customer:
+            self.customer = project_customer
+        elif (
+            project_customer
+            and self.customer != project_customer
+            and (self.has_value_changed("project") or self.has_value_changed("customer"))
+        ):
+            frappe.throw(
+                _("Project {0} belongs to client {1}.").format(frappe.bold(self.project), frappe.bold(project_customer))
+            )
+        if self.is_new() and not self.customer:
+            frappe.throw(_("Client is required."), frappe.MandatoryError)
+
+    def _prevent_project_change_with_action_items(self):
+        if self.is_new() or not self.linked_todos or not self.has_value_changed("project"):
+            return
+        frappe.throw(_("Unlink this growth initiative's action items before changing its project."))
 
     def _default_project_manager(self):
         if not self.project_manager and self.project:

@@ -104,3 +104,20 @@ def assign_empty_holiday_list(employee, name="Test Empty Holiday List"):
             "from_date": "2020-01-01",
         }
     ).insert(ignore_permissions=True).submit()
+
+
+def make_customer(customer_name, default_currency="USD"):
+    if existing := frappe.db.get_value("Customer", {"customer_name": customer_name}):
+        return existing
+    return (
+        frappe.get_doc(
+            {
+                "doctype": "Customer",
+                "customer_name": customer_name,
+                "customer_type": "Company",
+                "default_currency": default_currency,
+            }
+        )
+        .insert(ignore_permissions=True)
+        .name
+    )

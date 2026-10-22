@@ -3,6 +3,7 @@ from frappe.deferred_insert import save_to_db
 from frappe.tests import IntegrationTestCase
 
 from next_pms.install import create_default_growth_masters
+from next_pms.tests.utils import make_customer
 
 FOLLOWER_USER = "notification-url-follower@example.com"
 
@@ -32,6 +33,7 @@ class TestNotificationUrls(IntegrationTestCase):
                 "doctype": "Project",
                 "project_name": "Notification URL Test Project",
                 "custom_project_manager": FOLLOWER_USER,
+                "customer": make_customer("Growth Test Client"),
             }
         ).insert(ignore_permissions=True)
 

@@ -2,6 +2,8 @@ import type { GrowthFormValues } from "./schema";
 
 export const EMPTY_GROWTH_VALUES: GrowthFormValues = {
   activity: "",
+  customer: "",
+  project: "",
   category: null,
   description: "",
   client_priority: "",

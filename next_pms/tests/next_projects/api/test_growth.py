@@ -12,6 +12,7 @@ from next_pms.next_projects.api.growth import (
     get_growth_comments,
     update_growth_comment,
 )
+from next_pms.tests.utils import make_customer
 
 DOCTYPE = "PMS Growth Initiative"
 AUTHOR_USER = "growth.comment.author@example.com"
@@ -32,7 +33,11 @@ class IntegrationTestGrowthComments(IntegrationTestCase):
         cls.make_user(OTHER_USER, roles=("Projects User",))
         cls.make_user(NO_ROLE_USER)
         cls.project = frappe.get_doc(
-            {"doctype": "Project", "project_name": f"Growth Comment Project {frappe.generate_hash(length=8)}"}
+            {
+                "doctype": "Project",
+                "project_name": f"Growth Comment Project {frappe.generate_hash(length=8)}",
+                "customer": make_customer("Growth Test Client"),
+            }
         ).insert(ignore_permissions=True)
         cls.growth = cls.make_initiative()
         cls.other_growth = cls.make_initiative()

@@ -5,6 +5,7 @@ from frappe.tests import IntegrationTestCase
 
 from next_pms.install import create_default_growth_masters
 from next_pms.next_pms.patches.merge_growth_initiative_owners import execute
+from next_pms.tests.utils import make_customer
 
 DOCTYPE = "PMS Growth Initiative"
 OWNER = "test.growth.merge.owner@example.com"
@@ -23,7 +24,11 @@ class TestMergeGrowthInitiativeOwners(IntegrationTestCase):
                     {"doctype": "User", "email": email, "first_name": email.split("@")[0], "send_welcome_email": 0}
                 ).insert(ignore_permissions=True)
         cls.project = frappe.get_doc(
-            {"doctype": "Project", "project_name": f"Growth Merge {frappe.generate_hash(length=6)}"}
+            {
+                "doctype": "Project",
+                "project_name": f"Growth Merge {frappe.generate_hash(length=6)}",
+                "customer": make_customer("Growth Test Client"),
+            }
         ).insert(ignore_permissions=True)
 
     def make_initiative(self, **values):

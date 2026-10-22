@@ -8,6 +8,7 @@ from frappe.deferred_insert import save_to_db
 from frappe.tests import IntegrationTestCase
 
 from next_pms.install import create_default_growth_masters
+from next_pms.tests.utils import make_customer
 
 SENDMAIL = "next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications.frappe.sendmail"
 DOCTYPE = "PMS Growth Initiative"
@@ -34,7 +35,11 @@ class IntegrationTestGrowthOwnerNotification(IntegrationTestCase):
                     }
                 ).insert(ignore_permissions=True)
         cls.project = frappe.get_doc(
-            {"doctype": "Project", "project_name": "Growth Owner Notification Test Project"}
+            {
+                "doctype": "Project",
+                "project_name": "Growth Owner Notification Test Project",
+                "customer": make_customer("Growth Test Client"),
+            }
         ).insert(ignore_permissions=True)
 
     @classmethod

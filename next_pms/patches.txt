@@ -53,3 +53,4 @@ next_pms.timesheet.patches.setup_role_permissions
 next_pms.next_projects.patches.setup_project_permissions_for_managers
 next_pms.next_projects.patches.setup_customer_read_permissions
 next_pms.next_pms.patches.merge_growth_initiative_owners
+next_pms.next_pms.patches.backfill_growth_initiative_client

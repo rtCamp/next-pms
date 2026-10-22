@@ -28,6 +28,11 @@ export const buildGrowthSchema = (
         .string()
         .trim()
         .min(1, { message: "Please enter an activity." }),
+      customer: z
+        .string()
+        .trim()
+        .min(1, { message: "Please select a client." }),
+      project: z.string(),
       category: z.string().nullable(),
       description: z.string(),
       client_priority: z.string(),

@@ -160,7 +160,10 @@ def get_linkable_records(project: str) -> list[dict]:
 def get_owner(doctype: str, name: str):
     if doctype not in LINKED_TODO_OWNERS:
         frappe.throw(_("ToDos cannot be linked to {0}.").format(_(doctype)))
-    return frappe.get_doc(doctype, name)
+    owner = frappe.get_doc(doctype, name)
+    if not owner.project:
+        frappe.throw(_("Link a project to add action items."))
+    return owner
 
 
 def get_owner_fields(doctype: str) -> list[str]:
