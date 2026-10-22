@@ -16,9 +16,9 @@ import {
   getDefaultCurrency,
 } from "@/lib/utils";
 import { ActivitySection } from "@/pages/project-details/components/activity/activitySection";
+import { AttachmentList } from "@/pages/project-details/components/attachmentList";
 import { DocumentLinkButton } from "@/pages/project-details/components/documentLinkButton";
 import { DocumentUploadButton } from "@/pages/project-details/components/documentUploadButton";
-import { FileCard } from "@/pages/project-details/components/fileCard";
 import { useProjectDetail } from "@/pages/project-details/context";
 import type { FileAttachment } from "@/pages/project-details/types";
 import { useUser } from "@/providers/user";
@@ -181,11 +181,11 @@ export function GrowthDetailContent({
           )}
         </div>
         {attachments.length > 0 ? (
-          <div className="flex flex-wrap gap-3">
-            {attachments.map((file) => (
-              <FileCard key={file.name} file={file} />
-            ))}
-          </div>
+          <AttachmentList
+            attachments={attachments}
+            canRemove={canEdit}
+            onRemoved={onAttachmentsChange}
+          />
         ) : (
           <p className="text-sm text-ink-gray-5">
             No documents or links attached.

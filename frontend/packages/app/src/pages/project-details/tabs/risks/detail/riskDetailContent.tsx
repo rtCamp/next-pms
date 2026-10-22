@@ -9,8 +9,8 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
+import { AttachmentList } from "@/pages/project-details/components/attachmentList";
 import { DocumentUploadButton } from "@/pages/project-details/components/documentUploadButton";
-import { FileCard } from "@/pages/project-details/components/fileCard";
 import type { FileAttachment } from "@/pages/project-details/types";
 import { useUser } from "@/providers/user";
 import { AddUpdateModal } from "../add-update";
@@ -123,11 +123,14 @@ export function RiskDetailContent({
           </div>
 
           {attachments.length > 0 ? (
-            <div className="flex flex-wrap gap-3">
-              {attachments.map((file) => (
-                <FileCard key={file.name} file={file} />
-              ))}
-            </div>
+            <AttachmentList
+              attachments={attachments}
+              canRemove={canEditRisk}
+              onRemoved={() => {
+                mutate();
+                mutateAttachments();
+              }}
+            />
           ) : (
             <p className="text-sm text-ink-gray-5">No documents attached.</p>
           )}
