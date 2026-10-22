@@ -24,6 +24,8 @@ import ProjectDetailsHeader from "./ProjectDetailsHeader.vue";
 import RagStatsTab from "./rag-stats/RagStatsTab.vue";
 import ReportsTab from "./reports/ReportsTab.vue";
 import { selectedTab, visibleTabs } from "./tabs";
+import TodosTab from "./to-do/TodosTab.vue";
+import { provideTodos } from "./to-do/useTodos";
 import TrackingTab from "./tracking/TrackingTab.vue";
 import { provideProjectDetails } from "./useProjectDetails";
 
@@ -35,6 +37,7 @@ const TAB_PANELS: Partial<Record<ProjectTabKey, Component>> = {
   "rag-stats": RagStatsTab,
   reports: ReportsTab,
   tracking: TrackingTab,
+  "to-do": TodosTab,
 };
 
 const route = useRoute();
@@ -45,6 +48,7 @@ const patchQuery = useQueryPatch();
 const projectId = String(route.params.projectId ?? "");
 const { doc, error, reload } = provideProjectDetails(projectId);
 const unsavedChanges = provideUnsavedChanges();
+provideTodos(projectId);
 
 const errorType = computed(() =>
   error.value instanceof FrappeResponseError ? error.value.type : null,

@@ -19,6 +19,8 @@ interface Boot {
   has_customer_feedback?: boolean;
   /** Whether the rtcamp app is installed; shows a project's RAG stats tab. */
   show_rag_trigger_page?: boolean;
+  /** Whether the ToDo doctype has the rtcamp title, start and end fields. */
+  has_todo_custom_fields?: boolean;
   /** Whether the GitHub Repository doctype exists; shows a project's repository connections. */
   has_repository_connections?: boolean;
   /**
