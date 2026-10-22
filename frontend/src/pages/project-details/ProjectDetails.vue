@@ -19,6 +19,7 @@ import { queryString } from "@/utils/query";
 import AboutSidebar from "./about/AboutSidebar.vue";
 import { DEFAULT_TAB, TAB_PARAM, type ProjectTabKey } from "./constants";
 import EmailTab from "./email/EmailTab.vue";
+import { VIEW_PARAM } from "./feedback/constants";
 import FeedbackTab from "./feedback/FeedbackTab.vue";
 import OverviewTab from "./overview/OverviewTab.vue";
 import ProjectDetailsHeader from "./ProjectDetailsHeader.vue";
@@ -70,7 +71,14 @@ const activeTab = computed(() => selectedTab(tabParam.value, tabs.value));
 
 function selectTab(value: string | number) {
   const key = value as ProjectTabKey;
-  patchQuery({ [TAB_PARAM]: key === DEFAULT_TAB ? null : key }, { push: true });
+  patchQuery(
+    {
+      [TAB_PARAM]: key === DEFAULT_TAB ? null : key,
+      // Leaving Feedback drops its view, so coming back opens the client view.
+      ...(activeTab.value === "feedback" && { [VIEW_PARAM]: null }),
+    },
+    { push: true },
+  );
 }
 
 // An unknown or hidden tab leaves the URL once the project (and so the Reports
