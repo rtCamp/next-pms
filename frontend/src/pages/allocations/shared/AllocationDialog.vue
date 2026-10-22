@@ -15,6 +15,7 @@ import {
 import { DurationInput } from "@/components/DurationInput";
 import {
   RECURRENCE_OPTIONS,
+  scheduleRequestFromForm,
   type AllocationRecurrence,
 } from "./allocationForm";
 import OverAllocationWarning from "./OverAllocationWarning.vue";
@@ -111,6 +112,12 @@ const lockedHoursMessage = computed(() => {
   }
   return "This allocation has custom day changes. Use Edit Schedule to change hours / day.";
 });
+
+function openEditSchedule() {
+  dialogs.openEditSchedule(
+    scheduleRequestFromForm(form, state.context, state.locks),
+  );
+}
 
 /** An AI allocation is dismissed by deleting it, after a confirmation. */
 const canDelete = computed(
@@ -275,16 +282,28 @@ function avatarOf(option: unknown) {
         </div>
       </div>
 
-      <DateRangePicker
-        v-model="dateRange"
-        label="Start and end date"
-        required
-        variant="outline"
-        format="MMM D, YYYY"
-        placeholder="Start Date - End Date"
-        :error="dateError"
-        :disabled="state.locks.isMetadataLocked"
-      />
+      <div class="flex w-full flex-col gap-1.5">
+        <div class="flex items-center justify-between">
+          <FormLabel label="Start and end date" required />
+          <Button
+            v-if="state.mode === 'edit'"
+            variant="ghost"
+            size="sm"
+            label="Edit Schedule"
+            :disabled="state.isMismatch || !state.context.allocationId"
+            @click="openEditSchedule"
+          />
+        </div>
+        <DateRangePicker
+          v-model="dateRange"
+          variant="outline"
+          format="MMM D, YYYY"
+          placeholder="Start Date - End Date"
+          aria-label="Start and end date"
+          :error="dateError"
+          :disabled="state.locks.isMetadataLocked"
+        />
+      </div>
 
       <div class="flex gap-3">
         <div class="flex flex-1 shrink-0 flex-col gap-1.5">

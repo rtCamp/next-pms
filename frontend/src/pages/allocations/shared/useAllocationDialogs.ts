@@ -13,6 +13,7 @@ import type {
   DeleteAllocationMode,
 } from "@/components/GanttGrid";
 import { errorMessage } from "@/utils/errors";
+import type { EditScheduleRequest } from "./allocationForm";
 import type { AllocationsView } from "./constants";
 import {
   DELETE_MODE_OPTIONS,
@@ -48,6 +49,10 @@ function createAllocationDialogs(view: AllocationsView) {
   const form = reactive({
     open: false,
     request: null as AllocationFormRequest | null,
+  });
+  const schedule = reactive({
+    open: false,
+    request: null as EditScheduleRequest | null,
   });
   /** The page's own writes: realtime updates they cause are not loaded twice. */
   const writes = reactive({ inFlight: 0, settledAt: 0 });
@@ -143,9 +148,16 @@ function createAllocationDialogs(view: AllocationsView) {
     view,
     fieldOrder: FIELD_ORDER[view],
     form,
+    schedule,
     writes,
     openAdd: (data: AllocationEventData = {}) => openForm("add", data),
     openEdit: (data: AllocationEventData) => openForm("edit", data),
+    /** Swaps the Add / Edit dialog for Edit schedule. */
+    openEditSchedule(request: EditScheduleRequest) {
+      form.open = false;
+      schedule.request = request;
+      schedule.open = true;
+    },
     /** Lets the page's data take part; returns its unregister. */
     registerPage(next: AllocationsPage) {
       page.value = next;

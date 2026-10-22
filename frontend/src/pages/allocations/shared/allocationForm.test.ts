@@ -7,6 +7,7 @@ import {
   formFromRequest,
   formRefreshTargets,
   lastBookedDate,
+  scheduleRequestFromForm,
   validateAllocationForm,
   type AllocationFormContext,
 } from "./allocationForm";
@@ -299,5 +300,65 @@ describe("formRefreshTargets", () => {
     expect(
       formRefreshTargets(emptyAllocationForm(today), context()),
     ).toBeUndefined();
+  });
+});
+
+describe("scheduleRequestFromForm", () => {
+  const form = {
+    ...emptyAllocationForm(today),
+    employeeId: "EMP-1",
+    projectId: "PROJ-1",
+    customerId: "CUST-1",
+    fromDate: "2026-10-20",
+    toDate: "2026-10-21",
+    hoursPerDay: 4,
+    includeHolidays: true,
+    isBillable: false,
+    note: "typed",
+  };
+  const editContext = context({
+    allocationId: "RA-1",
+    recurrenceId: "R",
+    allocationStartDate: "2026-10-19",
+    allocationEndDate: "2026-10-23",
+    allocationHoursPerDay: 6,
+    override: [{ date: "2026-10-22", hours: 2 }],
+    initialEmployeeId: "EMP-1",
+  });
+
+  it("takes the live form's values", () => {
+    expect(
+      scheduleRequestFromForm(
+        form,
+        editContext,
+        allocationEditLocks("edit", context({ isAiCreated: true })),
+      ),
+    ).toMatchObject({
+      allocationId: "RA-1",
+      recurrenceId: "R",
+      customerId: "CUST-1",
+      rangeStart: "2026-10-20",
+      rangeEnd: "2026-10-21",
+      hoursPerDay: 4,
+      includeHolidays: true,
+      isBillable: false,
+      note: "typed",
+      override: [{ date: "2026-10-22", hours: 2 }],
+      refreshTargets: { employeeIds: ["EMP-1"], projectIds: ["PROJ-1"] },
+    });
+  });
+
+  it("uses the allocation's own range and hours behind a locked segment", () => {
+    expect(
+      scheduleRequestFromForm(
+        form,
+        editContext,
+        allocationEditLocks("edit", editContext),
+      ),
+    ).toMatchObject({
+      rangeStart: "2026-10-19",
+      rangeEnd: "2026-10-23",
+      hoursPerDay: 6,
+    });
   });
 });

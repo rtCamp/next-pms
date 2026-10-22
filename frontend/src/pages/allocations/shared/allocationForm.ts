@@ -340,3 +340,59 @@ export function formRefreshTargets(
     ...(projectIds.length ? { projectIds } : {}),
   };
 }
+
+/** What the Edit schedule dialog edits: the allocation as the Add / Edit form has it now. */
+export interface EditScheduleRequest {
+  allocationId: string;
+  recurrenceId?: string;
+  employeeId: string;
+  projectId: string;
+  customerId: string;
+  /** The allocation's range, `YYYY-MM-DD`. */
+  rangeStart: string;
+  rangeEnd: string;
+  /** The allocation's hours per day. */
+  hoursPerDay: number;
+  includeWeekends: boolean;
+  includeHolidays: boolean;
+  isBillable: boolean;
+  isTentative: boolean;
+  note: string;
+  override: AllocationOverrideEntry[];
+  /** Employees and projects to refresh after the save. */
+  refreshTargets?: AllocationRefreshTargets;
+}
+
+/**
+ * The Edit schedule request from the live form. A locked form shows a segment's days
+ * and hours, so the allocation's own range and hours stand in for them.
+ */
+export function scheduleRequestFromForm(
+  form: AllocationForm,
+  context: AllocationFormContext,
+  locks: AllocationEditLocks,
+): EditScheduleRequest {
+  return {
+    allocationId: context.allocationId ?? "",
+    recurrenceId: context.recurrenceId,
+    employeeId: form.employeeId,
+    projectId: form.projectId,
+    customerId: form.customerId,
+    rangeStart: locks.isMetadataLocked
+      ? (context.allocationStartDate ?? form.fromDate)
+      : form.fromDate,
+    rangeEnd: locks.isMetadataLocked
+      ? (context.allocationEndDate ?? form.toDate)
+      : form.toDate,
+    hoursPerDay: locks.isHoursPerDayLocked
+      ? (context.allocationHoursPerDay ?? form.hoursPerDay)
+      : form.hoursPerDay,
+    includeWeekends: form.includeWeekends,
+    includeHolidays: form.includeHolidays,
+    isBillable: form.isBillable,
+    isTentative: form.isTentative,
+    note: form.note,
+    override: context.override,
+    refreshTargets: formRefreshTargets(form, context),
+  };
+}
