@@ -62,8 +62,8 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/allocations/team",
     name: "allocations-team",
-    component: WorkInProgress,
-    meta: { title: "Team Allocations" },
+    component: () => import("./pages/allocations/team/TeamAllocations.vue"),
+    meta: { title: "Team Allocations", scroll: false },
   },
   {
     path: "/allocations/project",
