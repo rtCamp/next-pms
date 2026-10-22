@@ -5,6 +5,7 @@ import { useState } from "react";
 import { DeleteActionDialog } from "@next-pms/design-system/components";
 import { Button, StaticTextEditor } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
+import { useFrappeGetDocList } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -52,6 +53,14 @@ export function GrowthDetailContent({
   const currency = useProjectDetail(
     (s) => s.project?.custom_currency || getDefaultCurrency(),
   );
+  const customer = useProjectDetail((s) => s.project?.customer);
+  const { data: customerRateData } = useFrappeGetDocList<{
+    custom_hourly_rate?: number;
+  }>("Customer", {
+    fields: ["custom_hourly_rate"],
+    filters: [["name", "=", customer ?? ""]],
+    limit: 1,
+  });
   const refreshList = useGrowth((c) => c.actions.refresh);
   const { userId, roles } = useUser(({ state }) => ({
     userId: state.userId,
@@ -74,6 +83,8 @@ export function GrowthDetailContent({
     refreshList();
   };
 
+  const hourlyRate = customerRateData?.[0]?.custom_hourly_rate;
+
   const details = [
     { label: "Category", value: growth.category ?? "—" },
     {
@@ -85,6 +96,10 @@ export function GrowthDetailContent({
     {
       label: "Billable outcome",
       value: currencyFormat(currency).format(growth.billable_outcome ?? 0),
+    },
+    {
+      label: "Hourly rate",
+      value: hourlyRate ? currencyFormat(currency).format(hourlyRate) : "—",
     },
     {
       label: "Last updated",
