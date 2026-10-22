@@ -112,6 +112,15 @@ const lockedHoursMessage = computed(() => {
   return "This allocation has custom day changes. Use Edit Schedule to change hours / day.";
 });
 
+/** An AI allocation is dismissed by deleting it, after a confirmation. */
+const canDelete = computed(
+  () => isAi.value && Boolean(state.context.allocationId),
+);
+function deleteAllocation() {
+  const request = dialogs.form.request;
+  if (request) dialogs.confirmDelete(request.data, undefined, state.close);
+}
+
 function avatarOf(option: unknown) {
   return option as { label: string; image?: string };
 }
@@ -393,6 +402,14 @@ function avatarOf(option: unknown) {
         />
         <div class="flex w-full items-center justify-end gap-2">
           <Button
+            v-if="canDelete"
+            variant="ghost"
+            label="Delete"
+            :disabled="state.submitting"
+            @click="deleteAllocation"
+          />
+          <Button
+            v-else
             variant="ghost"
             label="Cancel"
             :disabled="state.submitting"

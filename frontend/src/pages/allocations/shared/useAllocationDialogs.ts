@@ -6,8 +6,19 @@ import {
   shallowRef,
   type InjectionKey,
 } from "vue";
-import type { AllocationEventData } from "@/components/GanttGrid";
+import { dialog, toast, useCall } from "frappe-ui";
+import type {
+  AllocationEventData,
+  AllocationSummaryText,
+  DeleteAllocationMode,
+} from "@/components/GanttGrid";
+import { errorMessage } from "@/utils/errors";
 import type { AllocationsView } from "./constants";
+import {
+  DELETE_MODE_OPTIONS,
+  deleteMessage,
+  deleteSummary,
+} from "./deleteAllocation";
 import type { AllocationRefreshTargets } from "./types";
 
 /** The Add / Edit dialog's open request. */
@@ -41,6 +52,85 @@ function createAllocationDialogs(view: AllocationsView) {
   /** The page's own writes: realtime updates they cause are not loaded twice. */
   const writes = reactive({ inFlight: 0, settledAt: 0 });
 
+  const deleteCall = useCall<
+    unknown,
+    { name: string; delete_mode: DeleteAllocationMode }
+  >({
+    url: "/api/v2/method/next_pms.resource_management.api.allocation.delete_allocation",
+    method: "POST",
+    immediate: false,
+  });
+
+  async function runWrite<T>(write: () => Promise<T>): Promise<T> {
+    writes.inFlight += 1;
+    try {
+      return await write();
+    } finally {
+      writes.inFlight -= 1;
+      writes.settledAt = Date.now();
+    }
+  }
+
+  function refresh(targets?: AllocationRefreshTargets) {
+    return page.value?.refresh(targets) ?? Promise.resolve();
+  }
+
+  /**
+   * Asks before deleting an allocation, with a mode for a recurring one. A failed delete
+   * shows the server's message in the dialog, which stays open.
+   */
+  function confirmDelete(
+    data: AllocationEventData,
+    summary?: AllocationSummaryText,
+    onDeleted?: () => void,
+  ) {
+    const allocationId = data.allocationId;
+    if (!allocationId) {
+      toast.error("Allocation ID not found");
+      return;
+    }
+    const remove = (mode: DeleteAllocationMode) =>
+      runWrite(async () => {
+        try {
+          await deleteCall.submit({ name: allocationId, delete_mode: mode });
+        } catch (error) {
+          throw new Error(errorMessage(error));
+        }
+        toast.success("The allocation has been deleted successfully");
+        onDeleted?.();
+        await refresh({
+          ...(data.employeeId ? { employeeIds: [data.employeeId] } : {}),
+          ...(data.projectId ? { projectIds: [data.projectId] } : {}),
+        });
+      });
+    const common = {
+      title: "Delete Allocation",
+      message: deleteMessage(deleteSummary(data, summary)),
+      confirmLabel: "Delete",
+      size: "lg" as const,
+    };
+    if (!data.recurrenceId) {
+      dialog.danger({ ...common, onConfirm: () => remove("only_this") });
+      return;
+    }
+    dialog.prompt({
+      ...common,
+      theme: "red",
+      icon: "lucide-triangle-alert",
+      fields: [
+        {
+          name: "mode",
+          type: "select",
+          label: "Apply delete to",
+          required: true,
+          defaultValue: "only_this",
+          options: DELETE_MODE_OPTIONS,
+        },
+      ],
+      onConfirm: ({ values }) => remove(values.mode as DeleteAllocationMode),
+    });
+  }
+
   function openForm(
     mode: AllocationFormRequest["mode"],
     data: AllocationEventData,
@@ -63,18 +153,10 @@ function createAllocationDialogs(view: AllocationsView) {
         if (page.value === next) page.value = null;
       };
     },
-    refresh: (targets?: AllocationRefreshTargets) =>
-      page.value?.refresh(targets) ?? Promise.resolve(),
+    refresh,
     /** Runs one of the page's writes, with the refresh that follows it. */
-    async runWrite<T>(write: () => Promise<T>): Promise<T> {
-      writes.inFlight += 1;
-      try {
-        return await write();
-      } finally {
-        writes.inFlight -= 1;
-        writes.settledAt = Date.now();
-      }
-    },
+    runWrite,
+    confirmDelete,
   };
 }
 

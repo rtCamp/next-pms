@@ -47,6 +47,7 @@ const hasRows = computed(() => team.employees.length > 0);
           :scroll-reset-key="team.scrollResetKey"
           @add="dialogs.openAdd"
           @edit="dialogs.openEdit"
+          @delete="dialogs.confirmDelete"
           @load-more="team.loadMore"
         />
       </div>
