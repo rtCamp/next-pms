@@ -79,17 +79,17 @@ const monthName = computed(() =>
       @select="select"
       @slide="slide"
     />
-    <p
-      v-if="!selectedFeedbackId"
-      class="p-4 text-center text-base text-ink-gray-5"
-    >
-      No feedback submitted for this month.
-    </p>
     <ClientBreakdown
-      v-else
+      v-if="selectedFeedbackId"
       :key="selectedFeedbackId"
       :feedback-id="selectedFeedbackId"
       :month-name="monthName"
     />
+    <p
+      v-else-if="!timeline.error"
+      class="p-4 text-center text-base text-ink-gray-5"
+    >
+      No feedback submitted for this month.
+    </p>
   </div>
 </template>
