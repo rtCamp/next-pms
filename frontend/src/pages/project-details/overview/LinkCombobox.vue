@@ -32,7 +32,13 @@ const props = defineProps<{
 const model = defineModel<string>({ required: true });
 
 const query = ref("");
-const selectedLabel = computed(() => props.selectedLabel ?? model.value);
+/** The option last picked here; `selectedLabel` only knows saved values. */
+const picked = ref<LookupOption | null>(null);
+const selectedLabel = computed(() =>
+  picked.value?.value === model.value
+    ? picked.value.label
+    : (props.selectedLabel ?? model.value),
+);
 
 const lookup = props.createLookup({
   // In input mode the combobox puts the selected label in the query; not a search.
@@ -47,7 +53,11 @@ const searchError = computed(() =>
 
 const value = computed({
   get: () => model.value || null,
-  set: (next) => (model.value = next ? String(next) : ""),
+  set: (next) => {
+    const id = next ? String(next) : "";
+    picked.value = lookup.options.find((option) => option.value === id) ?? null;
+    model.value = id;
+  },
 });
 </script>
 
