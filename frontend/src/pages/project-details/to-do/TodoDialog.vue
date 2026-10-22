@@ -15,6 +15,7 @@ import { useUserLookup } from "@/composables/useUserLookup";
 import RichTextEditor from "@/pages/project-details/RichTextEditor.vue";
 import { useSession } from "@/session";
 import { systemToLocalDateTime } from "@/utils/date";
+import { errorMessage } from "@/utils/errors";
 import {
   PRIORITY_DOT,
   STATUS_COLOR,
@@ -72,6 +73,10 @@ const lookup = useUserLookup({
       : assigneeQuery.value,
   selected: assigneeOption,
 });
+
+const searchError = computed(() =>
+  lookup.error ? errorMessage(lookup.error) : null,
+);
 
 const assignee = computed({
   get: () => form.assignee || null,
@@ -208,6 +213,14 @@ async function submit() {
               :image="personOf(item).image"
               :label="personOf(item).label"
             />
+          </template>
+          <template v-if="searchError && !lookup.options.length" #empty>
+            <span role="alert" class="text-ink-red-6">{{ searchError }}</span>
+          </template>
+          <template v-else-if="searchError" #footer>
+            <p role="alert" class="px-3 py-1.5 text-base text-ink-red-6">
+              {{ searchError }}
+            </p>
           </template>
         </Combobox>
         <template v-if="customFields">
