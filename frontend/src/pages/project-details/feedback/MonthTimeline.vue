@@ -83,12 +83,14 @@ onBeforeUnmount(() => observer?.disconnect());
       class="pointer-events-none absolute left-0 top-0 z-10 h-full w-12 bg-gradient-to-r from-surface-base to-transparent"
       aria-hidden="true"
     />
+    <!-- eslint-disable better-tailwindcss/no-restricted-classes -- Tailwind 3 has no scrollbar-width utility -->
     <div
       ref="scroller"
-      class="mb-4 overflow-x-auto pb-4"
+      class="mb-4 overflow-x-auto pb-4 [scrollbar-width:thin]"
       role="group"
       aria-label="Feedback by month"
     >
+      <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
       <div class="flex min-w-max gap-2">
         <span ref="startSentinel" class="w-2" aria-hidden="true" />
         <button
