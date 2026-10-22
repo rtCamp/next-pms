@@ -1,4 +1,5 @@
 import { dayjs } from "frappe-ui";
+import { systemToLocalDateTime } from "@/utils/date";
 import { STATUS_COLOR, STATUS_ICON, TODO_STATUSES } from "./constants";
 import type {
   Todo,
@@ -43,11 +44,14 @@ export function todoTitle(todo: Pick<TodoDoc, "custom_title" | "description">) {
   return todo.custom_title || htmlText(todo.description ?? "") || "Untitled";
 }
 
-/** A start or end time as `"3 Mar, 02:30 pm"`; `"—"` when unset. */
+/**
+ * A start or end time, stored in system time, in the user's time zone as `"3 Mar, 02:30 pm"`;
+ * `"—"` when unset.
+ */
 export function formatTodoDateTime(value: string | null | undefined): string {
   if (!value) return "—";
-  const date = dayjs(value);
-  return date.isValid() ? date.format("D MMM, hh:mm a") : value;
+  if (!dayjs(value).isValid()) return value;
+  return dayjs(systemToLocalDateTime(value)).format("D MMM, hh:mm a");
 }
 
 /** Each ToDo with its assignee's name and avatar; the email stands in for an unreadable User. */

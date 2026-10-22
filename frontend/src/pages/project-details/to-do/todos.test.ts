@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { getConfig, setConfig } from "frappe-ui";
 import {
   assigneeIds,
   deleteTodoMessage,
@@ -86,6 +87,26 @@ describe("formatTodoDateTime", () => {
     expect(formatTodoDateTime(null)).toBe("—");
     expect(formatTodoDateTime("")).toBe("—");
     expect(formatTodoDateTime("soon")).toBe("soon");
+  });
+
+  describe("in another time zone", () => {
+    const system = getConfig("systemTimezone");
+    const local = getConfig("localTimezone");
+    afterEach(() => {
+      setConfig("systemTimezone", system);
+      setConfig("localTimezone", local);
+    });
+
+    it("shows the system time in the user's time zone", () => {
+      setConfig("systemTimezone", "Asia/Kolkata");
+      setConfig("localTimezone", "America/New_York");
+      expect(formatTodoDateTime("2026-10-22 19:30:00")).toBe(
+        "22 Oct, 10:00 am",
+      );
+      expect(formatTodoDateTime("2026-10-23 05:00:00")).toBe(
+        "22 Oct, 07:30 pm",
+      );
+    });
   });
 });
 
