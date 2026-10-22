@@ -26,6 +26,12 @@ export interface AllocationsPage {
   customerIdFor: (data: AllocationEventData) => string | undefined;
 }
 
+/** The Add / Edit dialog's first three fields, in each page's order. */
+const FIELD_ORDER = {
+  team: ["employee", "project", "customer"],
+  project: ["project", "customer", "employee"],
+} as const satisfies Record<AllocationsView, readonly string[]>;
+
 function createAllocationDialogs(view: AllocationsView) {
   const page = shallowRef<AllocationsPage | null>(null);
   const form = reactive({
@@ -45,6 +51,7 @@ function createAllocationDialogs(view: AllocationsView) {
 
   return {
     view,
+    fieldOrder: FIELD_ORDER[view],
     form,
     writes,
     openAdd: (data: AllocationEventData = {}) => openForm("add", data),

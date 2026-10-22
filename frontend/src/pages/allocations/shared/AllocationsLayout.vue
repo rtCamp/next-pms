@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { UnsavedChangesDialog } from "@/components/UnsavedChangesDialog";
 import { provideUnsavedChanges } from "@/composables/useUnsavedChanges";
+import AllocationDialog from "./AllocationDialog.vue";
 import AllocationsHeader from "./AllocationsHeader.vue";
 import type { AllocationsView } from "./constants";
 import { provideAllocationDialogs } from "./useAllocationDialogs";
@@ -19,6 +20,7 @@ provideAllocationDialogs(props.view);
 <template>
   <AllocationsHeader />
   <slot />
+  <AllocationDialog />
   <UnsavedChangesDialog
     :open="unsavedChanges.dialogOpen.value"
     @keep-editing="unsavedChanges.keepEditing()"
