@@ -37,15 +37,16 @@ class PMSGrowthInitiative(Document):
         description: DF.TextEditor | None
         desired_outcome: DF.TextEditor | None
         ideation_date: DF.Date
-        ideation_owner: DF.Link | None
         is_closed: DF.Check
         linked_todos: DF.Table[PMSLinkedToDo]
         project: DF.Link
+        project_manager: DF.Link | None
         status: DF.Link
         update_log: DF.Table[PMSGrowthInitiativeUpdate]
     # end: auto-generated types
 
     def validate(self):
+        self._default_project_manager()
         self._ensure_initial_update_log()
         self._carry_forward_unset_update_fields()
         stamp_new_update_rows(self.update_log)
@@ -61,6 +62,10 @@ class PMSGrowthInitiative(Document):
         if self.update_log and self.update_log[-1].is_new():
             self.update_log[-1].closed_status = self.closed_status
         validate_linked_todos(self)
+
+    def _default_project_manager(self):
+        if not self.project_manager and self.project:
+            self.project_manager = frappe.db.get_value("Project", self.project, "custom_project_manager")
 
     def _ensure_initial_update_log(self):
         if self.update_log or not self.status:

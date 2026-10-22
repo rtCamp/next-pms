@@ -213,7 +213,7 @@ def notify_growth_comment_mentions(doc, content):
 
 
 def growth_owner_on_update(doc, method=None):
-    """Notify a user when they are assigned or reassigned as the activity owner of a Growth Initiative."""
+    """Notify a user when they are assigned or reassigned as the owner of a Growth Initiative."""
     owner = doc.activity_owner
     if not owner:
         return

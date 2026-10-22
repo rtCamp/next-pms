@@ -19,7 +19,7 @@
   "ideation_date",
   "ownership_section",
   "activity_owner",
-  "ideation_owner",
+  "project_manager",
   "column_break_xnrb",
   "billable_outcome",
   "description_section",
@@ -117,16 +117,17 @@
    "fieldname": "activity_owner",
    "fieldtype": "Link",
    "in_standard_filter": 1,
-   "label": "Activity Owner",
+   "label": "Owner",
    "options": "User",
    "search_index": 1
   },
   {
-   "fieldname": "ideation_owner",
+   "fieldname": "project_manager",
    "fieldtype": "Link",
    "in_standard_filter": 1,
-   "label": "Ideation Owner",
-   "options": "User"
+   "label": "PM",
+   "options": "User",
+   "search_index": 1
   },
   {
    "fieldname": "column_break_xnrb",
@@ -180,7 +181,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-07 12:30:00.000000",
+ "modified": "2026-10-22 20:00:00.000000",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "PMS Growth Initiative",

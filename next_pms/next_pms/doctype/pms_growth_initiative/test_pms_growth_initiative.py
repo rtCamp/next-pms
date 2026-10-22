@@ -93,6 +93,13 @@ class IntegrationTestPMSGrowthInitiative(IntegrationTestCase):
         initiative = self._make_initiative()
         self.assertEqual(str(initiative.ideation_date), today())
 
+    def test_pm_defaults_to_project_manager(self):
+        frappe.db.set_value("Project", self.project.name, "custom_project_manager", PROJECTS_MANAGER_USER)
+        self.addCleanup(frappe.db.set_value, "Project", self.project.name, "custom_project_manager", None)
+
+        self.assertEqual(self._make_initiative().project_manager, PROJECTS_MANAGER_USER)
+        self.assertEqual(self._make_initiative(project_manager=OWNER_USER).project_manager, OWNER_USER)
+
     def test_open_status_is_not_closed(self):
         initiative = self._make_initiative()
         self.assertEqual(initiative.is_closed, 0)

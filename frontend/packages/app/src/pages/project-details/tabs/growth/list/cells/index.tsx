@@ -1,14 +1,10 @@
 /**
- * External dependencies.
- */
-import { Avatar } from "@rtcamp/frappe-ui-react";
-
-/**
  * Internal dependencies.
  */
 import { formatProjectDate } from "@/lib/utils";
 import { PriorityBadge } from "./priorityBadge";
 import { StatusBadge } from "./statusBadge";
+import { UserCell } from "./userCell";
 import type { GrowthInitiativeItem, GrowthListColumn } from "../../types";
 
 interface GrowthCellProps {
@@ -30,21 +26,14 @@ export function GrowthCell({ column, item }: GrowthCellProps) {
       return <PriorityBadge priority={item.client_priority} />;
     case "status":
       return <StatusBadge status={item.status} />;
-    case "activity_owner": {
-      if (!item.activity_owner) return <span>—</span>;
-      const label = item.owner_details?.full_name ?? item.activity_owner;
+    case "activity_owner":
       return (
-        <div className="flex min-w-0 items-center gap-2">
-          <Avatar
-            size="xs"
-            shape="circle"
-            image={item.owner_details?.user_image ?? undefined}
-            label={label}
-          />
-          <span className="truncate">{label}</span>
-        </div>
+        <UserCell email={item.activity_owner} details={item.owner_details} />
       );
-    }
+    case "project_manager":
+      return (
+        <UserCell email={item.project_manager} details={item.pm_details} />
+      );
     case "modified":
       return (
         <span className="truncate">

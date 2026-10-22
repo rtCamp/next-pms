@@ -10,6 +10,6 @@ export const EMPTY_GROWTH_VALUES: GrowthFormValues = {
   desired_outcome: "",
   ideation_date: "",
   activity_owner: "",
-  ideation_owner: "",
+  project_manager: "",
   billable_outcome: "",
 };

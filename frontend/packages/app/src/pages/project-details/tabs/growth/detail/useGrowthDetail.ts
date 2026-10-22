@@ -58,13 +58,13 @@ export function useGrowthDetail(growthId: string) {
     () =>
       [
         data?.activity_owner,
-        data?.ideation_owner,
+        data?.project_manager,
         ...(data?.update_log ?? []).map((entry) => entry.updated_by),
         ...(followersData ?? []).map((f) => f.user),
       ].filter(Boolean) as string[],
     [
       data?.activity_owner,
-      data?.ideation_owner,
+      data?.project_manager,
       data?.update_log,
       followersData,
     ],
@@ -79,7 +79,7 @@ export function useGrowthDetail(growthId: string) {
     return {
       ...data,
       activity_owner_details: findUser(data.activity_owner),
-      ideation_owner_details: findUser(data.ideation_owner),
+      project_manager_details: findUser(data.project_manager),
       update_log: (data.update_log ?? []).map((entry) => ({
         ...entry,
         updated_by_details: findUser(entry.updated_by),

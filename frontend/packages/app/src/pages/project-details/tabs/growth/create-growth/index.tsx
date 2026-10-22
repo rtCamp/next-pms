@@ -67,7 +67,7 @@ const toPayload = (value: GrowthFormValues) => ({
   desired_outcome: value.desired_outcome,
   ideation_date: value.ideation_date,
   activity_owner: value.activity_owner || null,
-  ideation_owner: value.ideation_owner || null,
+  project_manager: value.project_manager || null,
 });
 
 const toUpdateLogPayload = (value: GrowthFormValues, isClosed: boolean) => ({
@@ -173,7 +173,7 @@ export function CreateGrowthModal({
           desired_outcome: existing.desired_outcome ?? "",
           ideation_date: existing.ideation_date ?? "",
           activity_owner: existing.activity_owner ?? "",
-          ideation_owner: existing.ideation_owner ?? "",
+          project_manager: existing.project_manager ?? "",
           billable_outcome: existing.billable_outcome
             ? String(existing.billable_outcome)
             : "",
@@ -471,8 +471,8 @@ export function CreateGrowthModal({
             name="activity_owner"
             children={(field) => (
               <EmployeeField
-                label="Activity owner"
-                placeholder="Select activity owner"
+                label="Owner"
+                placeholder="Select owner"
                 enabled={open}
                 value={field.state.value}
                 onChange={field.handleChange}
@@ -481,11 +481,11 @@ export function CreateGrowthModal({
           />
 
           <form.Field
-            name="ideation_owner"
+            name="project_manager"
             children={(field) => (
               <EmployeeField
-                label="Ideation owner"
-                placeholder="Select ideation owner"
+                label="PM"
+                placeholder="Defaults to the project's PM"
                 enabled={open}
                 value={field.state.value}
                 onChange={field.handleChange}

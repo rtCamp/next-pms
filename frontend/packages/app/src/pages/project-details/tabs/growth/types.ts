@@ -19,20 +19,21 @@ export interface ApiGrowthInitiativeItem {
   is_closed: 0 | 1;
   closed_status: string | null;
   activity_owner: string | null;
-  ideation_owner: string | null;
+  project_manager: string | null;
   billable_outcome: number;
   modified: string;
 }
 
 export interface GrowthInitiativeItem extends ApiGrowthInitiativeItem {
   owner_details?: UserDetails | null;
+  pm_details?: UserDetails | null;
 }
 
 export type UserDetailsMap = Record<string, UserDetails | undefined>;
 
 export interface GrowthFilters {
   activityOwner: string;
-  ideationOwner: string;
+  projectManager: string;
   status: string;
   category: string;
 }
@@ -78,6 +79,6 @@ export interface ApiGrowthDetail extends ApiGrowthInitiativeItem {
 
 export interface GrowthDetail extends ApiGrowthDetail {
   activity_owner_details: UserDetails | null;
-  ideation_owner_details: UserDetails | null;
+  project_manager_details: UserDetails | null;
   update_log: EnrichedGrowthUpdateEntry[];
 }

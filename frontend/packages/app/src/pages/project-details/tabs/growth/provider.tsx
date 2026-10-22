@@ -48,7 +48,7 @@ export function GrowthProvider({ children }: PropsWithChildren) {
     error,
     mutate,
     activityOwnersWithDetails,
-    ideationOwnersWithDetails,
+    projectManagersWithDetails,
   } = useGrowthData(filters, sort);
 
   const { data: allStatuses, isLoading: statusesLoading } =
@@ -130,7 +130,7 @@ export function GrowthProvider({ children }: PropsWithChildren) {
         filters,
         sort,
         activityOwnersWithDetails,
-        ideationOwnersWithDetails,
+        projectManagersWithDetails,
         isCreateOpen,
         editName,
         deleteName,
@@ -159,7 +159,7 @@ export function GrowthProvider({ children }: PropsWithChildren) {
       filters,
       sort,
       activityOwnersWithDetails,
-      ideationOwnersWithDetails,
+      projectManagersWithDetails,
       isCreateOpen,
       editName,
       deleteName,

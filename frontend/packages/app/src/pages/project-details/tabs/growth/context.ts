@@ -24,7 +24,7 @@ export interface GrowthContextProps {
     filters: GrowthFilters;
     sort: GrowthSort | null;
     activityOwnersWithDetails: UserDetailsMap;
-    ideationOwnersWithDetails: UserDetailsMap;
+    projectManagersWithDetails: UserDetailsMap;
     isCreateOpen: boolean;
     editName: string | null;
     deleteName: string | null;
@@ -57,7 +57,7 @@ export const GrowthContext = createContext<GrowthContextProps>({
     filters: DEFAULT_GROWTH_FILTERS,
     sort: null,
     activityOwnersWithDetails: {},
-    ideationOwnersWithDetails: {},
+    projectManagersWithDetails: {},
     isCreateOpen: false,
     editName: null,
     deleteName: null,

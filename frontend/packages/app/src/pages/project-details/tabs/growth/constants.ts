@@ -21,6 +21,12 @@ const OWNER_COLUMN: GrowthListColumn = {
   width: "140px",
   flex: 0,
 };
+const PM_COLUMN: GrowthListColumn = {
+  key: "project_manager",
+  label: "PM",
+  width: "140px",
+  flex: 0,
+};
 const LAST_UPDATED_COLUMN: GrowthListColumn = {
   key: "modified",
   label: "Last Updated Date",
@@ -39,6 +45,7 @@ export const OPEN_GROWTH_COLUMNS: GrowthListColumn[] = [
   },
   { key: "status", label: "Status", width: "120px", flex: 1 },
   OWNER_COLUMN,
+  PM_COLUMN,
   LAST_UPDATED_COLUMN,
 ];
 
@@ -46,6 +53,7 @@ export const CLOSED_GROWTH_COLUMNS: GrowthListColumn[] = [
   ACTIVITY_COLUMN,
   CATEGORY_COLUMN,
   OWNER_COLUMN,
+  PM_COLUMN,
   LAST_UPDATED_COLUMN,
   { key: "closed_status", label: "Closed Status", width: "120px", flex: 1 },
 ];
@@ -55,7 +63,7 @@ export const GROWTH_CATEGORY_DOCTYPE = "PMS Growth Initiative Category";
 
 export const DEFAULT_GROWTH_FILTERS: GrowthFilters = {
   activityOwner: "",
-  ideationOwner: "",
+  projectManager: "",
   status: "",
   category: "",
 };

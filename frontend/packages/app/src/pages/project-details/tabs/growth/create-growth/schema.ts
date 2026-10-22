@@ -39,7 +39,7 @@ export const buildGrowthSchema = (
         .trim()
         .min(1, { message: "Please pick an ideation date." }),
       activity_owner: z.string(),
-      ideation_owner: z.string(),
+      project_manager: z.string(),
       billable_outcome: billableOutcomeSchema,
     })
     .superRefine(requireClosedStatus(isClosedStatus));

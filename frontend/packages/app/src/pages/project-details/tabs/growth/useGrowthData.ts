@@ -31,8 +31,8 @@ export function useGrowthData(filters: GrowthFilters, sort: GrowthSort | null) {
     const base: [string, string, string][] = [["project", "=", projectId]];
     if (filters.activityOwner)
       base.push(["activity_owner", "=", filters.activityOwner]);
-    if (filters.ideationOwner)
-      base.push(["ideation_owner", "=", filters.ideationOwner]);
+    if (filters.projectManager)
+      base.push(["project_manager", "=", filters.projectManager]);
     if (filters.status) base.push(["status", "=", filters.status]);
     if (filters.category) base.push(["category", "=", filters.category]);
     return base;
@@ -56,7 +56,7 @@ export function useGrowthData(filters: GrowthFilters, sort: GrowthSort | null) {
         "is_closed",
         "closed_status",
         "activity_owner",
-        "ideation_owner",
+        "project_manager",
         "billable_outcome",
         "modified",
       ],
@@ -69,9 +69,9 @@ export function useGrowthData(filters: GrowthFilters, sort: GrowthSort | null) {
   );
 
   const { data: ownersData, mutate: mutateOwners } = useFrappeGetDocList<
-    Pick<ApiGrowthInitiativeItem, "activity_owner" | "ideation_owner">
+    Pick<ApiGrowthInitiativeItem, "activity_owner" | "project_manager">
   >(GROWTH_DOCTYPE, {
-    fields: ["activity_owner", "ideation_owner"],
+    fields: ["activity_owner", "project_manager"],
     filters: [["project", "=", projectId]],
     limit: 500,
   });
@@ -83,16 +83,16 @@ export function useGrowthData(filters: GrowthFilters, sort: GrowthSort | null) {
       ) as string[],
     [ownersData],
   );
-  const ideationOwners = useMemo(
+  const projectManagers = useMemo(
     () =>
-      [...new Set((ownersData ?? []).map((r) => r.ideation_owner))].filter(
+      [...new Set((ownersData ?? []).map((r) => r.project_manager))].filter(
         Boolean,
       ) as string[],
     [ownersData],
   );
   const allEmails = useMemo(
-    () => [...new Set([...activityOwners, ...ideationOwners])],
-    [activityOwners, ideationOwners],
+    () => [...new Set([...activityOwners, ...projectManagers])],
+    [activityOwners, projectManagers],
   );
 
   const { data: usersData } = useUserDetails(allEmails);
@@ -101,9 +101,9 @@ export function useGrowthData(filters: GrowthFilters, sort: GrowthSort | null) {
     () => toUserMap(activityOwners, usersData ?? []),
     [activityOwners, usersData],
   );
-  const ideationOwnersWithDetails = useMemo(
-    () => toUserMap(ideationOwners, usersData ?? []),
-    [ideationOwners, usersData],
+  const projectManagersWithDetails = useMemo(
+    () => toUserMap(projectManagers, usersData ?? []),
+    [projectManagers, usersData],
   );
 
   const mutate = useCallback(
@@ -118,8 +118,11 @@ export function useGrowthData(filters: GrowthFilters, sort: GrowthSort | null) {
         owner_details: item.activity_owner
           ? activityOwnersWithDetails[item.activity_owner]
           : null,
+        pm_details: item.project_manager
+          ? projectManagersWithDetails[item.project_manager]
+          : null,
       })),
-    [data, activityOwnersWithDetails],
+    [data, activityOwnersWithDetails, projectManagersWithDetails],
   );
 
   return {
@@ -128,6 +131,6 @@ export function useGrowthData(filters: GrowthFilters, sort: GrowthSort | null) {
     error,
     mutate,
     activityOwnersWithDetails,
-    ideationOwnersWithDetails,
+    projectManagersWithDetails,
   };
 }

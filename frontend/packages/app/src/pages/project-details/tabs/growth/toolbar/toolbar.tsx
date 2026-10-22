@@ -20,7 +20,7 @@ const toNameOptions = (allLabel: string, docs: { name: string }[]) => [
 export function GrowthToolbar() {
   const filters = useGrowth((c) => c.state.filters);
   const activityOwners = useGrowth((c) => c.state.activityOwnersWithDetails);
-  const ideationOwners = useGrowth((c) => c.state.ideationOwnersWithDetails);
+  const projectManagers = useGrowth((c) => c.state.projectManagersWithDetails);
   const setFilters = useGrowth((c) => c.actions.setFilters);
 
   const statuses = useGrowth((c) => c.state.statuses);
@@ -41,16 +41,16 @@ export function GrowthToolbar() {
     <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
       <div className="flex flex-wrap gap-2">
         <OwnerCombobox
-          placeholder="Activity owner"
+          placeholder="Owner"
           owners={activityOwners}
           value={filters.activityOwner}
           onChange={(activityOwner) => setFilters({ activityOwner })}
         />
         <OwnerCombobox
-          placeholder="Ideation owner"
-          owners={ideationOwners}
-          value={filters.ideationOwner}
-          onChange={(ideationOwner) => setFilters({ ideationOwner })}
+          placeholder="PM"
+          owners={projectManagers}
+          value={filters.projectManager}
+          onChange={(projectManager) => setFilters({ projectManager })}
         />
         <Select
           size="sm"

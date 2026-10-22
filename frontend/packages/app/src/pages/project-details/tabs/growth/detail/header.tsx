@@ -63,12 +63,12 @@ export function GrowthDetailHeader({
         <OwnerPill
           email={growth.activity_owner}
           details={growth.activity_owner_details}
-          role="Activity owner"
+          role="Owner"
         />
         <OwnerPill
-          email={growth.ideation_owner}
-          details={growth.ideation_owner_details}
-          role="Ideation owner"
+          email={growth.project_manager}
+          details={growth.project_manager_details}
+          role="PM"
         />
         <div className="bg-surface-gray-2 rounded-full px-2 py-1">
           <StatusBadge status={growth.status} />
