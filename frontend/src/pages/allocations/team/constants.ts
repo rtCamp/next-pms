@@ -1,4 +1,5 @@
 import type { FilterField } from "@/components/Filter";
+import { EQUALITY_OPERATORS } from "@/pages/allocations/shared/constants";
 import { ALLOCATION_TYPE_OPTIONS } from "@/pages/allocations/shared/filterParams";
 
 /** Query params of the Team page's designation and department filters (JSON lists). */
@@ -6,11 +7,6 @@ export const TEAM_LIST_PARAMS = ["designation", "department"] as const;
 export type TeamListParam = (typeof TEAM_LIST_PARAMS)[number];
 
 export const TEAM_ALLOCATION_TYPE_OPTIONS = ALLOCATION_TYPE_OPTIONS;
-
-const EQUALITY_OPERATORS = [
-  { label: "Equals", value: "=" },
-  { label: "Not Equals", value: "!=" },
-];
 
 export const BUSINESS_UNIT_FIELD = "business_unit";
 

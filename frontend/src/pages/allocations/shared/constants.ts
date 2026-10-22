@@ -57,6 +57,12 @@ export const REALTIME_DEBOUNCE_MS = 500;
 
 export const RESOURCE_ALLOCATION_DOCTYPE = "Resource Allocation";
 
+/** The operators of the Filter panel's link and select fields. */
+export const EQUALITY_OPERATORS = [
+  { label: "Equals", value: "=" },
+  { label: "Not Equals", value: "!=" },
+];
+
 export type AllocationsView = "team" | "project";
 
 /** The two allocation views in the breadcrumb's view menu. */
