@@ -5,9 +5,12 @@ import { useQueryPatch } from "@/composables/useQueryPatch";
 import { queryString } from "@/utils/query";
 import { DEFAULT_VIEW, VIEW_PARAM, type FeedbackView } from "./constants";
 import { feedbackView } from "./feedback";
+import ClientFeedbackView from "./ClientFeedbackView.vue";
 import FeedbackToolbar from "./FeedbackToolbar.vue";
+import { provideClientFeedback } from "./useClientFeedback";
 
 const route = useRoute();
+provideClientFeedback();
 const patchQuery = useQueryPatch();
 
 const viewParam = computed(() => queryString(route.query[VIEW_PARAM]));
@@ -36,5 +39,6 @@ watch(
 <template>
   <div>
     <FeedbackToolbar v-model="view" />
+    <ClientFeedbackView v-if="view === 'client'" />
   </div>
 </template>
