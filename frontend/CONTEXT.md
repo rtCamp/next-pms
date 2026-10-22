@@ -85,7 +85,8 @@ _Avoid_: ticket, issue, todo (a `ToDo` is a separate Frappe doctype).
 **ToDo** — a Frappe `ToDo`: a dated action assigned to one user. The Project details page's ToDos tab lists the
 ToDos that reference the project (`reference_type` Project) and creates them there. Title, start and end are rtcamp
 custom fields (`custom_title`, `custom_from_time`, `custom_to_time`), shown and required only when the boot data says
-they exist (`has_todo_custom_fields`). In code: `provideTodos()` / `useTodos()` in `pages/project-details/to-do/`.
+they exist (`has_todo_custom_fields`). Start and end are stored in system time and shown in the user's time zone. In
+code: `provideTodos()` / `useTodos()` in `pages/project-details/to-do/`.
 _Avoid_: task (a `Task` is a separate doctype), action item.
 
 **Project phase** — a named, coloured stage a project moves through (`Project Phase`). The kanban has a column per
@@ -120,6 +121,22 @@ and previous CMS; the NDA, case study and testimonial Checks). The boot data say
 pointing at `GitHub Repository`, a doctype from another app). Listed on the Overview tab when the doctype exists
 (`has_repository_connections`); adding or unlinking one saves at once, outside the tab's edit mode.
 _Avoid_: repo link, integration.
+
+**Customer feedback** — a submitted `Customer Feedback` (rtcamp app) a customer contact gives for one period:
+**client feedback** rates the project (`evaluation_type` Project), **team feedback** rates one employee
+(Engineer, Project Manager, Project Coordinator, Quality Engineer). Ratings are stored as 0–1 and shown as stars on
+the API's `star_max` scale (4). The Feedback tab shows the client feedback by month and lists the team feedback of
+the project's customer, picked with `?view=client|team` (client is the default and stays out of the URL).
+_Avoid_: review, survey, rating (for the whole record).
+
+**Feedback schedule** — a `Customer Feedback Schedule`: a request for feedback over a period, sent to a customer
+contact, for projects or for employees. The Feedback tab's month timeline is built from a project's schedules, so a
+month whose schedule has no feedback yet shows "-".
+_Avoid_: feedback request (for the record), survey.
+
+**Project comments** — a comment thread on something shown on the Project details page (RAG stats, a customer
+feedback), wired to `<Comments>` by `useProjectComments` with the thread's own list, add, update and delete
+endpoints.
 
 **Status update** — a written project update with a status, comments and pinning (`Project Status Update`).
 _Avoid_: report (a `Project Report` is a separate doctype), note.
