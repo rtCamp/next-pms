@@ -1,4 +1,4 @@
-import { dayjs } from "frappe-ui";
+import { dayjs, dayjsLocal } from "frappe-ui";
 
 /** Start of the Monday-based week containing `date`, at local midnight. */
 export function getWeekStart(date: Date): Date {
@@ -33,4 +33,16 @@ export function getRangeLabel(rangeStart: Date, days: number): string {
 export function formatProjectDate(isoDate: string): string {
   const date = dayjs(isoDate, "YYYY-MM-DD");
   return date.format(date.year() === dayjs().year() ? "MMM D" : "MMM D, YYYY");
+}
+
+/**
+ * A `YYYY-MM-DD HH:mm:ss` date-time in the system time zone, in the user's time zone
+ * (frappe-ui's `systemTimezone` and `localTimezone`); `""` when unset.
+ */
+export function systemToLocalDateTime(
+  value: string | null | undefined,
+): string {
+  if (!value) return "";
+  const date = dayjsLocal(value);
+  return date.isValid() ? date.format("YYYY-MM-DD HH:mm:ss") : value;
 }

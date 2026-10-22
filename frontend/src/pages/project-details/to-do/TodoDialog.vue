@@ -14,6 +14,7 @@ import type { LookupOption } from "@/composables/useRemoteLookup";
 import { useUserLookup } from "@/composables/useUserLookup";
 import RichTextEditor from "@/pages/project-details/RichTextEditor.vue";
 import { useSession } from "@/session";
+import { systemToLocalDateTime } from "@/utils/date";
 import {
   PRIORITY_DOT,
   STATUS_COLOR,
@@ -101,6 +102,17 @@ const priority = computed({
   set: (value) => {
     if (value) form.priority = value as TodoPriority;
   },
+});
+
+// frappe-ui's DateTimePicker converts local to system time when it emits, but reads
+// its value as local time, so the value going in is converted here.
+const startAt = computed({
+  get: () => systemToLocalDateTime(form.startAt),
+  set: (value: string) => (form.startAt = value),
+});
+const endAt = computed({
+  get: () => systemToLocalDateTime(form.endAt),
+  set: (value: string) => (form.endAt = value),
 });
 
 const isEdit = computed(() => editing.value !== null);
@@ -200,7 +212,7 @@ async function submit() {
         </Combobox>
         <template v-if="customFields">
           <div class="flex flex-col gap-1">
-            <DateTimePicker v-model="form.startAt" :format="DATE_TIME_FORMAT">
+            <DateTimePicker v-model="startAt" :format="DATE_TIME_FORMAT">
               <template #trigger="{ displayLabel, open: pickerOpen, setOpen }">
                 <Button
                   variant="subtle"
@@ -220,7 +232,7 @@ async function submit() {
             <ErrorMessage v-if="errors.startAt" :message="errors.startAt" />
           </div>
           <div class="flex flex-col gap-1">
-            <DateTimePicker v-model="form.endAt" :format="DATE_TIME_FORMAT">
+            <DateTimePicker v-model="endAt" :format="DATE_TIME_FORMAT">
               <template #trigger="{ displayLabel, open: pickerOpen, setOpen }">
                 <Button
                   variant="subtle"
