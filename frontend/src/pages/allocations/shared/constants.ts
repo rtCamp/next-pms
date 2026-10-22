@@ -56,3 +56,26 @@ export const OVER_ALLOCATION_DEBOUNCE_MS = 500;
 export const REALTIME_DEBOUNCE_MS = 500;
 
 export const RESOURCE_ALLOCATION_DOCTYPE = "Resource Allocation";
+
+export type AllocationsView = "team" | "project";
+
+/** The two allocation views in the breadcrumb's view menu. */
+export const ALLOCATIONS_VIEWS: {
+  key: AllocationsView;
+  label: string;
+  routeName: string;
+  icon: string;
+}[] = [
+  {
+    key: "team",
+    label: "Team",
+    routeName: "allocations-team",
+    icon: "lucide-users",
+  },
+  {
+    key: "project",
+    label: "Project",
+    routeName: "allocations-project",
+    icon: "lucide-folder",
+  },
+];
