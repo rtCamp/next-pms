@@ -88,7 +88,7 @@ const periodDate = (date: string) => dayjs(date).format("MMM DD");
           :label="detail.data.employee_name"
           :image="detail.data.avatar_url ?? undefined"
         />
-        <span class="truncate">{{ detail.data.employee_name }}</span>
+        <span class="break-words">{{ detail.data.employee_name }}</span>
       </MetaRow>
       <MetaRow label="Customer">
         <Avatar
@@ -96,19 +96,21 @@ const periodDate = (date: string) => dayjs(date).format("MMM DD");
           :label="detail.data.customer"
           :image="detail.data.customer_avatar_url ?? undefined"
         />
-        <span class="truncate">{{ detail.data.customer }}</span>
+        <span class="break-words">{{ detail.data.customer }}</span>
       </MetaRow>
       <MetaRow label="Average rating">
-        <Rating
-          :model-value="detail.data.average ?? 0"
-          :max="detail.data.ratings[0]?.star_max"
-          :step="0.5"
-          disabled
-          aria-label="Average rating"
-        />
-        <span class="tabular-nums">
-          {{ detail.data.average?.toFixed(1) ?? "0.0" }}
-        </span>
+        <div class="flex items-center gap-1.5">
+          <Rating
+            :model-value="detail.data.average ?? 0"
+            :max="detail.data.ratings[0]?.star_max"
+            :step="0.5"
+            disabled
+            aria-label="Average rating"
+          />
+          <span class="tabular-nums">
+            {{ detail.data.average?.toFixed(1) ?? "0.0" }}
+          </span>
+        </div>
       </MetaRow>
     </aside>
   </div>
