@@ -24,6 +24,7 @@ import ProjectDetailsHeader from "./ProjectDetailsHeader.vue";
 import RagStatsTab from "./rag-stats/RagStatsTab.vue";
 import ReportsTab from "./reports/ReportsTab.vue";
 import { selectedTab, visibleTabs } from "./tabs";
+import TodoDialog from "./to-do/TodoDialog.vue";
 import TodosTab from "./to-do/TodosTab.vue";
 import { provideTodos } from "./to-do/useTodos";
 import TrackingTab from "./tracking/TrackingTab.vue";
@@ -179,4 +180,5 @@ watch(
     @discard="unsavedChanges.discardChanges()"
     @save="unsavedChanges.saveChanges()"
   />
+  <TodoDialog />
 </template>

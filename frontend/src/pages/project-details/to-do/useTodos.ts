@@ -11,6 +11,7 @@ import {
 } from "vue";
 import { dialog, toast, useList } from "frappe-ui";
 import { useDoctypeListUpdates } from "@/composables/useDoctypeListUpdates";
+import { useSession } from "@/session";
 import { errorMessage } from "@/utils/errors";
 import { TODO_LIMIT } from "./constants";
 import {
@@ -18,11 +19,13 @@ import {
   deleteTodoMessage,
   hasTodoCustomFields,
   todoFields,
+  toTodoFields,
   withAssignees,
 } from "./todos";
-import type { Todo, TodoDoc, TodoStatus, TodoUser } from "./types";
+import type { Todo, TodoDoc, TodoForm, TodoStatus, TodoUser } from "./types";
 
 function createTodos(projectId: MaybeRefOrGetter<string>) {
+  const session = useSession();
   const customFields = hasTodoCustomFields();
 
   // Loaded by the first tab that shows the ToDos, not with the page.
@@ -108,6 +111,48 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
     });
   }
 
+  /** The ToDo being edited, `null` when creating; the dialog is open while `editorOpen`. */
+  const editing = ref<Todo | null>(null);
+  const editorOpen = ref(false);
+  const saving = ref(false);
+
+  function openCreate() {
+    editing.value = null;
+    editorOpen.value = true;
+  }
+
+  function openEdit(todo: Todo) {
+    editing.value = todo;
+    editorOpen.value = true;
+  }
+
+  /** Creates or updates the ToDo; resolves `true` when it saved. */
+  async function save(form: TodoForm): Promise<boolean> {
+    if (saving.value) return false;
+    const fields = toTodoFields(form, customFields);
+    const todo = editing.value;
+    saving.value = true;
+    try {
+      if (todo) {
+        await list.setValue.submit({ name: todo.name, ...fields });
+      } else {
+        await list.insert.submit({
+          ...fields,
+          assigned_by: session.userId,
+          reference_type: "Project",
+          reference_name: toValue(projectId),
+        } as Partial<TodoDoc>);
+      }
+    } catch (error) {
+      toast.error(errorMessage(error));
+      return false;
+    } finally {
+      saving.value = false;
+    }
+    toast.success(todo ? "ToDo updated" : "ToDo created");
+    return true;
+  }
+
   return {
     customFields,
     todos,
@@ -121,6 +166,12 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
     isStatusBusy: (todo: Todo) => pendingStatus.has(todo.name),
     toggleDone,
     requestDelete,
+    editing,
+    editorOpen,
+    saving,
+    openCreate,
+    openEdit,
+    save,
   };
 }
 
@@ -130,8 +181,8 @@ const todosKey: InjectionKey<Todos> = Symbol("todos");
 
 /**
  * The project's ToDos, shared by every part of the Project details page that shows
- * them: the list (loaded on first `load()`, refetched on realtime ToDo changes),
- * done / reopen and delete.
+ * them: the list (loaded on first `load()`, refetched on realtime ToDo changes), the
+ * one create / edit dialog, done / reopen and delete.
  */
 export function provideTodos(projectId: MaybeRefOrGetter<string>): Todos {
   const todos = createTodos(projectId);

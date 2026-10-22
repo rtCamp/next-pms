@@ -4,7 +4,7 @@ import { errorMessage } from "@/utils/errors";
 import TodoRow from "./TodoRow.vue";
 import { useTodos } from "./useTodos";
 
-const { todos, loading, loadError, load, refresh } = useTodos();
+const { todos, loading, loadError, load, refresh, openCreate } = useTodos();
 load();
 </script>
 
@@ -12,6 +12,12 @@ load();
   <div class="flex flex-col gap-6">
     <div class="flex items-center justify-between">
       <h2 class="text-2xl-semibold leading-tighter text-ink-gray-8">ToDos</h2>
+      <Button
+        variant="solid"
+        icon-left="lucide-plus"
+        label="New ToDo"
+        @click="openCreate()"
+      />
     </div>
     <div
       v-if="loadError"

@@ -19,6 +19,7 @@ const assigneeHref = computed(
 );
 
 const actions = computed(() => [
+  { label: "Edit", onClick: () => todos.openEdit(props.todo) },
   {
     label: "Delete",
     theme: "red" as const,
