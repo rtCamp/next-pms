@@ -82,6 +82,12 @@ _Avoid_: ticket, issue, todo (a `ToDo` is a separate Frappe doctype).
 **Task status** — a task's `status`: `Open`, `Working`, `Pending Review`, `Overdue`, `Template`, `Completed`,
 `Cancelled`. In code: `TaskStatusValue` and `TASK_STATUSES` from `components/TaskStatus` (P16).
 
+**ToDo** — a Frappe `ToDo`: a dated action assigned to one user. The Project details page's ToDos tab lists the
+ToDos that reference the project (`reference_type` Project) and creates them there. Title, start and end are rtcamp
+custom fields (`custom_title`, `custom_from_time`, `custom_to_time`), shown and required only when the boot data says
+they exist (`has_todo_custom_fields`). In code: `provideTodos()` / `useTodos()` in `pages/project-details/to-do/`.
+_Avoid_: task (a `Task` is a separate doctype), action item.
+
 **Project phase** — a named, coloured stage a project moves through (`Project Phase`). The kanban has a column per
 phase, ordered by `position`. In code: `useProjectPhases()` and `PhaseIcon`.
 _Avoid_: stage, status (status is a separate field).
