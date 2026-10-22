@@ -3,6 +3,9 @@ import type { TodoPriority, TodoStatus } from "./types";
 /** React reads at most this many ToDos, with no paging. */
 export const TODO_LIMIT = 500;
 
+/** How long after a local write its own realtime echo is still skipped. */
+export const OWN_WRITE_ECHO_MS = 10_000;
+
 export const TODO_STATUSES: TodoStatus[] = ["Open", "Closed", "Cancelled"];
 export const TODO_PRIORITIES: TodoPriority[] = ["Low", "Medium", "High"];
 
