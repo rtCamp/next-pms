@@ -141,9 +141,54 @@ const giveWeekendsOff = async (entry) => {
   }
 };
 
+/** The name of the `doctype` record whose `field` is `value`, created when missing. */
+const ensureMaster = async (doctype, field, value, extra = {}) => {
+  const [existing] = await getDocList(doctype, [
+    [field, "=", value],
+    ...Object.entries(extra).map(([key, val]) => [key, "=", val]),
+  ]);
+  if (existing) return existing.name;
+  return (await createDocument(doctype, { [field]: value, ...extra })).name;
+};
+
+/** Sets a seeded employee's designation, department and skills, creating the masters. */
+const setProfile = async (employee, { designation, department, skills }) => {
+  const profile = {};
+  if (designation) {
+    profile.designation = await ensureMaster(
+      "Designation",
+      "designation_name",
+      designation,
+    );
+  }
+  if (department) {
+    profile.department = await ensureMaster(
+      "Department",
+      "department_name",
+      department,
+      { company: employee.company },
+    );
+  }
+  if (Object.keys(profile).length) {
+    await updateDocument("Employee", employee.name, profile);
+  }
+  if (skills?.length) {
+    const employeeSkills = [];
+    for (const skill of skills) {
+      await ensureMaster("Skill", "skill_name", skill);
+      employeeSkills.push({ skill, proficiency: 0.6 });
+    }
+    await createDocument("Employee Skill Map", {
+      employee: employee.name,
+      employee_skills: employeeSkills,
+    });
+  }
+};
+
 /**
  * Creates the throwaway employees a case lists in `payloadCreateWeekEmployees`
- * ({ <name>: { managed, holidayList, weekendsOff } }) and records their ids on the stub.
+ * ({ <name>: { managed, holidayList, weekendsOff, designation, department, skills } })
+ * and records their ids on the stub.
  * They report to the manager unless `managed` is false (the manager stays their leave
  * approver either way); `holidayList` replaces the company's (created empty when missing),
  * and `weekendsOff` replaces it with one that has every Saturday and Sunday off.
@@ -171,6 +216,7 @@ const createEmployees = async (entry) => {
       },
       "admin",
     );
+    await setProfile(res.data, options ?? {});
     if (options?.weekendsOff) {
       await assignHolidayList(
         res.data.name,
@@ -328,6 +374,81 @@ const decideWeeks = async (entry, tcId, specs, booked) => {
   }
 };
 
+const ALLOCATE =
+  "/api/method/next_pms.resource_management.api.allocation.handle_allocation";
+
+/**
+ * Books the allocations of `payloadWeekAllocations` through the app's own endpoint, as
+ * admin: [{ employee, project, weeksAgo, from, to, hours, billable, tentative, note,
+ * repeatWeeks }]. `weeksAgo` below 0 is a week ahead; `from`/`to` default to Mon/Fri.
+ */
+const bookAllocations = async (entry, specs) => {
+  for (const spec of specs) {
+    const from = dateInWeek(spec.weeksAgo, spec.from ?? "Mon");
+    const to = dateInWeek(spec.weeksAgo, spec.to ?? "Fri");
+    const days = Math.round((new Date(to) - new Date(from)) / DAY) + 1;
+    const project = entry[`payloadCreateProject${spec.project}`];
+    await apiRequest(
+      ALLOCATE,
+      {
+        method: "POST",
+        data: {
+          allocation: {
+            doctype: "Resource Allocation",
+            employee: employeeId(entry, spec.employee),
+            project: projectIdOf(entry, spec.project),
+            customer: project.customer,
+            allocation_start_date: from,
+            allocation_end_date: to,
+            hours_allocated_per_day: spec.hours,
+            total_allocated_hours: spec.hours * days,
+            include_weekends: false,
+            is_billable: spec.billable === false ? 0 : 1,
+            status: spec.tentative ? "Tentative" : "Confirmed",
+            note: spec.note ?? "",
+          },
+          repeat_till_week_count: spec.repeatWeeks ?? 0,
+        },
+      },
+      "admin",
+    );
+  }
+};
+
+/** Tags a case's projects: `payloadProjectTags` [{ project: <postfix>, tag }]. */
+const tagProjects = async (entry, specs) => {
+  for (const { project, tag } of specs) {
+    await apiRequest(
+      "/api/method/frappe.desk.doctype.tag.tag.add_tag",
+      {
+        method: "POST",
+        data: { tag, dt: "Project", dn: projectIdOf(entry, project) },
+      },
+      "admin",
+    );
+  }
+};
+
+/** Deletes an employee's allocations on the case's projects and books them again; for retried writing cases. */
+export const reseedAllocations = async (entry, employee) => {
+  const id = employeeId(entry, employee);
+  const projects = Object.keys(entry)
+    .filter((key) => key.startsWith("payloadDeleteProject"))
+    .map((key) => entry[key].projectId);
+  for (const { name } of await getDocList("Resource Allocation", [
+    ["employee", "=", id],
+    ["project", "in", projects],
+  ])) {
+    await deleteDocument("Resource Allocation", name);
+  }
+  await bookAllocations(
+    entry,
+    (entry.payloadWeekAllocations ?? []).filter(
+      (spec) => spec.employee === employee,
+    ),
+  );
+};
+
 /**
  * Logs time for a case's employees in past weeks, and moves weeks on through
  * submission and approval, from these keys of its data:
@@ -339,6 +460,8 @@ const decideWeeks = async (entry, tcId, specs, booked) => {
  *   payloadWeekLeave            [{ employee, weeksAgo, day, half, reason }] - booked as admin
  *   payloadWeekStatus           [{ employee, weeksAgo, status: "pending" | "approved" | "rejected", days, note }]
  *   payloadLikeTasks            [{ employee, project, subject }] - the employee stars the task
+ *   payloadWeekAllocations      [{ employee, project, weeksAgo, from, to, hours, ... }] - see bookAllocations
+ *   payloadProjectTags          [{ project, tag }] - tags the case's projects
  */
 export const createWeekTimeForTestCases = async (testCaseIDs, jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
@@ -360,6 +483,8 @@ export const createWeekTimeForTestCases = async (testCaseIDs, jsonDir) => {
     taskOf,
   );
   await bookLeave(entry, entry.payloadWeekLeave ?? []);
+  await bookAllocations(entry, entry.payloadWeekAllocations ?? []);
+  await tagProjects(entry, entry.payloadProjectTags ?? []);
   await decideWeeks(entry, tcId, entry.payloadWeekStatus ?? [], booked);
 
   for (const { employee, project, subject } of entry.payloadLikeTasks ?? []) {

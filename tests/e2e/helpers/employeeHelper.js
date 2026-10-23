@@ -382,7 +382,11 @@ export const deleteEmployeeByName = async () => {
   }
 
   // Newer HRMS keeps a seeded employee's holiday list in a Holiday List Assignment.
-  const linked = [["Leave Application", "employee"]];
+  const linked = [
+    ["Leave Application", "employee"],
+    ["Resource Allocation", "employee"],
+    ["Employee Skill Map", "employee"],
+  ];
   if (
     (await getDocList("DocType", [["name", "=", "Holiday List Assignment"]]))
       .length

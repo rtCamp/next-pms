@@ -247,3 +247,15 @@ export const nextWorkday = () => {
   } while (date.getDay() === 0 || date.getDay() === 6);
   return getFormattedDate(date);
 };
+
+/** How the Allocations grids head a week column: "Oct 19 - 25", "Oct 26 - Nov 1", no year. */
+export const allocationWeekLabel = (weeksAgo) => {
+  const start = mondayWeeksAgo(weeksAgo);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  const short = { month: "short", day: "numeric" };
+  const first = start.toLocaleDateString("en-US", short);
+  return start.getMonth() === end.getMonth()
+    ? `${first} - ${end.getDate()}`
+    : `${first} - ${end.toLocaleDateString("en-US", short)}`;
+};
