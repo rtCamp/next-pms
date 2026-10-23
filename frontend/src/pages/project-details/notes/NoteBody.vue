@@ -20,12 +20,18 @@ const extensions = [
 const body = ref(props.note.description);
 let saved = props.note.description;
 let timer: ReturnType<typeof setTimeout> | undefined;
+/** Saves sent and not settled yet. */
+let pending = 0;
 
 async function save(value: string) {
   timer = undefined;
-  if (await saveDescription(props.note, value)) saved = value;
-  // A failed save unticks the box again, unless another toggle is waiting.
-  else if (!timer) body.value = saved;
+  pending++;
+  const result = await saveDescription(props.note, value);
+  pending--;
+  if (result) saved = value;
+  // A failed save unticks the box again, unless a newer toggle is waiting or saving.
+  else if (result === false && !timer && !pending && body.value === value)
+    body.value = saved;
 }
 
 watch(body, (value) => {
@@ -38,7 +44,7 @@ watch(body, (value) => {
 watch(
   () => props.note.description,
   (description) => {
-    if (timer || description === saved) return;
+    if (timer || pending || description === saved) return;
     saved = description;
     body.value = description;
   },

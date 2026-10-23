@@ -147,11 +147,15 @@ function createNotes() {
     patchQuery({ [NOTE_PARAM]: null }, { push: true });
   }
 
-  const updateCall = useCall<NoteDetails, Params>({
-    url: `${NOTES_API}.update_project_status_update`,
-    method: "POST",
-    immediate: false,
-  });
+  // Separate calls: a newer submit aborts the one in flight on the same call.
+  const updateCall = () =>
+    useCall<NoteDetails, Params>({
+      url: `${NOTES_API}.update_project_status_update`,
+      method: "POST",
+      immediate: false,
+    });
+  const pinCall = updateCall();
+  const bodyCall = updateCall();
   const deleteCall = useCall<unknown, Params>({
     url: `${NOTES_API}.delete_project_status_update`,
     method: "POST",
@@ -163,7 +167,7 @@ function createNotes() {
   async function togglePin(note: Note) {
     updating.value = true;
     try {
-      await updateCall.submit({ name: note.name, pinned: note.pinned ? 0 : 1 });
+      await pinCall.submit({ name: note.name, pinned: note.pinned ? 0 : 1 });
       toast.success(note.pinned ? "Note unpinned" : "Note pinned");
       await refresh();
     } catch (error) {
@@ -173,20 +177,36 @@ function createNotes() {
     }
   }
 
-  /** Saves a note's body; resolves whether it saved, after toasting a failure. */
-  async function saveDescription(note: Note, description: string) {
+  async function submitDescription(name: string, description: string) {
     let result: NoteDetails | null;
     try {
-      result = await updateCall.submit({ name: note.name, description });
+      result = await bodyCall.submit({ name, description });
     } catch (error) {
+      if (isAbortError(error)) return null;
       toast.error(errorMessage(error));
       return false;
     }
-    saved.value = new Map(saved.value).set(note.name, {
+    saved.value = new Map(saved.value).set(name, {
       description,
       ...(result && { modified: result.modified }),
     });
     return true;
+  }
+
+  let bodySaves: Promise<unknown> = Promise.resolve();
+
+  /**
+   * Saves a note's body once the earlier body saves have settled, so they reach the
+   * server in order. Resolves `true` once saved, `false` after toasting a failure,
+   * and `null` when the request was aborted.
+   */
+  function saveDescription(
+    note: Note,
+    description: string,
+  ): Promise<boolean | null> {
+    const run = bodySaves.then(() => submitDescription(note.name, description));
+    bodySaves = run;
+    return run;
   }
 
   function requestDelete(note: Note) {
