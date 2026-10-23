@@ -11,6 +11,7 @@ import {
   TABLE_TABS,
   TOUCHPOINT_COLUMNS,
 } from "./constants";
+import MonthGrid from "./MonthGrid.vue";
 import TimelineItemDialog from "./TimelineItemDialog.vue";
 import TimelineListView from "./TimelineListView.vue";
 import TimelineTable from "./TimelineTable.vue";
@@ -39,7 +40,9 @@ const columns = computed(() =>
     <div class="py-3.5">
       <CalendarToolbar />
     </div>
-    <div v-if="view !== 'list'" class="-mx-5 border-b border-outline-gray-1" />
+    <div v-if="view !== 'list'" class="-mx-5 border-b border-outline-gray-1">
+      <MonthGrid v-if="view === 'calendar'" />
+    </div>
     <div class="mt-4">
       <div class="mb-3 flex items-center justify-between px-1">
         <TabButtons
