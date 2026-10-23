@@ -1,14 +1,23 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Button, TabButtons } from "frappe-ui";
+import { Button, Spinner, TabButtons } from "frappe-ui";
+import LoadError from "@/pages/project-details/LoadError.vue";
 import { useTodos } from "@/pages/project-details/to-do/useTodos";
+import { emptyTableMessage } from "./calendar";
 import CalendarToolbar from "./CalendarToolbar.vue";
-import { TABLE_TAB_TYPE, TABLE_TABS } from "./constants";
+import {
+  MILESTONE_COLUMNS,
+  TABLE_TAB_TYPE,
+  TABLE_TABS,
+  TOUCHPOINT_COLUMNS,
+} from "./constants";
+import TimelineListView from "./TimelineListView.vue";
+import TimelineTable from "./TimelineTable.vue";
 import type { TableTab } from "./types";
 import { provideTimeline } from "./useTimeline";
 
 const timeline = provideTimeline();
-const { view, tab } = timeline;
+const { view, tab, tableItems, monthLoading, monthError } = timeline;
 
 const todos = useTodos();
 todos.load();
@@ -18,6 +27,10 @@ const tabModel = computed({
   get: () => tab.value,
   set: (value) => (tab.value = value as TableTab),
 });
+
+const columns = computed(() =>
+  tab.value === "milestones" ? MILESTONE_COLUMNS : TOUCHPOINT_COLUMNS,
+);
 </script>
 
 <template>
@@ -40,6 +53,23 @@ const tabModel = computed({
           @click="timeline.openCreate(TABLE_TAB_TYPE[tab])"
         />
       </div>
+      <TimelineListView v-if="view === 'list'" />
+      <LoadError
+        v-else-if="monthError"
+        title="Couldn't load the calendar"
+        :error="monthError"
+        @retry="timeline.reloadMonth()"
+      />
+      <div v-else-if="monthLoading" class="flex justify-center py-10">
+        <Spinner class="size-5" />
+      </div>
+      <TimelineTable
+        v-else
+        :items="tableItems"
+        :columns="columns"
+        :empty-message="emptyTableMessage(tab)"
+        :label="tab === 'milestones' ? 'Milestones' : 'Touchpoints'"
+      />
     </div>
   </div>
 </template>

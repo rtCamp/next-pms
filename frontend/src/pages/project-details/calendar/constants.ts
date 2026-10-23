@@ -95,7 +95,7 @@ export interface TableColumn {
 const COLUMN_WIDTH = "112px";
 
 export const MILESTONE_COLUMNS: TableColumn[] = [
-  { key: "title", label: "Title", width: "minmax(240px,1fr)" },
+  { key: "title", label: "Title", width: "minmax(160px,1fr)" },
   { key: "category", label: "Type", width: COLUMN_WIDTH },
   { key: "startDate", label: "Start date", width: COLUMN_WIDTH },
   { key: "plannedEndDate", label: "Planned end", width: COLUMN_WIDTH },
