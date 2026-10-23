@@ -16,7 +16,7 @@ import { createOwnWrites } from "@/pages/project-details/ownWrites";
 import { useTodos } from "@/pages/project-details/to-do/useTodos";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
 import { useSession } from "@/session";
-import { errorMessage } from "@/utils/errors";
+import { errorMessage, isAbortError } from "@/utils/errors";
 import { queryString } from "@/utils/query";
 import {
   calendarView,
@@ -124,7 +124,7 @@ function createTimeline() {
     refetch: true,
     onSuccess: () => (loadedRange.value = rangeKey.value),
     onError: (error) => {
-      if (loadedRange.value === rangeKey.value)
+      if (loadedRange.value === rangeKey.value && !isAbortError(error))
         toast.error(errorMessage(error));
     },
   });
@@ -156,7 +156,8 @@ function createTimeline() {
       listHasMore.value = page.has_more;
     },
     onError: (error) => {
-      if (isListReload()) toast.error(errorMessage(error));
+      if (isListReload() && !isAbortError(error))
+        toast.error(errorMessage(error));
     },
   });
 

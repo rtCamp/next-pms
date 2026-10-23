@@ -13,7 +13,7 @@ import { dialog, toast, useCall, useList } from "frappe-ui";
 import { useDoctypeListUpdates } from "@/composables/useDoctypeListUpdates";
 import { createOwnWrites } from "@/pages/project-details/ownWrites";
 import { useSession } from "@/session";
-import { errorMessage } from "@/utils/errors";
+import { errorMessage, isAbortError } from "@/utils/errors";
 import { TODO_API, TODO_LIMIT } from "./constants";
 import {
   assigneeIds,
@@ -52,7 +52,7 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
     limit: TODO_LIMIT,
     immediate: false,
     onError: (error) => {
-      if (list.data) toast.error(errorMessage(error));
+      if (list.data && !isAbortError(error)) toast.error(errorMessage(error));
     },
   });
   const loaded = ref(false);
