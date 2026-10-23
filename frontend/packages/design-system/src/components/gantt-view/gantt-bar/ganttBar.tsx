@@ -161,11 +161,11 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
         {...htmlProps}
         onClick={isInteractive ? onClick : undefined}
         style={{
-          ...style,
           left: Math.max(liveLeft - BAR_MARGIN / 2, 0),
           width: Math.max(liveWidth - BAR_MARGIN, 0),
           height: BAR_HEIGHT,
           top: (CELL_HEIGHT - BAR_HEIGHT) / 2,
+          ...style,
         }}
       >
         {!isTimeoff &&

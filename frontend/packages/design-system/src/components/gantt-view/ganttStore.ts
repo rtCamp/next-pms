@@ -19,6 +19,7 @@ import type {
 } from "./types";
 import { prepareMemberBars, prepareProjectBars } from "./utils";
 import type { Member, ProjectGroup } from "./utils";
+import type { FieldHelp } from "../info-hover-card/types";
 export type {
   Member,
   MemberSummaryBar,
@@ -48,6 +49,11 @@ interface GanttProps {
   members?: BaseMember[];
   projects?: BaseProjectGroup[];
   rowHeaderLabel: string;
+  rowHeaderHelp: FieldHelp;
+  rateTooltip: string;
+  capacityTooltip: string;
+  remainingHoursTooltip: string;
+  hoursTooltip: string;
   showWeekend: boolean;
   startDate: Date;
   weekCount: number;

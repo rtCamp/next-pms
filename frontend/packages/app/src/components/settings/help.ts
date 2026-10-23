@@ -52,9 +52,9 @@ export const SETTINGS_HELP = {
   missingAllocationReminder: {
     title: "Send Missing Allocation Reminder",
     summary:
-      "On the Remind On day, managers get an email listing direct reports who have unbooked days next week.",
+      "On the Remind On day, managers get an email listing direct reports who have unallocated days next week.",
     details: [
-      "A weekday counts as unbooked when it has no booking and no leave. Tentative bookings count as booked.",
+      "A weekday counts as unallocated when it has no allocation and no leave. Tentative allocations count as allocated.",
       "Only people with the selected Designations are checked. With none selected, no email is sent.",
     ],
     wiki: SYSTEM_RESOURCE_WIKI,

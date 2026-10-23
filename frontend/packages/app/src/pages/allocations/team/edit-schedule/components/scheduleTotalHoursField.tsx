@@ -1,7 +1,13 @@
 /**
  * External dependencies.
  */
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { ErrorMessage, FormLabel, TextInput } from "@rtcamp/frappe-ui-react";
+
+/**
+ * Internal dependencies.
+ */
+import { ALLOCATION_DIALOG_HELP } from "@/pages/allocations/help";
 
 interface ScheduleTotalHoursFieldProps {
   value: string;
@@ -18,9 +24,12 @@ function ScheduleTotalHoursField({
 }: ScheduleTotalHoursFieldProps) {
   return (
     <div className="flex-1 space-y-1.5">
-      <FormLabel id="edit-total-hours" size="md" required>
-        Edit total hours
-      </FormLabel>
+      <div className="flex items-center gap-1.5">
+        <FormLabel id="edit-total-hours" size="md" required>
+          Edit total hours
+        </FormLabel>
+        <InfoHoverCard help={ALLOCATION_DIALOG_HELP.scheduleTotalHours} />
+      </div>
       <TextInput
         htmlId="edit-total-hours"
         type="number"

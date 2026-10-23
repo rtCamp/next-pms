@@ -1,3 +1,8 @@
+/**
+ * Internal dependencies.
+ */
+import type { FieldHelp } from "../info-hover-card/types";
+
 export type DeleteAllocationMode =
   "only_this" | "this_and_future" | "all_in_series";
 
@@ -192,6 +197,16 @@ export interface GanttGridProps {
   projects?: ProjectGroup[];
   /** Label shown in the sticky row header cell. */
   rowHeaderLabel: string;
+  /** Info card shown after the row header label, explaining the marks in the grid. */
+  rowHeaderHelp: FieldHelp;
+  /** Tooltip on the hourly rate line of the member card. */
+  rateTooltip: string;
+  /** Tooltip on the working hours line of the member card. */
+  capacityTooltip: string;
+  /** Tooltip on the remaining hours line of the project card. */
+  remainingHoursTooltip: string;
+  /** Tooltip on the hours line of each allocation in the allocation card. */
+  hoursTooltip: string;
   /** Layout and transformation mode for the grid. */
   variant: GanttGridVariant;
   /** Whether to include Saturday and Sunday columns. When false, week boundary is every 5th column. */

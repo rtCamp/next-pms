@@ -51,11 +51,11 @@ export const LEADERSHIP_WIDGET_HELP = {
   heatmap: {
     title: "Heatmap",
     summary:
-      "How much of each role's working time is booked, week by week, for 16 weeks from this week.",
-    formula: "Confirmed booked hours ÷ working hours, per role and week.",
+      "How much of each role's working time is allocated, week by week, for 16 weeks from this week.",
+    formula: "Confirmed allocated hours ÷ working hours, per role and week.",
     details: [
-      "Red means free time, not overbooking.",
-      "Working hours skip weekends and holidays. Tentative bookings don't count.",
+      "Red means free time, not over-allocation.",
+      "Working hours skip weekends and holidays. Tentative allocations don't count.",
       "Can be up to a day old.",
     ],
     wiki: `${LEADERSHIP_WIKI}#heatmap`,
@@ -74,9 +74,9 @@ export const LEADERSHIP_WIDGET_HELP = {
   forecast: {
     title: "Forecast breakdown",
     summary:
-      "How working time in the next 30 days is booked, for the selected roles.",
+      "How working time in the next 30 days is allocated, for the selected roles.",
     formula:
-      "Per working day, confirmed and tentative bookings fill each person's daily hours. The rest is unallocated.",
+      "Per working day, confirmed and tentative allocations fill each person's daily hours. The rest is unallocated.",
     details: [
       "Weekends and holidays are skipped.",
       "Can be up to 6 hours old.",
@@ -119,9 +119,9 @@ export const LEADERSHIP_STAT_HELP = {
   membersWithoutAllocation: {
     title: "Members without allocation",
     summary:
-      "Active people booked below their daily hours on at least one working day in the last 30 days.",
+      "Active people allocated below their daily hours on at least one working day in the last 30 days.",
     details: [
-      "Partly booked people count, not only people with nothing booked.",
+      "Partly allocated people count, not only people with nothing allocated.",
       "Can be up to 6 hours old.",
     ],
     wiki: STAT_WIKI,
@@ -146,7 +146,7 @@ export const MANAGER_STAT_HELP = {
   membersWithoutAllocation: {
     ...LEADERSHIP_STAT_HELP.membersWithoutAllocation,
     summary:
-      "Active people organisation-wide booked below their daily hours on any working day in the last 7 days.",
+      "Active people organisation-wide allocated below their daily hours on any working day in the last 7 days.",
     wiki: MANAGER_STAT_WIKI,
   },
   timesheetsToReview: {
@@ -174,7 +174,7 @@ export const MANAGER_WIDGET_HELP = {
   heatmap: {
     ...LEADERSHIP_WIDGET_HELP.heatmap,
     summary:
-      "How much of each role's working time is booked across the whole organisation, week by week, for 16 weeks from this week.",
+      "How much of each role's working time is allocated across the whole organisation, week by week, for 16 weeks from this week.",
     wiki: `${MANAGER_WIKI}#heatmap`,
   },
   calendar: {

@@ -24,6 +24,7 @@ import { GanttWeekHeader } from "./ganttWeekHeader";
 import { useContainerResize } from "./hooks/useContainerResize";
 import type { GanttGridHandle, GanttGridProps } from "./types";
 import { mergeClassNames as cn } from "../../utils";
+import InfoHoverCard from "../info-hover-card";
 
 const GanttGridInner: React.FC<{
   rootRef?: React.RefObject<HTMLDivElement | null>;
@@ -35,6 +36,7 @@ const GanttGridInner: React.FC<{
     members,
     projects,
     rowHeaderLabel,
+    rowHeaderHelp,
     headerWidth,
     columnWidth,
     weekendColumns,
@@ -51,6 +53,7 @@ const GanttGridInner: React.FC<{
     members: s.members,
     projects: s.projects,
     rowHeaderLabel: s.rowHeaderLabel,
+    rowHeaderHelp: s.rowHeaderHelp,
     headerWidth: s.headerWidth,
     columnWidth: s.columnWidth,
     weekendColumns: s.weekendColumns,
@@ -117,7 +120,10 @@ const GanttGridInner: React.FC<{
                 height: HEADER_HEIGHT,
               }}
             >
-              {rowHeaderLabel}
+              <div className="flex min-w-0 items-center gap-1.5">
+                {rowHeaderLabel}
+                <InfoHoverCard help={rowHeaderHelp} />
+              </div>
             </th>
 
             {weeks.map((weekIndex) => (
@@ -215,6 +221,11 @@ export const GanttGrid = forwardRef<GanttGridHandle, GanttGridProps>(
         members: props.members,
         projects: props.projects,
         rowHeaderLabel: props.rowHeaderLabel,
+        rowHeaderHelp: props.rowHeaderHelp,
+        rateTooltip: props.rateTooltip,
+        capacityTooltip: props.capacityTooltip,
+        remainingHoursTooltip: props.remainingHoursTooltip,
+        hoursTooltip: props.hoursTooltip,
         showWeekend: props.showWeekend ?? true,
         startDate: props.startDate,
         weekCount: props.weekCount ?? 3,
@@ -235,6 +246,11 @@ export const GanttGrid = forwardRef<GanttGridHandle, GanttGridProps>(
         props.members,
         props.projects,
         props.rowHeaderLabel,
+        props.rowHeaderHelp,
+        props.rateTooltip,
+        props.capacityTooltip,
+        props.remainingHoursTooltip,
+        props.hoursTooltip,
         props.showWeekend,
         props.startDate,
         props.variant,

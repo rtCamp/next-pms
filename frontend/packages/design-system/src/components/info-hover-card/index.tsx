@@ -3,6 +3,7 @@
  */
 import { Fragment } from "react";
 import { Popover } from "@base-ui/react/popover";
+import { Tooltip } from "@rtcamp/frappe-ui-react";
 import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 import { Info } from "lucide-react";
 
@@ -14,7 +15,8 @@ import type { InfoHoverCardProps, LegendItem } from "./types";
 import { mergeClassNames as cn } from "../../utils";
 
 function LegendSample({ item }: { item: LegendItem }) {
-  const { className, sample, icon: Icon, marker } = item;
+  const { className, sample, icon: Icon, marker, children } = item;
+  if (children) return children;
   if (Icon) return <Icon className={cn("size-3.5", className)} />;
   return (
     <span className={cn("relative tabular-nums", className)}>
@@ -32,7 +34,38 @@ function LegendSample({ item }: { item: LegendItem }) {
 }
 
 /** A popover rather than a tooltip, so the wiki link inside stays clickable. */
-export default function InfoHoverCard({ help, className }: InfoHoverCardProps) {
+export default function InfoHoverCard({
+  help,
+  tooltip,
+  className,
+}: InfoHoverCardProps) {
+  const triggerClassName = cn(
+    "inline-flex size-3 shrink-0 items-center justify-center rounded text-ink-gray-4 transition-colors hover:text-ink-gray-7 focus-visible:outline-2 focus-visible:outline-outline-gray-3 data-popup-open:text-ink-gray-7",
+    className,
+  );
+
+  if (!help) {
+    return (
+      <span className="inline-flex shrink-0">
+        <Tooltip
+          body={
+            <div className="max-w-60 rounded bg-surface-gray-7 px-2 py-1 text-xs text-pretty text-ink-white shadow-xl">
+              {tooltip}
+            </div>
+          }
+        >
+          <button
+            type="button"
+            aria-label={tooltip}
+            className={triggerClassName}
+          >
+            <Info size={10} />
+          </button>
+        </Tooltip>
+      </span>
+    );
+  }
+
   return (
     <span className="inline-flex shrink-0">
       <Popover.Root>
@@ -41,10 +74,7 @@ export default function InfoHoverCard({ help, className }: InfoHoverCardProps) {
           delay={300}
           closeDelay={150}
           aria-label={`About ${help.title}`}
-          className={cn(
-            "inline-flex size-3 shrink-0 items-center justify-center rounded text-ink-gray-4 transition-colors hover:text-ink-gray-7 focus-visible:outline-2 focus-visible:outline-outline-gray-3 data-popup-open:text-ink-gray-7",
-            className,
-          )}
+          className={triggerClassName}
         >
           <Info size={10} />
         </Popover.Trigger>
@@ -73,10 +103,22 @@ export default function InfoHoverCard({ help, className }: InfoHoverCardProps) {
                 <dl className="grid grid-cols-[auto_1fr] items-baseline gap-2 text-xs leading-snug text-ink-gray-6">
                   {help.legend.map((item) => (
                     <Fragment key={item.label}>
-                      <dt className={cn("flex", item.icon && "self-center")}>
+                      <dt
+                        className={cn(
+                          "flex",
+                          (item.icon || item.children) && "self-center",
+                        )}
+                      >
                         <LegendSample item={item} />
                       </dt>
-                      <dd className="text-pretty">{item.label}</dd>
+                      <dd
+                        className={cn(
+                          "text-pretty",
+                          (item.icon || item.children) && "self-center",
+                        )}
+                      >
+                        {item.label}
+                      </dd>
                     </Fragment>
                   ))}
                 </dl>

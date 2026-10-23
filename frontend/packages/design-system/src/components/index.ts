@@ -81,6 +81,7 @@ export { default as InfoHoverCard } from "./info-hover-card";
 export {
   type FieldHelp,
   type InfoHoverCardProps,
+  type LegendItem,
 } from "./info-hover-card/types";
 export { default as HelpPanel } from "./help-panel";
 export { type HelpPanelProps, type HelpTip } from "./help-panel/types";
