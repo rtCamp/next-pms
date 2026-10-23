@@ -8,8 +8,6 @@ import {
 import { NOTE_EDITOR_ROUTES } from "./pages/project-details/notes/constants";
 import { ROLE_ACCESS, useSession } from "./session";
 
-const WorkInProgress = () => import("./pages/WorkInProgress.vue");
-
 const routes: RouteRecordRaw[] = [
   { path: "/", redirect: { name: "timesheet-personal" } },
   {
@@ -58,7 +56,7 @@ const routes: RouteRecordRaw[] = [
       },
     ].map((child): RouteRecordRaw => ({
       ...child,
-      component: WorkInProgress,
+      component: () => import("./pages/project-details/notes/NoteEditor.vue"),
     })),
   },
   {
