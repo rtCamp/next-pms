@@ -60,6 +60,7 @@ function hasColumn(key: TableColumn["key"]) {
                 <span
                   v-if="item.isInternal"
                   class="lucide-lock size-3.5 shrink-0 text-ink-gray-5"
+                  role="img"
                   aria-label="Internal"
                 />
               </span>

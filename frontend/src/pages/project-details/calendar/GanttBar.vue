@@ -53,6 +53,7 @@ const chipStyle = computed(() =>
         <span
           v-if="item.isInternal"
           class="lucide-lock size-3.5 shrink-0"
+          role="img"
           aria-label="Internal"
         />
       </span>
@@ -77,6 +78,7 @@ const chipStyle = computed(() =>
       <span
         v-if="item.isInternal"
         class="lucide-lock ml-auto size-3.5 shrink-0"
+        role="img"
         aria-label="Internal"
       />
     </div>

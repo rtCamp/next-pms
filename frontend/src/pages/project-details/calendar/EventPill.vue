@@ -33,6 +33,7 @@ defineProps<{ item: TimelineItem }>();
       <span
         v-if="item.isInternal"
         class="lucide-lock ml-auto size-3 shrink-0 max-md:hidden"
+        role="img"
         aria-label="Internal"
       />
     </div>

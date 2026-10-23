@@ -30,10 +30,10 @@ const overflow = computed(() => props.users.length - WATCHER_STACK_SIZE);
     <div
       v-if="overflow > 0"
       class="flex size-4 items-center justify-center rounded-full bg-surface-gray-2 text-[8px] font-medium text-ink-gray-5 ring-1 ring-outline-base"
-      :aria-label="`${overflow} more`"
     >
       <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
-      +{{ overflow }}
+      <span aria-hidden="true">+{{ overflow }}</span>
+      <span class="sr-only">{{ overflow }} more</span>
     </div>
   </div>
 </template>

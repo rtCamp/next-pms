@@ -25,7 +25,7 @@ const byDate = computed(() => itemsByDate(filteredItems.value));
 </script>
 
 <template>
-  <div role="grid" aria-label="Month" class="flex flex-col">
+  <div role="table" aria-label="Month" class="flex flex-col">
     <div role="row" class="grid grid-cols-7 border-b border-outline-gray-1">
       <div
         v-for="day in DAY_HEADERS"
@@ -36,7 +36,7 @@ const byDate = computed(() => itemsByDate(filteredItems.value));
         {{ day }}
       </div>
     </div>
-    <div class="flex flex-1 flex-col">
+    <div role="rowgroup" class="flex flex-1 flex-col">
       <div
         v-for="week in weeks"
         :key="week[0].key"
@@ -46,9 +46,10 @@ const byDate = computed(() => itemsByDate(filteredItems.value));
         <div
           v-for="day in week"
           :key="day.key"
-          role="gridcell"
-          :aria-label="day.label"
-          :aria-selected="day.key === selectedDate"
+          role="cell"
+          :aria-label="
+            day.key === selectedDate ? `${day.label}, selected` : day.label
+          "
           :aria-current="day.key === today ? 'date' : undefined"
           :class="
             cn(
