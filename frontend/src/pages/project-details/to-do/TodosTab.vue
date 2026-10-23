@@ -4,8 +4,18 @@ import { errorMessage } from "@/utils/errors";
 import TodoRow from "./TodoRow.vue";
 import { useTodos } from "./useTodos";
 
-const { todos, loading, loadError, load, refresh, openCreate } = useTodos();
+const {
+  todos,
+  loading,
+  loadError,
+  load,
+  loadLinkable,
+  refresh,
+  openCreate,
+  canLink,
+} = useTodos();
 load();
+loadLinkable();
 </script>
 
 <template>
@@ -45,7 +55,12 @@ load();
       No ToDos yet for this project.
     </p>
     <div v-else class="flex flex-col">
-      <TodoRow v-for="todo in todos" :key="todo.name" :todo="todo" />
+      <TodoRow
+        v-for="todo in todos"
+        :key="todo.name"
+        :todo="todo"
+        :can-unlink="canLink(todo.linked)"
+      />
     </div>
   </div>
 </template>

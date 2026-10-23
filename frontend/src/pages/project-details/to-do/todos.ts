@@ -1,17 +1,29 @@
 import { dayjs } from "frappe-ui";
+import {
+  SEARCH_PARAM,
+  TYPE_PARAM,
+  VIEW_PARAM,
+} from "@/pages/project-details/calendar/constants";
+import { TAB_PARAM } from "@/pages/project-details/constants";
 import { systemToLocalDateTime } from "@/utils/date";
 import {
   DEFAULT_TODO_STATUSES,
+  GROWTH_DETAIL_PARAM,
+  LINKED_RECORD_GROUPS,
+  LINKED_RECORD_ICON,
   STATUS_COLOR,
   STATUS_HOVER_COLOR,
   STATUS_ICON,
 } from "./constants";
 import type {
   KnownTodoStatus,
+  LinkedRecord,
+  RecordRef,
   Todo,
   TodoDoc,
   TodoErrors,
   TodoForm,
+  TodoLinks,
   TodoStatus,
   TodoUser,
 } from "./types";
@@ -60,8 +72,15 @@ export function formatTodoDateTime(value: string | null | undefined): string {
   return dayjs(systemToLocalDateTime(value)).format("D MMM, hh:mm a");
 }
 
-/** Each ToDo with its assignee's name and avatar; the email stands in for an unreadable User. */
-export function withAssignees(todos: TodoDoc[], users: TodoUser[]): Todo[] {
+/**
+ * Each ToDo with its assignee's name and avatar (the email stands in for an unreadable
+ * User) and the record it is linked to.
+ */
+export function resolveTodos(
+  todos: TodoDoc[],
+  users: TodoUser[],
+  links: TodoLinks,
+): Todo[] {
   const byName = new Map(users.map((user) => [user.name, user]));
   return todos.map((todo) => {
     const user = byName.get(todo.allocated_to);
@@ -69,6 +88,7 @@ export function withAssignees(todos: TodoDoc[], users: TodoUser[]): Todo[] {
       ...todo,
       assigneeName: user?.full_name || todo.allocated_to,
       assigneeImage: user?.user_image || null,
+      linked: links[todo.name] ?? null,
     };
   });
 }
@@ -80,7 +100,10 @@ export function assigneeIds(todos: TodoDoc[]): string[] {
   ].sort();
 }
 
-export function emptyTodoForm(userId: string): TodoForm {
+export function emptyTodoForm(
+  userId: string,
+  linkedTo: LinkedRecord | null = null,
+): TodoForm {
   return {
     title: "",
     description: "",
@@ -89,10 +112,11 @@ export function emptyTodoForm(userId: string): TodoForm {
     startAt: "",
     endAt: "",
     priority: "Medium",
+    linkedTo,
   };
 }
 
-export function todoToForm(todo: TodoDoc): TodoForm {
+export function todoToForm(todo: Todo): TodoForm {
   return {
     title: todo.custom_title ?? "",
     description: todo.description ?? "",
@@ -101,6 +125,7 @@ export function todoToForm(todo: TodoDoc): TodoForm {
     startAt: todo.custom_from_time ?? "",
     endAt: todo.custom_to_time ?? "",
     priority: todo.priority,
+    linkedTo: todo.linked,
   };
 }
 
@@ -147,9 +172,74 @@ export function toTodoFields(
 }
 
 export function deleteTodoMessage(
-  todo: Pick<TodoDoc, "custom_title" | "description">,
+  todo: Pick<Todo, "custom_title" | "description" | "linked">,
 ) {
-  return `Are you sure you want to delete the ToDo "${todoTitle(todo)}"? This action cannot be undone.`;
+  const linked = todo.linked
+    ? ` It will also be removed from the ${todo.linked.type.toLowerCase()} "${todo.linked.title}".`
+    : "";
+  return `Are you sure you want to delete the ToDo "${todoTitle(todo)}"?${linked} This action cannot be undone.`;
+}
+
+export function unlinkTodoMessage(
+  todo: Pick<Todo, "custom_title" | "description">,
+  record: LinkedRecord,
+) {
+  return `Are you sure you want to unlink the ToDo "${todoTitle(todo)}" from the ${record.type.toLowerCase()} "${record.title}"? The ToDo will not be deleted.`;
+}
+
+export function linkKey(record: RecordRef): string {
+  return `${record.doctype}/${record.name}`;
+}
+
+export function isSameRecord(
+  a: RecordRef | null | undefined,
+  b: RecordRef | null | undefined,
+): boolean {
+  return Boolean(a && b && a.doctype === b.doctype && a.name === b.name);
+}
+
+/** `"1 ToDo"`, `"3 ToDos"`. */
+export function formatTodoCount(count: number): string {
+  return `${count} ${count === 1 ? "ToDo" : "ToDos"}`;
+}
+
+/** The ToDos linked to `record`, in list order. */
+export function linkedTodos(todos: Todo[], record: RecordRef | null): Todo[] {
+  return record
+    ? todos.filter((todo) => isSameRecord(todo.linked, record))
+    : [];
+}
+
+/** The "Linked to" options, grouped by type; empty groups are left out. */
+export function linkOptions(records: LinkedRecord[]) {
+  return LINKED_RECORD_GROUPS.map(({ type, label }) => ({
+    group: label,
+    options: records
+      .filter((record) => record.type === type)
+      .map((record) => ({
+        label: record.title,
+        value: linkKey(record),
+        icon: LINKED_RECORD_ICON[record.type],
+      })),
+  })).filter((group) => group.options.length > 0);
+}
+
+/**
+ * The query a linked record's chip opens: the Growth tab on the initiative, or the
+ * Calendar's list searched for the milestone or touchpoint, as React did.
+ */
+export function linkedRecordQuery(
+  record: LinkedRecord,
+): Record<string, string> {
+  if (record.type === "Growth Initiative") {
+    return { [TAB_PARAM]: "growth", [GROWTH_DETAIL_PARAM]: record.name };
+  }
+  return {
+    [TAB_PARAM]: "calendar",
+    [VIEW_PARAM]: "list",
+    [TYPE_PARAM]: record.type === "Milestone" ? "milestones" : "touchpoints",
+    [SEARCH_PARAM]: record.title,
+  };
 }
 
 /** The ToDo doctype's statuses from the boot data, else the stock ones. */

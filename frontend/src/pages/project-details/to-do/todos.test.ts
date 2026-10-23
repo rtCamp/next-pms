@@ -4,8 +4,14 @@ import {
   assigneeIds,
   deleteTodoMessage,
   emptyTodoForm,
+  formatTodoCount,
   formatTodoDateTime,
   hasTodoCustomFields,
+  isSameRecord,
+  linkedRecordQuery,
+  linkedTodos,
+  linkKey,
+  linkOptions,
   statusColor,
   statusHoverColor,
   statusIcon,
@@ -14,10 +20,18 @@ import {
   todoStatuses,
   todoTitle,
   toTodoFields,
+  unlinkTodoMessage,
   validateTodo,
-  withAssignees,
+  resolveTodos,
 } from "./todos";
-import type { TodoDoc, TodoForm } from "./types";
+import type { LinkedRecord, TodoDoc, TodoForm } from "./types";
+
+const milestone: LinkedRecord = {
+  doctype: "Project Timeline Item",
+  name: "PTI-1",
+  title: "Launch",
+  type: "Milestone",
+};
 
 const doc = (overrides: Partial<TodoDoc> = {}): TodoDoc => ({
   name: "TD-1",
@@ -112,19 +126,22 @@ describe("formatTodoDateTime", () => {
   });
 });
 
-describe("withAssignees", () => {
+describe("resolveTodos", () => {
   it("adds the assignee's name and image, or the email when unknown", () => {
-    const [known, unknown] = withAssignees(
+    const [known, unknown] = resolveTodos(
       [doc(), doc({ name: "TD-2", allocated_to: "b@example.com" })],
       [{ name: "a@example.com", full_name: "Ann", user_image: "/a.png" }],
+      { "TD-2": milestone },
     );
     expect(known).toMatchObject({
       assigneeName: "Ann",
       assigneeImage: "/a.png",
+      linked: null,
     });
     expect(unknown).toMatchObject({
       assigneeName: "b@example.com",
       assigneeImage: null,
+      linked: milestone,
     });
   });
 });
@@ -188,11 +205,101 @@ describe("toTodoFields", () => {
   });
 });
 
-describe("deleteTodoMessage", () => {
+describe("deleteTodoMessage and unlinkTodoMessage", () => {
   it("names the ToDo", () => {
-    expect(deleteTodoMessage(doc())).toBe(
+    expect(deleteTodoMessage({ ...doc(), linked: null })).toBe(
       'Are you sure you want to delete the ToDo "Write the brief"? This action cannot be undone.',
     );
+  });
+
+  it("names the record a linked ToDo is removed from", () => {
+    expect(deleteTodoMessage({ ...doc(), linked: milestone })).toBe(
+      'Are you sure you want to delete the ToDo "Write the brief"? It will also be removed from the milestone "Launch". This action cannot be undone.',
+    );
+    expect(unlinkTodoMessage(doc(), milestone)).toBe(
+      'Are you sure you want to unlink the ToDo "Write the brief" from the milestone "Launch"? The ToDo will not be deleted.',
+    );
+  });
+});
+
+describe("linked records", () => {
+  const touchpoint: LinkedRecord = {
+    doctype: "Project Timeline Item",
+    name: "PTI-2",
+    title: "Kick-off call",
+    type: "Touchpoint",
+  };
+  const initiative: LinkedRecord = {
+    doctype: "PMS Growth Initiative",
+    name: "GI-1",
+    title: "Upsell",
+    type: "Growth Initiative",
+  };
+
+  it("matches records by doctype and name", () => {
+    expect(linkKey(milestone)).toBe("Project Timeline Item/PTI-1");
+    const renamed: LinkedRecord = { ...milestone, title: "Renamed" };
+    expect(isSameRecord(milestone, renamed)).toBe(true);
+    expect(isSameRecord(milestone, touchpoint)).toBe(false);
+    expect(isSameRecord(milestone, null)).toBe(false);
+  });
+
+  it("counts ToDos", () => {
+    expect(formatTodoCount(1)).toBe("1 ToDo");
+    expect(formatTodoCount(3)).toBe("3 ToDos");
+  });
+
+  it("picks the ToDos linked to a record", () => {
+    const todos = resolveTodos(
+      [doc(), doc({ name: "TD-2" }), doc({ name: "TD-3" })],
+      [],
+      { "TD-1": milestone, "TD-3": touchpoint },
+    );
+    expect(linkedTodos(todos, milestone).map((todo) => todo.name)).toEqual([
+      "TD-1",
+    ]);
+    expect(linkedTodos(todos, null)).toEqual([]);
+  });
+
+  it("groups the link options by type, leaving out empty groups", () => {
+    expect(linkOptions([touchpoint, milestone])).toEqual([
+      {
+        group: "Milestones",
+        options: [
+          {
+            label: "Launch",
+            value: "Project Timeline Item/PTI-1",
+            icon: "lucide-sparkle",
+          },
+        ],
+      },
+      {
+        group: "Touchpoints",
+        options: [
+          {
+            label: "Kick-off call",
+            value: "Project Timeline Item/PTI-2",
+            icon: "lucide-zap",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("opens a milestone or touchpoint in the Calendar's list, an initiative in Growth", () => {
+    expect(linkedRecordQuery(milestone)).toEqual({
+      tab: "calendar",
+      view: "list",
+      type: "milestones",
+      search: "Launch",
+    });
+    expect(linkedRecordQuery(touchpoint)).toMatchObject({
+      type: "touchpoints",
+    });
+    expect(linkedRecordQuery(initiative)).toEqual({
+      tab: "growth",
+      growth: "GI-1",
+    });
   });
 });
 

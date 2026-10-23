@@ -9,23 +9,34 @@ import {
   type InjectionKey,
   type MaybeRefOrGetter,
 } from "vue";
-import { dialog, toast, useList } from "frappe-ui";
+import { dialog, toast, useCall, useList } from "frappe-ui";
 import {
   useDoctypeListUpdates,
   type ListUpdate,
 } from "@/composables/useDoctypeListUpdates";
 import { useSession } from "@/session";
 import { errorMessage } from "@/utils/errors";
-import { OWN_WRITE_ECHO_MS, TODO_LIMIT } from "./constants";
+import { OWN_WRITE_ECHO_MS, TODO_API, TODO_LIMIT } from "./constants";
 import {
   assigneeIds,
   deleteTodoMessage,
   hasTodoCustomFields,
+  isSameRecord,
+  resolveTodos,
   todoFields,
   toTodoFields,
-  withAssignees,
+  unlinkTodoMessage,
 } from "./todos";
-import type { Todo, TodoDoc, TodoForm, TodoStatus, TodoUser } from "./types";
+import type {
+  LinkedRecord,
+  RecordRef,
+  Todo,
+  TodoDoc,
+  TodoForm,
+  TodoLinks,
+  TodoStatus,
+  TodoUser,
+} from "./types";
 
 function createTodos(projectId: MaybeRefOrGetter<string>) {
   const session = useSession();
@@ -64,14 +75,65 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
     },
   );
 
+  const project = () => ({ project: toValue(projectId) });
+  const links = useCall<TodoLinks, { project: string }>({
+    url: `${TODO_API}.get_todo_links`,
+    params: project,
+    immediate: false,
+  });
+  const linkable = useCall<LinkedRecord[], { project: string }>({
+    url: `${TODO_API}.get_linkable_records`,
+    params: project,
+    immediate: false,
+  });
+  let linkableLoaded = false;
+
+  const createLinked = useCall<
+    TodoDoc,
+    { doctype: string; name: string; todo: Partial<TodoDoc> }
+  >({
+    url: `${TODO_API}.create_linked_todo`,
+    method: "POST",
+    immediate: false,
+  });
+  const link = useCall<
+    unknown,
+    { todo: string; doctype: string; name: string }
+  >({ url: `${TODO_API}.link_todo`, method: "POST", immediate: false });
+  const unlink = useCall<unknown, { todo: string }>({
+    url: `${TODO_API}.unlink_todo`,
+    method: "POST",
+    immediate: false,
+  });
+
   function load() {
     if (loaded.value) return;
     loaded.value = true;
     list.fetch();
+    links.fetch();
+  }
+
+  /** Loads the records the user may link ToDos to, once; `refreshLinks()` reloads them. */
+  function loadLinkable() {
+    if (linkableLoaded) return;
+    linkableLoaded = true;
+    linkable.fetch();
   }
 
   function refresh() {
-    if (loaded.value) list.reload();
+    if (!loaded.value) return;
+    list.reload();
+    links.reload();
+  }
+
+  /** Reloads which ToDos are linked where, and what may be linked, after a linked record changed. */
+  function refreshLinks() {
+    if (loaded.value) links.reload();
+    if (linkableLoaded) linkable.reload();
+  }
+
+  function canLink(record: RecordRef | null | undefined): boolean {
+    return (linkable.data ?? []).some((option) => isSameRecord(option, record));
   }
 
   // A local write already refetches (useList's `refetch`), so its realtime echo is
@@ -115,7 +177,7 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
   });
 
   const todos = computed<Todo[]>(() =>
-    withAssignees(list.data ?? [], users.data ?? []),
+    resolveTodos(list.data ?? [], users.data ?? [], links.data ?? {}),
   );
 
   /** Status shown while a done / reopen write is in flight. */
@@ -153,37 +215,91 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
           throw new Error(errorMessage(error));
         }
         toast.success("ToDo deleted");
+        if (todo.linked) refreshLinks();
+      },
+    });
+  }
+
+  function requestUnlink(todo: Todo) {
+    const record = todo.linked;
+    if (!record) return;
+    dialog.danger({
+      title: "Unlink ToDo",
+      message: unlinkTodoMessage(todo, record),
+      confirmLabel: "Unlink",
+      onConfirm: async () => {
+        try {
+          await unlink.submit({ todo: todo.name });
+        } catch (error) {
+          throw new Error(errorMessage(error));
+        }
+        toast.success("ToDo unlinked");
+        refreshLinks();
       },
     });
   }
 
   /** The ToDo being edited, `null` when creating; the dialog is open while `editorOpen`. */
   const editing = ref<Todo | null>(null);
+  /** The record a new ToDo is linked to, preset when created from that record. */
+  const createLinkedTo = ref<LinkedRecord | null>(null);
   const editorOpen = ref(false);
   const saving = ref(false);
 
-  function openCreate() {
+  watch(editorOpen, (open) => {
+    if (!open) return;
+    linkableLoaded = true;
+    linkable.reload();
+  });
+
+  function openCreate(linkedTo?: LinkedRecord) {
     editing.value = null;
+    createLinkedTo.value = linkedTo ?? null;
     editorOpen.value = true;
   }
 
   function openEdit(todo: Todo) {
     editing.value = todo;
+    createLinkedTo.value = null;
     editorOpen.value = true;
   }
 
-  /** Creates or updates the ToDo; resolves `true` when it saved. */
+  async function updateLink(todo: Todo, record: LinkedRecord | null) {
+    if (isSameRecord(todo.linked, record)) return;
+    await (record
+      ? link.submit({
+          todo: todo.name,
+          doctype: record.doctype,
+          name: record.name,
+        })
+      : unlink.submit({ todo: todo.name }));
+  }
+
+  /** Creates or updates the ToDo and its link; resolves `true` when it saved. */
   async function save(form: TodoForm): Promise<boolean> {
     if (saving.value) return false;
     const fields = toTodoFields(form, customFields);
     const todo = editing.value;
+    const linkedTo = form.linkedTo;
     saving.value = true;
     try {
       if (todo) {
+        await updateLink(todo, linkedTo);
         await localWrite(
           () => list.setValue.submit({ name: todo.name, ...fields }),
           () => todo.name,
         );
+      } else if (linkedTo) {
+        await localWrite(
+          () =>
+            createLinked.submit({
+              doctype: linkedTo.doctype,
+              name: linkedTo.name,
+              todo: fields,
+            }),
+          (created) => created?.name,
+        );
+        list.reload();
       } else {
         await localWrite(
           () =>
@@ -201,6 +317,8 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
       return false;
     } finally {
       saving.value = false;
+      // As React: the links reload even when an edit failed, as its link may have changed.
+      if (todo || linkedTo) refreshLinks();
     }
     toast.success(todo ? "ToDo updated" : "ToDo created");
     return true;
@@ -214,12 +332,20 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
     /** A failed load with no rows to show; a failed refetch shows a toast instead. */
     loadError: computed(() => (list.data ? null : list.error)),
     load,
+    loadLinkable,
     refresh,
+    refreshLinks,
+    canLink,
+    /** True while the linkable records load for the first time. */
+    linkableLoading: computed(() => linkable.loading && !linkable.data),
+    linkableRecords: computed(() => linkable.data ?? []),
     statusOf: (todo: Todo) => pendingStatus.get(todo.name) ?? todo.status,
     isStatusBusy: (todo: Todo) => pendingStatus.has(todo.name),
     toggleDone,
     requestDelete,
+    requestUnlink,
     editing,
+    createLinkedTo,
     editorOpen,
     saving,
     openCreate,
@@ -234,8 +360,9 @@ const todosKey: InjectionKey<Todos> = Symbol("todos");
 
 /**
  * The project's ToDos, shared by every part of the Project details page that shows
- * them: the list (loaded on first `load()`, refetched on realtime ToDo changes), the
- * one create / edit dialog, done / reopen and delete.
+ * them: the list with each ToDo's linked record (loaded on first `load()`, refetched on
+ * realtime ToDo changes), the records ToDos may be linked to, the one create / edit
+ * dialog, done / reopen, unlink and delete.
  */
 export function provideTodos(projectId: MaybeRefOrGetter<string>): Todos {
   const todos = createTodos(projectId);

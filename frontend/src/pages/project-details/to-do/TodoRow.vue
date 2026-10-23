@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { cva } from "class-variance-authority";
 import { Avatar, Button, Dropdown, Tooltip } from "frappe-ui";
 import { PRIORITY_DOT } from "./constants";
+import LinkedChip from "./LinkedChip.vue";
 import {
   formatTodoDateTime,
   statusColor,
@@ -12,7 +14,25 @@ import {
 import type { Todo } from "./types";
 import { useTodos } from "./useTodos";
 
-const props = defineProps<{ todo: Todo }>();
+const props = withDefaults(
+  defineProps<{
+    todo: Todo;
+    /** The shorter row of a linked record's ToDos: no dates, no linked chip. */
+    condensed?: boolean;
+    /** Offers Unlink when the ToDo is linked. */
+    canUnlink?: boolean;
+  }>(),
+  { condensed: false, canUnlink: false },
+);
+
+/** Whether the row's actions menu is open. */
+const menuOpen = defineModel<boolean>("menuOpen", { default: false });
+
+const row = cva("flex items-center gap-4 border-b border-outline-gray-2", {
+  variants: {
+    condensed: { true: "py-2 last:border-b-0", false: "py-4" },
+  },
+});
 
 const todos = useTodos();
 
@@ -26,6 +46,9 @@ const assigneeHref = computed(
 
 const actions = computed(() => [
   { label: "Edit", onClick: () => todos.openEdit(props.todo) },
+  ...(props.canUnlink && props.todo.linked
+    ? [{ label: "Unlink", onClick: () => todos.requestUnlink(props.todo) }]
+    : []),
   {
     label: "Delete",
     theme: "red" as const,
@@ -35,7 +58,7 @@ const actions = computed(() => [
 </script>
 
 <template>
-  <div class="flex items-center gap-4 border-b border-outline-gray-2 py-4">
+  <div :class="row({ condensed })">
     <div class="min-w-0 flex-1">
       <h3 class="truncate text-base-medium leading-tighter text-ink-gray-8">
         {{ todoTitle(todo) }}
@@ -55,7 +78,7 @@ const actions = computed(() => [
           />
           <span class="truncate">{{ todo.assigneeName }}</span>
         </a>
-        <template v-if="todos.customFields">
+        <template v-if="todos.customFields && !condensed">
           <span aria-hidden="true">·</span>
           <span class="flex items-center gap-1.5">
             <span class="lucide-calendar size-3.5" aria-hidden="true" />
@@ -79,6 +102,10 @@ const actions = computed(() => [
           <span class="sr-only">Priority</span>
           {{ todo.priority }}
         </span>
+        <template v-if="todo.linked && !condensed">
+          <span aria-hidden="true">·</span>
+          <LinkedChip :record="todo.linked" />
+        </template>
       </div>
     </div>
     <Tooltip :text="statusLabel">
@@ -93,7 +120,12 @@ const actions = computed(() => [
         <span class="size-5" :class="statusIcon(status)" aria-hidden="true" />
       </button>
     </Tooltip>
-    <Dropdown :options="actions" side="bottom" align="end">
+    <Dropdown
+      v-model:open="menuOpen"
+      :options="actions"
+      side="bottom"
+      align="end"
+    >
       <Button variant="ghost" icon="lucide-ellipsis" label="ToDo actions" />
     </Dropdown>
   </div>

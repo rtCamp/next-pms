@@ -19,6 +19,8 @@ import { errorMessage } from "@/utils/errors";
 import { PRIORITY_DOT, TODO_PRIORITIES } from "./constants";
 import {
   emptyTodoForm,
+  linkKey,
+  linkOptions as toLinkOptions,
   statusColor,
   statusIcon,
   statusOptions as todoStatusOptions,
@@ -32,7 +34,15 @@ const DATE_TIME_FORMAT = "YYYY-MM-DD h:mm a";
 
 const todos = useTodos();
 const session = useSession();
-const { customFields, editing, editorOpen: open, saving } = todos;
+const {
+  customFields,
+  editing,
+  createLinkedTo,
+  editorOpen: open,
+  saving,
+  linkableLoading,
+  linkableRecords,
+} = todos;
 
 const form = reactive<TodoForm>(emptyTodoForm(session.userId));
 const errors = reactive<TodoErrors>({});
@@ -42,7 +52,12 @@ const assigneeOption = ref<LookupOption | null>(null);
 watch(open, (isOpen) => {
   if (!isOpen) return;
   const todo = editing.value;
-  Object.assign(form, todo ? todoToForm(todo) : emptyTodoForm(session.userId));
+  Object.assign(
+    form,
+    todo
+      ? todoToForm(todo)
+      : emptyTodoForm(session.userId, createLinkedTo.value),
+  );
   assigneeOption.value = todo
     ? {
         label: todo.assigneeName,
@@ -119,6 +134,28 @@ const endAt = computed({
 });
 
 const isEdit = computed(() => editing.value !== null);
+
+/** The ToDo is linked to a record the user may not link to: shown, but not changed. */
+const linkLocked = computed(
+  () =>
+    Boolean(form.linkedTo) &&
+    !linkableLoading.value &&
+    !todos.canLink(form.linkedTo),
+);
+const linkRecords = computed(() => {
+  const records = linkableRecords.value;
+  return linkLocked.value && form.linkedTo
+    ? [...records, form.linkedTo]
+    : records;
+});
+const linkOptions = computed(() => toLinkOptions(linkRecords.value));
+const linkedTo = computed({
+  get: () => (form.linkedTo ? linkKey(form.linkedTo) : null),
+  set: (value) => {
+    form.linkedTo =
+      linkRecords.value.find((record) => linkKey(record) === value) ?? null;
+  },
+});
 
 function personOf(option: unknown) {
   return option as { label: string; image?: string };
@@ -274,6 +311,31 @@ async function submit() {
             />
           </template>
         </Select>
+        <Combobox
+          v-if="linkableLoading || linkOptions.length"
+          v-model="linkedTo"
+          class="w-88"
+          size="md"
+          variant="subtle"
+          :options="linkOptions"
+          :loading="linkableLoading"
+          :disabled="linkLocked"
+          open-on-focus
+          placeholder="Link to milestone, touchpoint or growth initiative"
+          aria-label="Linked to"
+        >
+          <template v-if="form.linkedTo && !linkLocked" #suffix="{ clear }">
+            <button
+              type="button"
+              class="inline-flex shrink-0 items-center justify-center rounded-1 text-ink-gray-6 outline-none hover:text-ink-gray-8 focus-visible:ring focus-visible:ring-outline-gray-3"
+              aria-label="Clear the linked record"
+              @pointerdown.stop
+              @click.stop="clear()"
+            >
+              <span class="lucide-x size-4" aria-hidden="true" />
+            </button>
+          </template>
+        </Combobox>
       </div>
     </form>
 

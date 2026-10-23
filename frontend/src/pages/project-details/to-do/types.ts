@@ -28,11 +28,27 @@ export interface TodoUser {
   user_image: string | null;
 }
 
-/** A ToDo with its assignee's name and avatar resolved. */
+export type LinkedRecordType = "Milestone" | "Touchpoint" | "Growth Initiative";
+
+/** A record ToDos can be linked to: a Project Timeline Item or a PMS Growth Initiative. */
+export interface LinkedRecord {
+  doctype: string;
+  name: string;
+  title: string;
+  type: LinkedRecordType;
+}
+
+export type RecordRef = Pick<LinkedRecord, "doctype" | "name">;
+
+/** `get_todo_links`: the record each linked ToDo belongs to, by ToDo name. */
+export type TodoLinks = Record<string, LinkedRecord>;
+
+/** A ToDo with its assignee's name and avatar and its linked record resolved. */
 export interface Todo extends TodoDoc {
   /** The assignee's full name, or their email when the User can't be read. */
   assigneeName: string;
   assigneeImage: string | null;
+  linked: LinkedRecord | null;
 }
 
 /** The create / edit dialog's values. */
@@ -44,6 +60,7 @@ export interface TodoForm {
   startAt: string;
   endAt: string;
   priority: TodoPriority;
+  linkedTo: LinkedRecord | null;
 }
 
 export type TodoErrors = Partial<Record<keyof TodoForm, string>>;

@@ -1,4 +1,11 @@
-import type { KnownTodoStatus, TodoPriority, TodoStatus } from "./types";
+import type {
+  KnownTodoStatus,
+  LinkedRecordType,
+  TodoPriority,
+  TodoStatus,
+} from "./types";
+
+export const TODO_API = "/api/v2/method/next_pms.next_projects.api.todo";
 
 /** React reads at most this many ToDos, with no paging. */
 export const TODO_LIMIT = 500;
@@ -42,3 +49,20 @@ export const PRIORITY_DOT: Record<TodoPriority, string> = {
   Medium: "bg-surface-amber-7",
   High: "bg-surface-red-7",
 };
+
+export const LINKED_RECORD_ICON: Record<LinkedRecordType, string> = {
+  Milestone: "lucide-sparkle",
+  Touchpoint: "lucide-zap",
+  "Growth Initiative": "lucide-leaf",
+};
+
+/** The "Linked to" field's option groups, in order. */
+export const LINKED_RECORD_GROUPS: { type: LinkedRecordType; label: string }[] =
+  [
+    { type: "Milestone", label: "Milestones" },
+    { type: "Touchpoint", label: "Touchpoints" },
+    { type: "Growth Initiative", label: "Growth initiatives" },
+  ];
+
+/** The Growth tab's query param naming the initiative it opens (React's `GROWTH_DETAIL_PARAM`). */
+export const GROWTH_DETAIL_PARAM = "growth";
