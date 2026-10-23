@@ -149,6 +149,7 @@ export default function HelpPanel({
       (tip) => !tip.roles || tip.roles.some((role) => roles.includes(role)),
     );
   const visiblePageTips = visible(pageTips);
+  const visibleGeneralTips = visible(generalTips);
 
   return (
     <Dialog.Root
@@ -165,9 +166,11 @@ export default function HelpPanel({
           )}
         >
           <HelpContent
-            key={visiblePageTips.map((tip) => tip.id).join()}
+            key={[...visiblePageTips, ...visibleGeneralTips]
+              .map((tip) => tip.id)
+              .join()}
             pageTips={visiblePageTips}
-            generalTips={visible(generalTips)}
+            generalTips={visibleGeneralTips}
           />
         </Dialog.Popup>
       </Dialog.Portal>
