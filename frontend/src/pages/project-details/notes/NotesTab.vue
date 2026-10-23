@@ -2,14 +2,16 @@
 import { Spinner } from "frappe-ui";
 import LoadError from "@/pages/project-details/LoadError.vue";
 import NoteCard from "./NoteCard.vue";
+import NoteDetail from "./NoteDetail.vue";
 import NotesHeader from "./NotesHeader.vue";
 import { provideNotes } from "./useNotes";
 
-const { notes, loading, loadError, refresh } = provideNotes();
+const { notes, noteId, loading, loadError, refresh } = provideNotes();
 </script>
 
 <template>
-  <div class="flex flex-col gap-3.5">
+  <NoteDetail v-if="noteId" :key="noteId" />
+  <div v-else class="flex flex-col gap-3.5">
     <NotesHeader />
     <LoadError
       v-if="loadError"

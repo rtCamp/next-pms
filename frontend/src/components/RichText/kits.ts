@@ -1,13 +1,20 @@
 import type { Extensions } from "@tiptap/core";
-import { CommentKit, RichTextKit } from "frappe-ui/editor";
+import {
+  CommentKit,
+  RichTextKit,
+  type RichTextKitOptions,
+} from "frappe-ui/editor";
 import type { RichTextKitName } from "./types";
 
 /**
  * The rich-text editor's extensions, matching the React app's text editor:
  * tables, task lists, text alignment, text colour and highlight, code blocks.
- * No media, mentions, tags, emoji or slash menu, as there. Built per editor.
+ * No media, mentions, tags, emoji or slash menu, as there. Built per editor;
+ * `options` changes kit members, e.g. `{ taskList: false }`.
  */
-export function richTextExtensions(): Extensions {
+export function richTextExtensions(
+  options: Partial<RichTextKitOptions> = {},
+): Extensions {
   return [
     RichTextKit.configure({
       image: false,
@@ -20,6 +27,7 @@ export function richTextExtensions(): Extensions {
       slashCommands: false,
       typography: false,
       contentPaste: false,
+      ...options,
     }),
   ];
 }

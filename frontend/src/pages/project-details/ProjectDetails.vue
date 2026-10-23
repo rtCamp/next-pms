@@ -27,6 +27,7 @@ import { DEFAULT_TAB, TAB_PARAM, type ProjectTabKey } from "./constants";
 import EmailTab from "./email/EmailTab.vue";
 import { VIEW_PARAM } from "./feedback/constants";
 import FeedbackTab from "./feedback/FeedbackTab.vue";
+import { NOTE_PARAM } from "./notes/constants";
 import NotesTab from "./notes/NotesTab.vue";
 import OverviewTab from "./overview/OverviewTab.vue";
 import ProjectDetailsHeader from "./ProjectDetailsHeader.vue";
@@ -90,9 +91,10 @@ function selectTab(value: string | number) {
   patchQuery(
     {
       [TAB_PARAM]: key === DEFAULT_TAB ? null : key,
-      // Leaving Feedback or Calendar drops its view (and the Calendar's table tab and
-      // search), so coming back opens the default view.
+      // Leaving Feedback, Calendar or Notes drops its view (the Calendar's table tab
+      // and search, the open note), so coming back opens the default view.
       ...(activeTab.value === "feedback" && { [VIEW_PARAM]: null }),
+      ...(activeTab.value === "notes" && { [NOTE_PARAM]: null }),
       ...(activeTab.value === "calendar" && {
         [CALENDAR_VIEW_PARAM]: null,
         [TYPE_PARAM]: null,
