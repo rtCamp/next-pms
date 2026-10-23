@@ -115,20 +115,19 @@ async function ensureCategory(category: string | null) {
 
 async function save() {
   if (props.templateName) {
-    let name = props.templateName;
-    if (form.title !== name) {
-      await renameCall.submit({
-        doctype: TEMPLATE_DOCTYPE,
-        old_name: name,
-        new_name: form.title,
-      });
-      name = form.title;
-    }
+    // Rename last: a retry after a failure then still finds the old name.
     await setValueCall.submit({
       doctype: TEMPLATE_DOCTYPE,
-      name,
+      name: props.templateName,
       fieldname: JSON.stringify(templateValues(form, props.description)),
     });
+    if (form.title !== props.templateName) {
+      await renameCall.submit({
+        doctype: TEMPLATE_DOCTYPE,
+        old_name: props.templateName,
+        new_name: form.title,
+      });
+    }
   } else {
     await insertCall.submit({
       doc: JSON.stringify({
