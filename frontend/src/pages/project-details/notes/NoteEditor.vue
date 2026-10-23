@@ -108,7 +108,9 @@ watch(
   () =>
     noteId
       ? noteCall.data
-      : !templateName || templateCall.data || templateCall.error,
+      : templateId
+        ? templateCall.data
+        : !templateName || templateCall.data || templateCall.error,
   async (ready) => {
     if (!ready || initialized.value) return;
     initial.value = initialNoteForm(noteCall.data, templateCall.data);
