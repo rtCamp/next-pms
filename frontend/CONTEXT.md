@@ -129,9 +129,33 @@ _Avoid_: ticket, issue, todo (a `ToDo` is a separate Frappe doctype).
 **ToDo** — a Frappe `ToDo`: a dated action assigned to one user. The Project details page's ToDos tab lists the
 ToDos that reference the project (`reference_type` Project) and creates them there. Title, start and end are rtcamp
 custom fields (`custom_title`, `custom_from_time`, `custom_to_time`), shown and required only when the boot data says
-they exist (`has_todo_custom_fields`). Start and end are stored in system time and shown in the user's time zone. In
-code: `provideTodos()` / `useTodos()` in `pages/project-details/to-do/`.
+they exist (`has_todo_custom_fields`). Start and end are stored in system time and shown in the user's time zone. Its
+statuses are the ToDo doctype's options (`todo_status_options` in the boot data, e.g. Backlog and In Progress besides
+Open, Closed and Cancelled); one the app has no icon for shows as Open. In code: `provideTodos()` / `useTodos()` in
+`pages/project-details/to-do/`.
 _Avoid_: task (a `Task` is a separate doctype), action item.
+
+**Linked ToDo** — a project ToDo tied to one milestone, touchpoint or growth initiative through that record's
+`linked_todos` rows (`PMS Linked ToDo`). A ToDo has at most one such record and always still references the Project;
+unlinking keeps the ToDo, and deleting the record keeps its ToDos. The ToDo dialog's "Linked to" field, the linked
+chip on a ToDos tab row and the Calendar's ToDos cell show it. In code: `LinkedRecord`, `linkedTodos()` and
+`LinkedTodos.vue` in `pages/project-details/to-do/`.
+_Avoid_: action item (Growth's label for them), sub-task, attached ToDo.
+
+**Milestone** — a dated goal on a project's timeline, from a start to a planned end, completed on an actual end date
+(a `Project Timeline Item` of type Milestone). It has an owner, a category (its "Type", e.g. Delivery or Invoice),
+watchers (users following it) and may be marked internal. The Calendar tab shows milestones in the month grid, the
+Gantt and their table.
+_Avoid_: deliverable, phase (a project phase is a separate thing), event.
+
+**Touchpoint** — a dated contact with the client or the team on one scheduled day, e.g. a check-in or a meeting (a
+`Project Timeline Item` of type Touchpoint, whose start is its scheduled date). Otherwise as a milestone.
+_Avoid_: meeting (one category of touchpoint), event.
+
+**Timeline item** — a milestone or touchpoint, the `Project Timeline Item` doctype; its category is a `Project
+Timeline Item Category` for that type, `Other - <type>` when none is picked. In code: `TimelineItem` and
+`provideTimeline()` / `useTimeline()` in `pages/project-details/calendar/`.
+_Avoid_: calendar event, timeline entry.
 
 **Project phase** — a named, coloured stage a project moves through (`Project Phase`). The kanban has a column per
 phase, ordered by `position`. In code: `useProjectPhases()` and `PhaseIcon`.

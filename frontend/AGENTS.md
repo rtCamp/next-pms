@@ -62,9 +62,12 @@ src/
                    Edit schedule and delete dialogs, and pure .ts modules with unit tests) beside team/ and project/;
                    its dialogs have no stories
                    A page with tabs keeps the shell at the folder root and one subfolder per tab
-                   (pages/project-details/: the shell, useProjectDetails, the shared RichTextEditor and
-                   useProjectComments; about/ for the About sidebar; email/, feedback/, overview/, rag-stats/,
-                   reports/, to-do/, tracking/, …)
+                   (pages/project-details/: the shell, useProjectDetails, the shared RichTextEditor,
+                   useProjectComments, LoadError and createOwnWrites (skips a write's own realtime echo);
+                   about/ for the About sidebar; calendar/ (provideTimeline, the month grid, TimelineGantt,
+                   the tables, the one TimelineItemDialog and the pure calendar.ts with unit tests); email/,
+                   feedback/, overview/, rag-stats/, reports/, to-do/ (also the ToDo linking the other tabs
+                   reuse: LinkedTodos, LinkedChip), tracking/, …)
   components/      components frappe-ui lacks, one folder each; see components/Components.md
   composables/     shared use* composables: lookups, the like toggle, URL query updates, editor attributes,
                    values saved in localStorage (useSavedState), notifications, infinite scroll, project phases,
