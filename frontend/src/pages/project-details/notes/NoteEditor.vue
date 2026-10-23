@@ -2,6 +2,7 @@
 import {
   computed,
   nextTick,
+  onBeforeUnmount,
   reactive,
   ref,
   shallowRef,
@@ -132,7 +133,12 @@ function markClean() {
   initial.value = { ...form };
 }
 
+// A save can settle after the guard's Discard has already left the editor.
+let left = false;
+onBeforeUnmount(() => (left = true));
+
 function goToList() {
+  if (left) return;
   return router.push({
     name: "project-details",
     params: { projectId: projectId.value },
