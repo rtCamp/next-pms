@@ -11,6 +11,7 @@ import {
   TABLE_TABS,
   TOUCHPOINT_COLUMNS,
 } from "./constants";
+import TimelineItemDialog from "./TimelineItemDialog.vue";
 import TimelineListView from "./TimelineListView.vue";
 import TimelineTable from "./TimelineTable.vue";
 import type { TableTab } from "./types";
@@ -71,5 +72,6 @@ const columns = computed(() =>
         :label="tab === 'milestones' ? 'Milestones' : 'Touchpoints'"
       />
     </div>
+    <TimelineItemDialog />
   </div>
 </template>
