@@ -1,24 +1,39 @@
 import path from "path";
 import { addEmployee } from "../utils/api/employeeRequests";
-import { getDocList } from "../utils/api/apiClient";
+import {
+  cancelDocument,
+  createDocument,
+  deleteDocument,
+  getDocList,
+  getDocument,
+  updateDocument,
+} from "../utils/api/apiClient";
 import { likeTask } from "../utils/api/taskRequests";
 import {
   actOnTimesheet,
+  apiRequest,
   createTimesheet,
   submitTimesheet,
 } from "../utils/api/timesheetRequests";
-import { dateInWeek, getYesterdayDate } from "../utils/dateUtils";
+import {
+  dateInWeek,
+  getFormattedDate,
+  getYesterdayDate,
+  mondayWeeksAgo,
+} from "../utils/dateUtils";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import { getRandomString } from "../utils/stringUtils";
 import { seedTask } from "./taskHelper";
 
 const WORKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+const DAY = 24 * 60 * 60 * 1000;
 
 // The shared accounts a test can log in as, with the role whose session acts for each.
 const SHARED_EMPLOYEES = {
   EMP: { id: process.env.EMP_ID, role: "employee" },
   EMP2: { id: process.env.EMP2_ID, role: "employee2" },
   EMP3: { id: process.env.EMP3_ID, role: "employee3" },
+  MANAGER: { id: process.env.REP_MAN_ID, role: "manager" },
 };
 
 // A seeded employee's name starts "Playwright-", which is what the suite's employee sweep deletes by.
@@ -31,20 +46,113 @@ const SEEDED_EMPLOYEE = {
   salary_currency: "USD",
 };
 
-/** The id behind a name a test case's data uses for an employee: EMP, EMP2, EMP3 or one it seeded. */
+/** The id behind a name a test case's data uses for an employee: EMP, EMP2, EMP3, MANAGER or one it seeded. */
 const employeeId = (entry, name) => {
   const id = SHARED_EMPLOYEES[name]?.id ?? entry.employees?.[name]?.id;
   if (!id) throw new Error(`No employee called "${name}" to seed time for`);
   return id;
 };
 
+const WEEKENDS_OFF = "E2E Weekends Off";
+
+/** A holiday list with no holidays, or with every Saturday and Sunday off when `weekendsOff`. */
+const ensureHolidayList = async (name, weekendsOff = false) => {
+  const [existing] = await getDocList("Holiday List", [["name", "=", name]]);
+  if (existing) return name;
+  const year = new Date().getFullYear();
+  const holidays = [];
+  for (
+    const day = new Date(year - 1, 0, 1);
+    weekendsOff && day.getFullYear() <= year + 1;
+    day.setDate(day.getDate() + 1)
+  ) {
+    if (day.getDay() % 6 === 0) {
+      holidays.push({
+        holiday_date: getFormattedDate(day),
+        description: day.getDay() ? "Saturday" : "Sunday",
+        weekly_off: 1,
+      });
+    }
+  }
+  await createDocument("Holiday List", {
+    holiday_list_name: name,
+    from_date: `${year - 1}-01-01`,
+    to_date: `${year + 1}-12-31`,
+    holidays,
+  });
+  return name;
+};
+
+let assignmentsExist;
+
+/**
+ * Gives an employee a holiday list. Newer HRMS reads it from a Holiday List Assignment,
+ * not the Employee field; the field goes last, as changing it clears the app's holiday cache.
+ */
+const assignHolidayList = async (id, holidayList) => {
+  assignmentsExist ??=
+    (await getDocList("DocType", [["name", "=", "Holiday List Assignment"]]))
+      .length > 0;
+  if (assignmentsExist) {
+    const { from_date } = await getDocument("Holiday List", holidayList);
+    await createDocument("Holiday List Assignment", {
+      applicable_for: "Employee",
+      assigned_to: id,
+      holiday_list: holidayList,
+      from_date,
+      docstatus: 1,
+    });
+  }
+  await updateDocument("Employee", id, { holiday_list: holidayList });
+};
+
+/** The days off the app counts for an employee last week, as the manager's Team tab reads them; null when not listed. */
+const holidaysLastWeek = async (id) => {
+  const { employee_name } = await getDocument("Employee", id);
+  const res = await apiRequest(
+    `/api/method/next_pms.timesheet.api.team.get_team_timesheet_data?${new URLSearchParams(
+      { start_date: dateInWeek(1, "Mon"), search: employee_name },
+    )}`,
+    { method: "GET" },
+    "manager",
+  );
+  return (
+    res?.message?.members?.find((member) => member.employee === id)?.holidays ??
+    null
+  );
+};
+
+/**
+ * Gives each shared employee in `payloadWeekendsOff` Saturdays and Sundays off when the
+ * app counts none for them last week; without them a week has seven working days, so a
+ * whole Monday-to-Friday week approved reads Partially approved.
+ */
+const giveWeekendsOff = async (entry) => {
+  for (const name of entry.payloadWeekendsOff ?? []) {
+    const id = employeeId(entry, name);
+    const holidays = await holidaysLastWeek(id);
+    if (!holidays) {
+      console.warn(
+        `⚠️ ${name} is not on the manager's Team tab; weekends left as they are`,
+      );
+    } else if (holidays.length === 0) {
+      await assignHolidayList(id, await ensureHolidayList(WEEKENDS_OFF, true));
+    }
+  }
+};
+
 /**
  * Creates the throwaway employees a case lists in `payloadCreateWeekEmployees`
- * ({ <name>: {} }), who report to the manager, and records their ids on the stub.
+ * ({ <name>: { managed, holidayList, weekendsOff } }) and records their ids on the stub.
+ * They report to the manager unless `managed` is false (the manager stays their leave
+ * approver either way); `holidayList` replaces the company's (created empty when missing),
+ * and `weekendsOff` replaces it with one that has every Saturday and Sunday off.
  */
 const createEmployees = async (entry) => {
   entry.employees = {};
-  for (const name of Object.keys(entry.payloadCreateWeekEmployees ?? {})) {
+  for (const [name, options] of Object.entries(
+    entry.payloadCreateWeekEmployees ?? {},
+  )) {
     const lastName = `${name}${getRandomString(5)}`;
     const res = await addEmployee(
       {
@@ -52,12 +160,28 @@ const createEmployees = async (entry) => {
         last_name: lastName,
         status: "Active",
         date_of_joining: getYesterdayDate(),
-        custom_reporting_manager: process.env.REP_MAN_NAME,
-        reports_to: process.env.REP_MAN_ID,
+        // Some sites make a leave approver mandatory, so every seeded employee has one.
         leave_approver: process.env.REP_MAN_EMAIL,
+        ...(options?.managed === false
+          ? {}
+          : {
+              custom_reporting_manager: process.env.REP_MAN_NAME,
+              reports_to: process.env.REP_MAN_ID,
+            }),
       },
       "admin",
     );
+    if (options?.weekendsOff) {
+      await assignHolidayList(
+        res.data.name,
+        await ensureHolidayList(WEEKENDS_OFF, true),
+      );
+    } else if (options?.holidayList) {
+      await assignHolidayList(
+        res.data.name,
+        await ensureHolidayList(options.holidayList),
+      );
+    }
     entry.employees[name] = {
       id: res.data.name,
       name: `${SEEDED_EMPLOYEE.first_name} ${lastName}`,
@@ -66,36 +190,68 @@ const createEmployees = async (entry) => {
 };
 
 /**
- * Logs time for a case's employees in past weeks, and moves weeks on through
- * submission and approval, from these keys of its data:
- *   payloadCreateWeekEmployees  { <name>: {} } - employees to create besides EMP, EMP2 and EMP3
- *   payloadCreateWeekTime       [{ employee, project, subject, weeksAgo, days, hours, comment, role }]
- *                               `project` is the postfix of the payloadCreateProject it books against
- *   payloadWeekStatus           [{ employee, weeksAgo, status: "pending" | "approved" | "rejected" }]
- *   payloadLikeTasks            [{ employee, project, subject }] - the employee stars the task
+ * How many weeks back the week before the manager's backdate limit for an employee
+ * starts, read from the Team tab's own data as the manager sees it.
  */
-export const createWeekTimeForTestCases = async (testCaseIDs, jsonDir) => {
-  if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
-  const [tcId] = testCaseIDs;
-  const stubPath = path.join(jsonDir, `${tcId}.json`);
-  const entry = (await readJSONFile(stubPath))[tcId];
-  if (!entry?.payloadCreateWeekTime && !entry?.payloadCreateWeekEmployees) {
-    return;
+const weeksPastBackdateLimit = async (employee) => {
+  const res = await apiRequest(
+    `/api/method/next_pms.timesheet.api.team.get_team_timesheet_data?${new URLSearchParams(
+      { start_date: getFormattedDate(new Date()), search: employee.name },
+    )}`,
+    { method: "GET" },
+    "manager",
+  );
+  const boundary = res?.message?.members?.find(
+    (member) => member.employee === employee.id,
+  )?.backdate_restricted_before;
+  if (!boundary) return null;
+  const monday = mondayWeeksAgo(0);
+  monday.setHours(0, 0, 0, 0);
+  const limit = new Date(`${boundary}T00:00:00`);
+  limit.setDate(limit.getDate() - ((limit.getDay() + 6) % 7));
+  // The week before the one the limit falls in, so every day of it is past the limit.
+  return Math.round((monday - limit) / (7 * DAY)) + 1;
+};
+
+/** Replaces each `weeksAgo: "pastBackdateLimit"` with a number, and records it on the stub. */
+const resolveWeeks = async (entry) => {
+  entry.resolvedWeeks = {};
+  for (const spec of [
+    ...(entry.payloadCreateWeekTime ?? []),
+    ...(entry.payloadWeekStatus ?? []),
+  ]) {
+    if (spec.weeksAgo !== "pastBackdateLimit") continue;
+    entry.resolvedWeeks[spec.employee] ??= await weeksPastBackdateLimit(
+      entry.employees[spec.employee],
+    );
+    spec.weeksAgo = entry.resolvedWeeks[spec.employee];
   }
+};
 
-  await createEmployees(entry);
+const projectIdOf = (entry, postfix = "") =>
+  entry[`payloadDeleteProject${postfix}`]?.projectId;
 
-  const projectId = (postfix = "") =>
-    entry[`payloadDeleteProject${postfix}`]?.projectId;
+/** The task with this subject on a case's project, created the first time it is asked for. */
+const taskFinder = (entry) => {
   const tasks = {};
-  const taskOf = async (postfix, subject) => {
+  return async (postfix, subject) => {
     const key = `${postfix}|${subject}`;
-    tasks[key] ??= (await seedTask(projectId(postfix), subject)).name;
+    if (!tasks[key]) {
+      const project = projectIdOf(entry, postfix);
+      const [existing] = await getDocList("Task", [
+        ["project", "=", project],
+        ["subject", "=", subject],
+      ]);
+      tasks[key] = existing?.name ?? (await seedTask(project, subject)).name;
+    }
     return tasks[key];
   };
+};
 
+/** Logs the time of the specs given, and returns the dates booked per employee and week. */
+const bookTime = async (entry, specs, taskOf) => {
   const booked = {};
-  for (const spec of entry.payloadCreateWeekTime ?? []) {
+  for (const spec of specs) {
     const employee = employeeId(entry, spec.employee);
     const task = await taskOf(spec.project, spec.subject);
     for (const day of spec.days ?? WORKDAYS) {
@@ -114,10 +270,38 @@ export const createWeekTimeForTestCases = async (testCaseIDs, jsonDir) => {
       (booked[`${spec.employee}|${spec.weeksAgo}`] ??= []).push(date);
     }
   }
+  return booked;
+};
 
-  for (const { employee, weeksAgo, status } of entry.payloadWeekStatus ?? []) {
+/** Books the half-day or full-day leaves of `payloadWeekLeave` as admin, who may backdate them. */
+const bookLeave = async (entry, specs) => {
+  for (const spec of specs) {
+    const date = dateInWeek(spec.weeksAgo, spec.day);
+    await createDocument("Leave Application", {
+      employee: employeeId(entry, spec.employee),
+      leave_type: spec.leaveType ?? "Unpaid Time Off",
+      from_date: date,
+      to_date: date,
+      leave_approver: process.env.REP_MAN_EMAIL,
+      ...(spec.half
+        ? {
+            half_day: 1,
+            half_day_date: date,
+            custom_first_halfsecond_half: spec.half,
+          }
+        : {}),
+      description: spec.reason,
+    });
+  }
+};
+
+/** Sends weeks for approval as admin and decides them, all days or only `days`. */
+const decideWeeks = async (entry, tcId, specs, booked) => {
+  for (const { employee, weeksAgo, status, days, note } of specs) {
     const id = employeeId(entry, employee);
-    const dates = booked[`${employee}|${weeksAgo}`] ?? [];
+    const dates = (booked[`${employee}|${weeksAgo}`] ?? []).filter(
+      (date) => !days || days.some((day) => dateInWeek(weeksAgo, day) === date),
+    );
     await submitTimesheet(
       {
         start_date: dateInWeek(weeksAgo, "Mon"),
@@ -135,13 +319,48 @@ export const createWeekTimeForTestCases = async (testCaseIDs, jsonDir) => {
       {
         dates,
         employee: id,
-        note: `${tcId} - ${status} by global setup`,
+        note: note ?? `${tcId} - ${status} by global setup`,
         status: decision,
       },
       "admin",
     );
     await waitForStatus(id, dates, decision);
   }
+};
+
+/**
+ * Logs time for a case's employees in past weeks, and moves weeks on through
+ * submission and approval, from these keys of its data:
+ *   payloadCreateWeekEmployees  { <name>: { managed, holidayList, weekendsOff } } - employees to create besides the shared ones
+ *   payloadWeekendsOff          [<shared name>] - given Saturdays and Sundays off when their site has none
+ *   payloadCreateWeekTime       [{ employee, project, subject, weeksAgo, days, hours, comment, role }]
+ *                               `project` is the postfix of the payloadCreateProject it books against;
+ *                               `weeksAgo` may be "pastBackdateLimit"
+ *   payloadWeekLeave            [{ employee, weeksAgo, day, half, reason }] - booked as admin
+ *   payloadWeekStatus           [{ employee, weeksAgo, status: "pending" | "approved" | "rejected", days, note }]
+ *   payloadLikeTasks            [{ employee, project, subject }] - the employee stars the task
+ */
+export const createWeekTimeForTestCases = async (testCaseIDs, jsonDir) => {
+  if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
+  const [tcId] = testCaseIDs;
+  const stubPath = path.join(jsonDir, `${tcId}.json`);
+  const entry = (await readJSONFile(stubPath))[tcId];
+  if (!entry?.payloadCreateWeekTime && !entry?.payloadCreateWeekEmployees) {
+    return;
+  }
+
+  await createEmployees(entry);
+  await giveWeekendsOff(entry);
+  await resolveWeeks(entry);
+
+  const taskOf = taskFinder(entry);
+  const booked = await bookTime(
+    entry,
+    entry.payloadCreateWeekTime ?? [],
+    taskOf,
+  );
+  await bookLeave(entry, entry.payloadWeekLeave ?? []);
+  await decideWeeks(entry, tcId, entry.payloadWeekStatus ?? [], booked);
 
   for (const { employee, project, subject } of entry.payloadLikeTasks ?? []) {
     await likeTask(
@@ -153,6 +372,55 @@ export const createWeekTimeForTestCases = async (testCaseIDs, jsonDir) => {
   await writeDataToFile(stubPath, { [tcId]: entry });
   console.log(`✅ CREATE WEEK TIME SUCCESS FOR: ${testCaseIDs}`);
 };
+
+/**
+ * Puts one employee's week back the way the case's data seeds it: deletes what the
+ * week holds now, books its time again and replays its status. A test calls this
+ * when a retry finds the week already changed by the attempt before.
+ */
+export const reseedWeek = async (entry, tcId, employee, weeksAgo) => {
+  const id = employeeId(entry, employee);
+  const week = await getDocList(
+    "Timesheet",
+    [
+      ["employee", "=", id],
+      ["start_date", ">=", dateInWeek(weeksAgo, "Mon")],
+      ["start_date", "<=", dateInWeek(weeksAgo, "Sun")],
+    ],
+    { fields: ["name", "docstatus"] },
+  );
+  for (const { name, docstatus } of week) {
+    if (docstatus === 1) await cancelDocument("Timesheet", name);
+    await deleteDocument("Timesheet", name);
+  }
+  const mine = (spec) =>
+    spec.employee === employee && spec.weeksAgo === weeksAgo;
+  const booked = await bookTime(
+    entry,
+    (entry.payloadCreateWeekTime ?? []).filter(mine),
+    taskFinder(entry),
+  );
+  await decideWeeks(
+    entry,
+    tcId,
+    (entry.payloadWeekStatus ?? []).filter(mine),
+    booked,
+  );
+};
+
+/** The approval status of each of an employee's timesheets in a week. */
+export const weekStatuses = async (entry, employee, weeksAgo) =>
+  (
+    await getDocList(
+      "Timesheet",
+      [
+        ["employee", "=", employeeId(entry, employee)],
+        ["start_date", ">=", dateInWeek(weeksAgo, "Mon")],
+        ["start_date", "<=", dateInWeek(weeksAgo, "Sun")],
+      ],
+      { fields: ["custom_approval_status"] },
+    )
+  ).map((row) => row.custom_approval_status);
 
 // Approval is queued, so the status lands a moment after the call returns.
 const waitForStatus = async (employee, dates, status) => {

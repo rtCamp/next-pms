@@ -23,6 +23,7 @@ import managerTaskListData from "../data/manager/taskList";
 import managerCurrencyBillingData from "../data/manager/currencyBilling";
 import employeeTimesheetWeeksData from "../data/employee/timesheetWeeks";
 import managerProjectTimesheetData from "../data/manager/projectTimesheet";
+import managerTeamTimesheetData from "../data/manager/teamTimesheet";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import {
   createProject,
@@ -1123,6 +1124,7 @@ export const readAndCleanAllOrphanData = async () => {
     ...managerCurrencyBillingData,
     ...employeeTimesheetWeeksData,
     ...managerProjectTimesheetData,
+    ...managerTeamTimesheetData,
   };
 
   await deleteLeaveOfEmployee();

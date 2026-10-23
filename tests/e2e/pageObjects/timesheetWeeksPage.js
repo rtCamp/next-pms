@@ -23,18 +23,9 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
 
     this.searchInput = page.getByPlaceholder("Search tasks");
 
-    this.addTimeDialog = page.getByRole("dialog", { name: "Add time" });
-    this.addTimeOffDialog = page.getByRole("dialog", { name: "Add time off" });
     this.submitDialog = page.getByRole("dialog", {
       name: "Submit for approval",
     });
-
-    this.dateField = this.addTimeDialog.getByRole("button", {
-      name: /^\d{4}-\d{2}-\d{2}$/,
-    });
-    this.halfDayField = this.addTimeOffDialog
-      .getByRole("button")
-      .filter({ has: page.getByRole("textbox", { name: /Half Day Date/ }) });
   }
 
   // --------------------------------------
@@ -124,27 +115,9 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
   // Search and filters
   // --------------------------------------
 
-  async search(term) {
-    await this.searchInput.fill(term);
-  }
-
-  async chooseApprovalStatus(status) {
-    await this.approvalFilter.click();
-    await this.page.getByRole("option", { name: status, exact: true }).click();
-    await this.page.keyboard.press("Escape");
-  }
-
   // --------------------------------------
   // Adding, editing and deleting time
   // --------------------------------------
-
-  /** Picks a value in one of the Add time dialog's comboboxes by its placeholder. */
-  async choose(placeholder, value) {
-    const input = this.addTimeDialog.getByPlaceholder(placeholder);
-    await input.click();
-    await input.fill(value);
-    await this.page.getByRole("option", { name: value }).first().click();
-  }
 
   /** Books time from a week's Total row cell, which opens the dialog on that day. */
   async addTime(label, dayIndex, { project, task, duration, comment }) {
@@ -196,41 +169,6 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
   // --------------------------------------
   // Time-off and submitting
   // --------------------------------------
-
-  /** The dialog's From and To fields; the picker names both by the date they hold. */
-  get dateFields() {
-    return this.addTimeOffDialog.getByRole("button", {
-      name: /^\d{4}-\d{2}-\d{2}$/,
-    });
-  }
-
-  /** Sets a time-off range and duration ("Full Day", "First Half", "Second Half"), then picks the leave type and reason. */
-  async fillTimeOff({ from, to = from, duration, type, reason }) {
-    await this.pickDate(this.dateFields.nth(0), from);
-    await this.pickDate(this.dateFields.nth(1), to);
-    if (duration) {
-      await this.addTimeOffDialog
-        .getByRole("button", { name: duration, exact: true })
-        .click();
-    }
-    if (type) {
-      await this.addTimeOffDialog
-        .getByRole("combobox", { name: /Leave type/ })
-        .click();
-      await this.page.getByRole("option", { name: type }).click();
-    }
-    if (reason) {
-      await this.addTimeOffDialog
-        .getByRole("textbox", { name: /Reason/ })
-        .fill(reason);
-    }
-  }
-
-  async saveTimeOff() {
-    await this.addTimeOffDialog
-      .getByRole("button", { name: "Add time-off", exact: true })
-      .click();
-  }
 
   /** Sends a week for approval; `approver` is only picked when the dialog has none preset. */
   async submitWeek(label, approver) {

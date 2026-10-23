@@ -35,6 +35,15 @@ export class TimesheetTabPage {
         .getByRole("region", { name: /notification/i })
         .getByText(text)
         .first();
+
+    this.addTimeDialog = page.getByRole("dialog", { name: "Add time" });
+    this.addTimeOffDialog = page.getByRole("dialog", { name: "Add time off" });
+    this.dateField = this.addTimeDialog.getByRole("button", {
+      name: /^\d{4}-\d{2}-\d{2}$/,
+    });
+    this.halfDayField = this.addTimeOffDialog
+      .getByRole("button")
+      .filter({ has: page.getByRole("textbox", { name: /Half Day Date/ }) });
   }
 
   // --------------------------------------
@@ -67,6 +76,20 @@ export class TimesheetTabPage {
   }
 
   // --------------------------------------
+  // Search and Approval status
+  // --------------------------------------
+
+  async search(term) {
+    await this.searchInput.fill(term);
+  }
+
+  async chooseApprovalStatus(status) {
+    await this.approvalFilter.click();
+    await this.page.getByRole("option", { name: status, exact: true }).click();
+    await this.page.keyboard.press("Escape");
+  }
+
+  // --------------------------------------
   // Filter panel
   // --------------------------------------
 
@@ -86,9 +109,20 @@ export class TimesheetTabPage {
       .catch(() => {});
   }
 
-  /** Adds "<field> Equals <value>" for the Project or Task field, picking the value from its list. */
-  async filterBy(field, value) {
+  /** Opens the panel on a row with no value yet, adding one when the last row is a whole condition. */
+  async openEmptyFilterRow() {
     await this.openFilterPanel();
+    const rows = await this.filterField.count();
+    // The panel can open on a row whose field is preset but whose value is empty.
+    if (await this.filterValue.last().inputValue()) {
+      await this.page.getByRole("button", { name: "Add filter" }).click();
+      await expect(this.filterField).toHaveCount(rows + 1);
+    }
+  }
+
+  /** Adds "<field> Equals <value>", picking the value from its list. */
+  async filterBy(field, value) {
+    await this.openEmptyFilterRow();
     const input = this.filterField.last();
     await input.click();
     await input.fill(field);
@@ -108,6 +142,59 @@ export class TimesheetTabPage {
     await option.click();
     await expect(valueInput).toHaveValue(value);
     await this.closeFilterPanel();
+  }
+
+  // --------------------------------------
+  // Add time and Add time-off dialogs
+  // --------------------------------------
+
+  /** Picks a value in one of a dialog's comboboxes by its placeholder. */
+  async choose(placeholder, value, dialog = this.addTimeDialog) {
+    const input = dialog.getByPlaceholder(placeholder);
+    await input.click();
+    await input.fill(value);
+    await this.page.getByRole("option", { name: value }).first().click();
+  }
+
+  /** The dialog's From and To fields; the picker names both by the date they hold. */
+  get dateFields() {
+    return this.addTimeOffDialog.getByRole("button", {
+      name: /^\d{4}-\d{2}-\d{2}$/,
+    });
+  }
+
+  /**
+   * Sets a time-off range and duration ("Full Day", "First Half", "Second Half"), then picks
+   * the leave type and reason; on the Team tab, `employee` first (it enables Leave type).
+   */
+  async fillTimeOff({ employee, from, to = from, duration, type, reason }) {
+    if (employee) {
+      await this.choose("Select employee", employee, this.addTimeOffDialog);
+    }
+    await this.pickDate(this.dateFields.nth(0), from);
+    await this.pickDate(this.dateFields.nth(1), to);
+    if (duration) {
+      await this.addTimeOffDialog
+        .getByRole("button", { name: duration, exact: true })
+        .click();
+    }
+    if (type) {
+      await this.addTimeOffDialog
+        .getByRole("combobox", { name: /Leave type/ })
+        .click();
+      await this.page.getByRole("option", { name: type }).click();
+    }
+    if (reason) {
+      await this.addTimeOffDialog
+        .getByRole("textbox", { name: /Reason/ })
+        .fill(reason);
+    }
+  }
+
+  async saveTimeOff() {
+    await this.addTimeOffDialog
+      .getByRole("button", { name: "Add time-off", exact: true })
+      .click();
   }
 
   // --------------------------------------
@@ -150,7 +237,7 @@ export class TimesheetTabPage {
 
   /** Adds "Date between <from> and <to>" to the Filter panel. */
   async filterByDate(from, to) {
-    await this.openFilterPanel();
+    await this.openEmptyFilterRow();
     const input = this.filterField.last();
     await input.click();
     await input.fill("Date");
