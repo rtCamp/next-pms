@@ -58,8 +58,9 @@ src/
                    pages/projects/ also has kanban/ and views/ (saved views)
                    Views that share a shell keep the shared parts at the folder root and one subfolder per view
                    (pages/timesheet/: layout, filters, dialogs; personal/, team/, project/). pages/allocations/
-                   puts them in shared/ (layout, URL state, the Add / Edit, Edit schedule and delete dialogs, and
-                   pure .ts modules with unit tests) beside team/ (and later project/); its dialogs have no stories
+                   puts them in shared/ (layout, URL state, paged loading with the realtime refresh, the Add / Edit,
+                   Edit schedule and delete dialogs, and pure .ts modules with unit tests) beside team/ and project/;
+                   its dialogs have no stories
   components/      components frappe-ui lacks, one folder each; see components/Components.md
   composables/     shared use* composables: lookups, the like toggle, URL query updates, editor attributes,
                    values saved in localStorage (useSavedState), notifications, infinite scroll, project phases,

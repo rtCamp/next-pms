@@ -67,7 +67,8 @@ per day or total hours. It can be billable, tentative, and AI-created (`is_ai_cr
 _Avoid_: booking, assignment, schedule.
 
 **Team / Project allocations** — the two allocation views: by employee (`/allocations/team`) and by project
-(`/allocations/project`).
+(`/allocations/project`). Both show each employee's time off on their rows; the Project view reads it per day
+(`employee_leaves`), so a half day there doesn't say which half.
 
 **Allocation segment** — the part of an allocation drawn as one bar: the whole allocation, or a run of days between
 per-day overrides that change its hours. A segment reduced to zero hours stays as an empty placeholder bar
