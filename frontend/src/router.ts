@@ -5,6 +5,7 @@ import {
   type RouteLocationNormalized,
   type RouteRecordRaw,
 } from "vue-router";
+import { NOTE_EDITOR_ROUTES } from "./pages/project-details/notes/constants";
 import { ROLE_ACCESS, useSession } from "./session";
 
 const WorkInProgress = () => import("./pages/WorkInProgress.vue");
@@ -48,16 +49,18 @@ const routes: RouteRecordRaw[] = [
     name: "project-details",
     component: () => import("./pages/project-details/ProjectDetails.vue"),
     meta: { title: "Project", roles: ROLE_ACCESS.projects, scroll: false },
+    children: [
+      { path: "notes/new", name: NOTE_EDITOR_ROUTES.new },
+      { path: "notes/:noteId/edit", name: NOTE_EDITOR_ROUTES.edit },
+      {
+        path: "notes/templates/:templateId/edit",
+        name: NOTE_EDITOR_ROUTES.template,
+      },
+    ].map((child): RouteRecordRaw => ({
+      ...child,
+      component: WorkInProgress,
+    })),
   },
-  ...[
-    "/notes/new",
-    "/notes/:noteId/edit",
-    "/notes/templates/:templateId/edit",
-  ].map((suffix): RouteRecordRaw => ({
-    path: `/projects/:projectId${suffix}`,
-    component: WorkInProgress,
-    meta: { title: "Project", roles: ROLE_ACCESS.projects },
-  })),
   {
     path: "/tasks",
     name: "task",

@@ -56,7 +56,7 @@ const route = useRoute();
 const patchQuery = useQueryPatch();
 
 // Read once: another project remounts the page (App.vue keys the route view by
-// path), and a write still queued as this page unmounts must not follow the URL.
+// project), and a write still queued as this page unmounts must not follow the URL.
 const projectId = String(route.params.projectId ?? "");
 const { doc, error, reload } = provideProjectDetails(projectId);
 const unsavedChanges = provideUnsavedChanges();
@@ -74,6 +74,9 @@ const tabs = computed(() =>
     reportsEnabled: Boolean(doc.value?.custom_enable_project_report_generation),
   }),
 );
+
+/** Whether a note editor route (a child route) is open in place of the tabs. */
+const editorOpen = computed(() => route.matched.length > 1);
 
 const tabParam = computed(() => queryString(route.query[TAB_PARAM]));
 const activeTab = computed(() => selectedTab(tabParam.value, tabs.value));
@@ -101,9 +104,14 @@ function selectTab(value: string | number) {
 // An unknown or hidden tab leaves the URL once the project (and so the Reports
 // flag) has loaded, as in React.
 watch(
-  [doc, tabParam],
+  [doc, tabParam, editorOpen],
   () => {
-    if (doc.value && tabParam.value && tabParam.value !== activeTab.value) {
+    if (
+      doc.value &&
+      !editorOpen.value &&
+      tabParam.value &&
+      tabParam.value !== activeTab.value
+    ) {
       patchQuery({ [TAB_PARAM]: null });
     }
   },
@@ -137,7 +145,13 @@ watch(
 <template>
   <ProjectDetailsHeader />
   <div v-if="doc" class="flex min-h-0 flex-1 max-md:overflow-x-auto">
+    <div v-if="editorOpen" class="min-h-0 flex-1 overflow-auto">
+      <RouterView v-slot="{ Component: editor, route: editorRoute }">
+        <component :is="editor" :key="editorRoute.fullPath" />
+      </RouterView>
+    </div>
     <Tabs
+      v-else
       :model-value="activeTab"
       class="flex w-3/4 flex-col border-r border-outline-elevation-2 max-md:min-w-full"
       @update:model-value="selectTab"
