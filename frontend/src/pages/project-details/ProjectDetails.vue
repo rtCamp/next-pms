@@ -27,6 +27,7 @@ import { DEFAULT_TAB, TAB_PARAM, type ProjectTabKey } from "./constants";
 import EmailTab from "./email/EmailTab.vue";
 import { VIEW_PARAM } from "./feedback/constants";
 import FeedbackTab from "./feedback/FeedbackTab.vue";
+import NotesTab from "./notes/NotesTab.vue";
 import OverviewTab from "./overview/OverviewTab.vue";
 import ProjectDetailsHeader from "./ProjectDetailsHeader.vue";
 import RagStatsTab from "./rag-stats/RagStatsTab.vue";
@@ -50,6 +51,7 @@ const TAB_PANELS: Partial<Record<ProjectTabKey, Component>> = {
   tracking: TrackingTab,
   "to-do": TodosTab,
   feedback: FeedbackTab,
+  notes: NotesTab,
 };
 
 const route = useRoute();
