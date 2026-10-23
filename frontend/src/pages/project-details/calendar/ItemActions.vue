@@ -37,11 +37,14 @@ const options = computed(() => {
 </script>
 
 <template>
+  <!-- eslint-disable better-tailwindcss/no-restricted-classes -- Button has no 16px-tall size; React's ⋯ is h-4 -->
   <Dropdown :options="options" side="bottom" align="end">
     <Button
+      class="!h-4"
       variant="ghost"
       icon="lucide-ellipsis"
       :label="`Actions for ${item.title}`"
     />
   </Dropdown>
+  <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
 </template>

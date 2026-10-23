@@ -89,21 +89,18 @@ export interface TableColumn {
     | "watchers"
     | "actions";
   label: string;
-  width: string;
 }
 
-const COLUMN_WIDTH = "112px";
-
 export const MILESTONE_COLUMNS: TableColumn[] = [
-  { key: "title", label: "Title", width: "minmax(160px,1fr)" },
-  { key: "category", label: "Type", width: COLUMN_WIDTH },
-  { key: "startDate", label: "Start date", width: COLUMN_WIDTH },
-  { key: "plannedEndDate", label: "Planned end", width: COLUMN_WIDTH },
-  { key: "actualEndDate", label: "Actual end", width: COLUMN_WIDTH },
-  { key: "todos", label: "ToDos", width: "80px" },
-  { key: "owner", label: "Owners", width: "minmax(112px,auto)" },
-  { key: "watchers", label: "Watchers", width: COLUMN_WIDTH },
-  { key: "actions", label: "", width: "48px" },
+  { key: "title", label: "Title" },
+  { key: "category", label: "Type" },
+  { key: "startDate", label: "Start date" },
+  { key: "plannedEndDate", label: "Planned end" },
+  { key: "actualEndDate", label: "Actual end" },
+  { key: "todos", label: "ToDos" },
+  { key: "owner", label: "Owners" },
+  { key: "watchers", label: "Watchers" },
+  { key: "actions", label: "" },
 ];
 
 export const TOUCHPOINT_COLUMNS: TableColumn[] = MILESTONE_COLUMNS.filter(

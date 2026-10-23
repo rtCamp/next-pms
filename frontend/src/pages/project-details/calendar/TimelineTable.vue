@@ -26,7 +26,9 @@ const props = defineProps<{
   label: string;
 }>();
 
-const widths = computed(() => props.columns.map((column) => column.width));
+const tracks = computed(
+  () => `repeat(${props.columns.length}, minmax(max-content, auto))`,
+);
 
 function hasColumn(key: TableColumn["key"]) {
   return props.columns.some((column) => column.key === key);
@@ -38,14 +40,21 @@ function hasColumn(key: TableColumn["key"]) {
     {{ emptyMessage }}
   </p>
   <div v-else class="overflow-x-auto">
-    <List :columns="widths" :aria-label="label" class="min-w-min list-row-px-2">
-      <ListHeader>
+    <!-- Rows are separate grids; as subgrids they share the List's tracks, so each
+         column fits its widest cell, as React's table does. -->
+    <List
+      :columns="['subgrid']"
+      :aria-label="label"
+      class="grid min-w-min gap-x-4 whitespace-nowrap list-gap-4 list-row-px-2"
+      :style="{ gridTemplateColumns: tracks }"
+    >
+      <ListHeader class="col-span-full">
         <ListHeaderCell v-for="column in columns" :key="column.key">
           {{ column.label }}
         </ListHeaderCell>
       </ListHeader>
       <ListRows v-slot="{ item }" :items="items" row-key="name">
-        <ListRow>
+        <ListRow class="col-span-full py-3 hover:bg-surface-gray-1">
           <ListCell class="min-w-0 gap-2 text-ink-gray-8">
             <span
               class="size-3.5 shrink-0"
@@ -95,7 +104,7 @@ function hasColumn(key: TableColumn["key"]) {
               }}
             </span>
           </ListCell>
-          <ListCell>
+          <ListCell class="text-base">
             <TodosCell :item="item" />
           </ListCell>
           <ListCell class="min-w-0 gap-1.5 text-base text-ink-gray-6">
