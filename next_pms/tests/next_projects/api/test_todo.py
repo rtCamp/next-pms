@@ -1,4 +1,5 @@
 import frappe
+from frappe.permissions import add_user_permission, update_permission_property
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, nowdate
 
@@ -6,10 +7,13 @@ from next_pms.install import create_default_growth_masters
 from next_pms.next_projects.api.project_timeline_item import mark_timeline_item_complete
 from next_pms.next_projects.api.todo import (
     create_linked_todo,
+    create_project_todo,
+    delete_project_todo,
     get_linkable_records,
-    get_todo_links,
+    get_project_todos,
     link_todo,
     unlink_todo,
+    update_project_todo,
 )
 
 PTI = "Project Timeline Item"
@@ -17,6 +21,7 @@ GROWTH = "PMS Growth Initiative"
 MANAGER = "test.linked.todo.pm@example.com"
 GATED = "test.linked.todo.pu@example.com"
 OUTSIDER = "test.linked.todo.emp@example.com"
+RESTRICTED = "test.linked.todo.restricted@example.com"
 
 
 class LinkedTodoTestCase(IntegrationTestCase):
@@ -24,12 +29,17 @@ class LinkedTodoTestCase(IntegrationTestCase):
     def setUpClass(cls):
         super().setUpClass()
         create_default_growth_masters()
+        for ptype in ("create", "write", "delete"):
+            update_permission_property("ToDo", "All", 0, ptype, 0)
         cls.make_user(MANAGER, ["Projects Manager"])
         cls.make_user(GATED, ["Projects User"])
         cls.make_user(OUTSIDER, ["Employee"])
-        frappe.clear_cache()
+        cls.make_user(RESTRICTED, ["Projects Manager"])
         cls.project = cls.make_project("Linked ToDo Project")
         cls.other_project = cls.make_project("Linked ToDo Other Project")
+        if not frappe.db.exists("User Permission", {"user": RESTRICTED, "allow": "Project"}):
+            add_user_permission("Project", cls.other_project, RESTRICTED, applicable_for="Project")
+        frappe.clear_cache()
 
     def tearDown(self):
         frappe.set_user("Administrator")
@@ -167,11 +177,21 @@ class TestLinkedTodoValidation(LinkedTodoTestCase):
         with self.assertRaises(frappe.UniqueValidationError):
             row.db_insert()
 
-    def test_saving_owner_with_an_unreadable_todo_is_rejected(self):
+    def test_saving_owner_with_another_users_project_todo_is_allowed(self):
         initiative = self.make_initiative()
         todo = self.make_todo(allocated_to=OUTSIDER)
 
         frappe.set_user(MANAGER)
+        initiative = frappe.get_doc(GROWTH, initiative.name)
+        initiative.append("linked_todos", {"todo": todo.name})
+        initiative.save()
+        self.assertEqual(self.linked_todos(initiative), [todo.name])
+
+    def test_saving_owner_with_a_new_link_needs_read_on_its_project(self):
+        initiative = self.make_initiative(activity_owner=RESTRICTED)
+        todo = self.make_todo()
+
+        frappe.set_user(RESTRICTED)
         initiative = frappe.get_doc(GROWTH, initiative.name)
         initiative.append("linked_todos", {"todo": todo.name})
         with self.assertRaises(frappe.PermissionError):
@@ -312,12 +332,22 @@ class TestLinkAndUnlinkTodo(LinkedTodoTestCase):
         with self.assertRaises(frappe.PermissionError):
             link_todo(todo.name, GROWTH, own_initiative.name)
 
-    def test_unreadable_todo_cannot_be_linked_or_unlinked(self):
+    def test_another_users_project_todo_can_be_linked_and_unlinked(self):
         milestone = self.make_timeline_item()
         todo = self.make_todo(allocated_to=OUTSIDER)
-        link_todo(todo.name, PTI, milestone.name)
 
         frappe.set_user(MANAGER)
+        link_todo(todo.name, PTI, milestone.name)
+        self.assertEqual(self.linked_todos(milestone), [todo.name])
+        unlink_todo(todo.name)
+        self.assertEqual(self.linked_todos(milestone), [])
+
+    def test_todo_of_an_unreadable_project_cannot_be_linked_or_unlinked(self):
+        milestone = self.make_timeline_item()
+        todo = self.make_todo()
+        link_todo(todo.name, PTI, milestone.name)
+
+        frappe.set_user(RESTRICTED)
         with self.assertRaises(frappe.PermissionError):
             link_todo(todo.name, PTI, self.make_timeline_item(type="Touchpoint").name)
         with self.assertRaises(frappe.PermissionError):
@@ -345,22 +375,25 @@ class TestLinkAndUnlinkTodo(LinkedTodoTestCase):
             unlink_todo(todo.name)
 
 
-class TestTodoLinkLookups(LinkedTodoTestCase):
-    def test_get_todo_links_returns_owner_of_each_linked_todo(self):
-        project = self.make_project("Todo Links Project")
+class TestProjectTodos(LinkedTodoTestCase):
+    def test_lists_every_todo_of_the_project_with_assignee_and_link(self):
+        project = self.make_project("Project ToDos Project")
         milestone = self.make_timeline_item(project=project, title="Beta launch")
         touchpoint = self.make_timeline_item(type="Touchpoint", project=project, title="Client sync")
         initiative = self.make_initiative(project=project, activity="Upsell support")
         linked = {owner.name: self.make_todo(project=project).name for owner in (milestone, touchpoint, initiative)}
         for owner in (milestone, touchpoint, initiative):
             link_todo(linked[owner.name], owner.doctype, owner.name)
-        self.make_todo(project=project)
+        unlinked = self.make_todo(project=project, allocated_to=OUTSIDER)
+        self.make_todo(project=self.other_project)
+        frappe.get_doc({"doctype": "ToDo", "description": "Loose"}).insert(ignore_permissions=True)
 
-        frappe.set_user(MANAGER)
-        links = get_todo_links(project)
+        frappe.set_user(GATED)
+        todos = {todo.name: todo for todo in get_project_todos(project)}
 
+        self.assertEqual(set(todos), {*linked.values(), unlinked.name})
         self.assertEqual(
-            links,
+            {name: todos[name].linked for name in linked.values()},
             {
                 linked[milestone.name]: {
                     "doctype": PTI,
@@ -382,19 +415,88 @@ class TestTodoLinkLookups(LinkedTodoTestCase):
                 },
             },
         )
+        self.assertNotIn("linked", todos[unlinked.name])
+        self.assertEqual(
+            todos[unlinked.name].allocated_to_full_name, frappe.db.get_value("User", OUTSIDER, "full_name")
+        )
+        self.assertEqual(get_project_todos(self.make_project("Project ToDos Empty Project")), [])
 
-    def test_get_todo_links_skips_todos_the_user_cannot_read(self):
-        project = self.make_project("Todo Links Visibility Project")
-        milestone = self.make_timeline_item(project=project)
-        hidden = self.make_todo(project=project, allocated_to=MANAGER)
-        visible = self.make_todo(project=project, allocated_to=OUTSIDER)
-        link_todo(hidden.name, PTI, milestone.name)
-        link_todo(visible.name, PTI, self.make_timeline_item(type="Touchpoint", project=project).name)
+    def test_desk_keeps_core_todo_permissions(self):
+        todo = self.make_todo(allocated_to=OUTSIDER)
 
-        frappe.set_user(OUTSIDER)
-        self.assertEqual(list(get_todo_links(project)), [visible.name])
-        self.assertEqual(get_todo_links(self.make_project("Todo Links Empty Project")), {})
+        frappe.set_user(GATED)
+        self.assertIn(todo.name, [row.name for row in get_project_todos(self.project)])
+        self.assertNotIn(todo.name, frappe.get_list("ToDo", pluck="name", limit_page_length=0))
+        self.assertFalse(frappe.has_permission("ToDo", "read", doc=todo.name))
 
+    def test_creates_todo_on_the_project_ignoring_reference_overrides(self):
+        frappe.set_user(GATED)
+        todo = create_project_todo(
+            self.project,
+            frappe.as_json(
+                {
+                    "description": "Kick-off",
+                    "allocated_to": OUTSIDER,
+                    "priority": "High",
+                    "reference_name": self.other_project,
+                    "assigned_by": OUTSIDER,
+                }
+            ),
+        )
+        self.assertEqual((todo["reference_type"], todo["reference_name"]), ("Project", self.project))
+        self.assertEqual((todo["allocated_to"], todo["assigned_by"], todo["owner"]), (OUTSIDER, GATED, GATED))
+        self.assertEqual(todo["priority"], "High")
+
+    def test_updates_any_todo_of_the_project(self):
+        todo = self.make_todo(allocated_to=OUTSIDER)
+
+        frappe.set_user(GATED)
+        updated = update_project_todo(
+            todo.name,
+            {"description": "Ship deck", "status": "Closed", "reference_name": self.other_project},
+        )
+        self.assertEqual((updated["description"], updated["status"]), ("Ship deck", "Closed"))
+        self.assertEqual(frappe.db.get_value("ToDo", todo.name, "reference_name"), self.project)
+
+    def test_deletes_any_todo_of_the_project(self):
+        milestone = self.make_timeline_item()
+        todo = self.make_todo(allocated_to=OUTSIDER)
+        link_todo(todo.name, PTI, milestone.name)
+
+        frappe.set_user(GATED)
+        self.assertEqual(delete_project_todo(todo.name), {"todo": todo.name})
+        self.assertFalse(frappe.db.exists("ToDo", todo.name))
+        self.assertEqual(self.linked_todos(milestone), [])
+
+    def test_users_who_cannot_open_the_project_page_are_rejected(self):
+        todo = self.make_todo()
+        for user in (OUTSIDER, RESTRICTED):
+            frappe.set_user(user)
+            with self.assertRaises(frappe.PermissionError):
+                get_project_todos(self.project)
+            with self.assertRaises(frappe.PermissionError):
+                create_project_todo(self.project, {"description": "Sneaky"})
+            with self.assertRaises(frappe.PermissionError):
+                update_project_todo(todo.name, {"status": "Closed"})
+            with self.assertRaises(frappe.PermissionError):
+                delete_project_todo(todo.name)
+        frappe.set_user("Administrator")
+        self.assertEqual(frappe.db.get_value("ToDo", todo.name, "status"), "Open")
+
+    def test_todo_not_referencing_a_project_is_rejected(self):
+        todo = frappe.get_doc({"doctype": "ToDo", "description": "Loose"}).insert(ignore_permissions=True)
+        frappe.set_user(GATED)
+        with self.assertRaises(frappe.PermissionError):
+            update_project_todo(todo.name, {"status": "Closed"})
+        with self.assertRaises(frappe.PermissionError):
+            delete_project_todo(todo.name)
+
+    def test_unknown_project_is_rejected(self):
+        with self.assertRaises(frappe.DoesNotExistError):
+            get_project_todos("no-such-project")
+
+
+class TestLinkableRecords(LinkedTodoTestCase):
     def test_get_linkable_records_lists_what_the_user_can_edit(self):
         project = self.make_project("Linkable Records Project")
         milestone = self.make_timeline_item(project=project, title="M1")

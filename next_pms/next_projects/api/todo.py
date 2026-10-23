@@ -2,9 +2,11 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe import _, whitelist
+from frappe import _, only_for, whitelist
 
 from next_pms.api.utils import error_logger
+from next_pms.next_projects.api.constant import ALLOWED_ROLES
+from next_pms.next_projects.api.utils import get_user_details_map
 from next_pms.utils.linked_todos import LINKED_TODO_OWNERS, get_todo_owner_rows
 
 TODO_FIELDS = (
@@ -18,6 +20,107 @@ TODO_FIELDS = (
     "custom_to_time",
 )
 GROWTH_INITIATIVE_TYPE = "Growth Initiative"
+
+
+@whitelist(methods=["GET"])
+@error_logger
+def get_project_todos(project: str) -> list[dict]:
+    """ToDos of a project, for everyone who can open the project page.
+
+    ToDo permissions are bypassed on purpose: access is decided by the project, so Desk
+    keeps showing users only the ToDos core ToDo permissions give them.
+
+    Args:
+        project: Project name
+
+    Returns:
+        Newest first, each ToDo with allocated_to_full_name, allocated_to_image and, when
+        linked, linked: {"doctype": str, "name": str, "title": str, "type": str}.
+    """
+    check_project_access(project)
+
+    meta = frappe.get_meta("ToDo")
+    todos = frappe.get_all(
+        "ToDo",
+        filters={"reference_type": "Project", "reference_name": project},
+        fields=[
+            "name",
+            "owner",
+            "creation",
+            "modified",
+            "assigned_by",
+            "assigned_by_full_name",
+            "reference_type",
+            "reference_name",
+            *(field for field in TODO_FIELDS if meta.has_field(field)),
+        ],
+        order_by="creation desc",
+        limit=500,
+    )
+    users = get_user_details_map([todo.allocated_to for todo in todos if todo.allocated_to])
+    links = get_todo_links([todo.name for todo in todos])
+
+    for todo in todos:
+        user = users.get(todo.allocated_to, {})
+        todo.allocated_to_full_name = user.get("full_name") or todo.allocated_to
+        todo.allocated_to_image = user.get("user_image")
+        if todo.name in links:
+            todo.linked = links[todo.name]
+    return todos
+
+
+@whitelist(methods=["POST"])
+@error_logger
+def create_project_todo(project: str, todo: str | dict):
+    """Create a ToDo on a project for anyone who can open the project page.
+
+    Args:
+        project: Project name
+        todo: ToDo field values (description, status, priority, allocated_to, date and the
+            optional custom_title / custom_from_time / custom_to_time); reference fields are
+            always set to the project and assigned_by to the current user
+
+    Returns:
+        The created ToDo.
+    """
+    check_project_access(project)
+    return insert_project_todo(project, todo).as_dict()
+
+
+@whitelist(methods=["POST"])
+@error_logger
+def update_project_todo(todo: str, values: str | dict):
+    """Update a project ToDo for anyone who can open its project page.
+
+    Args:
+        todo: ToDo name
+        values: ToDo field values to change; only description, status, priority, allocated_to,
+            date and the optional custom_title / custom_from_time / custom_to_time are applied
+
+    Returns:
+        The updated ToDo.
+    """
+    doc = get_project_todo(todo)
+    values = frappe.parse_json(values) or {}
+    doc.update({field: values[field] for field in TODO_FIELDS if field in values})
+    doc.save(ignore_permissions=True)
+    return doc.as_dict()
+
+
+@whitelist(methods=["POST"])
+@error_logger
+def delete_project_todo(todo: str):
+    """Delete a project ToDo for anyone who can open its project page.
+
+    Args:
+        todo: ToDo name
+
+    Returns:
+        {"todo": str}
+    """
+    get_project_todo(todo)
+    frappe.delete_doc("ToDo", todo, ignore_permissions=True)
+    return {"todo": todo}
 
 
 @whitelist(methods=["POST"])
@@ -36,18 +139,10 @@ def create_linked_todo(doctype: str, name: str, todo: str | dict):
         The created ToDo.
     """
     owner = get_owner(doctype, name)
+    check_project_access(owner.project)
     owner.check_permission("write")
 
-    values = frappe.parse_json(todo) or {}
-    todo_doc = frappe.get_doc(
-        {
-            **{field: values[field] for field in TODO_FIELDS if field in values},
-            "doctype": "ToDo",
-            "assigned_by": frappe.session.user,
-            "reference_type": "Project",
-            "reference_name": owner.project,
-        }
-    ).insert()
+    todo_doc = insert_project_todo(owner.project, todo)
     add_todo_to_owner(owner, todo_doc.name)
 
     return todo_doc.as_dict()
@@ -67,7 +162,7 @@ def link_todo(todo: str, doctype: str, name: str):
         {"todo": str, "doctype": str, "name": str}
     """
     owner = get_owner(doctype, name)
-    check_todo_permission(todo)
+    get_project_todo(todo)
 
     current = get_todo_owner(todo)
     if not current or (current.doctype, current.name) != (owner.doctype, owner.name):
@@ -89,41 +184,12 @@ def unlink_todo(todo: str):
     Returns:
         {"todo": str}
     """
-    check_todo_permission(todo)
+    get_project_todo(todo)
 
     if current := get_todo_owner(todo):
         remove_todo_from_owner(current, todo)
 
     return {"todo": todo}
-
-
-@whitelist(methods=["GET"])
-@error_logger
-def get_todo_links(project: str) -> dict[str, dict]:
-    """Owner of each Project ToDo the user can read, for showing the association on the ToDo tab.
-
-    Args:
-        project: Project name
-
-    Returns:
-        {todo: {"doctype": str, "name": str, "title": str, "type": str}} — unlinked ToDos
-        are left out.
-    """
-    readable = frappe.get_list(
-        "ToDo",
-        filters={"reference_type": "Project", "reference_name": project},
-        pluck="name",
-        limit_page_length=0,
-    )
-    rows = get_todo_owner_rows(readable)
-
-    owners = {}
-    for doctype in {row.parenttype for row in rows}:
-        names = [row.parent for row in rows if row.parenttype == doctype]
-        for record in frappe.get_all(doctype, filters={"name": ["in", names]}, fields=get_owner_fields(doctype)):
-            owners[(doctype, record.name)] = to_linkable_record(doctype, record)
-
-    return {row.todo: owners[(row.parenttype, row.parent)] for row in rows}
 
 
 @whitelist(methods=["GET"])
@@ -137,9 +203,7 @@ def get_linkable_records(project: str) -> list[dict]:
     Returns:
         [{"doctype": str, "name": str, "title": str, "type": str}]
     """
-    if not frappe.db.exists("Project", project):
-        frappe.throw(_("Project {0} not found").format(project), frappe.DoesNotExistError)
-    frappe.has_permission("Project", doc=project, ptype="read", throw=True)
+    check_project_access(project)
 
     records = []
     for doctype, title_field in LINKED_TODO_OWNERS.items():
@@ -179,8 +243,45 @@ def to_linkable_record(doctype: str, record: dict) -> dict:
     }
 
 
-def check_todo_permission(todo: str):
-    frappe.get_doc("ToDo", todo).check_permission("read")
+def check_project_access(project: str):
+    """Throw unless the user can open the project page: a project role plus read on the project."""
+    only_for(ALLOWED_ROLES, message=True)
+    if not frappe.db.exists("Project", project):
+        frappe.throw(_("Project {0} not found").format(project), frappe.DoesNotExistError)
+    frappe.has_permission("Project", doc=project, ptype="read", throw=True)
+
+
+def get_project_todo(todo: str):
+    doc = frappe.get_doc("ToDo", todo)
+    if doc.reference_type != "Project" or not doc.reference_name:
+        frappe.throw(_("ToDo {0} does not belong to a project.").format(frappe.bold(todo)), frappe.PermissionError)
+    check_project_access(doc.reference_name)
+    return doc
+
+
+def insert_project_todo(project: str, todo: str | dict):
+    values = frappe.parse_json(todo) or {}
+    return frappe.get_doc(
+        {
+            **{field: values[field] for field in TODO_FIELDS if field in values},
+            "doctype": "ToDo",
+            "assigned_by": frappe.session.user,
+            "reference_type": "Project",
+            "reference_name": project,
+        }
+    ).insert(ignore_permissions=True)
+
+
+def get_todo_links(todos: list[str]) -> dict[str, dict]:
+    rows = get_todo_owner_rows(todos)
+
+    owners = {}
+    for doctype in {row.parenttype for row in rows}:
+        names = [row.parent for row in rows if row.parenttype == doctype]
+        for record in frappe.get_all(doctype, filters={"name": ["in", names]}, fields=get_owner_fields(doctype)):
+            owners[(doctype, record.name)] = to_linkable_record(doctype, record)
+
+    return {row.todo: owners[(row.parenttype, row.parent)] for row in rows}
 
 
 def get_todo_owner(todo: str):

@@ -6,10 +6,7 @@ import { DeleteActionDialog } from "@next-pms/design-system/components";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import {
   type FrappeError,
-  useFrappeCreateDoc,
-  useFrappeDeleteDoc,
   useFrappePostCall,
-  useFrappeUpdateDoc,
   useSWRConfig,
 } from "frappe-react-sdk";
 
@@ -18,9 +15,8 @@ import {
  */
 import { hasTodoCustomFields, parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
-import { useUser } from "@/providers/user";
 import { TodosContext, type TodosContextProps } from "./context";
-import { TODO_API, todoLinksKey, todosKey } from "../constants";
+import { TODO_API, todosKey } from "../constants";
 import { CreateTodoModal } from "../create-todo";
 import type { TodoStatus } from "../create-todo/schema";
 import type { CreateTodoInput, LinkedRecord, Todo, TodoDoc } from "../types";
@@ -48,11 +44,16 @@ const toTodoFields = (input: CreateTodoInput) => ({
 
 export function TodosProvider({ children }: PropsWithChildren) {
   const projectId = useProjectDetail((s) => s.projectId);
-  const userId = useUser(({ state }) => state.userId);
   const { mutate } = useSWRConfig();
-  const { createDoc } = useFrappeCreateDoc();
-  const { updateDoc } = useFrappeUpdateDoc();
-  const { deleteDoc } = useFrappeDeleteDoc();
+  const { call: createProjectTodo } = useFrappePostCall<{ message: TodoDoc }>(
+    `${TODO_API}.create_project_todo`,
+  );
+  const { call: updateProjectTodo } = useFrappePostCall<{ message: TodoDoc }>(
+    `${TODO_API}.update_project_todo`,
+  );
+  const { call: deleteProjectTodo } = useFrappePostCall(
+    `${TODO_API}.delete_project_todo`,
+  );
   const { call: createLinkedTodo } = useFrappePostCall<{ message: TodoDoc }>(
     `${TODO_API}.create_linked_todo`,
   );
@@ -65,11 +66,7 @@ export function TodosProvider({ children }: PropsWithChildren) {
   const [unlinking, setUnlinking] = useState<Todo | null>(null);
 
   const refresh = useCallback(
-    () =>
-      Promise.all([
-        mutate(todosKey(projectId)),
-        mutate(todoLinksKey(projectId)),
-      ]),
+    () => mutate(todosKey(projectId)),
     [mutate, projectId],
   );
 
@@ -88,20 +85,16 @@ export function TodosProvider({ children }: PropsWithChildren) {
     async (input: CreateTodoInput) => {
       setIsSaving(true);
       try {
-        const doc = input.linkedTo
-          ? (
-              await createLinkedTodo({
-                doctype: input.linkedTo.doctype,
-                name: input.linkedTo.name,
-                todo: toTodoFields(input),
-              })
-            ).message
-          : ((await createDoc("ToDo", {
-              ...toTodoFields(input),
-              assigned_by: userId,
-              reference_type: "Project",
-              reference_name: projectId,
-            })) as TodoDoc);
+        const { message: doc } = input.linkedTo
+          ? await createLinkedTodo({
+              doctype: input.linkedTo.doctype,
+              name: input.linkedTo.name,
+              todo: toTodoFields(input),
+            })
+          : await createProjectTodo({
+              project: projectId,
+              todo: toTodoFields(input),
+            });
         toast.success("ToDo created");
         await refresh();
         return doc;
@@ -112,7 +105,7 @@ export function TodosProvider({ children }: PropsWithChildren) {
         setIsSaving(false);
       }
     },
-    [createLinkedTodo, createDoc, userId, projectId, toast, refresh],
+    [createLinkedTodo, createProjectTodo, projectId, toast, refresh],
   );
 
   const updateTodo = useCallback(
@@ -128,11 +121,10 @@ export function TodosProvider({ children }: PropsWithChildren) {
               })
             : unlinkTodoCall({ todo: todo.name }));
         }
-        const doc = (await updateDoc(
-          "ToDo",
-          todo.name,
-          toTodoFields(input),
-        )) as TodoDoc;
+        const { message: doc } = await updateProjectTodo({
+          todo: todo.name,
+          values: toTodoFields(input),
+        });
         toast.success("ToDo updated");
         return doc;
       } catch (err) {
@@ -143,19 +135,19 @@ export function TodosProvider({ children }: PropsWithChildren) {
         setIsSaving(false);
       }
     },
-    [linkTodo, unlinkTodoCall, updateDoc, toast, refresh],
+    [linkTodo, unlinkTodoCall, updateProjectTodo, toast, refresh],
   );
 
   const updateTodoStatus = useCallback(
     async (name: string, status: TodoStatus) => {
       try {
-        await updateDoc("ToDo", name, { status });
+        await updateProjectTodo({ todo: name, values: { status } });
         await refresh();
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
       }
     },
-    [updateDoc, refresh, toast],
+    [updateProjectTodo, refresh, toast],
   );
 
   const unlinkTodo = useCallback(
@@ -174,14 +166,14 @@ export function TodosProvider({ children }: PropsWithChildren) {
   const deleteTodo = useCallback(
     async (name: string) => {
       try {
-        await deleteDoc("ToDo", name);
+        await deleteProjectTodo({ todo: name });
         toast.success("ToDo deleted");
         await refresh();
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
       }
     },
-    [deleteDoc, toast, refresh],
+    [deleteProjectTodo, toast, refresh],
   );
 
   const value = useMemo<TodosContextProps>(
