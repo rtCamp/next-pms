@@ -9,9 +9,9 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, nowdate
 
 # setUpClass makes its own Project and runs as Administrator, so frappe need not generate
-# test records for either link target — both chains reach unrelated apps and fail there.
+# test records for these link targets — each chain reaches unrelated apps and fails there.
 EXTRA_TEST_RECORD_DEPENDENCIES = []
-IGNORE_TEST_RECORD_DEPENDENCIES = ["Project", "User"]
+IGNORE_TEST_RECORD_DEPENDENCIES = ["Project", "User", "ToDo"]
 
 MILESTONE_CATEGORIES = (
     "Contract - Milestone",

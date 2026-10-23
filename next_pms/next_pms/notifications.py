@@ -7,6 +7,10 @@ from frappe.desk.notifications import extract_mentions
 from frappe.utils import formatdate, get_fullname, get_url, getdate, strip_html
 
 from next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications import create_notification, truncate
+from next_pms.next_pms.doctype.pms_project_update_subscription.pms_project_update_subscription import (
+    get_project_account_manager,
+    get_project_subscribers,
+)
 
 MENTION_EMAIL_TEMPLATE = "next_pms/templates/mention_notification.html"
 
@@ -259,6 +263,86 @@ def project_on_update(doc, method=None):
     url = f"/next-pms/projects/{doc.name}?tab=rag-stats"
     for user in recipients:
         create_notification(user, title, label, "Project", doc.name, url=url)
+
+
+def project_status_update_on_update(doc, method=None):
+    """Notify the project's note audience when a Project Status Update moves into Publish."""
+    if doc.status != "Publish":
+        return
+
+    previous = doc.get_doc_before_save()
+    if previous and previous.status == "Publish":
+        return
+
+    frappe.enqueue(
+        send_note_published_notifications,
+        note=doc.name,
+        actor=frappe.session.user,
+        subscribers=get_project_subscribers(doc.project),
+        queue="short",
+        enqueue_after_commit=True,
+        job_name=f"Published Notifications for {doc.name}",
+    )
+
+
+def send_note_published_notifications(note, actor, subscribers):
+    """Notify the project's subscribers at publish time and its Account Manager of a published note, once each."""
+    if not frappe.db.exists("Project Status Update", note):
+        return
+
+    doc = frappe.get_doc("Project Status Update", note)
+    recipients = set(subscribers)
+    account_manager = get_project_account_manager(doc.project)
+    if account_manager:
+        recipients.add(account_manager)
+    recipients.discard(actor)
+    if not recipients:
+        return
+
+    project_name = frappe.db.get_value("Project", doc.project, "project_name") or doc.project
+    author_name = get_fullname(actor)
+    title = _("New project note")
+    label = _('{0} posted "{1}" in {2}').format(author_name, truncate(doc.title, 80), project_name)
+    url = note_deep_link(doc)
+    email_context = {
+        "note": doc,
+        "project_name": project_name,
+        "author_name": author_name,
+        "note_url": get_url(url),
+    }
+
+    for user in frappe.get_all(
+        "User",
+        filters={"name": ["in", list(recipients)], "enabled": 1},
+        fields=["name", "email", "full_name"],
+    ):
+        create_notification(
+            user.name,
+            title,
+            label,
+            "Project Status Update",
+            doc.name,
+            url=url,
+            email=render_note_published_email(user, email_context),
+        )
+
+
+def note_deep_link(doc):
+    return f"/next-pms/projects/{doc.project}?tab=notes&note={doc.name}"
+
+
+def render_note_published_email(user, context):
+    if not user.email:
+        return None
+
+    message = frappe.render_template(  # nosemgrep - trusted template file
+        "next_pms/templates/notes/note_published.html",
+        {**context, "full_name": user.full_name or user.name},
+    )
+    return {
+        "subject": _('New note "{0}" in {1}').format(truncate(context["note"].title, 80), context["project_name"]),
+        "message": message,
+    }
 
 
 def customer_feedback_on_submit(doc, method=None):

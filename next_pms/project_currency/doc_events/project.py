@@ -1,3 +1,38 @@
+def before_insert(doc, method=None):
+    copy_tech_stack_from_deal(doc)
+
+
+def copy_tech_stack_from_deal(doc):
+    import frappe
+
+    deal = doc.get("custom_deal")
+    if doc.get("tech_stack") or not deal:
+        return
+
+    technologies = frappe.get_all(
+        "Tech Stack Item",
+        filters={"parenttype": "CRM Deal", "parent": deal, "parentfield": "tech_stack"},
+        order_by="idx",
+        pluck="technology",
+    )
+    for technology in technologies:
+        doc.append("tech_stack", {"technology": technology})
+
+
+def validate(doc, method=None):
+    validate_tech_stack(doc)
+
+
+def validate_tech_stack(doc):
+    import frappe
+    from frappe import _
+
+    if doc.custom_billing_type == "Non-Billable" or doc.get("tech_stack"):
+        return
+    if doc.is_new() or doc.has_value_changed("custom_billing_type"):
+        frappe.throw(_("Tech Stack is required for billable projects."), title=_("Missing Tech Stack"))
+
+
 def on_update(doc, method=None):
     share_project_with_employee(doc)
 

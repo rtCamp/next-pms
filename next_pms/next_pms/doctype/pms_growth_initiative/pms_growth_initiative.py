@@ -7,6 +7,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from next_pms.utils.linked_todos import validate_linked_todos
 from next_pms.utils.permissions import has_owner_gated_permission
 from next_pms.utils.update_log import prevent_changing_others_update_rows, stamp_new_update_rows
 
@@ -25,6 +26,7 @@ class PMSGrowthInitiative(Document):
         from next_pms.next_pms.doctype.pms_growth_initiative_update.pms_growth_initiative_update import (
             PMSGrowthInitiativeUpdate,
         )
+        from next_pms.next_pms.doctype.pms_linked_todo.pms_linked_todo import PMSLinkedToDo
 
         activity: DF.Data
         activity_owner: DF.Link | None
@@ -37,6 +39,7 @@ class PMSGrowthInitiative(Document):
         ideation_date: DF.Date
         ideation_owner: DF.Link | None
         is_closed: DF.Check
+        linked_todos: DF.Table[PMSLinkedToDo]
         project: DF.Link
         status: DF.Link
         update_log: DF.Table[PMSGrowthInitiativeUpdate]
@@ -57,6 +60,7 @@ class PMSGrowthInitiative(Document):
         self._validate_update_log_rows()
         if self.update_log and self.update_log[-1].is_new():
             self.update_log[-1].closed_status = self.closed_status
+        validate_linked_todos(self)
 
     def _ensure_initial_update_log(self):
         if self.update_log or not self.status:
