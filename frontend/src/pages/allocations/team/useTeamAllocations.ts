@@ -1,15 +1,5 @@
-import {
-  computed,
-  inject,
-  onScopeDispose,
-  provide,
-  reactive,
-  shallowRef,
-  watch,
-  type InjectionKey,
-} from "vue";
+import { computed, inject, provide, reactive, type InjectionKey } from "vue";
 import type { AllocationEventData } from "@/components/GanttGrid";
-import { FILTER_DEBOUNCE_MS } from "@/pages/allocations/shared/constants";
 import { formatISODate } from "@/pages/allocations/shared/dateWindow";
 import {
   compositeFiltersParam,
@@ -27,42 +17,29 @@ import { useAllocationsQuery } from "@/pages/allocations/shared/useAllocationsQu
 import { TEAM_ENDPOINT, TEAM_LIST_PARAMS } from "./constants";
 import { mapTeamEmployees } from "./teamRows";
 import type { TeamAllocationsResponse } from "./types";
-
-/** A debounced copy of a list, so typing in a filter doesn't load on every pick. */
-function useDebouncedList(source: () => string[]) {
-  const value = shallowRef(source());
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  watch(
-    () => JSON.stringify(source()),
-    () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => (value.value = source()), FILTER_DEBOUNCE_MS);
-    },
-  );
-  onScopeDispose(() => clearTimeout(timer));
-  return value;
-}
+import { useDebouncedListParams } from "./useDebouncedListParams";
 
 function createTeamAllocations() {
   const query = useAllocationsQuery({ listParams: TEAM_LIST_PARAMS });
 
-  const designation = useDebouncedList(() => query.lists.value.designation);
-  const department = useDebouncedList(() => query.lists.value.department);
-
-  const params = computed<AllocationsParams>(() => {
+  const queryParams = computed<AllocationsParams>(() => {
     const typeParams = teamAllocationTypeParams(query.allocationTypes.value);
     return {
       date: formatISODate(query.anchorDate.value),
       max_week: query.weekCount.value,
       employee_name: query.search.value || undefined,
-      designation: sortedListParam(designation.value),
-      department: sortedListParam(department.value),
+      designation: sortedListParam(query.lists.value.designation),
+      department: sortedListParam(query.lists.value.department),
       ...typeParams,
       // A GET sends `false` as a truthy string, so it is left out instead.
       no_allocation: typeParams.no_allocation || undefined,
       filters: compositeFiltersParam(query.compositeFilters.value),
     };
   });
+  const params = useDebouncedListParams(
+    () => queryParams.value,
+    ["designation", "department"],
+  );
 
   const rows = useAllocationPages<TeamAllocationsResponse>({
     url: TEAM_ENDPOINT,
