@@ -39,6 +39,7 @@ import {
   isNoteFormDirty,
   noteFormErrors,
 } from "./notes";
+import SaveTemplateDialog from "./SaveTemplateDialog.vue";
 import type { FormErrors, NoteDetails, NoteForm, NoteTemplate } from "./types";
 
 type Params = Record<string, unknown>;
@@ -163,9 +164,20 @@ async function saveNote(onSaved?: () => void) {
   goToList();
 }
 
+const templateDialogOpen = ref(false);
+
+function onTemplateSaved() {
+  templateDialogOpen.value = false;
+  markClean();
+  goToList();
+}
+
 useUnsavedChangesSource({
   hasUnsavedChanges: () => dirty.value,
-  saveChanges: (onSaved) => saveNote(onSaved),
+  saveChanges: (onSaved) => {
+    if (templateMode) templateDialogOpen.value = true;
+    else saveNote(onSaved);
+  },
   discardChanges: () => Object.assign(form, initial.value),
 });
 
@@ -204,7 +216,8 @@ const canSaveTemplate = computed(
           v-if="templateMode"
           variant="solid"
           label="Save template"
-          :disabled="saving || !canSaveTemplate"
+          :disabled="!canSaveTemplate"
+          @click="templateDialogOpen = true"
         />
         <Button
           v-else
@@ -236,5 +249,15 @@ const canSaveTemplate = computed(
         <ErrorMessage v-if="errors.description" :message="errors.description" />
       </div>
     </div>
+    <SaveTemplateDialog
+      v-if="templateMode"
+      v-model:open="templateDialogOpen"
+      :template-name="templateId || undefined"
+      :default-title="form.title"
+      :default-category="templateCall.data?.category ?? null"
+      :default-description="templateCall.data?.template_description ?? ''"
+      :description="form.description"
+      @saved="onTemplateSaved"
+    />
   </div>
 </template>

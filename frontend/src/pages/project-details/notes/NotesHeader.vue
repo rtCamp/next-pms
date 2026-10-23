@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import { Button, Dropdown, Select, TextInput } from "frappe-ui";
 import { useRouter } from "vue-router";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
@@ -8,13 +9,17 @@ import {
   TEMPLATE_EDITOR_MODE,
 } from "./constants";
 import SubscribeButton from "./SubscribeButton.vue";
+import TemplatePickerDialog from "./TemplatePickerDialog.vue";
 import { useNotes } from "./useNotes";
 
 const router = useRouter();
 const { projectId } = useProjectDetails();
 const { titleInput, descriptionInput, author, authorOptions } = useNotes();
 
+const pickerOpen = ref(false);
+
 const createOptions = [
+  { label: "New from template", onClick: () => (pickerOpen.value = true) },
   {
     label: "New blank note",
     onClick: () =>
@@ -76,5 +81,6 @@ const createOptions = [
         aria-label="Author"
       />
     </div>
+    <TemplatePickerDialog v-model:open="pickerOpen" />
   </div>
 </template>
