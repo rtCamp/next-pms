@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, shallowRef, watch } from "vue";
+import { computed, onScopeDispose, ref, shallowRef, watch } from "vue";
 import { Button, MultiSelect, Select, TextInput } from "frappe-ui";
 import {
   Filter,
@@ -40,7 +40,6 @@ const showFilters = computed(() =>
   session.hasAnyRole(ROLE_ACCESS.manageAllocations),
 );
 
-// The search box keeps what is typed and writes it to the URL once typing pauses.
 const searchInput = shallowRef(query.search);
 watch(
   () => query.search,
@@ -57,6 +56,7 @@ function onSearchInput(value: string | number) {
     }, FILTER_DEBOUNCE_MS);
   });
 }
+onScopeDispose(() => clearTimeout(searchTimer));
 
 /** Lookup options with the selected values kept, so their checks don't disappear. */
 function withSelected(options: LookupOption[], selected: string[]) {
