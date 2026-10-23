@@ -9,7 +9,7 @@ import {
   hasTodoCustomFields,
   isSameRecord,
   linkedRecordQuery,
-  linkedTodos,
+  todosByRecord,
   linkKey,
   linkOptions,
   statusColor,
@@ -249,16 +249,23 @@ describe("linked records", () => {
     expect(formatTodoCount(3)).toBe("3 ToDos");
   });
 
-  it("picks the ToDos linked to a record", () => {
+  it("groups the linked ToDos by record, in order", () => {
     const todos = resolveTodos(
-      [doc(), doc({ name: "TD-2" }), doc({ name: "TD-3" })],
+      [
+        doc(),
+        doc({ name: "TD-2" }),
+        doc({ name: "TD-3" }),
+        doc({ name: "TD-4" }),
+      ],
       [],
-      { "TD-1": milestone, "TD-3": touchpoint },
+      { "TD-1": milestone, "TD-3": touchpoint, "TD-4": milestone },
     );
-    expect(linkedTodos(todos, milestone).map((todo) => todo.name)).toEqual([
-      "TD-1",
-    ]);
-    expect(linkedTodos(todos, null)).toEqual([]);
+    const byRecord = todosByRecord(todos);
+    const names = (record: LinkedRecord) =>
+      byRecord.get(linkKey(record))?.map((todo) => todo.name);
+    expect(names(milestone)).toEqual(["TD-1", "TD-4"]);
+    expect(names(touchpoint)).toEqual(["TD-3"]);
+    expect(byRecord.size).toBe(2);
   });
 
   it("groups the link options by type, leaving out empty groups", () => {

@@ -21,7 +21,9 @@ import {
   deleteTodoMessage,
   hasTodoCustomFields,
   isSameRecord,
+  linkKey,
   resolveTodos,
+  todosByRecord,
   todoFields,
   toTodoFields,
   unlinkTodoMessage,
@@ -181,6 +183,13 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
     resolveTodos(list.data ?? [], users.data ?? [], links.data ?? {}),
   );
 
+  const byRecord = computed(() => todosByRecord(todos.value));
+
+  /** The ToDos linked to `record`. */
+  function linkedTo(record: RecordRef | null | undefined): Todo[] {
+    return (record && byRecord.value.get(linkKey(record))) || [];
+  }
+
   /** Status shown while a done / reopen write is in flight. */
   const pendingStatus = reactive(new Map<string, TodoStatus>());
 
@@ -334,6 +343,7 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
   return {
     customFields,
     todos,
+    linkedTo,
     /** True until a load answers with rows or an error. */
     loading: computed(() => !list.data && !list.error),
     /** A failed load with no rows to show; a failed refetch shows a toast instead. */

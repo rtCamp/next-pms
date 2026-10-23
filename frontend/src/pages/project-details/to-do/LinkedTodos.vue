@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, watch } from "vue";
 import { Button, Spinner, Tooltip } from "frappe-ui";
-import { linkedTodos } from "./todos";
 import TodoRow from "./TodoRow.vue";
 import type { LinkedRecord } from "./types";
 import { useTodos } from "./useTodos";
@@ -20,7 +19,7 @@ const menuOpen = defineModel<boolean>("menuOpen", { default: false });
 const todos = useTodos();
 todos.load();
 
-const rows = computed(() => linkedTodos(todos.todos.value, props.record));
+const rows = computed(() => todos.linkedTo(props.record));
 
 const openMenus = reactive(new Set<string>());
 function setMenuOpen(name: string, open: boolean) {

@@ -2,10 +2,7 @@
 import { computed } from "vue";
 import { HoverCard } from "frappe-ui";
 import { LINKED_RECORD_ICON } from "@/pages/project-details/to-do/constants";
-import {
-  formatTodoCount,
-  linkedTodos,
-} from "@/pages/project-details/to-do/todos";
+import { formatTodoCount } from "@/pages/project-details/to-do/todos";
 import { useTodos } from "@/pages/project-details/to-do/useTodos";
 import { toLinkedRecord } from "./calendar";
 import { HOVER_CLOSE_DELAY, HOVER_OPEN_DELAY } from "./constants";
@@ -16,7 +13,7 @@ defineSlots<{ default: () => unknown }>();
 
 const todos = useTodos();
 const todoCount = computed(
-  () => linkedTodos(todos.todos.value, toLinkedRecord(props.item)).length,
+  () => todos.linkedTo(toLinkedRecord(props.item)).length,
 );
 </script>
 

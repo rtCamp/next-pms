@@ -2,10 +2,7 @@
 import { computed, ref, watch } from "vue";
 import { Button, HoverCard, Tooltip } from "frappe-ui";
 import LinkedTodos from "@/pages/project-details/to-do/LinkedTodos.vue";
-import {
-  formatTodoCount,
-  linkedTodos,
-} from "@/pages/project-details/to-do/todos";
+import { formatTodoCount } from "@/pages/project-details/to-do/todos";
 import { useTodos } from "@/pages/project-details/to-do/useTodos";
 import { toLinkedRecord } from "./calendar";
 import { HOVER_CLOSE_DELAY, HOVER_OPEN_DELAY } from "./constants";
@@ -15,9 +12,7 @@ const props = defineProps<{ item: TimelineItem }>();
 
 const todos = useTodos();
 const record = computed(() => toLinkedRecord(props.item));
-const count = computed(
-  () => linkedTodos(todos.todos.value, record.value).length,
-);
+const count = computed(() => todos.linkedTo(record.value).length);
 const canEdit = computed(() => todos.canLink(record.value));
 
 const open = ref(false);

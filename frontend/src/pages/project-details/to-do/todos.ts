@@ -203,11 +203,17 @@ export function formatTodoCount(count: number): string {
   return `${count} ${count === 1 ? "ToDo" : "ToDos"}`;
 }
 
-/** The ToDos linked to `record`, in list order. */
-export function linkedTodos(todos: Todo[], record: RecordRef | null): Todo[] {
-  return record
-    ? todos.filter((todo) => isSameRecord(todo.linked, record))
-    : [];
+/** The linked ToDos by `linkKey` of their record, each list in list order. */
+export function todosByRecord(todos: Todo[]): Map<string, Todo[]> {
+  const byRecord = new Map<string, Todo[]>();
+  for (const todo of todos) {
+    if (!todo.linked) continue;
+    const key = linkKey(todo.linked);
+    const linked = byRecord.get(key);
+    if (linked) linked.push(todo);
+    else byRecord.set(key, [todo]);
+  }
+  return byRecord;
 }
 
 /** The "Linked to" options, grouped by type; empty groups are left out. */
