@@ -72,24 +72,8 @@ export const PERSONAL_TIMESHEET_HELP = {
     summary:
       "Hours logged in the week plus time-off, compared with your weekly working hours.",
     formula: "Hours logged + time-off hours",
-    legend: [
-      {
-        label: "Under your weekly hours",
-        sample: "32:00",
-        className: "font-medium text-ink-red-4",
-      },
-      {
-        label: "Exactly on them",
-        sample: "40:00",
-        className: "font-medium text-ink-green-4",
-      },
-      {
-        label: "Over",
-        sample: "44:00",
-        className: "font-medium text-ink-amber-4",
-      },
-    ],
     details: [
+      "It turns red when it's under your weekly working hours, green when it matches them, and amber when it's over.",
       "Holidays and leave count as working hours, so the total can include hours you didn't log.",
     ],
   },

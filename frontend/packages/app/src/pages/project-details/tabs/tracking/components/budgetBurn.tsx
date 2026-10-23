@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { ProgressBar } from "@next-pms/design-system/components";
+import { InfoHoverCard, ProgressBar } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
@@ -9,6 +9,7 @@ import { ProgressBar } from "@next-pms/design-system/components";
 import { currencyFormat } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { useTracking } from "../context";
+import { TRACKING_HELP } from "../help";
 import { LegendItem } from "./legendItem";
 
 export function BudgetBurnCell() {
@@ -20,9 +21,12 @@ export function BudgetBurnCell() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
-      <span className="text-base text-ink-gray-8 font-medium">
-        Budget burn (to date)
-      </span>
+      <div className="flex min-w-0 items-center gap-1.5">
+        <span className="text-base text-ink-gray-8 font-medium">
+          Budget burn (to date)
+        </span>
+        <InfoHoverCard help={TRACKING_HELP.budgetBurn} />
+      </div>
       <ProgressBar
         value={actual}
         secondaryValue={actual + forecasted}

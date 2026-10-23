@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { ProgressBar } from "@next-pms/design-system/components";
+import { InfoHoverCard, ProgressBar } from "@next-pms/design-system/components";
 import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -10,6 +10,7 @@ import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 import { currencyFormat } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { useTracking } from "../context";
+import { TRACKING_HELP } from "../help";
 import { LegendItem } from "./legendItem";
 
 export function InvoiceBurnCell() {
@@ -26,9 +27,12 @@ export function InvoiceBurnCell() {
   return (
     <div className="flex flex-1 flex-col gap-4 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-base text-ink-gray-8 font-medium">
-          Invoice burn (to date)
-        </span>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span className="text-base text-ink-gray-8 font-medium">
+            Invoice burn (to date)
+          </span>
+          <InfoHoverCard help={TRACKING_HELP.invoiceBurn} />
+        </div>
         <a
           href={`/desk/sales-invoice?project=${projectId}`}
           target="_blank"
