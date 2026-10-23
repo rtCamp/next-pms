@@ -71,6 +71,8 @@ const activeTab = computed(() => selectedTab(tabParam.value, tabs.value));
 
 function selectTab(value: string | number) {
   const key = value as ProjectTabKey;
+  // Reka emits on a click or key press on the selected tab too.
+  if (key === activeTab.value) return;
   patchQuery(
     {
       [TAB_PARAM]: key === DEFAULT_TAB ? null : key,
