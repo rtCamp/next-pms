@@ -35,6 +35,7 @@ const { commentProps, error, reload } = useProjectComments({
   <Comments
     v-else
     v-bind="commentProps"
+    class="mt-0 gap-4 border-none pt-0"
     title="Comments"
     input-placeholder="Add a comment"
     input-submit-label="Post"

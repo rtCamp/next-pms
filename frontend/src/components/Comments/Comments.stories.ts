@@ -50,7 +50,7 @@ export const CustomTitle: Story = {
     setup: () => ({ args }),
     template: `
       <div class="max-w-2xl">
-        <Comments v-bind="args" class="!mt-0 !border-none !pt-0">
+        <Comments v-bind="args" class="mt-0 gap-4 border-none pt-0">
           <template #title>
             <h3 class="text-xl font-semibold text-ink-gray-7">Comments</h3>
           </template>
