@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Next PMS</title>
+    <link rel="icon" href="/assets/next_pms/next-pms-logo.png" />
+    <script>
+      // Apply the saved light or dark mode before the first paint, so the page
+      // doesn't flash. useColorScheme() in the app keeps it in sync after that.
+      // Blocked site data makes touching localStorage throw; use light then.
+      const scheme = navigator.cookieEnabled
+        ? localStorage.getItem('theme')
+        : 'light'
+      const dark =
+        scheme === 'dark' ||
+        (scheme !== 'light' &&
+          matchMedia('(prefers-color-scheme: dark)').matches)
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
