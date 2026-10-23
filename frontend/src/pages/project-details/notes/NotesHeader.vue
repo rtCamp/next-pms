@@ -7,6 +7,7 @@ import {
   NOTE_EDITOR_ROUTES,
   TEMPLATE_EDITOR_MODE,
 } from "./constants";
+import SubscribeButton from "./SubscribeButton.vue";
 import { useNotes } from "./useNotes";
 
 const router = useRouter();
@@ -39,6 +40,7 @@ const createOptions = [
     <div class="flex flex-1 flex-wrap items-center justify-between gap-2">
       <h2 class="text-2xl-semibold leading-tighter text-ink-gray-7">Notes</h2>
       <div class="flex items-center gap-2">
+        <SubscribeButton />
         <Dropdown :options="createOptions" align="end">
           <Button
             variant="solid"

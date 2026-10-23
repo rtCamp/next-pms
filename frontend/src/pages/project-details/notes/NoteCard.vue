@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { Avatar } from "frappe-ui";
 import { RichText } from "@/components/RichText";
 import { formatRelativeTimeShort } from "@/utils/text";
+import NoteActions from "./NoteActions.vue";
 import type { Note } from "./types";
 import { useNotes } from "./useNotes";
 
@@ -35,7 +36,7 @@ function onKeydown(event: KeyboardEvent) {
       <h3 class="flex-1 truncate text-lg-medium text-ink-gray-8">
         {{ note.title }}
       </h3>
-      <slot name="actions" />
+      <NoteActions :note="note" />
     </div>
     <div class="relative flex-1 overflow-hidden">
       <RichText
