@@ -4,7 +4,7 @@ import { useProjectComments } from "@/pages/project-details/useProjectComments";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
 import { useSession } from "@/session";
 import { FEEDBACK_API } from "./constants";
-import LoadError from "./LoadError.vue";
+import LoadError from "@/pages/project-details/LoadError.vue";
 
 const props = defineProps<{ feedbackId: string }>();
 

@@ -13,7 +13,7 @@ import { useInfiniteScroll } from "@/composables/useInfiniteScroll";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
 import { FEEDBACK_API, TEAM_COLUMNS, TEAM_PAGE_SIZE } from "./constants";
 import { formatPeriodDate } from "./feedback";
-import LoadError from "./LoadError.vue";
+import LoadError from "@/pages/project-details/LoadError.vue";
 import PersonCell from "./PersonCell.vue";
 import TeamFeedbackDialog from "./TeamFeedbackDialog.vue";
 import type { TeamFeedbackPage, TeamFeedbackRow } from "./types";

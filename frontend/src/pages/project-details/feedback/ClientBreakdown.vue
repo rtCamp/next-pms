@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import { Spinner, useCall } from "frappe-ui";
 import { FEEDBACK_API } from "./constants";
-import LoadError from "./LoadError.vue";
+import LoadError from "@/pages/project-details/LoadError.vue";
 import RatingCard from "./RatingCard.vue";
 import type { ClientBreakdown } from "./types";
 

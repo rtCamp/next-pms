@@ -11,7 +11,7 @@ import {
   timelineMonths,
   windowParams,
 } from "./feedback";
-import LoadError from "./LoadError.vue";
+import LoadError from "@/pages/project-details/LoadError.vue";
 import MonthTimeline from "./MonthTimeline.vue";
 import type { TimelineEntry, TimelineMonth } from "./types";
 import { useClientFeedback } from "./useClientFeedback";

@@ -3,7 +3,7 @@ import { Avatar, dayjs, Rating, Spinner, useCall } from "frappe-ui";
 import { FEEDBACK_API } from "./constants";
 import { toStars } from "./feedback";
 import FeedbackComments from "./FeedbackComments.vue";
-import LoadError from "./LoadError.vue";
+import LoadError from "@/pages/project-details/LoadError.vue";
 import MetaRow from "./MetaRow.vue";
 import type { TeamBreakdown } from "./types";
 

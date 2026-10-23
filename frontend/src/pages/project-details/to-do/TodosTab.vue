@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Button, Spinner } from "frappe-ui";
-import { errorMessage } from "@/utils/errors";
+import LoadError from "@/pages/project-details/LoadError.vue";
 import TodoRow from "./TodoRow.vue";
 import { useTodos } from "./useTodos";
 
@@ -29,22 +29,12 @@ loadLinkable();
         @click="openCreate()"
       />
     </div>
-    <div
+    <LoadError
       v-if="loadError"
-      role="alert"
-      class="flex flex-col items-center justify-center gap-2 py-12 text-center"
-    >
-      <p class="text-sm font-medium text-ink-gray-7">Couldn't load the ToDos</p>
-      <p class="break-words text-sm text-ink-gray-5">
-        {{ errorMessage(loadError) }}
-      </p>
-      <Button
-        class="mt-2"
-        icon-left="lucide-refresh-cw"
-        label="Try again"
-        @click="refresh()"
-      />
-    </div>
+      title="Couldn't load the ToDos"
+      :error="loadError"
+      @retry="refresh()"
+    />
     <div v-else-if="loading" class="flex justify-center py-12">
       <Spinner class="size-5" />
     </div>
