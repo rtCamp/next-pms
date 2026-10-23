@@ -30,6 +30,7 @@ import TodoDialog from "./to-do/TodoDialog.vue";
 import TodosTab from "./to-do/TodosTab.vue";
 import { provideTodos } from "./to-do/useTodos";
 import TrackingTab from "./tracking/TrackingTab.vue";
+import { provideCommentMentions } from "./useProjectComments";
 import { provideProjectDetails } from "./useProjectDetails";
 
 defineOptions({ inheritAttrs: false });
@@ -53,6 +54,7 @@ const projectId = String(route.params.projectId ?? "");
 const { doc, error, reload } = provideProjectDetails(projectId);
 const unsavedChanges = provideUnsavedChanges();
 provideTodos(projectId);
+provideCommentMentions();
 
 const errorType = computed(() =>
   error.value instanceof FrappeResponseError ? error.value.type : null,

@@ -1,6 +1,16 @@
-import { computed } from "vue";
+import {
+  computed,
+  inject,
+  provide,
+  type ComputedRef,
+  type InjectionKey,
+} from "vue";
 import { toast, useCall } from "frappe-ui";
-import type { CommentNode, CommentsProps } from "@/components/Comments";
+import type {
+  CommentMention,
+  CommentNode,
+  CommentsProps,
+} from "@/components/Comments";
 import { useSession } from "@/session";
 import { errorMessage } from "@/utils/errors";
 
@@ -93,6 +103,51 @@ function useCommentList(list: CommentList) {
   };
 }
 
+function createCommentMentions() {
+  // React searched on every keystroke; Comments filters one list instead.
+  const employees = useCall<{ data: EmployeeItem[] }>({
+    url: "/api/v2/method/next_pms.timesheet.api.employee.get_employee_list",
+    immediate: false,
+  });
+  const mentions = computed(() =>
+    (employees.data?.data ?? [])
+      .filter((employee) => employee.user_id)
+      .map((employee) => ({
+        label: employee.employee_name,
+        value: employee.user_id!,
+      })),
+  );
+  let requested = false;
+  return () => {
+    if (!requested) {
+      requested = true;
+      employees.fetch();
+    }
+    return mentions;
+  };
+}
+
+const commentMentionsKey: InjectionKey<() => ComputedRef<CommentMention[]>> =
+  Symbol("commentMentions");
+
+/**
+ * Shares one employee list for mentions across the page's comment threads,
+ * fetched when the first thread mounts.
+ */
+export function provideCommentMentions() {
+  provide(commentMentionsKey, createCommentMentions());
+}
+
+function useCommentMentions() {
+  const mentions = inject(commentMentionsKey);
+  if (!mentions) {
+    throw new Error(
+      "useProjectComments() needs provideCommentMentions() in a parent",
+    );
+  }
+  return mentions();
+}
+
 /**
  * Wires a comment thread's endpoints to `<Comments>`: lists the comments (or takes
  * them from the caller), writes through the add, update and delete endpoints and
@@ -103,18 +158,7 @@ export function useProjectComments(options: ProjectCommentsOptions) {
   const session = useSession();
   const list = useCommentList(options.list);
 
-  // React searched on every keystroke; Comments filters one list instead.
-  const employees = useCall<{ data: EmployeeItem[] }>({
-    url: "/api/v2/method/next_pms.timesheet.api.employee.get_employee_list",
-  });
-  const mentions = computed(() =>
-    (employees.data?.data ?? [])
-      .filter((employee) => employee.user_id)
-      .map((employee) => ({
-        label: employee.employee_name,
-        value: employee.user_id!,
-      })),
-  );
+  const mentions = useCommentMentions();
 
   const writeCall = (write: CommentWrite) =>
     useCall<unknown, Params>({
