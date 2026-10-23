@@ -17,6 +17,12 @@ import StatusMessage from "@/layout/StatusMessage.vue";
 import { errorMessage } from "@/utils/errors";
 import { queryString } from "@/utils/query";
 import AboutSidebar from "./about/AboutSidebar.vue";
+import CalendarTab from "./calendar/CalendarTab.vue";
+import {
+  SEARCH_PARAM,
+  TYPE_PARAM,
+  VIEW_PARAM as CALENDAR_VIEW_PARAM,
+} from "./calendar/constants";
 import { DEFAULT_TAB, TAB_PARAM, type ProjectTabKey } from "./constants";
 import EmailTab from "./email/EmailTab.vue";
 import { VIEW_PARAM } from "./feedback/constants";
@@ -37,6 +43,7 @@ defineOptions({ inheritAttrs: false });
 
 const TAB_PANELS: Partial<Record<ProjectTabKey, Component>> = {
   overview: OverviewTab,
+  calendar: CalendarTab,
   email: EmailTab,
   "rag-stats": RagStatsTab,
   reports: ReportsTab,
@@ -78,8 +85,14 @@ function selectTab(value: string | number) {
   patchQuery(
     {
       [TAB_PARAM]: key === DEFAULT_TAB ? null : key,
-      // Leaving Feedback drops its view, so coming back opens the client view.
+      // Leaving Feedback or Calendar drops its view (and the Calendar's table tab and
+      // search), so coming back opens the default view.
       ...(activeTab.value === "feedback" && { [VIEW_PARAM]: null }),
+      ...(activeTab.value === "calendar" && {
+        [CALENDAR_VIEW_PARAM]: null,
+        [TYPE_PARAM]: null,
+        [SEARCH_PARAM]: null,
+      }),
     },
     { push: true },
   );
