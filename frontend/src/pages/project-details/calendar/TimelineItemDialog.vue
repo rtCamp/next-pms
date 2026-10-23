@@ -158,6 +158,7 @@ async function submit() {
           required
           :error="errors.startDate"
           :clearable="false"
+          size="md"
           variant="outline"
           placeholder="Start date"
         >
@@ -172,6 +173,7 @@ async function submit() {
           required
           :error="errors.plannedEndDate"
           :clearable="false"
+          size="md"
           variant="outline"
           placeholder="Completion date"
         >
@@ -187,6 +189,7 @@ async function submit() {
         required
         :error="errors.plannedEndDate"
         :clearable="false"
+        size="md"
         variant="outline"
         placeholder="Scheduled date"
       >
