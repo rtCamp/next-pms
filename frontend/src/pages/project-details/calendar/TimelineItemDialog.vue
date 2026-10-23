@@ -78,11 +78,14 @@ const categories = useList<TimelineCategory>({
 watch(open, (isOpen) => {
   if (isOpen) categories.fetch();
 });
+// Until the fetch answers, the list still holds the previous type's categories.
 const categoryOptions = computed(() =>
-  (categories.data ?? []).map((category) => ({
-    label: category.category_name,
-    value: category.name,
-  })),
+  categories.loading || categories.error
+    ? []
+    : (categories.data ?? []).map((category) => ({
+        label: category.category_name,
+        value: category.name,
+      })),
 );
 const category = computed({
   get: () => form.category || undefined,
