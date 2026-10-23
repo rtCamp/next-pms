@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useState } from "react";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import {
   Button,
   Dialog,
@@ -16,6 +17,7 @@ import { useForm } from "@tanstack/react-form";
  * Internal dependencies.
  */
 import { EmojiPicker } from "./emojiPicker";
+import { PUBLIC_VIEW_HELP } from "./help";
 import { createViewFormSchema } from "./schema";
 import type { CreateViewModalProps } from "./types";
 
@@ -139,12 +141,15 @@ function CreateViewModal({
         <form.Field
           name="isPublic"
           children={(field) => (
-            <Switch
-              size="sm"
-              label="Make this view public"
-              value={field.state.value}
-              onChange={field.handleChange}
-            />
+            <div className="flex min-w-0 items-center gap-1.5">
+              <Switch
+                size="sm"
+                label="Make this view public"
+                value={field.state.value}
+                onChange={field.handleChange}
+              />
+              <InfoHoverCard help={PUBLIC_VIEW_HELP} />
+            </div>
           )}
         />
       </div>

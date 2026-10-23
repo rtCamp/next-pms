@@ -1,3 +1,4 @@
+import type { FieldHelp } from "@next-pms/design-system/components";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 
 import { PHASES, RAG_STATUS } from "./constants";
@@ -8,6 +9,7 @@ export type ProjectListColumn = ListViewColumn & {
   sortField?: string;
   /** Left out of the default layout; users add it back via the column selector. */
   defaultHidden?: boolean;
+  help?: FieldHelp;
 };
 
 export type Phase = (typeof PHASES)[number];

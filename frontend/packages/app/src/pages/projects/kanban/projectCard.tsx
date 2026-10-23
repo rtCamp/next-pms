@@ -3,7 +3,7 @@
  */
 import { useRef } from "react";
 import { useNavigate } from "react-router";
-import { Avatar } from "@rtcamp/frappe-ui-react";
+import { Avatar, Tooltip } from "@rtcamp/frappe-ui-react";
 import { AgentAlt, Apps, Calendar, Code } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -12,6 +12,7 @@ import { AgentAlt, Apps, Calendar, Code } from "@rtcamp/frappe-ui-react/icons";
 import { ROUTES } from "@/lib/constant";
 import { formatProjectDate, toKebabCase } from "@/lib/utils";
 
+import { KANBAN_CARD_TOOLTIP, PROJECT_HEALTH_TOOLTIP } from "../help";
 import { Dot } from "../list/cells/dot";
 import type { RagStatus } from "../types";
 import { CLICK_DRAG_THRESHOLD_PX } from "./constants";
@@ -20,6 +21,8 @@ import type { Employee, KanbanProjectItem } from "./types";
 export function ProjectCard({ project }: { project: KanbanProjectItem }) {
   const navigate = useNavigate();
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
+
+  const rag = toKebabCase(project.rag_status) as RagStatus;
 
   const dateRange = [project.start_date, project.end_date]
     .map((d) => (d ? formatProjectDate(d) : null))
@@ -52,22 +55,36 @@ export function ProjectCard({ project }: { project: KanbanProjectItem }) {
       className="flex w-full cursor-pointer flex-col gap-2.5 rounded-2xl border border-outline-gray-modals bg-surface-white pb-3 shadow-sm hover:bg-surface-gray-2 focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3"
     >
       <div className="flex w-full items-center gap-2 rounded-t-2xl border-b border-outline-gray-1 px-3.5 py-3">
-        <Dot risk={toKebabCase(project.rag_status) as RagStatus} />
+        <Tooltip text={PROJECT_HEALTH_TOOLTIP[rag]}>
+          <Dot risk={rag} />
+        </Tooltip>
         <span className="min-w-0 flex-1 truncate text-base font-medium text-ink-gray-7">
           {project.project_name}
         </span>
       </div>
       <div className="flex w-full flex-col gap-3.5 px-4">
-        <Row icon={<Calendar className="size-4 shrink-0 text-ink-gray-6" />}>
+        <Row
+          icon={<Calendar className="size-4 shrink-0 text-ink-gray-6" />}
+          tooltip={KANBAN_CARD_TOOLTIP.dates}
+        >
           {dateRange || "N/A"}
         </Row>
-        <Row icon={<AgentAlt className="size-4 shrink-0 text-ink-gray-6" />}>
+        <Row
+          icon={<AgentAlt className="size-4 shrink-0 text-ink-gray-6" />}
+          tooltip={KANBAN_CARD_TOOLTIP.projectManager}
+        >
           <EmployeeInline employee={project.project_manager} />
         </Row>
-        <Row icon={<Code className="size-4 shrink-0 text-ink-gray-6" />}>
+        <Row
+          icon={<Code className="size-4 shrink-0 text-ink-gray-6" />}
+          tooltip={KANBAN_CARD_TOOLTIP.leadEngineer}
+        >
           <EmployeeInline employee={project.engineering_manager} />
         </Row>
-        <Row icon={<Apps className="size-4 shrink-0 text-ink-gray-6" />}>
+        <Row
+          icon={<Apps className="size-4 shrink-0 text-ink-gray-6" />}
+          tooltip={KANBAN_CARD_TOOLTIP.billingType}
+        >
           {project.billing_type ?? "N/A"}
         </Row>
       </div>
@@ -77,18 +94,22 @@ export function ProjectCard({ project }: { project: KanbanProjectItem }) {
 
 function Row({
   icon,
+  tooltip,
   children,
 }: {
   icon: React.ReactNode;
+  tooltip: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex w-full items-center gap-2">
-      {icon}
-      <span className="flex min-w-0 flex-1 items-center gap-2 truncate text-base text-ink-gray-6">
-        {children}
-      </span>
-    </div>
+    <Tooltip text={tooltip}>
+      <div className="flex w-full items-center gap-2">
+        {icon}
+        <span className="flex min-w-0 flex-1 items-center gap-2 truncate text-base text-ink-gray-6">
+          {children}
+        </span>
+      </div>
+    </Tooltip>
   );
 }
 

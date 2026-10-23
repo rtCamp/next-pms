@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useState } from "react";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import {
   Button,
   Dialog,
@@ -18,6 +19,7 @@ import { useForm } from "@tanstack/react-form";
  */
 import type { EditViewModalProps } from "./types";
 import { EmojiPicker } from "../create-view/emojiPicker";
+import { PUBLIC_VIEW_HELP } from "../create-view/help";
 import { createViewFormSchema } from "../create-view/schema";
 
 const toFormValues = (view: EditViewModalProps["view"]) => ({
@@ -154,12 +156,15 @@ function EditViewModal({
         <form.Field
           name="isPublic"
           children={(field) => (
-            <Switch
-              size="sm"
-              label="Make this view public"
-              value={field.state.value}
-              onChange={field.handleChange}
-            />
+            <div className="flex min-w-0 items-center gap-1.5">
+              <Switch
+                size="sm"
+                label="Make this view public"
+                value={field.state.value}
+                onChange={field.handleChange}
+              />
+              <InfoHoverCard help={PUBLIC_VIEW_HELP} />
+            </div>
           )}
         />
       </div>
