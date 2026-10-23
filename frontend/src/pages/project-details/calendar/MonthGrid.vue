@@ -54,10 +54,9 @@ const byDate = computed(() => itemsByDate(filteredItems.value));
           :class="
             cn(
               'flex min-h-17.5 flex-col gap-1 border-r border-outline-gray-1 p-1.5 last:border-r-0',
-              day.isWeekend && 'bg-surface-gray-1',
-              day.key === selectedDate &&
-                day.key !== today &&
-                'bg-surface-blue-1',
+              day.key === selectedDate && day.key !== today
+                ? 'bg-surface-blue-1'
+                : day.isWeekend && 'bg-surface-gray-1 dark:bg-surface-gray-2',
             )
           "
         >
@@ -66,7 +65,7 @@ const byDate = computed(() => itemsByDate(filteredItems.value));
               class="flex size-6 items-center justify-center rounded-4 text-base"
               :class="
                 day.key === today
-                  ? 'bg-surface-red-7 text-ink-base'
+                  ? 'bg-surface-red-7 text-ink-base dark:text-ink-gray-9'
                   : day.key === selectedDate
                     ? 'ring-1 ring-outline-blue-1'
                     : day.inMonth

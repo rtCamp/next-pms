@@ -61,7 +61,7 @@ export const HOVER_CLOSE_DELAY = 150;
 /** Pill, bar and chip colours of each type. */
 export const TYPE_COLOR: Record<TimelineItemType, string> = {
   Milestone: "bg-surface-blue-2 text-ink-blue-7",
-  Touchpoint: "bg-surface-violet-1 text-ink-violet-7",
+  Touchpoint: "bg-surface-violet-2 text-ink-violet-7 dark:bg-surface-violet-1",
 };
 
 export const TYPE_TEXT_COLOR: Record<TimelineItemType, string> = {
