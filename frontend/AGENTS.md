@@ -37,7 +37,7 @@ Storybook 10 (Vue 3 + Vite) with the MCP, Docs, Vitest, A11y and Themes addons, 
 | `npm run lint` / `lint:fix` | ESLint over `.vue`, `.ts` and stories: Vue, TypeScript, Storybook, Tailwind class, accessibility and composable rules; formatting is Prettier's |
 | `npm run storybook` | Storybook on port 6006 (also serves the Storybook MCP at `/mcp`) |
 | `npm run test-storybook` | Runs every story as a test in headless Chromium (Vitest), including an accessibility check |
-| `npm run test-unit` | Runs the `*.test.ts` unit tests for `src/utils/` in headless Chromium (Vitest) |
+| `npm run test-unit` | Runs the `*.test.ts` unit tests under `src/` (the `src/utils/` helpers, `GanttGrid`'s geometry, the allocations pages' pure modules) in headless Chromium (Vitest) |
 | `npm run build-storybook` | Static Storybook in `storybook-static/` |
 
 ## Layout
@@ -57,7 +57,10 @@ src/
                    page-only use* composables (provide/inject state, filters and columns kept in the URL);
                    pages/projects/ also has kanban/ and views/ (saved views)
                    Views that share a shell keep the shared parts at the folder root and one subfolder per view
-                   (pages/timesheet/: layout, filters, dialogs; personal/, team/, project/)
+                   (pages/timesheet/: layout, filters, dialogs; personal/, team/, project/). pages/allocations/
+                   puts them in shared/ (layout, URL state, paged loading with the realtime refresh, the Add / Edit,
+                   Edit schedule and delete dialogs, and pure .ts modules with unit tests) beside team/ and project/;
+                   its dialogs have no stories
   components/      components frappe-ui lacks, one folder each; see components/Components.md
   composables/     shared use* composables: lookups, the like toggle, URL query updates, editor attributes,
                    values saved in localStorage (useSavedState), notifications, infinite scroll, project phases,
@@ -101,7 +104,8 @@ These win over the vendored skills.
 
 - **vue-testing-best-practices** doesn't apply here. Components are tested with Storybook stories with `play`
   functions (P5, P6), not Vue Test Utils. The shared helpers in `src/utils/` get a sibling `*.test.ts`, run by
-  browser Vitest (`npm run test-unit`), not node Vitest. A component's own `utils.ts` is covered by its stories.
+  browser Vitest (`npm run test-unit`), not node Vitest. A component's own `utils.ts` is covered by its stories,
+  unless its logic is big enough to need tests of its own, like `GanttGrid`'s date and bar geometry.
 - **vue-best-practices**: read its reference files only when a task needs one, not all of them up front. Components
   follow the folder layout in [`src/components/Components.md`](src/components/Components.md), not its feature
   folders.

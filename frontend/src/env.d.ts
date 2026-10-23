@@ -13,6 +13,8 @@ interface Boot {
   sysdefaults?: { currency?: string };
   /** Server-side filters to add to lookups; `project` limits a contractor to their projects. */
   global_filters?: { project?: unknown[][] };
+  /** Timesheet Settings' "Allow Weekend Entries": allocations may book Saturdays and Sundays. */
+  allow_weekend_entries?: boolean;
   /** Whether the user's Google Calendar is connected. */
   is_calendar_setup?: boolean;
   [key: string]: unknown;

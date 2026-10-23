@@ -33,6 +33,7 @@ export const ROLE_ACCESS = {
     "Projects Manager",
     "Projects User",
     "Delivery Manager",
+    "Delivery User",
     "System Manager",
   ],
   manageAiAllocations: ["Delivery Manager"],
