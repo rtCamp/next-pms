@@ -30,15 +30,17 @@ const periodDate = (date: string) => dayjs(date).format("MMM DD");
   >
     <Spinner class="size-6" />
   </div>
-  <!-- eslint-disable better-tailwindcss/no-restricted-classes -- React's 72vh body height -->
+  <!-- eslint-disable better-tailwindcss/no-restricted-classes -- React's 72vh body height; Tailwind 3 has no scrollbar-width utility -->
   <div
     v-else
     class="relative -mx-4 -mb-6 flex max-h-[72vh] border-t border-outline-gray-1 sm:-mx-6"
   >
-    <div class="max-h-[72vh] min-w-0 flex-1 overflow-y-auto">
-      <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
+    <div
+      class="max-h-[72vh] min-w-0 flex-1 overflow-y-auto [scrollbar-width:thin]"
+    >
       <div class="flex flex-col gap-6 p-6">
-        <div class="flex w-full gap-2 overflow-x-auto">
+        <div class="flex w-full gap-2 overflow-x-auto [scrollbar-width:thin]">
+          <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
           <div
             v-for="rating in detail.data.ratings"
             :key="rating.fieldname"
