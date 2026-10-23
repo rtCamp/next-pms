@@ -59,7 +59,7 @@ _Avoid_: pinned task, favourite.
 
 **Unsaved changes guard** — the page-level check that asks Save / Discard / Keep Editing before an action or
 navigation would drop an open, edited entry (`provideUnsavedChanges` in `composables/useUnsavedChanges.ts`). The
-Timesheet pages and the Project details page (the Overview tab's edits) provide one.
+Timesheet pages and the Project details page (the Overview tab's edits and the note editor) provide one.
 
 ## Planning
 
@@ -203,11 +203,31 @@ month whose schedule has no feedback yet shows "-".
 _Avoid_: feedback request (for the record), survey.
 
 **Project comments** — a comment thread on something shown on the Project details page (RAG stats, a customer
-feedback), wired to `<Comments>` by `useProjectComments` with the thread's own list, add, update and delete
+feedback, a note), wired to `<Comments>` by `useProjectComments` with the thread's own list, add, update and delete
 endpoints.
 
-**Status update** — a written project update with a status, comments and pinning (`Project Status Update`).
-_Avoid_: report (a `Project Report` is a separate doctype), note.
+**Note** — a written project update on the Project details page's Notes tab: a title and a rich-text body whose
+task lists can be ticked in place, with comments and a pin (`Project Status Update`). The tab lists the project's
+published notes, pinned first, and `?note=` opens one. The app saves every note as published (`status` Publish),
+which notifies the project's subscribers and its account manager. Notes are written on the note editor routes
+(`/projects/:projectId/notes/new` and `…/notes/:noteId/edit`), shown in place of the tabs beside the About sidebar.
+In code: `provideNotes()` / `useNotes()` and `NoteEditor` in `pages/project-details/notes/`.
+_Avoid_: status update (the doctype's name, not the UI's), report (a `Project Report` is a separate doctype), post.
+
+**Note template** — a title and body a note can start from (`Project Status Update Template`), named by its
+`template_name`, with an optional template category and a short description of up to 140 characters. Picked in the
+template picker, which opens the new-note route with `?template=`; written on the note editor with `?mode=template`
+or on `…/notes/templates/:templateId/edit`, and renamed when its title changes.
+_Avoid_: preset, draft.
+
+**Template category** — a named group of note templates (`Project Status Update Template Category`). Typing a new
+one in the save-template dialog creates it.
+_Avoid_: tag, type.
+
+**Note subscription** — a user's opt-in to be notified of every note published on a project
+(`PMS Project Update Subscription`), set with the Notes tab's Subscribe button. A project's account manager
+(`custom_account_manager_`, a site field that may not exist) is always notified and can't unsubscribe.
+_Avoid_: follow (that's Frappe's document follow), watch.
 
 **Risk** — a project risk with category, level, status, owner and mitigation plan (`Risk`).
 

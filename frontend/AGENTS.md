@@ -66,8 +66,10 @@ src/
                    useProjectComments, LoadError and createOwnWrites (skips a write's own realtime echo);
                    about/ for the About sidebar; calendar/ (provideTimeline, the month grid, TimelineGantt,
                    the tables, the one TimelineItemDialog and the pure calendar.ts with unit tests); email/,
-                   feedback/, overview/, rag-stats/, reports/, to-do/ (also the ToDo linking the other tabs
-                   reuse: LinkedTodos, LinkedChip), tracking/, …)
+                   feedback/, notes/ (provideNotes, the cards, the ?note= detail with its read-only task
+                   toggles, NoteEditor for the editor child routes, the template picker and save-template
+                   dialogs, and the pure notes.ts with unit tests), overview/, rag-stats/, reports/, to-do/
+                   (also the ToDo linking the other tabs reuse: LinkedTodos, LinkedChip), tracking/, …)
   components/      components frappe-ui lacks, one folder each; see components/Components.md
   composables/     shared use* composables: lookups, the like toggle, URL query updates, editor attributes,
                    values saved in localStorage (useSavedState), notifications, infinite scroll, project phases,
@@ -84,7 +86,9 @@ src/
 roles may open it. The `beforeEach` guard in `router.ts` sends users without an Employee record to `/no-employee`
 and users without a role to `/no-access`. `meta.standalone` marks a status page: no sidebar, no guard checks.
 `meta.scroll: false` hands scrolling to the page (DesktopShell stops scrolling it), for pages whose header or toolbar
-stays put while a pane scrolls, like the task list's rows.
+stays put while a pane scrolls, like the task list's rows. The note editor routes are children of `project-details`:
+the page shows them in place of its tabs, and `App.vue` keys the route view by project (`project:<id>`) rather than
+by path, so opening the editor doesn't remount the page while another project still does.
 
 Never edit the build output in `../next_pms/public/frontend` by hand.
 
