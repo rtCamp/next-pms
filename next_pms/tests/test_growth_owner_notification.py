@@ -4,7 +4,6 @@
 from unittest.mock import patch
 
 import frappe
-from frappe.deferred_insert import save_to_db
 from frappe.tests import IntegrationTestCase
 
 from next_pms.install import create_default_growth_masters
@@ -42,6 +41,11 @@ class IntegrationTestGrowthOwnerNotification(IntegrationTestCase):
         frappe.delete_doc("Project", cls.project.name, force=True, ignore_permissions=True)
         super().tearDownClass()
 
+    def setUp(self):
+        sendmail = patch(SENDMAIL)
+        self.sendmail = sendmail.start()
+        self.addCleanup(sendmail.stop)
+
     def tearDown(self):
         for name in frappe.get_all(
             "NextPMS Notifications",
@@ -73,16 +77,9 @@ class IntegrationTestGrowthOwnerNotification(IntegrationTestCase):
             fields=["label", "linked_document", "url"],
         )
 
-    def _flush_capturing_mail(self):
-        frappe.set_user("Administrator")
-        with patch(SENDMAIL) as sendmail:
-            save_to_db()
-        return sendmail
-
     def test_assigning_owner_on_create_notifies_them(self):
         frappe.set_user(ACTOR_USER)
         initiative = self._make_initiative()
-        sendmail = self._flush_capturing_mail()
 
         notifications = self._owner_notifications(OWNER_USER)
         self.assertEqual(len(notifications), 1)
@@ -94,8 +91,8 @@ class IntegrationTestGrowthOwnerNotification(IntegrationTestCase):
         self.assertIn("Upsell managed hosting", notifications[0].label)
         self.assertIn(self.project.project_name, notifications[0].label)
 
-        sendmail.assert_called_once()
-        kwargs = sendmail.call_args.kwargs
+        self.sendmail.assert_called_once()
+        kwargs = self.sendmail.call_args.kwargs
         self.assertEqual(kwargs["recipients"], [OWNER_USER])
         self.assertEqual(kwargs["reference_name"], initiative.name)
         self.assertIn("Upsell", kwargs["message"])
@@ -104,36 +101,31 @@ class IntegrationTestGrowthOwnerNotification(IntegrationTestCase):
     def test_reassigning_owner_notifies_only_the_new_owner(self):
         frappe.set_user(ACTOR_USER)
         initiative = self._make_initiative()
-        self._flush_capturing_mail()
+        self.sendmail.reset_mock()
 
-        frappe.set_user(ACTOR_USER)
         doc = frappe.get_doc(DOCTYPE, initiative.name)
         doc.activity_owner = REASSIGNED_USER
         doc.save(ignore_permissions=True)
-        sendmail = self._flush_capturing_mail()
 
         self.assertEqual(len(self._owner_notifications(REASSIGNED_USER)), 1)
         self.assertEqual(len(self._owner_notifications(OWNER_USER)), 1)
-        sendmail.assert_called_once()
+        self.sendmail.assert_called_once()
 
     def test_saving_without_owner_change_does_not_notify(self):
         frappe.set_user(ACTOR_USER)
         initiative = self._make_initiative()
-        self._flush_capturing_mail()
+        self.sendmail.reset_mock()
 
-        frappe.set_user(ACTOR_USER)
         doc = frappe.get_doc(DOCTYPE, initiative.name)
         doc.activity = "Upsell managed hosting and CDN"
         doc.save(ignore_permissions=True)
-        sendmail = self._flush_capturing_mail()
 
         self.assertEqual(len(self._owner_notifications(OWNER_USER)), 1)
-        sendmail.assert_not_called()
+        self.sendmail.assert_not_called()
 
     def test_self_assignment_does_not_notify(self):
         frappe.set_user(ACTOR_USER)
         self._make_initiative(owner=ACTOR_USER)
-        sendmail = self._flush_capturing_mail()
 
         self.assertEqual(self._owner_notifications(ACTOR_USER), [])
-        sendmail.assert_not_called()
+        self.sendmail.assert_not_called()

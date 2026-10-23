@@ -1,9 +1,5 @@
 name: Gitleaks
 
-permissions:
-  contents: read
-  pull-requests: write
-
 on:
   push:
     branches:
@@ -14,10 +10,24 @@ on:
       - version-16
       - develop
 
+permissions:
+  contents: read
+
 jobs:
-  gitleaks:
+  # Repository secrets are available here: pushes, and pull requests from
+  # branches in this repository that were not opened by Dependabot. Keep the
+  # licensed action for these so we retain PR comments and Dependabot-managed
+  # version bumps.
+  gitleaks-action:
     name: Gitleaks
+    if: >-
+      github.event_name == 'push' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       github.actor != 'dependabot[bot]')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # gitleaks-action comments on the PR when it finds something
     steps:
       - uses: actions/checkout@v6
         with:
@@ -28,3 +38,60 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+  # No repository secrets here: pull requests from forks, and pull requests
+  # opened by Dependabot. gitleaks-action hard-fails on organisation repos
+  # without GITLEAKS_LICENSE, so run the MIT-licensed CLI instead and actually
+  # scan these contributions rather than failing them on the missing key.
+  #
+  # The PR author controls the checked-out tree, so nothing in it may weaken
+  # the scan: the PR's .gitleaks.toml and .gitleaksignore are not read, and
+  # gitleaks:allow comments are not honoured.
+  gitleaks-cli:
+    name: Gitleaks
+    if: >-
+      github.event_name == 'pull_request' &&
+      (github.event.pull_request.head.repo.full_name != github.repository ||
+       github.actor == 'dependabot[bot]')
+    runs-on: ubuntu-latest
+    env:
+      GITLEAKS_VERSION: 8.30.1
+      # sha256 of gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz from the
+      # release's gitleaks_${GITLEAKS_VERSION}_checksums.txt. Update both
+      # together when bumping the version.
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install gitleaks
+        run: |
+          archive="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfL -o "$archive" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${archive}"
+          echo "${GITLEAKS_SHA256}  ${archive}" | sha256sum --check --strict
+          sudo tar -xz -C /usr/local/bin -f "$archive" gitleaks
+          rm -f "$archive"
+          gitleaks version
+
+      - name: Run Gitleaks
+        env:
+          # Takes precedence over <source>/.gitleaks.toml, so the PR cannot
+          # allowlist its own findings. Scan with the built-in rules only.
+          GITLEAKS_CONFIG_TOML: |
+            [extend]
+            useDefault = true
+          # Scan only the PR's commits, as gitleaks-action does. Full history
+          # trips on known false positives (Figma file keys in
+          # .claude/skills/next-pms-task/SKILL.md).
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # gitleaks always loads <source>/.gitleaksignore, even when
+          # --gitleaks-ignore-path points elsewhere (cmd/root.go in 8.30.1),
+          # so drop the PR's copy. The scan reads git history, not the
+          # working tree, so this hides nothing from it.
+          rm -f .gitleaksignore
+          gitleaks git --no-banner --redact --verbose --exit-code 1 \
+            --ignore-gitleaks-allow --log-opts="${BASE_SHA}..${HEAD_SHA}" .

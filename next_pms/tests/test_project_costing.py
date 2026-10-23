@@ -7,7 +7,7 @@ from frappe.utils import add_days, flt, getdate, nowdate
 from next_pms.project_currency.api import project_timesheet_billing_recalculation
 from next_pms.project_currency.background_jobs import project_costing
 from next_pms.project_currency.overrides.timesheet import TimesheetOverwrite
-from next_pms.tests.utils import make_employee
+from next_pms.tests.utils import make_employee, make_tech_stack
 
 
 class TestCostingJobEnqueue(IntegrationTestCase):
@@ -29,7 +29,7 @@ class TestCostingJobEnqueue(IntegrationTestCase):
 
         self.assertEqual(enqueue.call_count, 2)
         for enqueue_call in enqueue.call_args_list:
-            self.assertIs(enqueue_call.args[0], project_costing.update_task_and_project)
+            self.assertIs(enqueue_call.args[0], project_costing.run_costing_job)
             self.assertEqual(enqueue_call.kwargs["queue"], "pms_costings_queue")
             self.assertTrue(enqueue_call.kwargs["enqueue_after_commit"])
             self.assertEqual(enqueue_call.kwargs["tasks"], ["TASK-1"])
@@ -49,6 +49,68 @@ class TestCostingJobEnqueue(IntegrationTestCase):
             return_value=["default", "short", "long", "pms_costings_queue"],
         ):
             self.assertEqual(project_costing.get_costing_queue(), "pms_costings_queue")
+
+    def test_job_starts_from_a_fresh_transaction(self):
+        """Roll back job setup's transaction first so the row locks are the job's first reads."""
+        order = MagicMock()
+
+        with (
+            patch.object(project_costing.frappe.db, "rollback", order.rollback),
+            patch.object(project_costing, "update_task_and_project", order.update_task_and_project),
+        ):
+            project_costing.run_costing_job(tasks=["TASK-1"], projects=["PROJ-1"])
+
+        self.assertEqual(
+            order.mock_calls,
+            [call.rollback(), call.update_task_and_project(tasks=["TASK-1"], projects=["PROJ-1"])],
+        )
+
+
+class TestCostingJobLocking(IntegrationTestCase):
+    def test_tasks_then_projects_are_locked_in_name_order(self):
+        """A single global lock order keeps concurrent costing jobs from deadlocking each other."""
+        with patch.object(project_costing.frappe.db, "get_values") as get_values:
+            project_costing.lock_tasks_and_projects(["TASK-2", "TASK-1"], ["PROJ-1"])
+
+        self.assertEqual(
+            get_values.call_args_list,
+            [
+                call("Task", {"name": ["in", ["TASK-2", "TASK-1"]]}, "name", order_by="name asc", for_update=True),
+                call("Project", {"name": ["in", ["PROJ-1"]]}, "name", order_by="name asc", for_update=True),
+            ],
+        )
+
+    def test_empty_names_take_no_lock(self):
+        """An empty task or project list must not issue a locking query."""
+        with patch.object(project_costing.frappe.db, "get_values") as get_values:
+            project_costing.lock_tasks_and_projects([], [])
+
+        get_values.assert_not_called()
+
+    def test_rows_are_locked_before_anything_is_read(self):
+        """Reading before the lock pins a stale snapshot that hides a concurrent job's commit."""
+        order = MagicMock()
+        order.get_task_status_from_remaining_logs.return_value = "Working"
+
+        with (
+            patch.object(project_costing, "lock_tasks_and_projects", order.lock_tasks_and_projects),
+            patch.object(
+                project_costing, "get_task_status_from_remaining_logs", order.get_task_status_from_remaining_logs
+            ),
+            patch.object(project_costing, "update_tasks", order.update_tasks),
+            patch.object(project_costing, "update_projects", order.update_projects),
+        ):
+            project_costing.update_task_and_project(tasks=["TASK-1"], projects=["PROJ-1"])
+
+        self.assertEqual(
+            order.mock_calls,
+            [
+                call.lock_tasks_and_projects(["TASK-1"], ["PROJ-1"]),
+                call.get_task_status_from_remaining_logs("TASK-1"),
+                call.update_tasks(["TASK-1"], {"TASK-1": "Working"}),
+                call.update_projects(["PROJ-1"]),
+            ],
+        )
 
 
 class TestAffectedCostingRecords(IntegrationTestCase):
@@ -326,6 +388,7 @@ class TestCostingWorkerBusinessValues(IntegrationTestCase):
                 "company": "Facebook",
                 "customer": "Meta",
                 "custom_billing_type": "Non-Billable",
+                "tech_stack": make_tech_stack(),
                 **overrides,
             }
         )

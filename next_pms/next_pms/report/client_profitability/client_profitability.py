@@ -8,7 +8,7 @@ from erpnext.setup.utils import get_exchange_rate
 from frappe import _, get_all
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Sum
-from frappe.utils import getdate
+from frappe.utils import flt, getdate
 from pypika import Case
 
 CURRENCY = "USD"
@@ -101,8 +101,8 @@ def get_total_revenue(start_date: date | str, end_date: date | str, projects: li
             unpaid_revenue += row.unpaid_revenue
             paid_revenue += row.paid_revenue
         else:
-            unpaid_revenue += (get_exchange_rate(row.currency, CURRENCY) or 1) * row.unpaid_revenue
-            paid_revenue += (get_exchange_rate(row.currency, CURRENCY) or 1) * row.paid_revenue
+            unpaid_revenue += flt(get_exchange_rate(row.currency, CURRENCY)) * row.unpaid_revenue
+            paid_revenue += flt(get_exchange_rate(row.currency, CURRENCY)) * row.paid_revenue
             revenue += unpaid_revenue + paid_revenue
 
     return revenue, unpaid_revenue, paid_revenue
@@ -147,7 +147,7 @@ def get_labor_cost(start_date: date | str, end_date: date | str, projects: list[
         if row.currency == CURRENCY:
             cost_in_usd += row.cost
         else:
-            cost_in_usd += (get_exchange_rate(row.currency, CURRENCY) or 1) * row.cost
+            cost_in_usd += flt(get_exchange_rate(row.currency, CURRENCY)) * row.cost
     return cost_in_usd
 
 

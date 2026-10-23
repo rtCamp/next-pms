@@ -72,6 +72,12 @@ def make_employee(user, company=None, **kwargs):
         return employee.name
 
 
+def make_tech_stack(technology="Frappe"):
+    if not frappe.db.exists("Technology", technology):
+        frappe.get_doc({"doctype": "Technology", "technology_name": technology}).insert(ignore_permissions=True)
+    return [{"technology": technology}]
+
+
 def assign_empty_holiday_list(employee, name="Test Empty Holiday List"):
     """Pin an employee to a holiday list that holds no holidays.
 

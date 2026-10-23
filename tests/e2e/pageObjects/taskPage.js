@@ -2,6 +2,7 @@ import { expect } from "@playwright/test";
 import path from "path";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import { gotoWithRetry } from "../utils/navigation.js";
+import { scaleTimeout } from "../utils/timeouts";
 
 const TASK_TRACKER_PATH = path.resolve(
   __dirname,
@@ -269,9 +270,11 @@ export class TaskPage {
     // The list refetches on a debounce; reading the count too early returns the
     // previous filter's rows. Either the row or the empty state settles it.
     await Promise.race([
-      row.waitFor({ state: "visible", timeout: 15000 }).catch(() => {}),
+      row
+        .waitFor({ state: "visible", timeout: scaleTimeout(15000) })
+        .catch(() => {}),
       this.emptyTaskList
-        .waitFor({ state: "visible", timeout: 15000 })
+        .waitFor({ state: "visible", timeout: scaleTimeout(15000) })
         .catch(() => {}),
     ]);
 
@@ -301,7 +304,7 @@ export class TaskPage {
       const option = this.page
         .getByRole("option", { name: new RegExp(`^${name}$`, "i") })
         .first();
-      await option.waitFor({ state: "visible", timeout: 10000 });
+      await option.waitFor({ state: "visible", timeout: scaleTimeout(10000) });
       await option.click();
     };
 
@@ -314,7 +317,7 @@ export class TaskPage {
       await this.filterButton.click();
       await this.filterFieldInput
         .first()
-        .waitFor({ state: "visible", timeout: 15000 });
+        .waitFor({ state: "visible", timeout: scaleTimeout(15000) });
     }
 
     const field = this.filterFieldInput.last();
@@ -343,7 +346,7 @@ export class TaskPage {
           decodeURIComponent(resp.url()).includes(
             `["custom_is_billable","=","${expected}"]`,
           ),
-        { timeout: 5000 },
+        { timeout: scaleTimeout(5000) },
       )
       .catch(() => {});
 
@@ -356,7 +359,7 @@ export class TaskPage {
     await this.page.keyboard.press("Escape");
     await this.filterFieldInput
       .first()
-      .waitFor({ state: "hidden", timeout: 10000 })
+      .waitFor({ state: "hidden", timeout: scaleTimeout(10000) })
       .catch(() => {});
   }
 
@@ -441,7 +444,9 @@ export class TaskPage {
       .getByRole("dialog")
       .filter({ hasText: name })
       .first();
-    await dialog.waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
+    await dialog
+      .waitFor({ state: "visible", timeout: scaleTimeout(15000) })
+      .catch(() => {});
 
     return await dialog.isVisible().catch(() => false);
   }
@@ -500,7 +505,7 @@ export class TaskPage {
     // Takes the task's subject, not its ID: the row is only addressable by the
     // text it shows, since the ID is no longer in the DOM.
     const star = this.starButtonInRow(taskName).first();
-    await star.waitFor({ state: "visible", timeout: 15000 });
+    await star.waitFor({ state: "visible", timeout: scaleTimeout(15000) });
     await expect(star).toHaveAttribute("aria-label", "Unstar task");
   }
 

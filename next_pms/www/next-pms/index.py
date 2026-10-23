@@ -44,6 +44,7 @@ def get_context(context):
     boot["has_customer_feedback"] = is_customer_feedback_available()
     boot["show_rag_trigger_page"] = show_rag_trigger_page()
     boot["has_todo_custom_fields"] = has_todo_custom_fields()
+    boot["todo_status_options"] = todo_status_options()
     boot["optional_project_fields"] = optional_project_fields()
     boot["is_calendar_setup"] = is_google_calendar_enabled()
     boot["global_filters"] = get_global_filters()
@@ -80,6 +81,7 @@ def get_boot():
     boot["has_customer_feedback"] = is_customer_feedback_available()
     boot["show_rag_trigger_page"] = show_rag_trigger_page()
     boot["has_todo_custom_fields"] = has_todo_custom_fields()
+    boot["todo_status_options"] = todo_status_options()
     boot["optional_project_fields"] = optional_project_fields()
     boot["is_calendar_setup"] = is_google_calendar_enabled()
     boot["app_name"] = "Next PMS"
@@ -109,6 +111,11 @@ def has_todo_custom_fields():
     """
     meta = frappe.get_meta("ToDo")
     return all(meta.has_field(fieldname) for fieldname in ("custom_title", "custom_from_time", "custom_to_time"))
+
+
+def todo_status_options():
+    options = frappe.get_meta("ToDo").get_field("status").options or ""
+    return [option for option in options.split("\n") if option]
 
 
 OPTIONAL_PROJECT_FIELDS = (
