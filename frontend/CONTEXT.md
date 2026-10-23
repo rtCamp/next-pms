@@ -138,7 +138,7 @@ _Avoid_: task (a `Task` is a separate doctype), action item.
 **Linked ToDo** — a project ToDo tied to one milestone, touchpoint or growth initiative through that record's
 `linked_todos` rows (`PMS Linked ToDo`). A ToDo has at most one such record and always still references the Project;
 unlinking keeps the ToDo, and deleting the record keeps its ToDos. The ToDo dialog's "Linked to" field, the linked
-chip on a ToDos tab row and the Calendar's ToDos cell show it. In code: `LinkedRecord`, `linkedTodos()` and
+chip on a ToDos tab row and the Calendar's ToDos cell show it. In code: `LinkedRecord`, `useTodos().linkedTo()` and
 `LinkedTodos.vue` in `pages/project-details/to-do/`.
 _Avoid_: action item (Growth's label for them), sub-task, attached ToDo.
 
