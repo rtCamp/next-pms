@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { Tooltip } from "@rtcamp/frappe-ui-react";
 
 /**
@@ -9,6 +10,7 @@ import { Tooltip } from "@rtcamp/frappe-ui-react";
 import { formatNumber } from "@/lib/utils";
 import { Section } from "./section";
 import type { ProjectProgressHours } from "./types";
+import { PROJECT_ABOUT_HELP } from "../help";
 
 export function ProgressHoursSection({
   progress,
@@ -26,7 +28,11 @@ export function ProgressHoursSection({
   const ariaValueNow = Math.min(ariaValueMax, Math.max(0, consumed));
 
   return (
-    <Section value="progress" title="Progress (hours)">
+    <Section
+      value="progress"
+      title="Progress (hours)"
+      suffix={<InfoHoverCard help={PROJECT_ABOUT_HELP.progress} />}
+    >
       <div className="flex flex-col gap-2.5">
         <div className="flex items-center justify-between">
           <span className="text-base font-medium text-ink-gray-7">
