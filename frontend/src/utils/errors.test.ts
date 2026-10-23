@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { FrappeResponseError } from "frappe-ui";
-import { errorMessage } from "./errors";
+import { errorMessage, isAbortError } from "./errors";
 
 function frappeError(message: string, type = "ValidationError", title = "") {
   return new FrappeResponseError(message, { type, title });
@@ -46,5 +46,22 @@ describe("errorMessage", () => {
     expect(errorMessage("boom")).toBe("boom");
     expect(errorMessage(undefined)).toBe("Something went wrong");
     expect(errorMessage(null)).toBe("Something went wrong");
+  });
+});
+
+describe("isAbortError", () => {
+  it("is true for an aborted request", () => {
+    const controller = new AbortController();
+    controller.abort();
+    expect(isAbortError(controller.signal.reason)).toBe(true);
+  });
+
+  it("is false for other errors", () => {
+    expect(isAbortError(new Error("Network down"))).toBe(false);
+    expect(isAbortError(frappeError("ValidationError: Task is closed"))).toBe(
+      false,
+    );
+    expect(isAbortError(new DOMException("Bad", "SyntaxError"))).toBe(false);
+    expect(isAbortError(undefined)).toBe(false);
   });
 });

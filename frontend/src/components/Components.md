@@ -34,13 +34,13 @@ across components live in `src/utils/`.
 | `DurationInput/` | `DurationInput` |
 | `ErrorFallback/` | `ErrorFallback` |
 | `Filter/` | `Filter`, `FilterLinkValue` (the `#link-value` input: searches the field's doctype or `customMethod`), `DEFAULT_OPERATORS` |
-| `GanttGrid/` | `GanttGrid` (the Team and Project allocations grid: weeks of day columns, employee or project rows with their allocation bars, hover cards, resize and drag-to-create; renders and emits, fetches nothing; needs `provideUnsavedChanges()` above it) and its row and event types |
+| `GanttGrid/` | `GanttGrid` (the Team and Project allocations grid: weeks of day columns, employee or project rows with their allocation bars, hover cards, resize and drag-to-create; renders and emits, fetches nothing; needs `provideUnsavedChanges()` above it) and its row and event types; its day-column sizes and `buildTimeline` / `columnIndex`, also used by the Calendar tab's Gantt |
 | `LoadingOverlay/` | `LoadingOverlay` |
 | `MonthPicker/` | `MonthPicker` |
 | `NotificationTray/` | `NotificationTray`, `notificationIcon` |
 | `PhaseIcon/` | `PhaseIcon` (a project phase's colour), `PROJECT_PHASE_COLORS` |
 | `ProgressBar/` | `ProgressBar` |
-| `RichText/` | `RichText` (read-only editor HTML, e.g. comments) |
+| `RichText/` | `RichText` (read-only editor HTML, e.g. comments; `kit="richText"` for long-form text), `richTextExtensions()` (the rich-text editor's extensions) |
 | `SortSelector/` | `SortSelector` |
 | `TaskBadges/` | `TaskBadges` (a task's due date and project) |
 | `TaskLog/` | `TaskLog` (view), `TaskLogDialog` (loads its data), `useTaskLog`, `TASK_LOG_RANGES`, `DEFAULT_TASK_LOG_RANGE` |

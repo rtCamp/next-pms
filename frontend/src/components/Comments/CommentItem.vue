@@ -111,7 +111,7 @@ function confirmDelete() {
       :submit="saveEdit"
       @cancel="isEditing = false"
     />
-    <div v-else class="rounded-6 bg-surface-gray-1 px-3">
+    <div v-else class="rounded-6 bg-surface-gray-1 px-3 py-2">
       <RichText :content="body" class="prose-sm text-ink-gray-7" />
     </div>
 

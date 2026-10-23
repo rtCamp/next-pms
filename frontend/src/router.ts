@@ -43,8 +43,13 @@ const routes: RouteRecordRaw[] = [
     component: () => import("./pages/projects/Projects.vue"),
     meta: { title: "Projects", roles: ROLE_ACCESS.projects, scroll: false },
   },
+  {
+    path: "/projects/:projectId",
+    name: "project-details",
+    component: () => import("./pages/project-details/ProjectDetails.vue"),
+    meta: { title: "Project", roles: ROLE_ACCESS.projects, scroll: false },
+  },
   ...[
-    "",
     "/notes/new",
     "/notes/:noteId/edit",
     "/notes/templates/:templateId/edit",

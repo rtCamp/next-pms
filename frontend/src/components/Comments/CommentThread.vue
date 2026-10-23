@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref, useId } from "vue";
-import { Button } from "frappe-ui";
 import CommentItem from "./CommentItem.vue";
 import type { CommentNode } from "./types";
 
@@ -24,15 +23,20 @@ const panelId = useId();
 
     <div v-if="replies.length" class="flex flex-col pl-8">
       <div>
-        <Button
-          variant="ghost"
-          size="sm"
-          :label="open ? 'Hide replies' : 'Show replies'"
-          :icon-right="open ? 'lucide-chevron-up' : 'lucide-chevron-down'"
+        <button
+          type="button"
+          class="inline-flex h-6 w-29 items-center justify-between gap-1 rounded-4 px-2 text-sm text-ink-gray-5 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-7"
           :aria-expanded="open"
           :aria-controls="panelId"
           @click="open = !open"
-        />
+        >
+          {{ open ? "Hide replies" : "Show replies" }}
+          <span
+            class="lucide-chevron-down size-4 shrink-0 transition-transform"
+            :class="{ 'rotate-180': open }"
+            aria-hidden="true"
+          />
+        </button>
       </div>
       <div
         v-show="open"

@@ -16,9 +16,9 @@ export interface LookupOption {
   description?: string;
   /** frappe-ui class icon, e.g. `"lucide-folder"`. */
   icon?: string;
-  disabled?: boolean;
-  /** Avatar image, for pickers that show one before the label. */
+  /** Avatar image of a person option. */
   image?: string;
+  disabled?: boolean;
 }
 
 type LookupParams = Record<string, string | number | undefined>;

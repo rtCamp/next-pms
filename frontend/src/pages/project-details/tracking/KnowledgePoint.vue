@@ -1,0 +1,33 @@
+<script setup lang="ts">
+import TruncatedText from "@/pages/project-details/TruncatedText.vue";
+import { cn } from "@/utils/cn";
+
+defineProps<{ title: string; value: string; href?: string }>();
+
+const CARD =
+  "flex h-20 min-w-0 flex-1 flex-col justify-between rounded-7 border border-outline-gray-1 bg-surface-elevation-1 p-3";
+</script>
+
+<template>
+  <component
+    :is="href ? 'a' : 'div'"
+    :href="href"
+    :target="href ? '_blank' : undefined"
+    :rel="href ? 'noreferrer noopener' : undefined"
+    :class="
+      cn(
+        CARD,
+        href &&
+          'cursor-pointer transition-colors hover:bg-surface-gray-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3',
+      )
+    "
+  >
+    <span class="truncate text-base leading-tighter text-ink-gray-5">{{
+      title
+    }}</span>
+    <TruncatedText
+      class="text-2xl-medium leading-tighter text-ink-gray-8"
+      :text="value"
+    />
+  </component>
+</template>

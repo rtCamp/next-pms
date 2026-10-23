@@ -109,13 +109,15 @@ function handleCancel() {
       :label="avatarName"
       :image="avatarImage ?? undefined"
     />
+    <!-- eslint-disable better-tailwindcss/no-restricted-classes -- frappe-ui has no 40px input size with 14px text and 12px padding -->
     <TextInput
-      size="lg"
-      class="w-full"
+      variant="outline"
+      class="w-full [&_[data-slot=control]]:h-10 [&_[data-slot=control]]:px-3"
       :placeholder="placeholder"
       :aria-label="placeholder"
       @focus="expanded = true"
     />
+    <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
   </div>
 
   <div v-else class="flex w-full flex-col gap-2">
@@ -127,7 +129,7 @@ function handleCancel() {
       :editable="!busy"
     >
       <EditorContent
-        class="prose-sm max-h-52 min-h-8 w-full max-w-full overflow-auto rounded-4 border border-outline-gray-2 bg-surface-base px-3 py-1.5 text-ink-gray-8 prose-p:my-0 focus:outline-none"
+        class="prose-sm max-h-52 min-h-8 w-full max-w-full overflow-auto rounded-4 border border-outline-gray-2 bg-surface-base px-3 py-2 text-ink-gray-8 prose-p:my-0 focus:outline-none"
       />
     </Editor>
     <div class="flex items-center justify-end gap-2">
