@@ -7,6 +7,7 @@ import {
   hasBody,
   initialNoteForm,
   isNoteFormDirty,
+  newerSaves,
   newTemplateDoc,
   noteFormErrors,
   noteListFilters,
@@ -114,6 +115,19 @@ describe("toNotes", () => {
     expect(
       toNotes([row({ owner: "eve@example.com" })], users)[0],
     ).toMatchObject({ pinned: false, ownerName: "", ownerImage: null });
+  });
+});
+
+describe("newerSaves", () => {
+  it("keeps the saves made after the list read the note", () => {
+    const saved = new Map([
+      ["PSU-1", { description: "<p>A</p>", modified: "2026-10-21 10:00:05" }],
+      ["PSU-2", { description: "<p>B</p>", modified: "2026-10-21 10:00:00" }],
+      ["PSU-3", { description: "<p>C</p>" }],
+      ["PSU-4", { description: "<p>D</p>", modified: "2026-10-21 10:00:09" }],
+    ]);
+    const rows = ["PSU-1", "PSU-2", "PSU-3"].map((name) => row({ name }));
+    expect([...newerSaves(saved, rows).keys()]).toEqual(["PSU-1"]);
   });
 });
 

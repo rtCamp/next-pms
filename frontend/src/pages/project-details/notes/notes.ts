@@ -63,6 +63,23 @@ export function toNotes(rows: NoteRow[], users: NoteUser[]): Note[] {
   });
 }
 
+/**
+ * The body saves to keep laid over a list just read: those saved after the list read
+ * the note, by `modified`. The rest the list already includes.
+ */
+export function newerSaves(
+  saved: Map<string, Partial<NoteRow>>,
+  rows: NoteRow[],
+): Map<string, Partial<NoteRow>> {
+  const read = new Map(rows.map((row) => [row.name, row.modified]));
+  return new Map(
+    [...saved].filter(([name, save]) => {
+      const modified = read.get(name);
+      return Boolean(save.modified && modified && save.modified > modified);
+    }),
+  );
+}
+
 /** The author filter's options: All, then each author whose name is known. */
 export function authorOptions(
   ids: string[],

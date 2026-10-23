@@ -26,6 +26,7 @@ import {
 import {
   authorIds,
   authorOptions,
+  newerSaves,
   noteListFilters,
   publishedFilters,
   toNotes,
@@ -88,7 +89,7 @@ function createNotes() {
       limit_page_length: NOTE_LIST_LIMIT,
     }),
     refetch: true,
-    onSuccess: () => (saved.value = new Map()),
+    onSuccess: (rows) => (saved.value = newerSaves(saved.value, rows ?? [])),
   });
 
   const authorRows = useCall<{ owner: string }[], Params>({
