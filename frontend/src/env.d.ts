@@ -23,6 +23,8 @@ interface Boot {
   show_rag_trigger_page?: boolean;
   /** Whether the ToDo doctype has the rtcamp title, start and end fields. */
   has_todo_custom_fields?: boolean;
+  /** The ToDo doctype's status options, in order, e.g. `["Open", "Backlog", "Closed"]`. */
+  todo_status_options?: string[];
   /** Whether the GitHub Repository doctype exists; shows a project's repository connections. */
   has_repository_connections?: boolean;
   /**

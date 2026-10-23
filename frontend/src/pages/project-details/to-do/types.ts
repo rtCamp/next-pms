@@ -1,4 +1,8 @@
-export type TodoStatus = "Open" | "Closed" | "Cancelled";
+/** A ToDo status: one of the ToDo doctype's options (`boot.todo_status_options`). */
+export type TodoStatus = string;
+/** The statuses the app has an icon and colour for; any other is shown as Open. */
+export type KnownTodoStatus =
+  "Open" | "Backlog" | "In Progress" | "Closed" | "Cancelled";
 export type TodoPriority = "Low" | "Medium" | "High";
 
 /** A `ToDo` row as the list reads it. */

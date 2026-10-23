@@ -7,9 +7,11 @@ import {
   formatTodoDateTime,
   hasTodoCustomFields,
   statusColor,
+  statusHoverColor,
   statusIcon,
   statusOptions,
   todoFields,
+  todoStatuses,
   todoTitle,
   toTodoFields,
   validateTodo,
@@ -194,28 +196,51 @@ describe("deleteTodoMessage", () => {
   });
 });
 
-describe("statusIcon and statusColor", () => {
-  it("returns the status's own icon and colour", () => {
+describe("statusIcon, statusColor and statusHoverColor", () => {
+  it("returns the status's own icon and colours", () => {
     expect(statusIcon("Closed")).toBe("lucide-circle-check");
     expect(statusColor("Closed")).toBe("text-ink-gray-8");
+    expect(statusHoverColor("Closed")).toBeUndefined();
+    expect(statusIcon("In Progress")).toBe("lucide-circle-dot");
+    expect(statusColor("Backlog")).toBe("text-ink-gray-4");
+    expect(statusHoverColor("Open")).toBe("hover:text-ink-gray-8");
   });
 
   it("falls back to Open's for a status the app doesn't know", () => {
-    expect(statusIcon("Backlog")).toBe(statusIcon("Open"));
-    expect(statusColor("In Progress")).toBe(statusColor("Open"));
+    expect(statusIcon("Waiting")).toBe(statusIcon("Open"));
+    expect(statusColor("toString")).toBe(statusColor("Open"));
+    expect(statusHoverColor("Waiting")).toBe(statusHoverColor("Open"));
   });
 });
 
-describe("statusOptions", () => {
-  it("lists the known statuses", () => {
+describe("todoStatuses and statusOptions", () => {
+  const boot = window.boot;
+  afterEach(() => {
+    window.boot = boot;
+  });
+
+  it("uses the stock statuses without boot options", () => {
+    window.boot = { sitename: "s" };
+    expect(todoStatuses()).toEqual(["Open", "Closed", "Cancelled"]);
+    window.boot = { sitename: "s", todo_status_options: [] };
+    expect(todoStatuses()).toEqual(["Open", "Closed", "Cancelled"]);
+  });
+
+  it("reads the ToDo doctype's statuses from the boot data", () => {
+    window.boot = {
+      sitename: "s",
+      todo_status_options: ["Open", "Backlog", "In Progress", "Closed"],
+    };
     expect(statusOptions("Open").map((option) => option.value)).toEqual([
       "Open",
+      "Backlog",
+      "In Progress",
       "Closed",
-      "Cancelled",
     ]);
   });
 
-  it("adds the current status when it isn't known", () => {
+  it("adds the current status when it isn't one of them", () => {
+    window.boot = { sitename: "s" };
     expect(statusOptions("Backlog").map((option) => option.value)).toEqual([
       "Open",
       "Closed",

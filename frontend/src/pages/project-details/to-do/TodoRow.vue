@@ -5,6 +5,7 @@ import { PRIORITY_DOT } from "./constants";
 import {
   formatTodoDateTime,
   statusColor,
+  statusHoverColor,
   statusIcon,
   todoTitle,
 } from "./todos";
@@ -84,10 +85,7 @@ const actions = computed(() => [
       <button
         type="button"
         class="flex shrink-0 transition-colors"
-        :class="[
-          statusColor(status),
-          status === 'Open' && 'hover:text-ink-gray-8',
-        ]"
+        :class="[statusColor(status), statusHoverColor(status)]"
         :aria-label="statusLabel"
         :aria-busy="todos.isStatusBusy(todo)"
         @click="todos.toggleDone(todo)"

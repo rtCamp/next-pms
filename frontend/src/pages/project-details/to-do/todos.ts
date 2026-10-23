@@ -1,7 +1,13 @@
 import { dayjs } from "frappe-ui";
 import { systemToLocalDateTime } from "@/utils/date";
-import { STATUS_COLOR, STATUS_ICON, TODO_STATUSES } from "./constants";
+import {
+  DEFAULT_TODO_STATUSES,
+  STATUS_COLOR,
+  STATUS_HOVER_COLOR,
+  STATUS_ICON,
+} from "./constants";
 import type {
+  KnownTodoStatus,
   Todo,
   TodoDoc,
   TodoErrors,
@@ -146,21 +152,37 @@ export function deleteTodoMessage(
   return `Are you sure you want to delete the ToDo "${todoTitle(todo)}"? This action cannot be undone.`;
 }
 
-/** The status's icon; a status the app doesn't know, like Backlog, gets Open's. */
+/** The ToDo doctype's statuses from the boot data, else the stock ones. */
+export function todoStatuses(): TodoStatus[] {
+  const options = window.boot?.todo_status_options;
+  return options?.length ? options : DEFAULT_TODO_STATUSES;
+}
+
+function knownStatus(status: string): KnownTodoStatus {
+  return Object.hasOwn(STATUS_ICON, status)
+    ? (status as KnownTodoStatus)
+    : "Open";
+}
+
+/** The status's icon; a status the app doesn't know gets Open's. */
 export function statusIcon(status: string): string {
-  return STATUS_ICON[status as TodoStatus] ?? STATUS_ICON.Open;
+  return STATUS_ICON[knownStatus(status)];
 }
 
 /** The status's colour; a status the app doesn't know gets Open's. */
 export function statusColor(status: string): string {
-  return STATUS_COLOR[status as TodoStatus] ?? STATUS_COLOR.Open;
+  return STATUS_COLOR[knownStatus(status)];
+}
+
+/** The status button's hover colour; none for Closed and Cancelled. */
+export function statusHoverColor(status: string): string | undefined {
+  return STATUS_HOVER_COLOR[knownStatus(status)];
 }
 
 /** The status options, plus `current` when it isn't one of them, so it still shows. */
 export function statusOptions(current: string) {
-  const known = !current || TODO_STATUSES.includes(current as TodoStatus);
-  const statuses: string[] = known
-    ? TODO_STATUSES
-    : [...TODO_STATUSES, current];
-  return statuses.map((status) => ({ label: status, value: status }));
+  const statuses = todoStatuses();
+  const all =
+    !current || statuses.includes(current) ? statuses : [...statuses, current];
+  return all.map((status) => ({ label: status, value: status }));
 }
