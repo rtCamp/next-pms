@@ -22,7 +22,7 @@ matches, but the run still exits 0, so it looks like a pass.
 → Call `npx playwright test --config=tests/e2e/playwright.config.js --grep 'TC1:|TC2:'`
 directly, with single quotes.
 
-**A single-test run still takes 5–7 minutes.**
+**A single-test run still takes 10+ minutes.**
 `globalSetup` AST-scans every spec and seeds every discovered TC ID regardless of
 `--grep`. Working as designed.
 → Budget for it. When you only need to inspect the app, use `scripts/probe.mjs`
@@ -32,7 +32,8 @@ instead — it reuses a cached session and starts in about a second.
 `playwright.fixture.cjs` writes `auth/<role>-w<N>.json` only when the file is
 missing and never validates it, so expired sessions are reused forever.
 → `rm -f tests/e2e/auth/*-w*.json` and re-run. This produced one entirely bogus
-82-failure run. The underlying fixture still has no validity check.
+82-failure run. The fixture now re-logs in when `sid` has expired
+(`hasUsableSession`), but still cannot see a session the server has dropped.
 
 **Tests pass alone, fail together.**
 The employee timesheet specs share a single employee and week, so parallel workers
@@ -53,6 +54,24 @@ then `results.py` with no arguments.
 **A CI run reports fewer failures than exist.**
 `maxFailures: 5` on CI stops the run early.
 → Read CI counts as a floor, not a total.
+
+**Passes on staging, fails on CI every time.**
+Not flakiness: the two sites differ in holidays, required fields, custom fields,
+backdate limits and data volume.
+→ Find the row in `environments.md`, then read the trace's API responses from
+the CI artifacts before changing the test.
+
+**Setup stops with `Duplicate entry 'TC<n> Project'` right after `ECONNRESET`.**
+A connection reset on a create that the server had already applied; the retry
+created it again.
+→ Not your change. Check `curl <base>/api/method/ping`, let the teardown run,
+confirm nothing is left, rerun.
+
+**Setup dies with `CSRFTokenError` on the manager's API session.**
+Seen after an aborted run left dozens of `TC<n> Project` records, and when a
+probe loaded the app on a role while a run was live.
+→ Delete the leftover seed projects with the suite's own helpers, never probe
+during a run, rerun.
 
 ## Timeouts and hangs
 
@@ -81,10 +100,24 @@ waits, versus ~15s with padding.
 then `state: "hidden"` after clicking). Sleeps cost the same whether the app is
 fast or slow, and they accumulate straight into the timeout budget.
 
-**A test hovers at 24–28s and passes locally.**
+**A test hovers near its budget and passes locally.**
 It will flake under load.
-→ Treat anything above ~20s as needing the padding removed, not the timeout
-raised.
+→ Remove the padding before raising the timeout. A flow that genuinely needs
+longer (seeding a week back, a second browser context) sets its own
+`test.setTimeout(...)`.
+
+**A click on a member's review button in an older Team-tab week hangs to the
+test timeout, with no error location.**
+The Team tab lists 12 weeks but opens only the first four on CI; an older week's
+header is collapsed and its region (with the member rows) does not exist yet.
+The snapshot shows the header without `[expanded]`.
+→ Open the tab on that week alone with a Date range in the URL
+(`onlyWeek(weeksAgo)` in the Team actions spec), which also survives reloads.
+
+**A status poll after an approval never changes.**
+Decisions are queued, and the CI replay never receives the realtime event that
+refreshes an open page.
+→ Reload inside the poll: `expect.poll(async () => { await page.reload(); ... })`.
 
 ## Selectors
 
@@ -128,6 +161,23 @@ did something, or it degrades into a no-op the day the DOM moves.
 It's case-sensitive, and toast text is split across nested elements.
 → Match the toast region, then the text; check casing against the app.
 
+**A row locator picks up a second seeded record.**
+Seeded names share prefixes (`Playwright- TmApprove…` and `Playwright-
+TmApproved…`).
+→ Match the full generated name followed by a space (`^\S+ <name> ` for a member
+row: avatar initial, name, then the status), never a prefix.
+
+**A second filter replaces the first.**
+The Filter panel opens on a row whose Field may be preset and whose Value is
+empty; reusing "the last row" overwrote a filled condition.
+→ Decide on the **Value** (`openEmptyFilterRow` in `timesheetTabPage.js`): click
+"Add filter" only when the last Value is filled. See `selectors.md`.
+
+**An empty week's header doesn't match the week locator.**
+A week with no time has no status or total after its label, so the button's name
+is just "Jul 13 - 19, 2026".
+→ Match the label followed by a space or the end: `^<label>(?: |$)`.
+
 ## Seed data
 
 **Editing a test's seed payload changes nothing.**
@@ -137,9 +187,43 @@ TC's records.
 → Find the block that actually seeds what the test reads. Confirm by grepping the
 spec for which key it reads from the stub.
 
-**A new data file is ignored.**
-`populateJsonStubs` merges only from four hardcoded modules.
-→ Register it in the `dataSources` map in `utils/fileUtils.js`.
+**A new data file is ignored, or its leftovers are never swept.**
+`populateJsonStubs` merges only from the modules in its `dataSources` map, and
+the orphan sweep reads its own list.
+→ Register it in the `dataSources` map in `utils/fileUtils.js` **and** in the
+spread inside `readAndCleanAllOrphanData` in `helpers/timesheetHelper.js`.
+
+**A whole week was approved but the member reads "Partially approved".**
+The week status needs every *working* day decided, and working days are 7 minus
+the employee's holidays and leaves. On CI the company's holiday list is empty,
+so Mon–Fri is 5 of 7. The same cause makes an Approved week's cells stay
+clickable, and makes CI's 30-working-day backdate limit 30 calendar days (a
+week four back then refuses to submit, and a test waiting for its review button
+hangs).
+→ Give the employees weekends off (`weekendsOff: true`, `payloadWeekendsOff`;
+`seeding.md`). Read the member's `holidays` in the trace's
+`get_team_timesheet_data` response to confirm: `[]` means none.
+
+**Setting `Employee.holiday_list` changes nothing on CI.**
+HRMS v16 resolves holidays only from a submitted Holiday List Assignment.
+→ Use `assignHolidayList`, which submits the assignment and then sets the field
+(the field change is what clears next_pms's one-hour `get_holidays` cache).
+
+**"Leave Approver is mandatory" when seeding an employee or a leave (staging).**
+→ Seed `leave_approver` (the manager's email) on both.
+
+**"You are not allowed to access this Leave Application record because it is
+linked to Employee".**
+A manager may book leave only for their own reports.
+→ Keep `managed` (reports to the manager) on the employee a time-off case uses.
+
+**Setup fails at a project with "Tech Stack is required for billable projects."**
+→ `createProject` adds a Tech Stack when the site has the Technology doctype; a
+new create path must go through it (`seeding.md`).
+
+**A seeded Total Sales Amount reads 0.**
+Project.validate recomputes it from submitted Sales Orders, overwriting a PUT.
+→ `payloadCreateSalesOrder<postfix>: { amount }`.
 
 **A test's data is missing entirely.**
 The title doesn't match `/TC(\d+):/` — most often a missing colon.
@@ -306,6 +390,13 @@ because contention and the 30s ceiling take some back in a full run.
 **A green test that tests nothing.**
 See `isTimeEntryBillable` in `selectors.md`.
 → When a helper returns a boolean, exercise both branches before trusting it.
+
+**Skipped tests in a run's summary.**
+`test.skip` cases with a comment above them saying why (TC94: the User group
+filter was removed; TC114: saving filters to a view was removed; TC192, TC127:
+waiting on app fixes). They are not failures.
+→ Quote the reason from the comment. In the coverage sheet a skipped case is
+Deferred and keeps its TC number.
 
 **A failing test that isn't broken code.**
 Roughly 24 currently-failing tests assert against features the redesign removed

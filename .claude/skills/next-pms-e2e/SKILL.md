@@ -6,13 +6,15 @@ description: >
   or triaging ANY test in that suite — including one-line selector fixes that look
   trivial — because the suite has non-obvious contracts that silently manufacture
   both phantom passes and phantom failures: test-ID-driven global seeding that
-  ignores `--grep`, worker-scoped auth caching with no validity check, and
-  `slowMo: 500` running against Playwright's default 30s timeout. Use it whenever
-  the request mentions e2e or Playwright tests, a TC number (TC38, TC102, ...),
-  files under `tests/e2e/**` (specs, pageObjects, helpers, utils/api, data),
-  failing or flaky tests, selectors that broke after the UI redesign, test data
-  seeding or auth state, `npm run e2e:tests`, `results.json`, or asks for a test
-  change to be "consistent with the rest of the suite".
+  ignores `--grep`, worker-scoped auth caching, `slowMo: 500` against a scaled
+  timeout, and a staging site and a CI site that differ in data, HR setup and UI
+  build. Use it whenever the request mentions e2e or Playwright tests, a TC number
+  (TC38, TC102, ...), implementing new test cases or a group from the coverage
+  sheet, files under `tests/e2e/**` (specs, pageObjects, helpers, utils/api, data),
+  failing or flaky tests (on staging, in CI or in the `.local-ci` replay),
+  selectors that broke after the UI redesign, test data seeding or auth state,
+  `npm run e2e:tests`, `results.json`, or asks for a test change to be
+  "consistent with the rest of the suite".
 ---
 
 # next-pms E2E suite
@@ -28,36 +30,50 @@ identical-looking red output.
 
 ## Orient before you edit
 
-Four properties of this suite cause most wasted effort. Check them before forming
+Five properties of this suite cause most wasted effort. Check them before forming
 any theory about a failure.
 
 **1. Seeding is global and ignores your filter.** `globalSetup` runs
 `scripts/list-tests.js`, which AST-parses *every* spec file and extracts every
 `TC<n>:` ID from test titles, then seeds data for all of them sequentially. This
 happens on every run regardless of `--grep`, so a single-test run still costs
-~5–7 minutes. Budget for it; don't assume you broke something because a run is slow.
+~10 minutes against staging with ~250 TCs, plus teardown (a two-test run took
+~20 minutes end to end in October 2026). Budget for it; don't assume you broke
+something because a run is slow.
 
-**2. Auth state is cached with no validity check.** `playwright.fixture.cjs`
-builds `auth/<role>-w<workerIndex>.json` only when the file is *absent*
-(`fs.access` → catch). It never checks whether the session still works. Once those
-sessions expire, every test silently lands on the login page and the whole suite
-goes red for one reason that has nothing to do with any test. If failures are
-broad and uniform, delete `tests/e2e/auth/*-w*.json` and re-run before debugging
-anything else.
+**2. Auth state is cached.** `playwright.fixture.cjs` builds
+`auth/<role>-w<workerIndex>.json` when the file is absent or its `sid` has
+expired (`hasUsableSession`), but it cannot tell a session the server has since
+rejected. If failures are broad and uniform (every role lands on the login page),
+delete `tests/e2e/auth/*-w*.json` and re-run before debugging anything else, after
+checking the site itself is up (`traps.md`, `SessionStopped`).
 
-**3. `slowMo: 500` vs. a 30s default timeout.** `playwright.config.js` sets
-`launchOptions.slowMo = 500` and does **not** override `timeout`, so every action
-carries a half-second tax against a 30s per-test budget. A flow with ~20 actions
-is already at 10s before any network. This is why adding `waitForTimeout` padding
-to a page object can push a passing test over the edge — and why tests that pass
-solo fail under parallel load. Prefer real waits (`waitFor`, `toBeVisible`) over
-sleeps; they cost nothing when the app is fast.
+**3. `slowMo: 500` vs. a scaled timeout.** `playwright.config.js` sets
+`launchOptions.slowMo = 500` and multiplies the 30s test and 5s expect budgets by
+`TEST_TIMEOUT_FACTOR` (2 locally, 3 on CI). Every action still carries a
+half-second tax, so a flow with ~20 actions is at 10s before any network. Adding
+`waitForTimeout` padding to a page object can push a passing test over the edge,
+and tests that pass solo fail under parallel load. Prefer real waits (`waitFor`,
+`toBeVisible`); an explicit `waitFor({ timeout })` goes through `scaleTimeout()`
+(`utils/timeouts.js`) so it scales with the config. A long flow sets its own
+`test.setTimeout(...)` rather than raising the global one.
 
 **4. A green test is not proof.** Assertions here have historically passed for the
 wrong reason. `isTimeEntryBillable()` checked `svg.count() >= 3` on cells that
 contain zero svgs, so it always returned `false` — and four tests asserting
 `false` were green while testing nothing. When you touch a helper that returns a
 boolean, verify it returns `true` in the true case too.
+
+**5. Staging and CI are two different sites.** Tests are written and run against
+staging (`erp-stage.rt.gw`), but the gate is the **E2E Tests** workflow
+(`.github/workflows/e2e-tests.yml`), which builds a fresh site from the branch:
+the branch's own React frontend, a near-empty database seeded by `ci/seed.py`,
+HRMS v16.16.0, retries 2. The two differ in ways that turn a staging pass into a
+CI failure: holidays (CI's "E2E Holidays" list has no weekend offs), required
+fields (leave approver, Tech Stack), custom fields, backdate limits (100 working
+days on staging, 30 on CI) and sometimes the UI build itself. Write for the
+React UI the branch ships, and check `references/environments.md` before
+trusting a staging-only pass.
 
 ## Architecture
 
@@ -80,10 +96,11 @@ object, is a smell — it puts knowledge in a layer that can't be reused.
 |---|---|
 | `specs/<role>/<feature>.spec.js` | tests; role dirs map to config projects |
 | `pageObjects/*.js`, `pageObjects/resourceManagement/*.js` | page objects |
-| `helpers/*.js` | domain flows + all seeding logic |
+| `helpers/*.js` | domain flows + all seeding logic; week-based timesheet seeding is `weekTimeHelper.js` |
 | `utils/api/*.js` | API wrappers; `apiClient.js` holds shared auth + retry |
-| `utils/{dateUtils,fileUtils,stringUtils}.js` | shared utilities |
+| `utils/{dateUtils,fileUtils,stringUtils,timeouts}.js` | shared utilities (`weekLabel`, `dateInWeek`, `scaleTimeout`, `escapeRegExp`) |
 | `data/<role>/<feature>.js` | test data, keyed by TC ID |
+| `ci/seed.py` | the CI site's base data (users, employees, customers, holiday list, settings) |
 | `data/json-files/TC<n>.json` | **generated** per-run stubs — never hand-edit |
 | `globals/globalSetup.js` / `globalTeardown.js` | seed / clean |
 | `auth/<role>-{API,w<N>}.json` | **generated** sessions — safe to delete |
@@ -102,17 +119,18 @@ test runs against unseeded data.
 1. The title **must** match `/TC(\d+):/` — the colon is part of the pattern.
    `test("TC42: ...")` seeds; `test("TC42 ...")` does not.
 2. `globalSetup` writes `data/json-files/TC<n>.json`, then `populateJsonStubs`
-   merges in anything keyed `TC<n>` from the **four registered data modules**:
-
-   ```
-   data/employee/timesheet.js · data/manager/team.js
-   data/manager/task.js       · data/manager/project.js
-   ```
-
-   A new data file is invisible until you add it to the `dataSources` map in
-   `utils/fileUtils.js`. Keys from multiple modules deep-merge for the same TC.
-3. Seeding then runs, in order, per TC: employees → time-entry updates → projects
-   → tasks → allocations → time entries → hourly billing → leave → user groups.
+   merges in anything keyed `TC<n>` from the **registered data modules** (twelve
+   as of October 2026, one per feature: `data/employee/timesheet.js`,
+   `data/manager/team.js`, `.../teamTimesheet.js`, ...). Keys from multiple
+   modules deep-merge for the same TC. A new data file must be registered in
+   **two** places, or it is half-wired:
+   - the `dataSources` map in `utils/fileUtils.js` (seeding), and
+   - the spread in `readAndCleanAllOrphanData` in `helpers/timesheetHelper.js`
+     (the sweep that removes what an aborted run left behind).
+3. Seeding then runs, in order, per TC: employees → time-entry updates →
+   reviewees → projects → views → tasks → seeded-employee time → allocations →
+   time entries → billing (Sales Orders, rates) → week time
+   (`createWeekTimeForTestCases`) → leave → user groups.
 4. The spec reads its own stub:
 
    ```js
@@ -142,6 +160,56 @@ seeded records. Before "fixing" seed data for such a test, find which block
 actually seeds what it consumes. (TC78 cost a wasted cycle here: its edits landed
 on an `infoPayload*` block and changed nothing.)
 
+## Implementing new test cases
+
+New cases come from the coverage sheet ("Next-PMS 2.0 e2e automation coverage
+and gaps", tab **Gap Test Cases**), one group at a time (Timesheet TS-, Team
+Timesheet TM-, ToDo TD-, ...). The groups that landed cleanly in one pass
+(Timesheet TC208–TC228, Team Timesheet TC229–TC264) followed this order:
+
+1. **Crawl before planning.** Open the page in each role with `probe.mjs`
+   (GET only, `--block-writes`) and record the real labels, URL params, empty
+   states and server messages. Read the backend endpoint for the rules
+   (`next_pms/**/api/*.py`), and check whether a backend test already covers a
+   case.
+2. **Check coverage first.** Read the other groups' rows and the existing specs
+   for the same behaviour; add only what nothing covers.
+3. **Write a plan file** at the repo root (`plan_e2e-<group>.md`, gitignored):
+   each sheet ID → TC number (next free numbers, in sheet order), the spec it
+   lives in, what it asserts, what it seeds. Decide every expected value up
+   front from the crawl, not while debugging.
+4. **Pre-seed, then verify through the UI.** Everything a case needs exists
+   before the test starts (global setup). The test drives and asserts through
+   the UI; only a case that is about the API (a 403, a refusal) calls the API.
+   One fixture TC per group seeds a shared set of records the other cases read
+   (TC208 for the Personal tab, TC222 for the Project tab, TC232 for the Team
+   tab): add a block to it instead of seeding per case. See
+   `references/seeding.md`.
+5. **Throwaway records, found by a unique prefix.** Seeded employees are named
+   `Playwright- <Name><random>` (the teardown sweep deletes by that prefix) and
+   projects `TC<n> ...`. Tests find them by search, not by reporting line, so
+   roster tests (TC53 compares the manager's exact reports) stay unchanged.
+6. **Make writing cases retry-safe.** CI retries twice. A case that changes its
+   record first checks it is still in the seeded state and restores it if not
+   (`ensureWeek` → `reseedWeek` in the Team actions spec), and removes what it
+   adds in `finally`. Files whose tests share one account's records run
+   `test.describe.configure({ mode: "serial" })` (`fullyParallel` is on).
+7. **Wait for queued work by reloading.** Approvals, rejections and leave run as
+   background jobs, and the CI replay never receives the realtime socket event
+   that refreshes the grid. Poll with `expect.poll(async () => { reload; read })`
+   rather than waiting on the open page.
+8. **Never depend on today's weekday.** Use `dateInWeek(weeksAgo, "Mon")` and
+   `weekLabel(weeksAgo)`; act on past weeks 1–4 back, and give seeded employees
+   a holiday list you control. Four weeks back stays inside CI's 30-working-day
+   backdate limit only when weekends are days off (`references/seeding.md`).
+9. **Run it twice: staging, then CI.** A full staging run of the group with the
+   real setup and teardown, then the `.local-ci` replay (or the PR's CI). Quote
+   the numbers from one run. Confirm teardown left nothing (`Playwright-`
+   employees, `TC<n>` projects).
+10. **Close out.** Set the sheet rows to Automated with the TC number (a
+    `test.skip` case is Deferred and keeps its TC number), format with CI's
+    prettier, lint, and commit as `test(e2e): ...` (Conventional Commits).
+
 ## Running tests
 
 ```bash
@@ -161,6 +229,13 @@ specs share one employee and one week, so TC12/TC96 pass serially and race in
 parallel. Locally `workers` defaults to CPU count; CI uses 7 with `maxFailures: 5`,
 so a CI run can stop early and under-report.
 
+Before reporting a group done, also run it the way CI does. Some machines keep a
+local replay of the E2E workflow in `.local-ci/` (excluded from git; see its
+README): it builds the same fresh site in Docker, uses the working tree's tests
+and the last **commit**'s app code, and writes `results.json`, `test-results/`,
+`run.log` and the server's `worker-*.log` to `.local-ci/out/`. Start it from a
+fresh database each time (`docker compose down -v`).
+
 Parse outcomes with the bundled script rather than eyeballing scrollback:
 
 ```bash
@@ -170,7 +245,7 @@ python3 .claude/skills/next-pms-e2e/scripts/results.py --errors   # + failure de
 
 ## Probe the live app before changing a selector
 
-This is the highest-leverage habit in this suite, because a full run costs ~5–7
+This is the highest-leverage habit in this suite, because a full run costs ~10
 minutes of seeding to tell you one selector was wrong, and the redesign changed
 DOM structure — not just names, so guessing is usually wrong.
 
@@ -185,7 +260,7 @@ The snippet gets a logged-in `page` plus dump helpers. Write the snippet to the
 scratchpad, not the repo. See `scripts/probe.mjs` for the helper list and
 `references/probing.md` for worked examples.
 
-Two rules when probing, because this is production-shaped staging data:
+Rules when probing, because this is production-shaped staging data:
 
 - Pass `--block-writes` unless you intend to create records. It aborts every
   POST/PUT/DELETE so you can click a submit button and observe validation without
@@ -193,6 +268,16 @@ Two rules when probing, because this is production-shaped staging data:
 - If you do create something, delete it and verify it's gone —
   `scripts/cleanup.mjs` handles the Frappe CSRF handshake that plain
   `DELETE /api/resource/...` fails on.
+- **Never probe while a run is live**, yours or anyone's. The probe picks the
+  newest cached state for the role, which can be a running worker's, and loading
+  the app on an API session mints a CSRF token that breaks that run's writes.
+  Check right before every probe batch, not once:
+  `ps -axo pid,command | grep "playwright test --config" | grep -v -E "grep|/bin/zsh -c|test-server"`.
+- To check a seeding helper without the full global setup, run a scratch
+  Playwright config (`globalSetup`/`globalTeardown` unset, `testDir` in the
+  scratchpad) whose one test imports the helper by absolute path (import
+  `@playwright/test` from the repo's `node_modules` too) and calls it on a tiny
+  stub, then cleans up what it made.
 
 ## Diagnosing a failure
 
@@ -207,7 +292,12 @@ error text is usually the *least* useful signal.
 4. **`test-results/<slug>/trace.zip`** — the full action list. `unzip -o` it and
    read `*.trace` for the ordered actions and `*.network` for requests. This is
    how you tell "the click never happened" from "the click happened and the API
-   was never called".
+   was never called". Each `*.network` line is JSON; its
+   `snapshot.response.content._sha1` (and `snapshot.request.postData._sha1`)
+   names a file under `resources/` holding the body. Reading the API response
+   the page rendered from (the member's `status`, `holidays`,
+   `backdate_restricted_before`, a 500's traceback) usually settles "test, data
+   or app?" in one step.
 
 Read the failure mode, not just the message:
 
@@ -218,6 +308,12 @@ Read the failure mode, not just the message:
 | `waitForResponse` never resolves | the request errored, or never fired; a `status() === 200` predicate ignores the 4xx/5xx that actually arrived |
 | Element "not enabled" retried for 30s | the field is computed/disabled now — check before filling |
 | 403 on an API call | often real app/env breakage, not test rot — verify the role's permissions before editing the test |
+| Passes on staging, fails on CI only | a site difference, not flakiness — `references/environments.md` |
+| "Partially approved" where a whole week was approved | the employee has no weekend days off, so the week counts 7 working days (`references/seeding.md`) |
+| A click inside an older Team-tab week hangs to the test timeout | that week is collapsed (only the first four open) — open it with a Date range filter |
+| Setup dies with `Duplicate entry 'TC<n> Project'` after `ECONNRESET` | a network reset on a POST the server had already applied; the retry duplicated it. Rerun |
+| Setup dies with `CSRFTokenError` | a probe ran during a run, or an aborted run left seed data (`traps.md`) |
+| App shows "Something went wrong — 'NoneType' object is not iterable" | intermittent Frappe v16 `redis_cache` race in `get_data`; backend, not the test (`environments.md`) |
 
 ## Conventions when writing or editing
 
@@ -242,8 +338,27 @@ reads as arbitrary six months later, and the redesign will happen again.
 **Data.** Add the TC block to the appropriate registered module. Convert relative
 dates via `utils/dateUtils.js` rather than hardcoding.
 
-**Formatting.** Run prettier only on files you changed. It reformats whole files
-and has twice buried a two-line fix in ~300 lines of noise.
+**Shared page objects.** Pages that share a layout share a base class: the three
+Timesheet tabs extend `pageObjects/timesheetTabPage.js` (weeks, cells, filters,
+calendar, toasts, the Add time and Add time-off dialogs). Put a helper in the
+base when a second tab needs it, rather than copying it into the tab's page
+object.
+
+**Comments.** Short: one line, a few per file at most, saying why, not what.
+The reasoning belongs in the commit message.
+
+**Formatting and lint.** The **Linters** workflow runs prettier and ESLint on
+the files a PR changes, and `git commit` here runs no pre-commit hook, so run
+them yourself on exactly the files you changed (prettier reformats whole files
+and has twice buried a two-line fix in ~300 lines of noise):
+
+```bash
+npx --yes prettier@4.0.0-alpha.8 --write <changed files>
+npx eslint --config eslint.config.js <changed files>
+```
+
+Under zsh, pass a list through an array (`F=(a.js b.js); npx eslint "${F[@]}"`):
+an unquoted `$F` is one argument and the tool reports "no files matching".
 
 ## Verify before you report
 
@@ -268,8 +383,16 @@ Read these when the task touches them; they're too long and too volatile for the
 main body.
 
 - **`references/selectors.md`** — the post-redesign DOM contract: what replaced
-  HTML tables, the query-builder filter, toasts, unnamed dialogs, and the
-  allocation grid/dialog/calendar. Read before touching any selector.
+  HTML tables, the query-builder filter, toasts, unnamed dialogs, the
+  allocation grid/dialog/calendar and the Timesheet tabs (weeks, member rows,
+  approval drawer). Read before touching any selector.
+- **`references/seeding.md`** — fixture TCs, the week seeder's keys
+  (`payloadCreateWeekEmployees`, `payloadWeekStatus`, ...), holiday lists and
+  assignments, leaves, retry-safe writing cases, billing and task seeding rules,
+  and what teardown must remove. Read before adding seed data.
+- **`references/environments.md`** — staging vs CI vs the `.local-ci` replay:
+  every difference that has turned a pass into a failure, and the backend
+  defects that look like test failures.
 - **`references/traps.md`** — numbered symptom → cause → fix list for the
   non-obvious failures, each one discovered the hard way.
 - **`references/probing.md`** — worked probe snippets and the cleanup recipe.
