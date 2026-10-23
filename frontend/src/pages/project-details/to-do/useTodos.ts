@@ -10,13 +10,11 @@ import {
   type MaybeRefOrGetter,
 } from "vue";
 import { dialog, toast, useCall, useList } from "frappe-ui";
-import {
-  useDoctypeListUpdates,
-  type ListUpdate,
-} from "@/composables/useDoctypeListUpdates";
+import { useDoctypeListUpdates } from "@/composables/useDoctypeListUpdates";
+import { createOwnWrites } from "@/pages/project-details/ownWrites";
 import { useSession } from "@/session";
 import { errorMessage } from "@/utils/errors";
-import { OWN_WRITE_ECHO_MS, TODO_API, TODO_LIMIT } from "./constants";
+import { TODO_API, TODO_LIMIT } from "./constants";
 import {
   assigneeIds,
   deleteTodoMessage,
@@ -136,41 +134,11 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
     return (linkable.data ?? []).some((option) => isSameRecord(option, record));
   }
 
-  // A local write already refetches (useList's `refetch`), so its realtime echo is
-  // skipped: any event during the write, and this user's first event for that ToDo
-  // after it. The event names no project, so any other ToDo change refetches.
-  let writesInFlight = 0;
-  let missedUpdate = false;
-  const ownWrites = new Map<string, number>();
-
-  async function localWrite<T>(
-    write: () => Promise<T>,
-    nameOf: (result: T) => string | undefined,
-  ): Promise<T> {
-    writesInFlight++;
-    try {
-      const result = await write();
-      const name = nameOf(result);
-      if (name) ownWrites.set(name, Date.now() + OWN_WRITE_ECHO_MS);
-      return result;
-    } catch (error) {
-      if (missedUpdate) refresh();
-      throw error;
-    } finally {
-      if (--writesInFlight === 0) missedUpdate = false;
-    }
-  }
-
-  function isOwnEcho({ name, user }: ListUpdate) {
-    if (writesInFlight) {
-      missedUpdate = true;
-      return true;
-    }
-    if (!name || user !== session.userId) return false;
-    const until = ownWrites.get(name);
-    ownWrites.delete(name);
-    return until !== undefined && Date.now() <= until;
-  }
+  // The event names no project, so any other ToDo change refetches.
+  const { localWrite, isOwnEcho } = createOwnWrites({
+    userId: () => session.userId,
+    onMissedUpdate: refresh,
+  });
 
   useDoctypeListUpdates("ToDo", (update) => {
     if (!isOwnEcho(update)) refresh();

@@ -10,9 +10,6 @@ export const TODO_API = "/api/v2/method/next_pms.next_projects.api.todo";
 /** React reads at most this many ToDos, with no paging. */
 export const TODO_LIMIT = 500;
 
-/** How long after a local write its own realtime echo is still skipped. */
-export const OWN_WRITE_ECHO_MS = 10_000;
-
 /** The stock ToDo statuses, used when the boot data has no status options. */
 export const DEFAULT_TODO_STATUSES: TodoStatus[] = [
   "Open",
