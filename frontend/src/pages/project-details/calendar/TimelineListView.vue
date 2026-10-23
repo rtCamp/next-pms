@@ -9,7 +9,15 @@ import TimelineTable from "./TimelineTable.vue";
 import { useTimeline } from "./useTimeline";
 
 const timeline = useTimeline();
-const { tab, search, listRows, listLoading, listError, listHasMore } = timeline;
+const {
+  tab,
+  search,
+  listRows,
+  listLoading,
+  listError,
+  listReloadFailed,
+  listHasMore,
+} = timeline;
 
 const columns = computed(() =>
   tab.value === "milestones" ? MILESTONE_COLUMNS : TOUCHPOINT_COLUMNS,
@@ -50,7 +58,11 @@ useInfiniteScroll({
       </div>
       <LoadError
         v-else-if="listError"
-        :title="`Couldn't load more ${tab}`"
+        :title="
+          listReloadFailed
+            ? `Couldn't refresh the ${tab}`
+            : `Couldn't load more ${tab}`
+        "
         :error="listError"
         @retry="timeline.retryList()"
       />

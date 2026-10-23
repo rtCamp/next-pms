@@ -396,8 +396,10 @@ function createTimeline() {
     listRows,
     listHasMore,
     listLoading: computed(() => listCall.loading),
-    /** A failed page; a failed reload of loaded rows shows a toast instead. */
-    listError: computed(() => (isListReload() ? null : listCall.error)),
+    /** A failed page, or a failed reload of the loaded rows (also shown as a toast). */
+    listError: computed(() => listCall.error),
+    /** Whether `listError` is a failed reload of the loaded rows, not a new page. */
+    listReloadFailed: computed(() => Boolean(listCall.error) && isListReload()),
     retryList: () => listCall.reload(),
     loadMoreList,
     isFollowing: (item: TimelineItem) => isFollowing(item, session.userId),
