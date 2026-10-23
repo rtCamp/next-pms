@@ -3,8 +3,14 @@
  */
 import { Accordion } from "@base-ui/react/accordion";
 import { mergeClassNames as cn } from "@next-pms/design-system";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { AlertTriangle, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 import { format, parseISO } from "date-fns";
+
+/**
+ * Internal dependencies.
+ */
+import { ALLOCATION_DIALOG_HELP } from "@/pages/allocations/help";
 
 export interface OverAllocatedDay {
   date: string;
@@ -38,7 +44,9 @@ export function OverAllocationWarning({
   return (
     <Accordion.Root className="bg-(--color-violet-50) dark:bg-(--color-violet-900)/20 rounded-lg overflow-hidden">
       <Accordion.Item value="details">
-        <Accordion.Header render={<div />}>
+        <Accordion.Header
+          render={<div className="flex items-center gap-1.5 pr-2.5" />}
+        >
           <Accordion.Trigger className="w-full flex items-center gap-2 px-2.5 py-2 group">
             <AlertTriangle className="size-4 shrink-0 text-ink-violet-4 bg-surface-v" />
             <p className="flex-1 min-w-0 text-xs text-ink-gray-8 text-left">
@@ -48,6 +56,7 @@ export function OverAllocationWarning({
             </p>
             <SmallDown className="size-4 shrink-0 text-ink-gray-7 transition-transform duration-200 group-data-panel-open:rotate-180" />
           </Accordion.Trigger>
+          <InfoHoverCard help={ALLOCATION_DIALOG_HELP.overAllocation} />
         </Accordion.Header>
         <Accordion.Panel className="accordion-panel">
           <div className="flex flex-col gap-1.5 px-2.5 pb-2 pl-8 max-h-24 overflow-y-scroll scrollbar-thin scrollbar-gutter-stable">

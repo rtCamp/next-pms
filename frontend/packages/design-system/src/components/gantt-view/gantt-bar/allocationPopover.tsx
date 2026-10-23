@@ -20,7 +20,9 @@ import { format } from "date-fns";
  * Internal dependencies.
  */
 import { mergeClassNames as cn } from "../../../utils";
+import InfoHoverCard from "../../info-hover-card";
 import { GanttOpenLink } from "../ganttOpenLink";
+import { useGanttStore } from "../ganttStore";
 import type { DeleteAllocationMode, GanttGridVariant } from "../types";
 import { getEmployeeHref, getProjectHref } from "../utils";
 
@@ -62,6 +64,7 @@ function AllocationItem({
   canManageAiAllocations,
   variant,
 }: AllocationItemProps) {
+  const hoursTooltip = useGanttStore((s) => s.hoursTooltip);
   const StatusIcon = entry.status === "confirmed" ? Check : Tentative;
   const canManageEntry = entry.isAiCreated
     ? canManageAiAllocations
@@ -121,6 +124,7 @@ function AllocationItem({
           <span className="text-sm text-ink-gray-6">
             {entry.hoursPerDay} ({entry.totalHours})
           </span>
+          <InfoHoverCard tooltip={hoursTooltip} />
         </div>
 
         <div className="flex gap-2 items-center">

@@ -11,6 +11,7 @@ import { Folder, RightChevron } from "@rtcamp/frappe-ui-react/icons";
  */
 import { CELL_HEIGHT } from "./constants";
 import GanttProjectHoverCard from "./ganttProjectHoverCard";
+import { useGanttStore } from "./ganttStore";
 import type { Project } from "./types";
 import { mergeClassNames as cn } from "../../utils";
 
@@ -45,6 +46,7 @@ export function GanttProjectItem({
   style,
   contentHeight = CELL_HEIGHT,
 }: GanttProjectItemProps) {
+  const remainingHoursTooltip = useGanttStore((s) => s.remainingHoursTooltip);
   const triggerId = useId();
   const subtext = [dateRange, client].filter(Boolean).join(" · ");
 
@@ -168,6 +170,7 @@ export function GanttProjectItem({
                   remainingHours,
                 }}
                 canOpenProject={hasRoleAccess}
+                remainingHoursTooltip={remainingHoursTooltip}
               />
             </Popover.Popup>
           </Popover.Positioner>

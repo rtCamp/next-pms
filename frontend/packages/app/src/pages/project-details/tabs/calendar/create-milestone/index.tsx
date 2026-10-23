@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { getTodayDate } from "@next-pms/design-system/date";
 import {
   Avatar,
@@ -29,6 +30,7 @@ import {
  */
 import { useUserLookup } from "@/hooks/useUserLookup";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { CALENDAR_HELP } from "../help";
 import type { TimelineItemCategory } from "../types";
 import { createMilestoneSchema } from "./schema";
 import type { CreateMilestoneModalProps } from "./types";
@@ -339,13 +341,16 @@ export function CreateMilestoneModal({
         <form.Field
           name="isInternal"
           children={(field) => (
-            <label className="inline-flex items-center gap-2 text-base text-ink-gray-7">
-              <Checkbox
-                value={field.state.value}
-                onChange={(checked) => field.handleChange(Boolean(checked))}
-              />
-              Mark as internal
-            </label>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <label className="inline-flex items-center gap-2 text-base text-ink-gray-7">
+                <Checkbox
+                  value={field.state.value}
+                  onChange={(checked) => field.handleChange(Boolean(checked))}
+                />
+                Mark as internal
+              </label>
+              <InfoHoverCard help={CALENDAR_HELP.internal} />
+            </div>
           )}
         />
       </div>

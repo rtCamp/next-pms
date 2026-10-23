@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { mergeClassNames as cn } from "@next-pms/design-system";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
@@ -39,7 +40,14 @@ export function TimelineTable({
                 key={column.key}
                 className={cn("px-2 py-1.5 text-sm", column.width)}
               >
-                {column.label}
+                {column.help ? (
+                  <div className="flex items-center gap-1.5">
+                    {column.label}
+                    <InfoHoverCard help={column.help} />
+                  </div>
+                ) : (
+                  column.label
+                )}
               </th>
             ))}
           </tr>

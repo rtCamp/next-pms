@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { Checkbox, FormLabel, TextInput } from "@rtcamp/frappe-ui-react";
 
 /**
@@ -11,6 +12,7 @@ import {
   SettingsLinkField,
   SettingsMultiSelectField,
 } from "../fields";
+import { SETTINGS_HELP } from "../help";
 import type { SystemTimesheetsPageProps } from "../types";
 
 export function SystemTimesheetsPage({
@@ -36,13 +38,16 @@ export function SystemTimesheetsPage({
           Time Entry Rules
         </h3>
         <div className="mt-5 max-w-sm flex flex-col gap-5">
-          <Checkbox
-            label="Allow Backdated Entries"
-            value={backdated}
-            onChange={(value) =>
-              updateField("allow_backdated_entries", value ? 1 : 0)
-            }
-          />
+          <div className="flex min-w-0 items-center gap-1.5">
+            <Checkbox
+              label="Allow Backdated Entries"
+              value={backdated}
+              onChange={(value) =>
+                updateField("allow_backdated_entries", value ? 1 : 0)
+              }
+            />
+            <InfoHoverCard help={SETTINGS_HELP.backdatedEntries} />
+          </div>
           {backdated && (
             <>
               <div>
@@ -220,6 +225,7 @@ export function SystemTimesheetsPage({
             <SettingsMultiSelectField
               label="Allowed Departments"
               doctype="Department"
+              help={SETTINGS_HELP.allowedDepartments}
               value={(form.allowed_departments ?? [])
                 .map((row) => row.department)
                 .filter((value): value is string => Boolean(value))}

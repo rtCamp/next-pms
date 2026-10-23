@@ -41,6 +41,7 @@ import logo from "@/logo.svg";
 import { useNotifications } from "@/providers/notifications";
 import { useTheme } from "@/providers/theme/hook";
 import { useUser } from "@/providers/user";
+import { NOTIFICATION_ITEM_TOOLTIP, NOTIFICATIONS_HELP } from "./help";
 
 const Sidebar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -373,6 +374,8 @@ const Sidebar = () => {
           }}
           open={isNotificationsOpen}
           notifications={notifications}
+          help={NOTIFICATIONS_HELP}
+          itemTooltip={NOTIFICATION_ITEM_TOOLTIP}
           offsetClassName={isSidebarCollapsed ? "left-12" : "left-60"}
           onMarkAllRead={markAllAsViewed}
           onNotificationClick={async (notification) => {

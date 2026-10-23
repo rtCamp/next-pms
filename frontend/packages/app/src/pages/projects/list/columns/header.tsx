@@ -3,7 +3,10 @@
  */
 import { useSortable } from "@dnd-kit/react/sortable";
 import { mergeClassNames as cn } from "@next-pms/design-system";
-import type { SortState } from "@next-pms/design-system/components";
+import {
+  InfoHoverCard,
+  type SortState,
+} from "@next-pms/design-system/components";
 import { Dropdown, Tooltip } from "@rtcamp/frappe-ui-react";
 import {
   ArrowDown,
@@ -18,6 +21,7 @@ import {
  */
 import { MAX_PINNED_COLUMNS } from "./constants";
 import { getSortableInput } from "./utils";
+import { CURRENCY_SORT_TOOLTIP } from "../../help";
 import type { ProjectListColumn } from "../../types";
 
 type ColumnHeaderProps = {
@@ -93,12 +97,11 @@ export function ColumnHeader({
       )}
     >
       {isSortDisabled ? (
-        <Tooltip text="Select a currency to enable this sort">
-          {headerControl}
-        </Tooltip>
+        <Tooltip text={CURRENCY_SORT_TOOLTIP}>{headerControl}</Tooltip>
       ) : (
         headerControl
       )}
+      {column.help && <InfoHoverCard help={column.help} />}
       <Dropdown
         side="bottom"
         renderMenuItem={(menuProps) =>

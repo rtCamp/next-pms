@@ -4,7 +4,10 @@
 import { useMatch, useParams } from "react-router";
 import { Accordion } from "@base-ui/react/accordion";
 import { mergeClassNames } from "@next-pms/design-system";
-import { BudgetBurnBar } from "@next-pms/design-system/components";
+import {
+  BudgetBurnBar,
+  InfoHoverCard,
+} from "@next-pms/design-system/components";
 import { Button, Tooltip } from "@rtcamp/frappe-ui-react";
 import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 
@@ -13,6 +16,7 @@ import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
  */
 import { ROUTES } from "@/lib/constant";
 import { currencyFormat } from "@/lib/utils";
+import { PROJECT_HEALTH_TOOLTIP } from "@/pages/projects/help";
 import { Dot } from "@/pages/projects/list/cells/dot";
 import { ProgressHoursSection } from "./progressHoursSection";
 import { Section } from "./section";
@@ -22,6 +26,7 @@ import { MemberSection } from "./sections/member";
 import { useSidebar } from "./sidebarContext";
 import { SidebarProvider } from "./sidebarProvider";
 import { useProjectDetail } from "../context";
+import { PROJECT_ABOUT_HELP } from "../help";
 
 export function AboutThisProject(props: { className: string }) {
   const editorMatch = useMatch(`${ROUTES.project}/:projectId/notes/*`);
@@ -112,7 +117,11 @@ function AboutThisProjectContent({ className }: { className: string }) {
                   {sidebar.details.project_name}
                 </span>
               </Tooltip>
-              {risk && <Dot risk={risk} />}
+              {risk && (
+                <Tooltip text={PROJECT_HEALTH_TOOLTIP[risk]}>
+                  <Dot risk={risk} />
+                </Tooltip>
+              )}
             </div>
 
             <span>Customer</span>
@@ -145,7 +154,11 @@ function AboutThisProjectContent({ className }: { className: string }) {
 
         <LinkSection />
 
-        <Section value="budget" title="Budget burn">
+        <Section
+          value="budget"
+          title="Budget burn"
+          suffix={<InfoHoverCard help={PROJECT_ABOUT_HELP.budget} />}
+        >
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
               <Tooltip text={costAccrued} showWhen="truncated">

@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import {
   Button,
   DatePicker,
@@ -19,6 +20,7 @@ import { format, parseISO } from "date-fns";
  * Internal dependencies.
  */
 import { useCalendar } from "./context";
+import { CALENDAR_HELP } from "./help";
 import type { CalendarView } from "./types";
 
 const filterOptions = [
@@ -121,14 +123,17 @@ export function CalendarToolbar() {
           />
 
           {!isListView && (
-            <Select
-              className="w-min"
-              value={filterValue}
-              options={filterOptions}
-              onChange={(e) => setFilterType(e.target.value ?? "all")}
-              size="sm"
-              variant="subtle"
-            />
+            <>
+              <Select
+                className="w-min"
+                value={filterValue}
+                options={filterOptions}
+                onChange={(e) => setFilterType(e.target.value ?? "all")}
+                size="sm"
+                variant="subtle"
+              />
+              <InfoHoverCard help={CALENDAR_HELP.entries} />
+            </>
           )}
         </div>
       </div>

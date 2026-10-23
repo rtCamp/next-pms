@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useEffect, useMemo, useState } from "react";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import {
   Button,
   Filter,
@@ -30,6 +31,7 @@ import {
   durationOptions,
   navigationButtonAriaLabels,
 } from "../constants";
+import { ALLOCATION_TYPE_HELP } from "../help";
 import {
   teamAllocationFilters,
   teamAllocationStatusOptionValues,
@@ -222,33 +224,36 @@ export function SubHeader() {
           }
         />
         {showFilters ? (
-          <div className="w-fit max-w-42">
-            <MultiSelect
-              options={allocationTypeOptions}
-              value={allocationsType}
-              placeholder="Allocation type"
-              triggerClassName="text-ink-gray-7"
-              onChange={(value) => guard(() => setAllocationsType(value))}
-              open={isAllocationTypeOpen}
-              onOpenChange={(open) =>
-                guard(() => setIsAllocationTypeOpen(open))
-              }
-              hideSearch={true}
-              popupClassName="w-48"
-              renderFooter={({ clearAll }) => (
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    variant="subtle"
-                    label="Clear"
-                    className="justify-start"
-                    onClick={() => {
-                      clearAll();
-                      setIsAllocationTypeOpen(false);
-                    }}
-                  />
-                </div>
-              )}
-            />
+          <div className="flex items-center gap-1.5">
+            <div className="w-fit max-w-42">
+              <MultiSelect
+                options={allocationTypeOptions}
+                value={allocationsType}
+                placeholder="Allocation type"
+                triggerClassName="text-ink-gray-7"
+                onChange={(value) => guard(() => setAllocationsType(value))}
+                open={isAllocationTypeOpen}
+                onOpenChange={(open) =>
+                  guard(() => setIsAllocationTypeOpen(open))
+                }
+                hideSearch={true}
+                popupClassName="w-48"
+                renderFooter={({ clearAll }) => (
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="subtle"
+                      label="Clear"
+                      className="justify-start"
+                      onClick={() => {
+                        clearAll();
+                        setIsAllocationTypeOpen(false);
+                      }}
+                    />
+                  </div>
+                )}
+              />
+            </div>
+            <InfoHoverCard help={ALLOCATION_TYPE_HELP.team} />
           </div>
         ) : null}
       </div>

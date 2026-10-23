@@ -16,15 +16,19 @@ import { GanttOpenLink } from "./ganttOpenLink";
 import type { Project } from "./types";
 import { formatHours, getProjectHref } from "./utils";
 import { mergeClassNames as cn } from "../../utils";
+import InfoHoverCard from "../info-hover-card";
 
 interface GanttProjectHoverCardProps {
   project: Project;
   canOpenProject?: boolean;
+  /** Tooltip on the remaining hours line. */
+  remainingHoursTooltip: string;
 }
 
 function GanttProjectHoverCard({
   project,
   canOpenProject = false,
+  remainingHoursTooltip,
 }: GanttProjectHoverCardProps) {
   const dateRange = project.projectDateRange ?? project.dateRange;
   const remainingHoursLabel =
@@ -83,6 +87,7 @@ function GanttProjectHoverCard({
               <span className="text-sm text-ink-gray-6 truncate">
                 {remainingHoursLabel}
               </span>
+              <InfoHoverCard tooltip={remainingHoursTooltip} />
             </div>
           )}
           {project.projectManager && (

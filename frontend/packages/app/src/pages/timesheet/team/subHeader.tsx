@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useEffect, useState } from "react";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { Filter, TextInput } from "@rtcamp/frappe-ui-react";
 
 /**
@@ -12,6 +13,7 @@ import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import ReportsToFilter from "@/components/filters/reportsToFilter";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTeamTimesheet } from "./context";
+import { TEAM_TIMESHEET_HELP } from "./help";
 import { teamTimesheetFilters } from "../constants";
 
 export function SubHeader() {
@@ -68,7 +70,10 @@ export function SubHeader() {
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
-        <ReportsToFilter value={reportsTo} onChange={handleReportsToChange} />
+        <div className="flex items-center gap-1.5">
+          <ReportsToFilter value={reportsTo} onChange={handleReportsToChange} />
+          <InfoHoverCard help={TEAM_TIMESHEET_HELP.reportsTo} />
+        </div>
         <ApprovalStatusFilter
           value={approvalStatus}
           onChange={handleApprovalStatusChange}
