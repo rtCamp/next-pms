@@ -12,6 +12,7 @@ import {
   TOUCHPOINT_COLUMNS,
 } from "./constants";
 import MonthGrid from "./MonthGrid.vue";
+import TimelineGantt from "./TimelineGantt.vue";
 import TimelineItemDialog from "./TimelineItemDialog.vue";
 import TimelineListView from "./TimelineListView.vue";
 import TimelineTable from "./TimelineTable.vue";
@@ -42,6 +43,7 @@ const columns = computed(() =>
     </div>
     <div v-if="view !== 'list'" class="-mx-5 border-b border-outline-gray-1">
       <MonthGrid v-if="view === 'calendar'" />
+      <TimelineGantt v-else />
     </div>
     <div class="mt-4">
       <div class="mb-3 flex items-center justify-between px-1">
