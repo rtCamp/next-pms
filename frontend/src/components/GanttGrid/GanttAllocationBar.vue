@@ -49,7 +49,10 @@ const modified = computed(
       preview.value.width !== placed.value.width),
 );
 // New data or a new layout replaces the preview, as a saved edit does.
-watch(placed, () => (preview.value = null));
+watch(
+  [() => placed.value.left, () => placed.value.width],
+  () => (preview.value = null),
+);
 
 const canResize = computed(
   () =>

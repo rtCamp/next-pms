@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
+import { nextTick, shallowRef } from "vue";
 import {
   expect,
   fireEvent,
@@ -530,6 +531,52 @@ export const EscapeCancelsAResizeInProgress: Story = {
     await expect(
       canvas.queryByRole("button", { name: "Save" }),
     ).not.toBeInTheDocument();
+  },
+};
+
+/** Rows the play function swaps, the way a page load or a refresh rebuilds them. */
+const reloadedEmployees = shallowRef(EMPLOYEES);
+
+const reloadableRows = {
+  render: (args) => ({
+    components: { GanttGrid },
+    setup: () => ({ args, reloadedEmployees }),
+    template: `
+      <div class="h-[560px] w-full">
+        <GanttGrid v-bind="args" :employees="reloadedEmployees" />
+      </div>
+    `,
+  }),
+} satisfies Story;
+
+export const ReloadedRowsKeepAResize: Story = {
+  ...reloadableRows,
+  play: async ({ canvasElement }) => {
+    reloadedEmployees.value = EMPLOYEES;
+    const canvas = within(canvasElement);
+    await dragEdge(canvasElement, await ashaAtlas(canvasElement), "end", 2);
+    reloadedEmployees.value = structuredClone(EMPLOYEES);
+    await nextTick();
+    await expect(canvas.getByText("4h/day for 14 days")).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "Save" })).toBeVisible();
+  },
+};
+
+export const ReloadedRowsWithNewDatesReplaceAResize: Story = {
+  ...reloadableRows,
+  play: async ({ canvasElement }) => {
+    reloadedEmployees.value = EMPLOYEES;
+    const canvas = within(canvasElement);
+    await dragEdge(canvasElement, await ashaAtlas(canvasElement), "end", 2);
+    const saved = structuredClone(EMPLOYEES);
+    saved[0].projects![0].allocations![0].endDate = new Date(2026, 10, 1);
+    reloadedEmployees.value = saved;
+    await waitFor(() =>
+      expect(
+        canvas.queryByRole("button", { name: "Save" }),
+      ).not.toBeInTheDocument(),
+    );
+    await expect(canvas.getByText("4h/day for 14 days")).toBeVisible();
   },
 };
 
