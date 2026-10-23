@@ -18,11 +18,13 @@ function open() {
   <Button
     variant="ghost"
     size="sm"
-    class="min-w-0 max-w-64 text-sm text-ink-gray-5 hover:text-ink-gray-7"
+    class="group min-w-0 max-w-64"
     :aria-label="`Open ${record.type.toLowerCase()} ${record.title}`"
     @click="open"
   >
-    <span class="flex min-w-0 items-center gap-1.5">
+    <span
+      class="flex min-w-0 items-center gap-1.5 text-sm text-ink-gray-5 group-hover:text-ink-gray-7"
+    >
       <span
         class="size-3.5 shrink-0"
         :class="LINKED_RECORD_ICON[record.type]"
