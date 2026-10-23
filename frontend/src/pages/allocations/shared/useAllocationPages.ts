@@ -51,7 +51,7 @@ export function useManagerNames() {
  * names a page's rows and `targetIds` the targets' ones; no target ids means every
  * loaded page. Someone else's write (a `Resource Allocation` `list_update`) refreshes
  * every loaded page, debounced; it's skipped while one of the page's own writes runs,
- * and held while a resize or draft is unsaved.
+ * and held while a resize or draft is unsaved or its save is still running.
  */
 export function useAllocationPages<
   TPayload extends { has_more: boolean },
@@ -71,7 +71,8 @@ export function useAllocationPages<
     url: options.url,
     immediate: false,
   });
-  // Refreshes go through their own call, so they don't abort a page load.
+  // Refreshes go through their own call, so they don't abort a page load. The call
+  // aborts its request in flight when submitted again, so refreshes run one at a time.
   const refreshCall = useCall<TPayload, AllocationsParams>({
     url: options.url,
     immediate: false,
@@ -83,6 +84,11 @@ export function useAllocationPages<
   // Set after a failed request so a still-visible sentinel can't retry it in a loop.
   const failed = shallowRef(false);
   let latestRequest = 0;
+  /** Counts new queries; a refresh sent before the latest one is dropped. */
+  let queryCount = 0;
+  /** Starts of the loaded pages waiting for a refresh. */
+  const queuedStarts = new Set<number>();
+  let refreshing: Promise<void> | null = null;
 
   function request(start: number) {
     return { ...options.params(), start, page_length: ALLOCATIONS_PAGE_SIZE };
@@ -91,6 +97,10 @@ export function useAllocationPages<
   async function fetchPage(start: number, kind: "query" | "next") {
     const requestId = ++latestRequest;
     const key = queryKey.value;
+    if (kind === "query") {
+      queryCount += 1;
+      queuedStarts.clear();
+    }
     pending.value = kind;
     let payload: TPayload | null;
     try {
@@ -130,25 +140,41 @@ export function useAllocationPages<
     fetchPage(last.start + ALLOCATIONS_PAGE_SIZE, "next");
   }
 
-  /**
-   * Loads the given loaded pages again in place, keeping the rows and the scroll; a new
-   * query replacing the pages meanwhile wins.
-   */
-  async function reloadPages(starts: number[]) {
-    const requestId = latestRequest;
-    for (const start of starts) {
-      let payload: TPayload | null;
-      try {
-        payload = await refreshCall.submit(request(start));
-      } catch (error) {
-        toast.error(errorMessage(error));
-        return;
+  async function drainRefreshes() {
+    try {
+      while (queuedStarts.size) {
+        const start = Math.min(...queuedStarts);
+        queuedStarts.delete(start);
+        const query = queryCount;
+        let payload: TPayload | null;
+        try {
+          payload = await refreshCall.submit(request(start));
+        } catch (error) {
+          if (query !== queryCount) continue;
+          queuedStarts.clear();
+          toast.error(errorMessage(error));
+          return;
+        }
+        if (!payload || query !== queryCount) continue;
+        failed.value = false;
+        pages.value = pages.value.map((page) =>
+          page.start === start ? { start, payload } : page,
+        );
       }
-      if (!payload || requestId !== latestRequest) return;
-      pages.value = pages.value.map((page) =>
-        page.start === start ? { start, payload } : page,
-      );
+    } finally {
+      refreshing = null;
     }
+  }
+
+  /**
+   * Loads the given loaded pages again in place, keeping the rows and the scroll. Pages
+   * asked for while a refresh runs join it; a new query replacing the pages meanwhile
+   * wins. Resolves once every queued page has loaded.
+   */
+  function reloadPages(starts: number[]) {
+    for (const start of starts) queuedStarts.add(start);
+    if (!refreshing && queuedStarts.size) refreshing = drainRefreshes();
+    return refreshing ?? Promise.resolve();
   }
 
   function refresh(targets?: AllocationRefreshTargets) {
@@ -187,11 +213,14 @@ export function useAllocationPages<
   onScopeDispose(() => clearTimeout(realtimeTimer));
 
   watch(
-    () => unsaved.hasUnsavedChanges(),
-    (dirty) => {
-      if (dirty || !realtimeHeld.value) return;
+    () =>
+      realtimeHeld.value &&
+      !unsaved.hasUnsavedChanges() &&
+      dialogs.writes.inFlight === 0,
+    (release) => {
+      if (!release) return;
       realtimeHeld.value = false;
-      if (dialogs.writes.inFlight === 0) refresh();
+      refresh();
     },
   );
 
