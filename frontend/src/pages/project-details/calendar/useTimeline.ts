@@ -212,6 +212,7 @@ function createTimeline() {
     userId: () => session.userId,
     onMissedUpdate: refetch,
   });
+  todos.trackRecordWrites(TIMELINE_ITEM_DOCTYPE, localWrite);
 
   useDoctypeListUpdates(TIMELINE_ITEM_DOCTYPE, (update) => {
     if (isOwnEcho(update)) return;

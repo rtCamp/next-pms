@@ -1,6 +1,7 @@
 import {
   computed,
   inject,
+  onScopeDispose,
   provide,
   reactive,
   ref,
@@ -35,6 +36,12 @@ import type {
   TodoStatus,
   TodoUser,
 } from "./types";
+
+/** Runs a write that saves a record, remembering the record `nameOf` names in its result. */
+type RecordWriteTracker = <T>(
+  write: () => Promise<T>,
+  nameOf: (result: T) => string | undefined,
+) => Promise<T>;
 
 function createTodos(projectId: MaybeRefOrGetter<string>) {
   const session = useSession();
@@ -134,6 +141,32 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
     return (linkable.data ?? []).some((option) => isSameRecord(option, record));
   }
 
+  const recordWriteTrackers = new Map<string, RecordWriteTracker>();
+
+  /**
+   * Lets the part of the page that shows `doctype`'s records tell the link writes that
+   * save one of them (linking, unlinking, creating a linked ToDo) from others' changes.
+   */
+  function trackRecordWrites(doctype: string, track: RecordWriteTracker) {
+    recordWriteTrackers.set(doctype, track);
+    onScopeDispose(() => {
+      if (recordWriteTrackers.get(doctype) === track)
+        recordWriteTrackers.delete(doctype);
+    });
+  }
+
+  /** Runs `write`, which saves each of `records`, through their doctypes' trackers. */
+  function writeRecords<T>(
+    records: (RecordRef | null | undefined)[],
+    write: () => Promise<T>,
+  ): Promise<T> {
+    const run = records.reduce<() => Promise<T>>((inner, record) => {
+      const track = record && recordWriteTrackers.get(record.doctype);
+      return track ? () => track(inner, () => record.name) : inner;
+    }, write);
+    return run();
+  }
+
   // The event names no project, so any other ToDo change refetches.
   const { localWrite, isOwnEcho } = createOwnWrites({
     userId: () => session.userId,
@@ -197,7 +230,9 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
       confirmLabel: "Unlink",
       onConfirm: async () => {
         try {
-          await unlink.submit({ todo: todo.name });
+          await writeRecords([record], () =>
+            unlink.submit({ todo: todo.name }),
+          );
         } catch (error) {
           throw new Error(errorMessage(error));
         }
@@ -234,13 +269,15 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
 
   async function updateLink(todo: Todo, record: LinkedRecord | null) {
     if (isSameRecord(todo.linked, record)) return;
-    await (record
-      ? link.submit({
-          todo: todo.name,
-          doctype: record.doctype,
-          name: record.name,
-        })
-      : unlink.submit({ todo: todo.name }));
+    await writeRecords([todo.linked, record], () =>
+      record
+        ? link.submit({
+            todo: todo.name,
+            doctype: record.doctype,
+            name: record.name,
+          })
+        : unlink.submit({ todo: todo.name }),
+    );
   }
 
   /** Creates or updates the ToDo and its link; resolves `true` when it saved. */
@@ -260,11 +297,13 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
       } else if (linkedTo) {
         await localWrite(
           () =>
-            createLinked.submit({
-              doctype: linkedTo.doctype,
-              name: linkedTo.name,
-              todo: fields,
-            }),
+            writeRecords([linkedTo], () =>
+              createLinked.submit({
+                doctype: linkedTo.doctype,
+                name: linkedTo.name,
+                todo: fields,
+              }),
+            ),
           (created) => created?.name,
         );
         list.reload();
@@ -303,6 +342,7 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
     loadLinkable,
     refresh,
     refreshLinks,
+    trackRecordWrites,
     canLink,
     /** True while the linkable records load for the first time. */
     linkableLoading: computed(() => linkable.loading && !linkable.data),
