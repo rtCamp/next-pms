@@ -14,29 +14,25 @@ const { openNote } = useNotes();
 const created = computed(() =>
   formatRelativeTimeShort(props.note.creation, new Date(), true),
 );
-
-function onKeydown(event: KeyboardEvent) {
-  if (event.target !== event.currentTarget) return;
-  event.preventDefault();
-  openNote(props.note.name);
-}
 </script>
 
 <template>
-  <!-- eslint-disable better-tailwindcss/no-restricted-classes -- React's 526px max width is past the spacing scale -->
+  <!-- eslint-disable better-tailwindcss/no-restricted-classes -- React's 526px max width is past the spacing scale; ringColor has no ink scale -->
   <div
-    role="button"
-    tabindex="0"
-    class="flex h-64 min-w-66 max-w-[526px] flex-1 cursor-pointer flex-col overflow-clip rounded-6 border border-outline-gray-2 bg-surface-base shadow-xl"
-    @click="openNote(note.name)"
-    @keydown.enter.space="onKeydown"
+    class="relative flex h-64 min-w-66 max-w-[526px] flex-1 flex-col overflow-clip rounded-6 border border-outline-gray-2 bg-surface-base shadow-xl has-[h3>button:focus-visible]:ring-2 has-[h3>button:focus-visible]:ring-[--ink-gray-4]"
   >
     <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
     <div class="flex items-center justify-between gap-2 px-3.5 pt-3.5">
-      <h3 class="flex-1 truncate text-lg-medium text-ink-gray-8">
-        {{ note.title }}
+      <h3 class="min-w-0 flex-1 text-lg-medium text-ink-gray-8">
+        <button
+          type="button"
+          class="block w-full truncate text-left after:absolute after:inset-0 after:z-10 focus-visible:outline-none"
+          @click="openNote(note.name)"
+        >
+          {{ note.title }}
+        </button>
       </h3>
-      <NoteActions :note="note" />
+      <NoteActions :note="note" class="relative z-20" />
     </div>
     <div class="relative flex-1 overflow-hidden">
       <RichText
@@ -51,9 +47,8 @@ function onKeydown(event: KeyboardEvent) {
     <div class="flex items-center gap-2 px-3.5 pb-3.5 pt-3">
       <a
         :href="`/desk/user/${encodeURIComponent(note.owner)}`"
-        class="flex shrink-0 items-center"
+        class="relative z-20 flex shrink-0 items-center"
         :aria-label="note.ownerName || note.owner"
-        @click.stop
       >
         <Avatar
           size="xs"
