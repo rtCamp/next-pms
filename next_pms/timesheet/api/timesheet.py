@@ -381,8 +381,9 @@ def delete(parent: str, name: str):
     """Delete single time entry (child table entry) from timesheet doctype."""
     parent_doc = frappe.get_doc("Timesheet", parent)
 
-    employee = get_employee_from_user()
-    ignore_permissions = employee_has_higher_access(employee, ptype="write")
+    if not employee_has_higher_access(parent_doc.employee, ptype="write"):
+        frappe.throw(_("You are not allowed to edit this timesheet."), frappe.PermissionError)
+    ignore_permissions = True
     for log in parent_doc.time_logs:
         if log.name == name:
             parent_doc.remove(log)
@@ -478,8 +479,9 @@ def update_timesheet_detail(
     """Update time entry in Timesheet Detail child table."""
     parent_doc = frappe.get_doc("Timesheet", parent)
 
-    employee = get_employee_from_user()
-    ignore_permissions = employee_has_higher_access(employee, ptype="write")
+    if not employee_has_higher_access(parent_doc.employee, ptype="write"):
+        frappe.throw(_("You are not allowed to edit this timesheet."), frappe.PermissionError)
+    ignore_permissions = True
     logs_to_remove = []
     new_logs = []
     task_project = frappe.get_value("Task", task, "project")
