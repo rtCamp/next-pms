@@ -13,6 +13,7 @@ import {
  * Internal dependencies.
  */
 import { PinnedEdgeAutoScroller, RestrictToColumnGroup } from "./utils";
+import { PROJECT_LIST_HELP } from "../../help";
 import type { ProjectListColumn } from "../../types";
 
 export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
@@ -21,6 +22,7 @@ export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
     label: "Project name",
     width: "240px",
     sortField: "project_name",
+    help: PROJECT_LIST_HELP.name,
   },
   {
     key: "phase",
@@ -31,26 +33,30 @@ export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
   {
     key: "burn_rate_per_week",
     label: "Burn rate/week",
-    width: "130px",
+    width: "170px",
     sortField: "burn_rate_per_week",
+    help: PROJECT_LIST_HELP.burn_rate_per_week,
   },
   {
     key: "cost_burn_percent",
     label: "Cost burn",
     width: "140px",
     sortField: "cost_burn_percent",
+    help: PROJECT_LIST_HELP.cost_burn_percent,
   },
   {
     key: "total_budget",
     label: "Total budget",
     width: "130px",
     sortField: "total_budget",
+    help: PROJECT_LIST_HELP.total_budget,
   },
   {
     key: "profit_margin",
     label: "Profit margin",
     width: "120px",
     sortField: "profit_margin",
+    help: PROJECT_LIST_HELP.profit_margin,
   },
   {
     key: "start_date",
@@ -106,6 +112,7 @@ export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
     label: "Lifetime value to date",
     width: "170px",
     defaultHidden: true,
+    help: PROJECT_LIST_HELP.lifetime_value_to_date,
   },
   {
     key: "client_poc_name",

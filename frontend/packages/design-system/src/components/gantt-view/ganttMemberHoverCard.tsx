@@ -16,15 +16,22 @@ import { GanttOpenLink } from "./ganttOpenLink";
 import type { Member, ProjectMember } from "./types";
 import { getEmployeeHref } from "./utils";
 import { mergeClassNames as cn } from "../../utils";
+import InfoHoverCard from "../info-hover-card";
 
 interface GanttMemberHoverCardProps {
   member: Member | ProjectMember;
   canOpenEmployee?: boolean;
+  /** Tooltip on the hourly rate line. */
+  rateTooltip: string;
+  /** Tooltip on the working hours line. */
+  capacityTooltip: string;
 }
 
 function GanttMemberHoverCard({
   member,
   canOpenEmployee = false,
+  rateTooltip,
+  capacityTooltip,
 }: GanttMemberHoverCardProps) {
   const hasDetails =
     member.department || member.rate || member.capacity || member.manager;
@@ -84,6 +91,7 @@ function GanttMemberHoverCard({
               <span className="text-sm text-ink-gray-6 truncate">
                 {member.rate}
               </span>
+              <InfoHoverCard tooltip={rateTooltip} />
             </div>
           )}
           {member.capacity && (
@@ -92,6 +100,7 @@ function GanttMemberHoverCard({
               <span className="text-sm text-ink-gray-6 truncate">
                 {member.capacity}
               </span>
+              <InfoHoverCard tooltip={capacityTooltip} />
             </div>
           )}
           {member.manager && (

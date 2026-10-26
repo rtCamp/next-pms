@@ -13,6 +13,7 @@ import {
 import { useImportedTasks } from "@/hooks/useImportedTasks";
 import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
 import { usePersonalTimesheet } from "@/pages/timesheet/personal/context";
+import { PERSONAL_TIMESHEET_HELP } from "@/pages/timesheet/personal/help";
 import { useUser } from "@/providers/user";
 import { WorkingFrequency } from "@/types";
 import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
@@ -188,6 +189,7 @@ export const PersonalTimesheetRow = ({
 
             <TimeOffRow
               label="Time-off"
+              help={PERSONAL_TIMESHEET_HELP.timeOff}
               className="pl-7.5 mt-3"
               dates={dates}
               leaves={leaves}

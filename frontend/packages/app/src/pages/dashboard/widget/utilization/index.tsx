@@ -3,6 +3,7 @@
  */
 import { useMemo } from "react";
 import { mergeClassNames } from "@next-pms/design-system";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { useSavedState } from "@next-pms/hooks";
 import { MultiSelect } from "@rtcamp/frappe-ui-react";
 import type { MultiSelectOption } from "@rtcamp/frappe-ui-react";
@@ -11,6 +12,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { LEADERSHIP_WIDGET_HELP } from "@/pages/dashboard/help";
 import type { TimeUtilisationResponse } from "./types";
 import { UtilisationDonut } from "./utilisationDonut";
 import { UtilisedTimeCardSkeleton } from "./utilisedTimeCardSkeleton";
@@ -48,15 +50,10 @@ export default function UtilisedTimeCard() {
     (sum, r) => sum + r.billable_hours,
     0,
   );
-  const non_billable_hours = visibleRoles.reduce(
-    (sum, r) => sum + r.non_billable_hours,
-    0,
-  );
   const total_hours = visibleRoles.reduce((sum, r) => sum + r.total_hours, 0);
   const billablePct =
     total_hours > 0 ? Math.round((billable_hours / total_hours) * 100) : 0;
-  const nonBillablePct =
-    total_hours > 0 ? Math.round((non_billable_hours / total_hours) * 100) : 0;
+  const nonBillablePct = total_hours > 0 ? 100 - billablePct : 0;
 
   const legend = [
     {
@@ -74,9 +71,12 @@ export default function UtilisedTimeCard() {
   return (
     <>
       <div className="flex items-start justify-between gap-4">
-        <h3 className="text-lg font-semibold text-ink-gray-8">
-          Utilised time in the past 30 days
-        </h3>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <h3 className="text-lg font-semibold text-ink-gray-8">
+            Utilised time in the past 30 days
+          </h3>
+          <InfoHoverCard help={LEADERSHIP_WIDGET_HELP.utilisation} />
+        </div>
         <div className="w-44 shrink-0">
           <MultiSelect
             popupClassName="scrollbar-thin"

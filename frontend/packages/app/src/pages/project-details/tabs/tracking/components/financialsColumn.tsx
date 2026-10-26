@@ -7,6 +7,7 @@ import { FinancialsBlock } from "./financialsBlock";
 import { KnowledgePoint } from "./knowledgePoint";
 import { useProjectDetail } from "../../../context";
 import { useTracking } from "../context";
+import { TRACKING_HELP } from "../help";
 import type { WidgetLayout } from "../types";
 
 export function FinancialsColumn({ layout }: { layout: WidgetLayout }) {
@@ -39,6 +40,7 @@ export function FinancialsColumn({ layout }: { layout: WidgetLayout }) {
               : currencyFormat(currency).format(totalProjectValue)
           }
           href={salesOrderHref}
+          help={TRACKING_HELP.totalProjectValue}
         />
       </div>
       <div className={cn("flex flex-1", layout === "row" && "lg:flex-2")}>

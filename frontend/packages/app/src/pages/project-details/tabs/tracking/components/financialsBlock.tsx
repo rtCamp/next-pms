@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { Fragment, useState } from "react";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { Dropdown, Tooltip } from "@rtcamp/frappe-ui-react";
 import { Check, DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
 
@@ -15,6 +16,7 @@ import {
 } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { useTracking } from "../context";
+import { TRACKING_HELP } from "../help";
 
 type FinancialsBlockProps = {
   showProjectValue: boolean;
@@ -48,6 +50,10 @@ export function FinancialsBlock({
             key: "project-value",
             label: "Total project value",
             value: projectValue === null ? "N/A" : format.format(projectValue),
+            help:
+              mode === "projected"
+                ? TRACKING_HELP.totalProjectValue
+                : TRACKING_HELP.currentProjectValue,
           },
         ]
       : []),
@@ -55,6 +61,10 @@ export function FinancialsBlock({
       key: "profit",
       label: mode === "projected" ? "Projected profit" : "Current profit",
       value: profit === null ? "N/A" : format.format(profit),
+      help:
+        mode === "projected"
+          ? TRACKING_HELP.projectedProfit
+          : TRACKING_HELP.currentProfit,
     },
     {
       key: "margin",
@@ -63,6 +73,10 @@ export function FinancialsBlock({
           ? "Projected profit margin"
           : "Current profit margin",
       value: margin === null ? "N/A" : formatPercentage(margin),
+      help:
+        mode === "projected"
+          ? TRACKING_HELP.projectedMargin
+          : TRACKING_HELP.currentMargin,
     },
   ];
 
@@ -129,9 +143,12 @@ export function FinancialsBlock({
                 layout === "row" && "lg:flex-[0_1_auto] lg:px-3 lg:py-0",
               )}
             >
-              <span className="truncate pr-6 text-base font-normal text-ink-gray-5">
-                {row.label}
-              </span>
+              <div className="flex min-w-0 items-center gap-1.5 pr-6">
+                <span className="truncate text-base font-normal text-ink-gray-5">
+                  {row.label}
+                </span>
+                <InfoHoverCard help={row.help} />
+              </div>
               <Tooltip text={row.value} showWhen="truncated">
                 <span className="truncate text-xl font-medium text-ink-gray-8">
                   {row.value}

@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import {
   Button,
   Dialog,
@@ -22,6 +23,7 @@ import {
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { propagationModeLabels } from "@/pages/allocations/constants";
+import { ALLOCATION_DIALOG_HELP } from "@/pages/allocations/help";
 import { buildScheduleSelectionPayload } from "@/pages/allocations/overrideUtils";
 import { useEmployeeAvailability } from "@/pages/allocations/useEmployeeAvailability";
 import ScheduleDateSelectionField from "./components/scheduleDateSelectionField";
@@ -467,9 +469,12 @@ function EditScheduleModal({
 
         {isRecurringAllocation ? (
           <div className="space-y-1.5">
-            <FormLabel id="apply-edits-to" size="md">
-              Apply edits to
-            </FormLabel>
+            <div className="flex items-center gap-1.5">
+              <FormLabel id="apply-edits-to" size="md">
+                Apply edits to
+              </FormLabel>
+              <InfoHoverCard help={ALLOCATION_DIALOG_HELP.applyEditsTo} />
+            </div>
             <Select
               htmlId="apply-edits-to"
               value={applyMode}

@@ -13,6 +13,7 @@ import { Skeleton } from "@rtcamp/frappe-ui-react";
  * Internal dependencies
  */
 import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
+import { TEAM_TIMESHEET_HELP } from "@/pages/timesheet/team/help";
 import type { WeeklyApprovalTarget } from "@/pages/timesheet/team/weekly-approval/types";
 import type { WorkingFrequency } from "@/types";
 import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
@@ -177,6 +178,7 @@ export const TeamTimesheetRow = ({
 
                     <TimeOffRow
                       label="Time-off"
+                      help={TEAM_TIMESHEET_HELP.timeOff}
                       className="pl-13.5"
                       dates={dates}
                       leaves={member.leaves}

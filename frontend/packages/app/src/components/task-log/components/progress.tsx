@@ -1,11 +1,19 @@
 /**
  * External dependencies.
  */
-import { TaskProgress } from "@next-pms/design-system/components";
+import {
+  InfoHoverCard,
+  TaskProgress,
+} from "@next-pms/design-system/components";
 import {
   mergeClassNames as cn,
   floatToTime,
 } from "@next-pms/design-system/utils";
+
+/**
+ * Internal dependencies.
+ */
+import { TASK_LOG_HELP } from "../help";
 
 type ProgressProps = {
   actualHours: number;
@@ -23,24 +31,27 @@ const Progress: React.FC<ProgressProps> = ({
   return (
     <>
       <div className="flex justify-between mt-4 text-sm">
-        <div className="flex gap-0.75 mb-0.5">
-          <div className="flex gap-1">
-            <span
-              className={cn("font-medium", {
-                "text-ink-red-4": progress > 100,
-              })}
-            >
-              {floatToTime(actualHours, 2)}
-            </span>
-            <span className="text-ink-gray-5">Actual</span>
+        <div className="flex items-center gap-1.5">
+          <div className="flex gap-0.75 mb-0.5">
+            <div className="flex gap-1">
+              <span
+                className={cn("font-medium", {
+                  "text-ink-red-4": progress > 100,
+                })}
+              >
+                {floatToTime(actualHours, 2)}
+              </span>
+              <span className="text-ink-gray-5">Actual</span>
+            </div>
+            <span className="text-ink-gray-5">/</span>
+            <div className="flex gap-1">
+              <span className="text-ink-gray-7">
+                {floatToTime(estimatedHours, 2)}
+              </span>
+              <span className="text-ink-gray-5">Est.</span>
+            </div>
           </div>
-          <span className="text-ink-gray-5">/</span>
-          <div className="flex gap-1">
-            <span className="text-ink-gray-7">
-              {floatToTime(estimatedHours, 2)}
-            </span>
-            <span className="text-ink-gray-5">Est.</span>
-          </div>
+          <InfoHoverCard help={TASK_LOG_HELP.progress} />
         </div>
 
         <div className="text-ink-gray-6">{progress}%</div>

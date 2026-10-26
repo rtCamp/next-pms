@@ -1,11 +1,13 @@
 /**
  * External dependencies.
  */
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { Checkbox, FormLabel, TextInput } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
  */
+import { SETTINGS_HELP } from "../help";
 import type { TimesheetsPageProps } from "../types";
 
 export function TimesheetsPage({
@@ -28,13 +30,16 @@ export function TimesheetsPage({
         </p>
       </div>
       <div className="mt-10 max-w-sm">
-        <FormLabel
-          id="auto-expand-weeks"
-          size="md"
-          className="text-ink-gray-8!"
-        >
-          Default Expanded Weeks in Timesheet View
-        </FormLabel>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <FormLabel
+            id="auto-expand-weeks"
+            size="md"
+            className="text-ink-gray-8!"
+          >
+            Default Expanded Weeks in Timesheet View
+          </FormLabel>
+          <InfoHoverCard help={SETTINGS_HELP.expandedWeeks} />
+        </div>
         <TextInput
           htmlId="auto-expand-weeks"
           type="number"

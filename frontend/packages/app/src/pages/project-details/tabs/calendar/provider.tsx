@@ -188,7 +188,9 @@ export function CalendarProvider({
           following: !isFollowing,
         });
         if (!isFollowing && !res?.message) {
-          toast.error("Document follow is not enabled for current user.");
+          toast.error(
+            "Turn on Send Notifications For Documents Followed By Me in your user settings in Desk, then try again.",
+          );
           return;
         }
         toast.success(

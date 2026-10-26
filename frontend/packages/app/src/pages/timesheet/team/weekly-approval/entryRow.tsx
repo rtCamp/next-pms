@@ -12,12 +12,14 @@ import {
   StaticTextEditor,
   TextEditor,
   DurationInput,
+  Tooltip,
 } from "@rtcamp/frappe-ui-react";
 import { EditAlt, Check, Close } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal Dependencies
  */
+import { DECIDED_ENTRY_TOOLTIP, EDIT_ENTRY_TOOLTIP } from "../help";
 import type { TimesheetEntry } from "./types";
 
 interface EntryRowProps {
@@ -199,19 +201,28 @@ const EntryRow = ({
         ) : null}
         {floatToTime(isRejected ? entry.rejectedHours : entry.hours, 2, 2)}
       </span>
-      <Button
-        className={cn(
-          "m-0 size-fit hover:bg-surface-white transition-opacity focus-visible:opacity-100 focus-visible:pointer-events-auto",
-          !isReadOnly && isHovered
-            ? "opacity-100"
-            : "opacity-0 pointer-events-none",
-        )}
-        variant="ghost"
-        label="Edit time entry"
-        disabled={isReadOnly}
-        icon={() => <EditAlt size={16} className="text-ink-gray-7" />}
-        onClick={handleEdit}
-      />
+      <Tooltip text={isReadOnly ? DECIDED_ENTRY_TOOLTIP : EDIT_ENTRY_TOOLTIP}>
+        <div
+          className={cn(
+            "size-fit transition-opacity has-focus-visible:opacity-100",
+            isHovered ? "opacity-100" : "opacity-0",
+          )}
+        >
+          <Button
+            className="m-0 size-fit hover:bg-surface-white"
+            variant="ghost"
+            label="Edit time entry"
+            disabled={isReadOnly}
+            icon={() => (
+              <EditAlt
+                size={16}
+                className={isReadOnly ? undefined : "text-ink-gray-7"}
+              />
+            )}
+            onClick={handleEdit}
+          />
+        </div>
+      </Tooltip>
     </div>
   );
 };

@@ -2,7 +2,10 @@
  * External dependencies.
  */
 import { useMemo, useState } from "react";
-import { DeleteActionDialog } from "@next-pms/design-system/components";
+import {
+  DeleteActionDialog,
+  InfoHoverCard,
+} from "@next-pms/design-system/components";
 import {
   Avatar,
   Button,
@@ -20,6 +23,7 @@ import { format, parseISO } from "date-fns";
  */
 import { RATE_COLUMNS } from "../constants";
 import { useTracking } from "../context";
+import { TRACKING_HELP } from "../help";
 import { ActionsCell } from "./actionsCell";
 import { ProjectRateModal } from "./projectRateModal";
 
@@ -83,8 +87,11 @@ export function ProjectRatesTable() {
               className="grid h-10 items-center rounded-md bg-surface-gray-2 px-2 gap-2 mt-2"
               style={{ gridTemplateColumns }}
             >
-              <div className="truncate text-base font-medium text-ink-gray-7">
-                Flat rate
+              <div className="flex min-w-0 items-center gap-1.5">
+                <span className="truncate text-base font-medium text-ink-gray-7">
+                  Flat rate
+                </span>
+                <InfoHoverCard help={TRACKING_HELP.flatRate} />
               </div>
               <div className="truncate text-right text-base text-ink-gray-6 tabular-nums">
                 {flatRate.amount}
