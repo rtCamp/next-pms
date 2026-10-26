@@ -238,6 +238,7 @@ class TestCostingWorkerDataValidity(IntegrationTestCase):
     def test_update_tasks_skips_deleted_tasks_and_saves_existing_tasks(self):
         """A deleted task in the job payload must not abort updates for remaining tasks."""
         existing_task = MagicMock()
+        existing_task.get.return_value = None
 
         with (
             patch.object(
@@ -274,6 +275,26 @@ class TestCostingWorkerDataValidity(IntegrationTestCase):
 
         self.assertEqual(existing_task.status, "Open")
         existing_task.save.assert_called_once_with(ignore_permissions=True)
+
+    def test_update_task_linked_to_github_issue_keeps_its_status(self):
+        """A task synced from a GitHub issue is not reopened by time logged against it.
+
+        The GitHub connector owns the status of such tasks and only updates it when the
+        issue changes, so a closed issue's task must stay Completed. Hours and costing
+        still roll up through the save.
+        """
+        github_task = MagicMock()
+        github_task.status = "Completed"
+        github_task.get.side_effect = lambda fieldname: "42" if fieldname == "custom_github_issue_id" else None
+
+        with (
+            patch.object(project_costing.frappe.db, "exists", return_value=True),
+            patch.object(project_costing.frappe, "get_doc", return_value=github_task),
+        ):
+            project_costing.update_tasks(["TASK-1"], {"TASK-1": "Working"})
+
+        self.assertEqual(github_task.status, "Completed")
+        github_task.save.assert_called_once_with(ignore_permissions=True)
 
     def test_update_projects_skips_deleted_projects_and_recalculates_existing_projects(self):
         """A deleted project in the job payload must not abort updates for remaining projects.
