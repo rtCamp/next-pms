@@ -132,6 +132,9 @@ function useTemplate() {
 
 <template>
   <Dialog v-model:open="open" title="Add Template" size="md" position="top">
+    <template #title>
+      <h3 class="text-3xl-medium text-ink-gray-8">Add Template</h3>
+    </template>
     <div class="flex flex-col gap-5">
       <TextInput
         v-model="query"
@@ -190,10 +193,12 @@ function useTemplate() {
                   {{ templateSummary(option.template) }}
                 </span>
               </span>
+              <!-- eslint-disable better-tailwindcss/no-restricted-classes -- React's 3px padding is a quarter step -->
               <span
                 v-if="option.template.category"
-                class="shrink-0 rounded-2 border border-outline-gray-2 px-1.5 py-0.5 text-xs text-ink-gray-7"
+                class="shrink-0 rounded-2 border border-outline-gray-2 px-1.5 py-[3px] text-xs text-ink-gray-7"
               >
+                <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
                 {{ option.template.category }}
               </span>
             </button>
