@@ -23,7 +23,7 @@ const departments = table("allowed_departments", "department");
 <template>
   <div>
     <section>
-      <h3 class="text-lg font-semibold text-ink-gray-8">Time Entry Rules</h3>
+      <h3 class="text-lg-semibold text-ink-gray-8">Time Entry Rules</h3>
       <div class="mt-5 flex max-w-sm flex-col gap-5">
         <Checkbox v-model="backdated" label="Allow Backdated Entries" />
         <template v-if="backdated">
@@ -60,7 +60,7 @@ const departments = table("allowed_departments", "department");
     </section>
 
     <section class="mt-10">
-      <h3 class="text-lg font-semibold text-ink-gray-8">Reminder Settings</h3>
+      <h3 class="text-lg-semibold text-ink-gray-8">Reminder Settings</h3>
       <div class="mt-5 flex max-w-sm flex-col gap-5">
         <Checkbox v-model="dailyReminder" label="Send Daily Reminder" />
         <SettingsLinkField

@@ -27,7 +27,7 @@ const currency = computed({
 <template>
   <div>
     <section>
-      <h3 class="text-lg font-semibold text-ink-gray-8">Rate Display</h3>
+      <h3 class="text-lg-semibold text-ink-gray-8">Rate Display</h3>
       <div class="mt-5 max-w-sm">
         <Combobox
           v-model="currency"
@@ -53,9 +53,7 @@ const currency = computed({
     </section>
 
     <section class="mt-10">
-      <h3 class="text-lg font-semibold text-ink-gray-8">
-        Allocation Notifications
-      </h3>
+      <h3 class="text-lg-semibold text-ink-gray-8">Allocation Notifications</h3>
       <div class="mt-5 flex max-w-sm flex-col gap-5">
         <Checkbox
           v-model="sendReminder"

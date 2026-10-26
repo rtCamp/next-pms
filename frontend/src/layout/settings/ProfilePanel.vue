@@ -18,19 +18,19 @@ const displayName = computed(
         size="3xl"
       />
       <div class="min-w-0">
-        <p class="truncate text-lg font-semibold text-ink-gray-8">
+        <p class="truncate text-lg-semibold text-ink-gray-8">
           {{ displayName }}
         </p>
         <p class="truncate text-base text-ink-gray-6">{{ session.userId }}</p>
       </div>
     </div>
     <section>
-      <h3 class="text-lg font-semibold text-ink-gray-8">
+      <h3 class="text-lg-semibold text-ink-gray-8">
         Account Info and Security
       </h3>
       <div class="mt-5 flex items-center justify-between gap-4">
         <div>
-          <p class="text-base font-medium text-ink-gray-8">Password</p>
+          <p class="text-base-medium text-ink-gray-8">Password</p>
           <p class="mt-1 text-base text-ink-gray-6">
             Change your account password for security.
           </p>
