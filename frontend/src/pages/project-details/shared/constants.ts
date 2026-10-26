@@ -1,6 +1,8 @@
 import type { Role } from "@/session";
 
 export const GET_LIST_URL = "/api/v2/method/frappe.client.get_list";
+export const USER_DETAILS_URL =
+  "/api/v2/method/next_pms.next_projects.api.user.get_user_details";
 export const UPDATE_FOLLOW_URL =
   "/api/v2/method/frappe.desk.form.document_follow.update_follow";
 

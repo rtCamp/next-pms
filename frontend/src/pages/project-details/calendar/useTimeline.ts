@@ -13,6 +13,7 @@ import { dayjs, dialog, toast, useCall, useDoctype } from "frappe-ui";
 import { useDoctypeListUpdates } from "@/composables/useDoctypeListUpdates";
 import { useQueryPatch } from "@/composables/useQueryPatch";
 import { createOwnWrites } from "@/pages/project-details/ownWrites";
+import { useDeleteTarget } from "@/pages/project-details/shared/useDeleteTarget";
 import { useFollow } from "@/pages/project-details/shared/useFollow";
 import { useTodos } from "@/pages/project-details/to-do/useTodos";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
@@ -238,14 +239,7 @@ function createTimeline() {
     immediate: false,
   });
   const timelineItems = useDoctype(TIMELINE_ITEM_DOCTYPE);
-  const deleteTarget = ref("");
-  const readItem = useCall<{ linked_todos?: { todo: string }[] }>({
-    url: computed(
-      () =>
-        `/api/v2/document/${encodeURIComponent(TIMELINE_ITEM_DOCTYPE)}/${encodeURIComponent(deleteTarget.value)}`,
-    ),
-    immediate: false,
-  });
+  const readDeleteTarget = useDeleteTarget(TIMELINE_ITEM_DOCTYPE);
 
   async function toggleComplete(item: TimelineItem) {
     try {
@@ -274,10 +268,7 @@ function createTimeline() {
 
   /** Reads the item for its linked ToDos, then confirms; the dialog keeps a failed delete's error. */
   async function requestDelete(item: TimelineItem) {
-    deleteTarget.value = item.name;
-    const doc = await readItem.fetch();
-    // As React: an unreadable item is confirmed without the linked ToDos line.
-    const hasTodos = !readItem.error && Boolean(doc?.linked_todos?.length);
+    const { hasTodos } = await readDeleteTarget(item.name);
     dialog.danger({
       title: `Delete ${item.type.toLowerCase()}`,
       message: deleteItemMessage(item, hasTodos),

@@ -5,6 +5,7 @@ import {
   columnIndex,
   type Timeline,
 } from "@/components/GanttGrid";
+import { deleteRecordMessage } from "@/pages/project-details/shared/linkedTodos";
 import type { LinkedRecord } from "@/pages/project-details/to-do/types";
 import { getWeekStart } from "@/utils/date";
 import {
@@ -263,9 +264,7 @@ export function deleteItemMessage(
   item: TimelineItem,
   hasTodos: boolean,
 ): string {
-  return `Are you sure you want to delete the ${item.type.toLowerCase()} "${item.title}"?${
-    hasTodos ? " Its linked ToDos will not be deleted." : ""
-  } This action cannot be undone.`;
+  return deleteRecordMessage(item.type, item.title, hasTodos);
 }
 
 export function toLinkedRecord(item: TimelineItem): LinkedRecord {
