@@ -12,8 +12,11 @@ def after_install():
     create_default_risk_masters()
     create_default_timeline_item_categories()
     create_default_growth_masters()
+    create_default_technologies()
     setup_project_custom_fields()
     setup_project_target_hours_field()
+    setup_project_tech_stack_field()
+    setup_crm_deal_tech_stack_field()
     setup_timesheet_rejection_reason_field()
     setup_timesheet_weekly_rejection_reason_field()
     setup_timesheet_rejected_hours_field()
@@ -23,6 +26,7 @@ def after_install():
     setup_role_permissions()
     setup_project_permissions_for_managers()
     setup_time_report_frequency()
+    setup_custom_docperms()
 
 
 def setup_timesheet_rejection_reason_field():
@@ -122,6 +126,74 @@ def setup_project_target_hours_field():
             ]
         }
     )
+
+
+def setup_project_tech_stack_field():
+    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+    create_custom_fields(
+        {
+            "Project": [
+                {
+                    "fieldname": "tech_stack",
+                    "fieldtype": "Table MultiSelect",
+                    "label": "Tech Stack",
+                    "options": "Tech Stack Item",
+                    "insert_after": "custom_host",
+                    "mandatory_depends_on": 'eval:doc.__islocal && doc.custom_billing_type !== "Non-Billable"',
+                    "module": "Next Projects",
+                },
+            ]
+        }
+    )
+
+
+def after_app_install(app_name):
+    if app_name in ("crm", "frappe_crm_xt"):
+        setup_crm_deal_tech_stack_field()
+
+
+def setup_crm_deal_tech_stack_field():
+    import json
+
+    import frappe
+    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+    if not frappe.db.exists("DocType", "CRM Deal"):
+        return
+
+    create_custom_fields(
+        {
+            "CRM Deal": [
+                {
+                    "fieldname": "tech_stack",
+                    "fieldtype": "Table MultiSelect",
+                    "label": "Tech Stack",
+                    "options": "Tech Stack Item",
+                    "insert_after": "custom_current_host",
+                    "module": "Next Projects",
+                },
+            ]
+        }
+    )
+
+    layout_name = "CRM Deal-Data Fields"
+    if not frappe.db.exists("CRM Fields Layout", layout_name):
+        return
+
+    layout = frappe.get_doc("CRM Fields Layout", layout_name)
+    tabs = json.loads(layout.layout or "[]")
+    columns = [column for tab in tabs for section in tab.get("sections", []) for column in section.get("columns", [])]
+    if any("tech_stack" in column.get("fields", []) for column in columns):
+        return
+
+    for column in columns:
+        fields = column.get("fields", [])
+        if "custom_current_host" in fields:
+            fields.insert(fields.index("custom_current_host") + 1, "tech_stack")
+            layout.layout = json.dumps(tabs)
+            layout.save(ignore_permissions=True)
+            return
 
 
 def setup_time_report_frequency():
@@ -278,6 +350,133 @@ def setup_project_permissions_for_managers():
                 update_permission_property(doctype, role, permlevel, perm_key, perm_val)
 
 
+CUSTOM_DOCPERMS: tuple[tuple[str, str, int, int, tuple[str, ...]], ...] = (
+    # (doctype, role, permlevel, if_owner, granted permission types)
+    ("Project", "Desk User", 1, 0, ("read", "export")),
+    ("Project", "Employee", 0, 1, ("select", "read", "create", "export")),
+    (
+        "Project",
+        "Projects Manager",
+        0,
+        0,
+        ("select", "read", "write", "create", "delete", "report", "export", "import", "share", "print", "email"),
+    ),
+    ("Project", "Projects Manager", 1, 0, ("read", "write", "export")),
+    ("Project", "Projects Manager", 2, 0, ("read", "write", "export")),
+    ("Project", "Projects User", 0, 0, ("read", "write", "create", "delete", "report", "share", "print", "email")),
+    ("Project", "Projects User", 1, 0, ("read", "export")),
+    ("Project", "Projects User", 2, 0, ("read", "write", "export")),
+    (
+        "Project",
+        "Timesheet Manager",
+        0,
+        0,
+        ("select", "read", "write", "create", "delete", "report", "export", "import", "share", "print", "email"),
+    ),
+    ("Project", "Timesheet Manager", 1, 0, ("read", "write", "export")),
+    ("Project", "Timesheet Manager", 2, 0, ("read", "write", "export")),
+    ("Project", "Timesheet User", 0, 0, ("read",)),
+    ("Project", "Timesheet User", 1, 0, ("read", "export")),
+    ("Project", "Timesheet User", 2, 0, ("read", "export")),
+    ("Task", "Employee", 0, 0, ("read", "write", "create")),
+    (
+        "Task",
+        "Projects Manager",
+        0,
+        0,
+        ("select", "read", "write", "create", "delete", "report", "export", "import", "share"),
+    ),
+    ("Task", "Projects Manager", 1, 0, ("read", "write", "export")),
+    (
+        "Task",
+        "Projects User",
+        0,
+        0,
+        ("select", "read", "write", "create", "delete", "report", "share", "print", "email"),
+    ),
+    ("Task", "Projects User", 1, 0, ("read", "write", "export")),
+    (
+        "Timesheet",
+        "Accounts User",
+        0,
+        0,
+        ("read", "write", "create", "delete", "submit", "cancel", "amend", "report", "email"),
+    ),
+    ("Timesheet", "Accounts User", 1, 0, ("read", "write")),
+    ("Timesheet", "Employee", 0, 0, ("read", "write", "create", "delete")),
+    (
+        "Timesheet",
+        "HR User",
+        0,
+        0,
+        (
+            "read",
+            "write",
+            "create",
+            "delete",
+            "submit",
+            "cancel",
+            "amend",
+            "report",
+            "export",
+            "share",
+            "print",
+            "email",
+        ),
+    ),
+    ("Timesheet", "Projects Manager", 0, 0, ("submit",)),
+    ("Timesheet", "Projects Manager", 1, 0, ("read", "write", "export")),
+    (
+        "Timesheet",
+        "Projects User",
+        0,
+        0,
+        ("read", "write", "create", "delete", "submit", "cancel", "amend", "report", "share", "print", "email"),
+    ),
+    ("Timesheet", "Projects User", 1, 0, ("read", "write", "export")),
+)
+
+
+def setup_custom_docperms() -> None:
+    """Create the Project / Task / Timesheet role permissions previously shipped as the
+    Custom DocPerm fixture. A rule is inserted only when no Custom DocPerm exists for its
+    doctype, role, permlevel and if_owner combination; existing rules are left untouched."""
+    import frappe
+    from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
+    from frappe.permissions import setup_custom_perms
+
+    existing_roles = set(frappe.get_all("Role", pluck="name"))
+    touched_doctypes = set()
+
+    for doctype, role, permlevel, if_owner, ptypes in CUSTOM_DOCPERMS:
+        if role not in existing_roles:
+            continue
+
+        setup_custom_perms(doctype)
+        if frappe.db.exists(
+            "Custom DocPerm", {"parent": doctype, "role": role, "permlevel": permlevel, "if_owner": if_owner}
+        ):
+            continue
+
+        # ignore_permissions: runs from install/patch context as Administrator to seed role permissions
+        frappe.get_doc(
+            {
+                "doctype": "Custom DocPerm",
+                "parent": doctype,
+                "parenttype": "DocType",
+                "parentfield": "permissions",
+                "role": role,
+                "permlevel": permlevel,
+                "if_owner": if_owner,
+                **dict.fromkeys(ptypes, 1),
+            }
+        ).insert(ignore_permissions=True)
+        touched_doctypes.add(doctype)
+
+    for doctype in touched_doctypes:
+        validate_permissions_for_doctype(doctype)
+
+
 def add_project_manager_perm():
     from frappe.permissions import add_permission, update_permission_property
 
@@ -410,6 +609,11 @@ def create_default_risk_masters():
         ("Risk Status", risk_statuses),
     ):
         _insert_masters(doctype, [{"name": name} for name in names])
+
+
+def create_default_technologies():
+    technologies = ("WordPress VIP", "Drupal", "AEM", "Next.js", "Frappe")
+    _insert_masters("Technology", [{"name": name, "technology_name": name} for name in technologies])
 
 
 def create_default_timeline_item_categories():

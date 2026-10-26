@@ -2,10 +2,11 @@
  * External dependencies.
  */
 import { useMemo, useState } from "react";
-import { Combobox, Select } from "@rtcamp/frappe-ui-react";
+import { Combobox, MultiSelect, Select } from "@rtcamp/frappe-ui-react";
 import {
   AuthenticatedUserAlt,
   Branch,
+  Layers,
   Server,
   SolidPriorityHigh,
 } from "@rtcamp/frappe-ui-react/icons";
@@ -13,6 +14,7 @@ import {
 /**
  * Internal dependencies.
  */
+import { useDoctypeLinkLookup } from "@/hooks/useDoctypeLinkLookup";
 import { useHostLookup } from "@/hooks/useHostLookup";
 import { useProjectDetail } from "../../../context";
 import { EditableField } from "../components/editableField";
@@ -20,6 +22,8 @@ import { OverviewSection } from "../components/overviewSection";
 import type { OverviewFormApi } from "../index";
 
 const EMPTY = "—";
+
+const ENABLED_TECHNOLOGY_FILTER = [["disabled", "=", 0]];
 
 const PRIORITY_OPTIONS = [
   { label: "Low", value: "Low" },
@@ -58,6 +62,25 @@ export function Specifics({ form, isEditing, submitting }: SpecificsProps) {
     query: hostSearch,
     selectedOption: hostSelectedOption,
   });
+
+  const [techStackSearch, setTechStackSearch] = useState("");
+  const techStackValue = useProjectDetail((state) => state.project?.tech_stack);
+  const techStackSelectedOptions = useMemo(
+    () =>
+      (techStackValue ?? []).map(({ technology }) => ({
+        label: technology,
+        value: technology,
+      })),
+    [techStackValue],
+  );
+  const { options: techStackOptions, isLoading: isTechStackLoading } =
+    useDoctypeLinkLookup({
+      doctype: "Technology",
+      filters: ENABLED_TECHNOLOGY_FILTER,
+      shouldFetch: isEditing,
+      query: techStackSearch,
+      selectedOption: techStackSelectedOptions,
+    });
 
   return (
     <OverviewSection title="Specifics">
@@ -132,6 +155,28 @@ export function Specifics({ form, isEditing, submitting }: SpecificsProps) {
                 onChange={(v) => field.handleChange(v ?? "")}
                 disabled={submitting}
                 openOnFocus
+              />
+            </EditableField>
+          )}
+        </form.Field>
+        <form.Field name="techStack">
+          {(field) => (
+            <EditableField
+              icon={<Layers className="size-[18px]" />}
+              label="Tech stack"
+              value={field.state.value.join(", ") || EMPTY}
+              isEditing={isEditing}
+            >
+              <MultiSelect
+                loading={isTechStackLoading}
+                options={techStackOptions}
+                placeholder="Select tech stack"
+                popupClassName="w-max min-w-(--anchor-width) max-w-[300px]"
+                searchValue={techStackSearch}
+                onSearchChange={setTechStackSearch}
+                value={field.state.value}
+                onChange={field.handleChange}
+                open={submitting ? false : undefined}
               />
             </EditableField>
           )}

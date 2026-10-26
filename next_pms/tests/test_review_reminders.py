@@ -3,7 +3,6 @@ from urllib.parse import urlencode
 
 import frappe
 from erpnext import get_default_company
-from frappe.deferred_insert import save_to_db
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, get_datetime
 
@@ -106,8 +105,6 @@ class TestSendReviewReminders(IntegrationTestCase):
         self._delete_manager_notifications()
 
         send_review_reminders()
-        # create_notification uses deferred_insert; flush so rows land in the DB.
-        save_to_db()
 
         notifications = frappe.get_all(
             "NextPMS Notifications",
@@ -147,8 +144,6 @@ class TestSendReviewReminders(IntegrationTestCase):
         )
         try:
             send_review_reminders()
-            # create_notification uses deferred_insert; flush so rows land in the DB.
-            save_to_db()
 
             notifications = frappe.get_all(
                 "NextPMS Notifications",

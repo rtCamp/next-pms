@@ -53,6 +53,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
 
 /**
  * Create a new Project entry.
+ * Billable projects require a Tech Stack, so default one unless the payload sets it.
  */
 export const createProject = async (payload) => {
   ////console.log("Payload received in create project is:", payload);
@@ -60,7 +61,7 @@ export const createProject = async (payload) => {
     "/api/resource/Project",
     {
       method: "POST",
-      data: payload,
+      data: { tech_stack: [{ technology: "Frappe" }], ...payload },
     },
     "admin",
   );
