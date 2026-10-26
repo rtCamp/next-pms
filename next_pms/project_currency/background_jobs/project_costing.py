@@ -93,6 +93,9 @@ def update_tasks(tasks: list[str], statuses: dict[str, str | None]) -> None:
 
     Tasks that no longer exist are skipped: a deletion can reach here after the task itself
     was removed (deleting a project cascades to its tasks and timesheets).
+
+    Tasks synced from a GitHub issue keep their status: the GitHub connector sets it from the
+    issue state, and nothing re-syncs a task this job has reopened.
     """
     for task in tasks:
         if not frappe.db.exists("Task", task):
@@ -101,7 +104,7 @@ def update_tasks(tasks: list[str], statuses: dict[str, str | None]) -> None:
         task_doc = frappe.get_doc("Task", task)
 
         status = statuses.get(task)
-        if status:
+        if status and not task_doc.get("custom_github_issue_id"):
             task_doc.status = status
 
         task_doc.save(ignore_permissions=True)
