@@ -37,6 +37,7 @@ async function retry() {
     <Button
       icon-left="lucide-log-out"
       label="Log out"
+      :loading="session.loggingOut"
       @click="session.logout()"
     />
   </StatusMessage>

@@ -1,6 +1,7 @@
 import { computed, reactive } from "vue";
-import { useCall } from "frappe-ui";
+import { toast, useCall } from "frappe-ui";
 import { redirectToLogin } from "@/boot";
+import { errorMessage } from "@/utils/errors";
 import { hasAnyRole } from "./roles";
 import type { AppData, EmployeeData, Role } from "./types";
 
@@ -73,8 +74,14 @@ function createSession() {
     hasAnyRole(allowed: readonly Role[]) {
       return hasAnyRole(roles.value, allowed);
     },
+    loggingOut: computed(() => logout.loading),
     async logout() {
-      await logout.submit();
+      try {
+        await logout.submit();
+      } catch (error) {
+        toast.error(errorMessage(error));
+        return;
+      }
       redirectToLogin();
     },
   });
