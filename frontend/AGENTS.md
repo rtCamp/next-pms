@@ -66,13 +66,17 @@ src/
                    useProjectComments, LoadError and createOwnWrites (skips a write's own realtime echo);
                    about/ for the About sidebar; calendar/ (provideTimeline, the month grid, TimelineGantt,
                    the tables, the one TimelineItemDialog and the pure calendar.ts with unit tests); email/,
-                   feedback/, notes/ (provideNotes, the cards, the ?note= detail with its read-only task
-                   toggles, NoteEditor for the editor child routes, the template picker and save-template
-                   dialogs, and the pure notes.ts with unit tests), overview/, rag-stats/, reports/, risks/
+                   feedback/, growth/ (provideGrowth, the group list's cells, the ?growth= detail with its
+                   action items and activity, the Create / Edit initiative and update dialogs, and the pure
+                   growth.ts with unit tests), notes/ (provideNotes, the cards, the ?note= detail with its
+                   read-only task toggles, NoteEditor for the editor child routes, the template picker and
+                   save-template dialogs, and the pure notes.ts with unit tests), overview/, rag-stats/,
+                   reports/, risks/
                    (provideRisks, the group list's cells, the ?risk= detail, the Create / Edit risk and update
                    dialogs, and the pure risks.ts with unit tests), shared/ (what Risks and Growth share:
                    owner-gated permissions, the update log helpers, follow, followers, attachments and upload,
-                   the group list, the update entry and the pills, with unit tests for the pure .ts), to-do/
+                   the linked-ToDo delete check, the group list, the update entry, the activity section and the
+                   pills, with unit tests for the pure .ts), to-do/
                    (also the ToDo linking the other tabs reuse: LinkedTodos, LinkedChip), tracking/, …)
   components/      components frappe-ui lacks, one folder each; see components/Components.md
   composables/     shared use* composables: lookups, the like toggle, URL query updates, editor attributes,

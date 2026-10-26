@@ -239,7 +239,8 @@ _Avoid_: issue, RAG status (that's the project's health).
 **Risk update** — a row of a risk's update log (`Risk Update`): a status, a level and a note, posted by its author.
 _Avoid_: comment, status update (that's a note).
 
-**Update log** — a record's table of updates (a risk's `risk_update_log`, a growth initiative's `update_log`). The
+**Update log** — a record's table of updates (a risk's `risk_update_log`, a growth initiative's `update_log`, whose
+rows also carry the closed status, priority and billable outcome). The
 server takes the last row as the record's current state, stamps each new row's author (`updated_by`) and lets only
 the author or a System Manager change or delete a row. A save writes the whole table back, so the app sends the rows
 in their stored order with their `updated_by` (`toUpdateLogRows` in `pages/project-details/shared/`) and shows them
@@ -259,8 +260,19 @@ documents followed by me" setting, else the server ignores it. In code: `useFoll
 _Avoid_: subscriber (that's a note subscription), watcher (in code).
 
 **Growth initiative** — an upsell or expansion idea on a project, tracked from ideation to close
-(`PMS Growth Initiative`).
-_Avoid_: opportunity, lead.
+(`PMS Growth Initiative`): an activity (its title), a category, a priority for the client, a status, a billable
+outcome, a description and a desired outcome. Its **activity owner** carries it (and gates it, see owner-gated
+permission) and its **ideation owner** proposed it. A status (`PMS Growth Initiative Status` of type Status) may close
+it (`is_closed`), and then it needs a **closed status** (Won, Lost, Not Pursued). Status, priority and billable
+outcome change only through its update log's updates. Its linked ToDos show as "Action items". The Growth tab lists
+the project's initiatives in an open and a closed group, and `?growth=` opens one. In code: `provideGrowth()` /
+`useGrowth()` and `useGrowthDetail()` in `pages/project-details/growth/`.
+_Avoid_: opportunity, lead, deal.
+
+**Record activity** — a document's history as the Growth detail shows it: who created it, who last edited it, and
+each tracked change (from its Versions) as "changed the value of X from a to b", or rows added, removed and changed
+in a table (`get_activity`). In code: `ActivitySection` in `pages/project-details/shared/`.
+_Avoid_: timeline (that's the Calendar's), audit log, update log (that's the updates).
 
 ## Dashboards
 
