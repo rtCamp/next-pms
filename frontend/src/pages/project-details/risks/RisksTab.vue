@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import LoadError from "@/pages/project-details/LoadError.vue";
+import RiskDetail from "./RiskDetail.vue";
 import RisksHeader from "./RisksHeader.vue";
 import RisksList from "./RisksList.vue";
 import { provideRisks } from "./useRisks";
@@ -9,7 +10,8 @@ const { riskId, loading, loadError, refresh } = provideRisks();
 </script>
 
 <template>
-  <div v-if="!riskId" class="flex flex-col gap-3.5">
+  <RiskDetail v-if="riskId" :key="riskId" :risk-id="riskId" />
+  <div v-else class="flex flex-col gap-3.5">
     <RisksHeader />
     <LoadError
       v-if="loadError"
