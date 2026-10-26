@@ -22,6 +22,7 @@ MANAGER = "test.linked.todo.pm@example.com"
 GATED = "test.linked.todo.pu@example.com"
 OUTSIDER = "test.linked.todo.emp@example.com"
 RESTRICTED = "test.linked.todo.restricted@example.com"
+DELIVERY = "test.linked.todo.du@example.com"
 
 
 class LinkedTodoTestCase(IntegrationTestCase):
@@ -35,6 +36,7 @@ class LinkedTodoTestCase(IntegrationTestCase):
         cls.make_user(GATED, ["Projects User"])
         cls.make_user(OUTSIDER, ["Employee"])
         cls.make_user(RESTRICTED, ["Projects Manager"])
+        cls.make_user(DELIVERY, ["Delivery User", "Timesheet User"])
         cls.project = cls.make_project("Linked ToDo Project")
         cls.other_project = cls.make_project("Linked ToDo Other Project")
         if not frappe.db.exists("User Permission", {"user": RESTRICTED, "allow": "Project"}):
@@ -187,7 +189,7 @@ class TestLinkedTodoValidation(LinkedTodoTestCase):
         initiative.save()
         self.assertEqual(self.linked_todos(initiative), [todo.name])
 
-    def test_saving_owner_with_a_new_link_needs_read_on_its_project(self):
+    def test_user_without_project_read_needs_read_on_the_new_todo(self):
         initiative = self.make_initiative(activity_owner=RESTRICTED)
         todo = self.make_todo()
 
@@ -196,6 +198,23 @@ class TestLinkedTodoValidation(LinkedTodoTestCase):
         initiative.append("linked_todos", {"todo": todo.name})
         with self.assertRaises(frappe.PermissionError):
             initiative.save()
+
+    def test_user_outside_project_roles_needs_read_on_the_new_todo(self):
+        initiative = self.make_initiative()
+        others_todo = self.make_todo()
+        own_todo = self.make_todo(allocated_to=DELIVERY)
+
+        frappe.set_user(DELIVERY)
+        self.assertTrue(frappe.has_permission("Project", "read", doc=self.project))
+        initiative = frappe.get_doc(GROWTH, initiative.name)
+        initiative.append("linked_todos", {"todo": others_todo.name})
+        with self.assertRaises(frappe.PermissionError):
+            initiative.save()
+
+        initiative = frappe.get_doc(GROWTH, initiative.name)
+        initiative.append("linked_todos", {"todo": own_todo.name})
+        initiative.save()
+        self.assertEqual(self.linked_todos(initiative), [own_todo.name])
 
     def test_reassigned_todo_does_not_block_unrelated_owner_edits(self):
         initiative = self.make_initiative()
