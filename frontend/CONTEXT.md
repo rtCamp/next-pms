@@ -229,7 +229,34 @@ _Avoid_: tag, type.
 (`custom_account_manager_`, a site field that may not exist) is always notified and can't unsubscribe.
 _Avoid_: follow (that's Frappe's document follow), watch.
 
-**Risk** — a project risk with category, level, status, owner and mitigation plan (`Risk`).
+**Risk** — something that may hurt a project, with a category, a level (Low, Medium, High), a status (To-do, In
+Progress, Escalated, Blocked, Mitigated), a summary and a mitigation plan (`Risk`). Its **risk owner** is the user
+responsible for it, the project manager unless picked; its creator shows as "Owner". A risk changes level and status
+only through risk updates. The Risks tab lists the project's risks in an open and a mitigated group, and `?risk=`
+opens one. In code: `provideRisks()` / `useRisks()` and `useRiskDetail()` in `pages/project-details/risks/`.
+_Avoid_: issue, RAG status (that's the project's health).
+
+**Risk update** — a row of a risk's update log (`Risk Update`): a status, a level and a note, posted by its author.
+_Avoid_: comment, status update (that's a note).
+
+**Update log** — a record's table of updates (a risk's `risk_update_log`, a growth initiative's `update_log`). The
+server takes the last row as the record's current state, stamps each new row's author (`updated_by`) and lets only
+the author or a System Manager change or delete a row. A save writes the whole table back, so the app sends the rows
+in their stored order with their `updated_by` (`toUpdateLogRows` in `pages/project-details/shared/`) and shows them
+newest first.
+_Avoid_: history, activity (that's the record's Version log).
+
+**Owner-gated permission** — the access rule of risks and growth initiatives: System Manager, Projects Manager,
+Delivery Manager, Delivery User and Timesheet Manager edit and delete any; a Projects User edits only the ones they
+own (the risk owner, the activity owner) and deletes none. The backend enforces it in `has_permission`; the page
+hides the actions with `useOwnerGatedPermissions()`.
+_Avoid_: owner permission, record permission.
+
+**Follower** — a user following a document through Frappe's document follow (`Document Follow`), notified of its
+changes; shown as "watchers" on a risk or growth initiative. Following needs the user's "Send notifications for
+documents followed by me" setting, else the server ignores it. In code: `useFollow()` and `useFollowers()` in
+`pages/project-details/shared/`.
+_Avoid_: subscriber (that's a note subscription), watcher (in code).
 
 **Growth initiative** — an upsell or expansion idea on a project, tracked from ideation to close
 (`PMS Growth Initiative`).
