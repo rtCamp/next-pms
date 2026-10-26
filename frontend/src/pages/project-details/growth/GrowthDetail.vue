@@ -14,6 +14,7 @@ import { GROWTH_DOCTYPE } from "./constants";
 import GrowthDetailHeader from "./GrowthDetailHeader.vue";
 import GrowthPriorityPill from "./GrowthPriorityPill.vue";
 import GrowthStatusBadge from "./GrowthStatusBadge.vue";
+import GrowthUpdateDialog from "./GrowthUpdateDialog.vue";
 import { growthDetails } from "./growth";
 import { useGrowthDetail } from "./useGrowthDetail";
 
@@ -185,5 +186,6 @@ const record = computed(() => ({
         :modified="initiative.modified"
       />
     </div>
+    <GrowthUpdateDialog :detail="detail" />
   </div>
 </template>
