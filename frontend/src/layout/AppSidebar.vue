@@ -16,6 +16,7 @@ import { switchableApps, type AppLink } from "./apps";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
 import AppSidebarSection from "./AppSidebarSection.vue";
 import GlobalSearch from "./GlobalSearch.vue";
+import SettingsModal from "./settings/SettingsModal.vue";
 import {
   computeSearchItems,
   computeSections,
@@ -34,7 +35,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{ logout: [] }>();
 
-// The sidebar, the search palette and the notification tray; nothing is passed through.
+// The sidebar and its dialogs; nothing is passed through.
 defineOptions({ inheritAttrs: false });
 
 const { resolvedColorScheme, toggleColorScheme } = useColorScheme();
@@ -55,6 +56,7 @@ function itemKey(item: NavItem | NavAction) {
   return "to" in item ? item.to : item.action;
 }
 
+const settingsOpen = ref(false);
 const searchOpen = ref(false);
 const searchItems = computed(() =>
   computeSearchItems(props.roles, props.employee),
@@ -114,6 +116,13 @@ const menuItems = computed(() => [
     })),
   },
   {
+    label: "Settings",
+    icon: "lucide-settings",
+    onClick: () => {
+      settingsOpen.value = true;
+    },
+  },
+  {
     label: resolvedColorScheme.value === "dark" ? "Light mode" : "Dark mode",
     icon: resolvedColorScheme.value === "dark" ? "lucide-sun" : "lucide-moon",
     onClick: toggleColorScheme,
@@ -164,6 +173,7 @@ const menuItems = computed(() => [
   </Sidebar>
 
   <GlobalSearch v-model:open="searchOpen" :items="searchItems" />
+  <SettingsModal v-model:open="settingsOpen" :roles="roles" />
 
   <NotificationTray
     v-if="hasNotifications"
