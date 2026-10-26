@@ -13,6 +13,7 @@ import { dayjs, dialog, toast, useCall, useDoctype } from "frappe-ui";
 import { useDoctypeListUpdates } from "@/composables/useDoctypeListUpdates";
 import { useQueryPatch } from "@/composables/useQueryPatch";
 import { createOwnWrites } from "@/pages/project-details/ownWrites";
+import { useFollow } from "@/pages/project-details/shared/useFollow";
 import { useTodos } from "@/pages/project-details/to-do/useTodos";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
 import { useSession } from "@/session";
@@ -225,14 +226,7 @@ function createTimeline() {
     method: "POST",
     immediate: false,
   });
-  const updateFollow = useCall<
-    unknown,
-    { doctype: string; doc_name: string; following: boolean }
-  >({
-    url: "/api/v2/method/frappe.desk.form.document_follow.update_follow",
-    method: "POST",
-    immediate: false,
-  });
+  const { toggleFollow: updateFollow } = useFollow(TIMELINE_ITEM_DOCTYPE);
   const createItem = useCall<{ name: string }, Record<string, unknown>>({
     url: `${TIMELINE_API}.create_project_timeline_item`,
     method: "POST",
@@ -274,24 +268,8 @@ function createTimeline() {
   }
 
   async function toggleFollow(item: TimelineItem) {
-    const following = isFollowing(item, session.userId);
-    let result: unknown;
-    try {
-      result = await updateFollow.submit({
-        doctype: TIMELINE_ITEM_DOCTYPE,
-        doc_name: item.name,
-        following: !following,
-      });
-    } catch (error) {
-      toast.error(errorMessage(error));
-      return;
-    }
-    if (!following && !result) {
-      toast.error("Document follow is not enabled for current user.");
-      return;
-    }
-    toast.success(following ? "Unfollowed document" : "Following document");
-    refetch();
+    if (await updateFollow(item.name, isFollowing(item, session.userId)))
+      refetch();
   }
 
   /** Reads the item for its linked ToDos, then confirms; the dialog keeps a failed delete's error. */
