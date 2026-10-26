@@ -2,9 +2,12 @@
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import LoadError from "@/pages/project-details/LoadError.vue";
 import RiskDetail from "./RiskDetail.vue";
+import RiskDialog from "./RiskDialog.vue";
 import RisksHeader from "./RisksHeader.vue";
 import RisksList from "./RisksList.vue";
 import { provideRisks } from "./useRisks";
+
+defineOptions({ inheritAttrs: false });
 
 const { riskId, loading, loadError, refresh } = provideRisks();
 </script>
@@ -23,4 +26,5 @@ const { riskId, loading, loadError, refresh } = provideRisks();
       <RisksList />
     </LoadingOverlay>
   </div>
+  <RiskDialog />
 </template>

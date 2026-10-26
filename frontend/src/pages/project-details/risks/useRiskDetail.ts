@@ -91,6 +91,10 @@ export function useRiskDetail(riskId: string) {
     updateDialogOpen.value = true;
   }
 
+  function closeUpdateDialog() {
+    updateDialogOpen.value = false;
+  }
+
   const saveLog = useDocumentWrite(RISK_DOCTYPE, "PUT");
 
   function writeLog(current: RiskDoc, log: unknown[]) {
@@ -176,6 +180,7 @@ export function useRiskDetail(riskId: string) {
     savingUpdate,
     openAddUpdate,
     openEditUpdate,
+    closeUpdateDialog,
     saveUpdate,
     requestDeleteUpdate,
   };

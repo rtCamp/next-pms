@@ -9,6 +9,7 @@ import { RISK_DOCTYPE } from "./constants";
 import RiskDetailHeader from "./RiskDetailHeader.vue";
 import RiskLevelPill from "./RiskLevelPill.vue";
 import RiskStatusBadge from "./RiskStatusBadge.vue";
+import RiskUpdateDialog from "./RiskUpdateDialog.vue";
 import { useRiskDetail } from "./useRiskDetail";
 
 const props = defineProps<{ riskId: string }>();
@@ -122,5 +123,6 @@ const {
         <p v-else class="text-sm text-ink-gray-5">No updates yet.</p>
       </section>
     </div>
+    <RiskUpdateDialog :detail="detail" />
   </div>
 </template>

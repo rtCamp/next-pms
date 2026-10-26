@@ -67,6 +67,8 @@ export interface ProjectDoc {
   custom_project_rag_status?: string;
   /** User ID of the project manager. */
   custom_project_manager?: string | null;
+  /** Full name of the project manager. */
+  custom_project_manager_name?: string | null;
   /** User ID of the lead engineer. */
   custom_engineering_manager?: string | null;
   custom_customer_contacts?: ProjectCustomerContact[];
