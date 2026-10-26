@@ -4,13 +4,11 @@
 import { Fragment } from "react";
 import { Popover } from "@base-ui/react/popover";
 import { Tooltip } from "@rtcamp/frappe-ui-react";
-import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 import { Info } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
-import { WIKI_BASE } from "./constants";
 import type { InfoHoverCardProps, LegendItem } from "./types";
 import { mergeClassNames as cn } from "../../utils";
 
@@ -33,7 +31,6 @@ function LegendSample({ item }: { item: LegendItem }) {
   );
 }
 
-/** A popover rather than a tooltip, so the wiki link inside stays clickable. */
 export default function InfoHoverCard({
   help,
   tooltip,
@@ -129,19 +126,6 @@ export default function InfoHoverCard({
                     <li key={line}>{line}</li>
                   ))}
                 </ul>
-              )}
-              {help.wiki && (
-                <>
-                  <div className="h-px w-full bg-outline-gray-1" />
-                  <a
-                    href={`${WIKI_BASE}/${help.wiki}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex w-fit items-center gap-1 self-center text-xs text-ink-gray-7 underline underline-offset-2 hover:text-ink-gray-9"
-                  >
-                    Learn more in the wiki <ArrowUpRight className="size-3" />
-                  </a>
-                </>
               )}
             </Popover.Popup>
           </Popover.Positioner>
