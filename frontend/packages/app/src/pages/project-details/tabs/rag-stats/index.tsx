@@ -1,7 +1,11 @@
 /**
  * External dependencies.
  */
-import { ErrorFallback, Spinner } from "@next-pms/design-system/components";
+import {
+  ErrorFallback,
+  InfoHoverCard,
+  Spinner,
+} from "@next-pms/design-system/components";
 import {
   ListHeader,
   ListHeaderItem,
@@ -18,6 +22,7 @@ import { format, parseISO } from "date-fns";
  */
 import { RagComments } from "./comments";
 import { HISTORY_COLUMNS, TRIGGER_COLUMNS } from "./constants";
+import { APPROXIMATE_DATE_TOOLTIP, RAG_STATS_HELP } from "./help";
 import type { ColumnDef, DatePrecision, RagHistory, RagTrigger } from "./types";
 import { useProjectRagDetails } from "./useProjectRagDetails";
 
@@ -36,7 +41,7 @@ function formatTriggerDate(date: string | null, precision?: DatePrecision) {
   const formatted = format(parseISO(date), "MMM d, yyyy");
   if (precision === "Approximate") {
     return (
-      <Tooltip text="Approximate date — refreshed on the weekly RAG recompute.">
+      <Tooltip text={APPROXIMATE_DATE_TOOLTIP}>
         <span>~{formatted}</span>
       </Tooltip>
     );
@@ -146,6 +151,7 @@ export function RagStats() {
           ) : (
             <span className="font-medium text-ink-gray-5">N/A</span>
           )}
+          <InfoHoverCard help={RAG_STATS_HELP.currentStatus} />
         </div>
 
         <div className="flex flex-col gap-2">
