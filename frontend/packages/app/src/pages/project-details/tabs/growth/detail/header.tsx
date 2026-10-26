@@ -12,6 +12,7 @@ import { FollowersBadge } from "@/pages/project-details/components/followersBadg
 import type { Follower } from "@/pages/project-details/types";
 import { useUser } from "@/providers/user";
 import { GROWTH_DETAIL_PARAM } from "../constants";
+import { ACTIVITY_OWNER_TOOLTIP, IDEATION_OWNER_TOOLTIP } from "../help";
 import { OwnerPill } from "./ownerPill";
 import { PriorityBadge } from "../list/cells/priorityBadge";
 import { StatusBadge } from "../list/cells/statusBadge";
@@ -64,11 +65,13 @@ export function GrowthDetailHeader({
           email={growth.activity_owner}
           details={growth.activity_owner_details}
           role="Activity owner"
+          tooltip={ACTIVITY_OWNER_TOOLTIP}
         />
         <OwnerPill
           email={growth.ideation_owner}
           details={growth.ideation_owner_details}
           role="Ideation owner"
+          tooltip={IDEATION_OWNER_TOOLTIP}
         />
         <div className="bg-surface-gray-2 rounded-full px-2 py-1">
           <StatusBadge status={growth.status} />

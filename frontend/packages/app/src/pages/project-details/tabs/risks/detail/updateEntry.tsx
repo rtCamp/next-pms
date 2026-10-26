@@ -14,7 +14,7 @@ import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import { UPDATE_ACTIONS_TOOLTIP } from "../help";
+import { UPDATE_ACTIONS_TOOLTIP } from "@/pages/project-details/help";
 import { RiskLevelBadge } from "../riskLevelBadge";
 import { RiskStatusBadge } from "../riskStatusBadge";
 import type { EnrichedRiskUpdateEntry } from "../types";

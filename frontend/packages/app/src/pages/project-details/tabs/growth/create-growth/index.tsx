@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Spinner } from "@next-pms/design-system/components";
+import { InfoHoverCard, Spinner } from "@next-pms/design-system/components";
 import {
   Button,
   Combobox,
@@ -44,6 +44,7 @@ import {
   GROWTH_DOCTYPE,
 } from "../constants";
 import { useGrowth } from "../context";
+import { GROWTH_HELP } from "../help";
 import { PriorityBadge } from "../list/cells/priorityBadge";
 import { StatusBadge } from "../list/cells/statusBadge";
 import type { ApiGrowthDetail } from "../types";
@@ -476,6 +477,7 @@ export function CreateGrowthModal({
                 enabled={open}
                 value={field.state.value}
                 onChange={field.handleChange}
+                help={GROWTH_HELP.activityOwner}
               />
             )}
           />
@@ -498,9 +500,12 @@ export function CreateGrowthModal({
               name="billable_outcome"
               children={(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <label className="block text-base text-ink-gray-5">
-                    Billable outcome
-                  </label>
+                  <div className="flex items-center gap-1.5">
+                    <label className="block text-base text-ink-gray-5">
+                      Billable outcome
+                    </label>
+                    <InfoHoverCard help={GROWTH_HELP.billableOutcome} />
+                  </div>
                   <TextInput
                     type="number"
                     size="md"

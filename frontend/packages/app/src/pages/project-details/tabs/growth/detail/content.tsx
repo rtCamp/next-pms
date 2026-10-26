@@ -2,7 +2,10 @@
  * External dependencies.
  */
 import { useState } from "react";
-import { DeleteActionDialog } from "@next-pms/design-system/components";
+import {
+  DeleteActionDialog,
+  InfoHoverCard,
+} from "@next-pms/design-system/components";
 import { Button, StaticTextEditor } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 
@@ -24,6 +27,7 @@ import { LinkedTodos } from "../../to-do/linkedTodos";
 import { AddUpdateModal } from "../add-update";
 import { GROWTH_DOCTYPE } from "../constants";
 import { useGrowth } from "../context";
+import { GROWTH_HELP } from "../help";
 import type { EnrichedGrowthUpdateEntry, GrowthDetail } from "../types";
 import { UpdateEntry } from "./updateEntry";
 
@@ -195,7 +199,10 @@ export function GrowthDetailContent({
 
       <section className="mb-4.5">
         <div className="flex justify-between items-center mb-3">
-          <h3 className="text-lg font-medium text-ink-gray-7">Updates</h3>
+          <div className="flex min-w-0 items-center gap-1.5">
+            <h3 className="text-lg font-medium text-ink-gray-7">Updates</h3>
+            <InfoHoverCard help={GROWTH_HELP.updates} />
+          </div>
           {canEdit && (
             <Button
               type="button"
@@ -213,6 +220,7 @@ export function GrowthDetailContent({
                 key={entry.name}
                 entry={entry}
                 currency={currency}
+                showActions={canEdit}
                 canEdit={canManageEntry(entry)}
                 onEdit={() => setEditEntry(entry)}
                 onDelete={() => setDeleteEntry(entry)}
