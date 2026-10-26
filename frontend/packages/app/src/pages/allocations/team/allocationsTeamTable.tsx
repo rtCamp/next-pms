@@ -16,6 +16,13 @@ import { ROLE_ACCESS } from "@/lib/constant";
 import { hasAnyRole, isWeekendEntryAllowed } from "@/lib/utils";
 import { useAllocationOutletContext } from "@/pages/allocations/allocationOutletContext";
 import {
+  ALLOCATIONS_GRID_HELP,
+  BOOKING_HOURS_TOOLTIP,
+  CAPACITY_TOOLTIP,
+  RATE_TOOLTIP,
+  REMAINING_HOURS_TOOLTIP,
+} from "@/pages/allocations/help";
+import {
   useGuardedAction,
   useUnsavedChangesSource,
 } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
@@ -86,6 +93,11 @@ export const AllocationsTeamTable = () => {
               startDate={anchorDate}
               members={members}
               rowHeaderLabel="Members"
+              rowHeaderHelp={ALLOCATIONS_GRID_HELP.team}
+              rateTooltip={RATE_TOOLTIP}
+              capacityTooltip={CAPACITY_TOOLTIP}
+              remainingHoursTooltip={REMAINING_HOURS_TOOLTIP}
+              hoursTooltip={BOOKING_HOURS_TOOLTIP}
               weekCount={weekCount}
               fillHeight={!hasMore}
               hasRoleAccess={canManageAllocations}

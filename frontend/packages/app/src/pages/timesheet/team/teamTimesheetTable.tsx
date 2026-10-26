@@ -18,6 +18,7 @@ import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
 import { usePMSSettings } from "@/hooks/usePMSSettings";
 import { getDefaultExpandedWeeks } from "@/lib/utils";
 import { useTeamTimesheet } from "./context";
+import { TEAM_TIMESHEET_HELP } from "./help";
 import { SubHeader } from "./subHeader";
 import { TeamTimesheetWeek } from "./teamTimesheetWeek";
 import WeeklyApproval from "./weekly-approval";
@@ -99,6 +100,8 @@ const TeamTimesheetGrid = () => {
                         <HeaderRow
                           dates={week.dates}
                           showHeading={true}
+                          help={TEAM_TIMESHEET_HELP.dayCells}
+                          totalHelp={TEAM_TIMESHEET_HELP.total}
                           breadcrumbs={{
                             items: [
                               { label: "Week", interactive: false },

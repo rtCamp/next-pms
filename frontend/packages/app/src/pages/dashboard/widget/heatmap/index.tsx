@@ -2,6 +2,8 @@
  * External dependencies.
  */
 import { useEffect, useMemo, useRef } from "react";
+import { InfoHoverCard } from "@next-pms/design-system/components";
+import type { FieldHelp } from "@next-pms/design-system/components";
 import { useSavedState } from "@next-pms/hooks";
 import { MultiSelect } from "@rtcamp/frappe-ui-react";
 import type { MultiSelectOption } from "@rtcamp/frappe-ui-react";
@@ -84,7 +86,7 @@ function getCellState(week: RoleAllocationWeek): HeatmapCellState {
   return "partial";
 }
 
-export default function HeatmapCard() {
+export default function HeatmapCard({ help }: { help: FieldHelp }) {
   const [selectedRoles, setSelectedRoles] = useSavedState(
     "heatmapRoles",
     [] as string[],
@@ -154,7 +156,10 @@ export default function HeatmapCard() {
   return (
     <>
       <div className="flex shrink-0 items-start justify-between gap-4">
-        <h3 className="text-lg font-semibold text-ink-gray-8">Heatmap</h3>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <h3 className="text-lg font-semibold text-ink-gray-8">Heatmap</h3>
+          <InfoHoverCard help={help} />
+        </div>
         <div className="w-44 shrink-0">
           <MultiSelect
             popupClassName="scrollbar-thin"

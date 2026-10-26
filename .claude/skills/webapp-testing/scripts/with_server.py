@@ -76,6 +76,7 @@ def main():
             print(f"Starting server {i + 1}/{len(servers)}: {server['cmd']}")
 
             # Use shell=True to support commands with cd and &&
+            # nosemgrep - local dev CLI; command comes from the invoking developer's argv
             process = subprocess.Popen(server["cmd"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             server_processes.append(process)
 
@@ -90,6 +91,7 @@ def main():
 
         # Run the command
         print(f"Running: {' '.join(args.command)}\n")
+        # nosemgrep - argv list, no shell; supplied by the invoking developer
         result = subprocess.run(args.command)
         sys.exit(result.returncode)
 

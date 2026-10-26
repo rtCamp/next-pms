@@ -1,5 +1,7 @@
 import { Link } from "react-router";
 import { mergeClassNames } from "@next-pms/design-system";
+import { InfoHoverCard } from "@next-pms/design-system/components";
+import type { FieldHelp } from "@next-pms/design-system/components";
 import { formatNumber } from "@/lib/utils";
 
 export type StatCardData = {
@@ -8,6 +10,7 @@ export type StatCardData = {
   subLabel?: string;
   className?: string;
   to?: string;
+  help?: FieldHelp;
 };
 
 const CARD_BASE =
@@ -19,10 +22,14 @@ export function StatCard({
   subLabel,
   className,
   to,
+  help,
 }: StatCardData) {
   const content = (
     <>
-      <span className="truncate text-base text-ink-gray-5">{label}</span>
+      <span className="flex min-w-0 items-center gap-1.5">
+        <span className="truncate text-base text-ink-gray-5">{label}</span>
+        {help && <InfoHoverCard help={help} className="relative z-10" />}
+      </span>
       <div className="flex items-baseline gap-1">
         <span className="text-2xl font-medium text-ink-gray-8">
           {formatNumber(value)}
@@ -36,16 +43,20 @@ export function StatCard({
 
   if (to) {
     return (
-      <Link
-        to={to}
+      <div
         className={mergeClassNames(
           CARD_BASE,
-          "hover:bg-surface-gray-1 transition-colors",
+          "relative hover:bg-surface-gray-1 transition-colors",
           className,
         )}
       >
+        <Link
+          to={to}
+          aria-label={label}
+          className="absolute inset-0 rounded-lg"
+        />
         {content}
-      </Link>
+      </div>
     );
   }
 

@@ -1,8 +1,14 @@
 /**
+ * External dependencies.
+ */
+import { InfoHoverCard } from "@next-pms/design-system/components";
+
+/**
  * Internal dependencies.
  */
 import { mergeClassNames as cn } from "@/lib/utils";
 import { useTracking } from "../context";
+import { TRACKING_HELP } from "../help";
 
 // Full circle normalized to 200 units; the rotated dash keeps only the
 // top semicircle (100 units) visible, so gauge values map 1:1 to percent.
@@ -27,9 +33,12 @@ export function TaskCompletionCell({
 
   return (
     <div className="flex flex-1 flex-col gap-3 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
-      <span className="text-base font-medium text-ink-gray-8">
-        Task completion
-      </span>
+      <div className="flex min-w-0 items-center gap-1.5">
+        <span className="text-base font-medium text-ink-gray-8">
+          Task completion
+        </span>
+        <InfoHoverCard help={TRACKING_HELP.taskCompletion} />
+      </div>
       <div
         className={cn(
           "flex flex-1 flex-col items-center justify-center gap-5",

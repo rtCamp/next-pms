@@ -6,6 +6,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { LEADERSHIP_STAT_HELP } from "@/pages/dashboard/help";
 import { ACTIVE_PROJECTS_URL, AT_RISK_PROJECTS_URL } from "./constants";
 import { StatCardSkeleton } from "./skeleton";
 import { StatCard } from "./statCard";
@@ -59,6 +60,7 @@ export function LeadershipStatCards() {
         <StatCard
           className="flex-1 cursor-pointer"
           label="At risk projects"
+          help={LEADERSHIP_STAT_HELP.atRiskProjects}
           value={atRiskProjectData?.message ?? "-"}
           to={AT_RISK_PROJECTS_URL}
         />
@@ -69,6 +71,7 @@ export function LeadershipStatCards() {
         <StatCard
           className="flex-1"
           label="Members without allocation"
+          help={LEADERSHIP_STAT_HELP.membersWithoutAllocation}
           subLabel="this month"
           value={membersWithoutAllocationData?.message?.count ?? "-"}
         />
@@ -79,6 +82,7 @@ export function LeadershipStatCards() {
         <StatCard
           className="flex-1"
           label="Non-billable hours logged"
+          help={LEADERSHIP_STAT_HELP.nonBillableHours}
           subLabel="this month"
           value={nonBillableHoursData?.message ?? "-"}
         />

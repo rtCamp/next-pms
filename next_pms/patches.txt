@@ -54,3 +54,4 @@ next_pms.next_projects.patches.setup_project_permissions_for_managers
 next_pms.next_projects.patches.create_default_technologies
 next_pms.next_projects.patches.setup_project_tech_stack_field
 next_pms.next_projects.patches.setup_crm_deal_tech_stack_field
+next_pms.next_pms.patches.setup_custom_docperms

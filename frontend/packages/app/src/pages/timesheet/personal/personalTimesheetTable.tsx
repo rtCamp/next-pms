@@ -19,6 +19,7 @@ import { getDefaultExpandedWeeks } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
 import { usePersonalTimesheet } from "./context";
+import { PERSONAL_TIMESHEET_HELP } from "./help";
 import { SubHeader } from "./subHeader";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
@@ -105,6 +106,8 @@ const PersonalTimesheetGrid = () => {
                               <HeaderRow
                                 dates={value.dates}
                                 showHeading={true}
+                                help={PERSONAL_TIMESHEET_HELP.dayCells}
+                                totalHelp={PERSONAL_TIMESHEET_HELP.total}
                                 breadcrumbs={{
                                   items: [
                                     { label: "Week", interactive: false },

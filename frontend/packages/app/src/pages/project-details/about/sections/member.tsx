@@ -10,6 +10,7 @@ import { AddSm, Globe } from "@rtcamp/frappe-ui-react/icons";
  */
 import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
 import type { EmployeeLookupOption } from "@/hooks/useEmployeeLookup";
+import { EVERYONE_BADGE_TOOLTIP } from "../../help";
 import { AddMemberModal } from "../components/addMemberModal";
 import { ExpandableList } from "../components/expandableList";
 import { MemberHoverCard } from "../components/memberHoverCard";
@@ -142,7 +143,7 @@ export function MemberSection() {
             </h3>
 
             {isSharedWithEveryone && (
-              <Tooltip text="Shared with everyone in the organization">
+              <Tooltip text={EVERYONE_BADGE_TOOLTIP}>
                 <span>
                   <Badge
                     className="mt-1.5"

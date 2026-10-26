@@ -1,7 +1,13 @@
 /**
+ * External dependencies.
+ */
+import type { FieldHelp } from "@next-pms/design-system/components";
+
+/**
  * Internal dependencies.
  */
 import type { Role } from "@/types";
+import { TRACKING_HELP } from "./help";
 import type { ContractRow, RateRow, TrackingLayout, WidgetKey } from "./types";
 
 export const CUSTOMIZATION_ROLES: Role[] = ["Projects Manager"];
@@ -43,6 +49,7 @@ export type ColumnDef<K extends string = string> = {
   label: string;
   width: string;
   align?: "left" | "right";
+  help?: FieldHelp;
 };
 
 export type ContractColumnKey = keyof ContractRow | "actions";
@@ -52,7 +59,13 @@ export const CONTRACT_COLUMNS: ColumnDef<ContractColumnKey>[] = [
   { key: "startDate", label: "Start date", width: "88px" },
   { key: "endDate", label: "End date", width: "88px" },
   { key: "hoursBought", label: "Hours bought", width: "88px", align: "right" },
-  { key: "hoursUsed", label: "Hours used", width: "88px", align: "right" },
+  {
+    key: "hoursUsed",
+    label: "Hours used",
+    width: "88px",
+    align: "right",
+    help: TRACKING_HELP.contractHours,
+  },
   { key: "hoursLeft", label: "Hours left", width: "88px", align: "right" },
   { key: "salesOrder", label: "Sales order", width: "1fr" },
   { key: "salesInvoice", label: "Sales invoice", width: "1fr" },

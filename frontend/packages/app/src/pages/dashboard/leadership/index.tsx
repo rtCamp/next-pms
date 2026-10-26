@@ -8,6 +8,7 @@ import { Breadcrumbs } from "@rtcamp/frappe-ui-react";
  * Internal dependencies.
  */
 import { Header } from "@/layout/header";
+import { LEADERSHIP_WIDGET_HELP } from "@/pages/dashboard/help";
 import { useUser } from "@/providers/user";
 import CalendarTimelineCard from "../widget/calendar-timeline";
 import WidgetCard from "../widget/components/card";
@@ -76,7 +77,7 @@ export default function LeadershipDashboard() {
             />
           </WidgetCard>
           <WidgetCard className="h-[300px] col-span-8 p-4">
-            <HeatmapCard />
+            <HeatmapCard help={LEADERSHIP_WIDGET_HELP.heatmap} />
           </WidgetCard>
           <WidgetCard className="h-[300px] col-span-4 p-4">
             <NotificationsCard />
@@ -91,7 +92,7 @@ export default function LeadershipDashboard() {
             <ForecastBreakdownCard />
           </WidgetCard>
           <WidgetCard className="col-span-12 gap-3 p-0">
-            <CalendarTimelineCard />
+            <CalendarTimelineCard help={LEADERSHIP_WIDGET_HELP.calendar} />
           </WidgetCard>
         </section>
       </div>

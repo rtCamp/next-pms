@@ -2,7 +2,10 @@
  * External dependencies.
  */
 import { useState } from "react";
-import { DeleteActionDialog } from "@next-pms/design-system/components";
+import {
+  DeleteActionDialog,
+  InfoHoverCard,
+} from "@next-pms/design-system/components";
 import {
   Button,
   ListHeader,
@@ -60,9 +63,11 @@ export function ContractsTable() {
       >
         <ListHeader className="mb-0 rounded-none border-b border-outline-gray-1 bg-transparent p-1 px-2 gap-4">
           {CONTRACT_COLUMNS.map((column) => (
-            <ListHeaderItem key={column.key} item={column}>
-              {column.label}
-            </ListHeaderItem>
+            <ListHeaderItem
+              key={column.key}
+              item={column}
+              suffix={column.help && <InfoHoverCard help={column.help} />}
+            />
           ))}
         </ListHeader>
         <ListRows>

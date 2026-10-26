@@ -6,6 +6,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { MANAGER_STAT_HELP } from "@/pages/dashboard/help";
 import { AT_RISK_PROJECTS_URL } from "./constants";
 import { StatCardSkeleton } from "./skeleton";
 import { StatCard } from "./statCard";
@@ -53,6 +54,7 @@ export function ManagerStatCards() {
         <StatCard
           className="flex-1 cursor-pointer"
           label="At risk projects"
+          help={MANAGER_STAT_HELP.atRiskProjects}
           value={atRiskProjectData?.message ?? "-"}
           to={AT_RISK_PROJECTS_URL}
         />
@@ -63,6 +65,7 @@ export function ManagerStatCards() {
         <StatCard
           className="flex-1"
           label="Members without allocation"
+          help={MANAGER_STAT_HELP.membersWithoutAllocation}
           subLabel="this week"
           value={membersWithoutAllocationData?.message?.count ?? "-"}
         />
@@ -73,6 +76,7 @@ export function ManagerStatCards() {
         <StatCard
           className="flex-1"
           label="Timesheets to review"
+          help={MANAGER_STAT_HELP.timesheetsToReview}
           subLabel="this week"
           value={timesheetsToReviewData?.message?.length ?? "-"}
         />
@@ -83,6 +87,7 @@ export function ManagerStatCards() {
         <StatCard
           className="flex-1"
           label="Outstanding timesheets"
+          help={MANAGER_STAT_HELP.outstandingTimesheets}
           value={outstandingTimesheetsData?.message?.count ?? "-"}
         />
       )}

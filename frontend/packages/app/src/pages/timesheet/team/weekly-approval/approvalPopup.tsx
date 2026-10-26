@@ -4,7 +4,7 @@
 import { Accordion } from "@base-ui/react/accordion";
 import { Dialog } from "@base-ui/react/dialog";
 import { floatToTime } from "@next-pms/design-system";
-import { Avatar, Button, Checkbox } from "@rtcamp/frappe-ui-react";
+import { Avatar, Button, Checkbox, Tooltip } from "@rtcamp/frappe-ui-react";
 import {
   SmallDown,
   Close,
@@ -15,6 +15,7 @@ import {
 /**
  * Internal Dependencies
  */
+import { DECIDED_DAY_TOOLTIP } from "../help";
 import EntryRow from "./entryRow";
 import { useWeeklyApproval } from "./provider";
 
@@ -44,7 +45,7 @@ const ApprovalPopup = () => {
     .find((reason) => Boolean(reason));
 
   return (
-    <Dialog.Popup className="fixed right-0 top-0 max-w-120 w-full h-[calc(100vh-20px)] m-2.5 z-101 bg-surface-modal rounded-xl shadow-xl flex flex-col">
+    <Dialog.Popup className="fixed right-0 top-0 max-w-120 w-full h-[calc(100vh-20px)] m-2.5 z-12 bg-surface-modal rounded-xl shadow-xl flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-3.5 py-4 border-b border-outline-gray-modals">
         <div className="min-w-0">
@@ -108,18 +109,23 @@ const ApprovalPopup = () => {
                   <span className="text-lg font-medium text-ink-green-4 tabular-nums lining-nums">
                     {floatToTime(dayGroup.totalHours, 2, 2)}
                   </span>
-                  <div
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center"
+                  <Tooltip
+                    text={DECIDED_DAY_TOOLTIP}
+                    disabled={!dayGroup.isDecided}
                   >
-                    <Checkbox
-                      value={checkedDays.has(dayGroup.day)}
-                      disabled={isReadOnly || dayGroup.isDecided}
-                      onChange={(checked) =>
-                        handleDayCheckChange(dayGroup.day, checked)
-                      }
-                    />
-                  </div>
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center"
+                    >
+                      <Checkbox
+                        value={checkedDays.has(dayGroup.day)}
+                        disabled={isReadOnly || dayGroup.isDecided}
+                        onChange={(checked) =>
+                          handleDayCheckChange(dayGroup.day, checked)
+                        }
+                      />
+                    </div>
+                  </Tooltip>
                 </div>
               </Accordion.Trigger>
               <Accordion.Panel className="bg-surface-white accordion-panel">

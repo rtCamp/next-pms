@@ -11,6 +11,7 @@ import { Star, SolidStar } from "@rtcamp/frappe-ui-react/icons";
  */
 import { isLiked, parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
+import { STAR_TASK_TOOLTIP } from "../../help";
 import { useTaskList } from "../context";
 
 export function LikeCell({ name, likedBy }: { name: string; likedBy: string }) {
@@ -34,7 +35,7 @@ export function LikeCell({ name, likedBy }: { name: string; likedBy: string }) {
   }, [error]);
 
   return (
-    <Tooltip text={liked ? "Unstar task" : "Star task"}>
+    <Tooltip text={liked ? "Unstar task" : STAR_TASK_TOOLTIP}>
       <button
         type="button"
         disabled={isToggling}

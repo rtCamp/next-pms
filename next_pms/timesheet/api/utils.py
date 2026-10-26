@@ -274,6 +274,8 @@ def apply_role_permission_for_doctype(roles: list[str], doctype: str, ptype: str
 
 
 def employee_has_higher_access(employee: str, ptype: str = "read") -> bool:
+    """Whether the session user may `ptype` the timesheets of `employee` (the target
+    record, never the caller's own: that would return True for everyone)."""
     from .employee import get_employee_from_user
 
     if frappe.session.user == "Administrator":
