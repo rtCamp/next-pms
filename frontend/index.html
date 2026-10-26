@@ -9,11 +9,11 @@
       // Apply the saved light or dark mode before the first paint, so the page
       // doesn't flash. useColorScheme() in the app keeps it in sync after that.
       // Blocked site data makes touching localStorage throw; use light then.
-      // Until the app has saved one, take the React app's choice; main.ts also
-      // falls back to the Desk theme, which isn't loaded yet here.
+      // The user's pick first, as main.ts does; the Desk theme isn't loaded yet
+      // here, so `theme` stands in with the one applied last time.
       const scheme = navigator.cookieEnabled
-        ? localStorage.getItem('theme') ??
-          localStorage.getItem('next-pms-ui-theme')
+        ? localStorage.getItem('next-pms-ui-theme') ??
+          localStorage.getItem('theme')
         : 'light'
       const dark =
         scheme === 'dark' ||

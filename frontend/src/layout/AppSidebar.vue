@@ -12,6 +12,7 @@ import { NotificationTray } from "@/components/NotificationTray";
 import { useNotifications } from "@/composables/useNotifications";
 import type { Role } from "@/session";
 import logo from "@/assets/logo.svg";
+import { rememberColorScheme } from "@/utils/theme";
 import { switchableApps, type AppLink } from "./apps";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
 import AppSidebarSection from "./AppSidebarSection.vue";
@@ -125,7 +126,10 @@ const menuItems = computed(() => [
   {
     label: resolvedColorScheme.value === "dark" ? "Light mode" : "Dark mode",
     icon: resolvedColorScheme.value === "dark" ? "lucide-sun" : "lucide-moon",
-    onClick: toggleColorScheme,
+    onClick: () => {
+      toggleColorScheme();
+      rememberColorScheme(resolvedColorScheme.value);
+    },
   },
   { label: "Log out", icon: "lucide-log-out", onClick: () => emit("logout") },
 ]);
