@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Spinner } from "@next-pms/design-system/components";
+import { InfoHoverCard, Spinner } from "@next-pms/design-system/components";
 import {
   Button,
   Combobox,
@@ -33,6 +33,7 @@ import { useProjectDetail } from "@/pages/project-details/context";
 import { toEmployeeUserOptions } from "@/pages/project-details/utils";
 import { RISK_LEVELS, RISK_STATUSES } from "../constants";
 import { useRisks } from "../context";
+import { RISKS_HELP } from "../help";
 import { EMPTY_RISK_VALUES } from "./constants";
 import { createRiskSchema, editRiskSchema } from "./schema";
 import type { CreateRiskModalProps } from "./types";
@@ -330,9 +331,12 @@ export function CreateRiskModal({
             name="risk_owner"
             children={(field) => (
               <div className="flex flex-col gap-1.5">
-                <label className="block text-base text-ink-gray-5">
-                  Risk owner
-                </label>
+                <div className="flex items-center gap-1.5">
+                  <label className="block text-base text-ink-gray-5">
+                    Risk owner
+                  </label>
+                  <InfoHoverCard help={RISKS_HELP.riskOwner} />
+                </div>
                 <Combobox
                   inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={employeesLoading}

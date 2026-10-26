@@ -2,18 +2,26 @@
  * External dependencies.
  */
 import { formatRelativeTimeShort } from "@next-pms/design-system/utils";
-import { Avatar, Dropdown, StaticTextEditor } from "@rtcamp/frappe-ui-react";
+import {
+  Avatar,
+  Button,
+  Dropdown,
+  StaticTextEditor,
+  Tooltip,
+} from "@rtcamp/frappe-ui-react";
 import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
+import { UPDATE_ACTIONS_TOOLTIP } from "../help";
 import { RiskLevelBadge } from "../riskLevelBadge";
 import { RiskStatusBadge } from "../riskStatusBadge";
 import type { EnrichedRiskUpdateEntry } from "../types";
 
 interface UpdateEntryProps {
   entry: EnrichedRiskUpdateEntry;
+  showActions: boolean;
   canEdit: boolean;
   onEdit: () => void;
   onDelete: () => void;
@@ -21,11 +29,13 @@ interface UpdateEntryProps {
 
 export function UpdateEntry({
   entry,
+  showActions,
   canEdit,
   onEdit,
   onDelete,
 }: UpdateEntryProps) {
   const userDetails = entry.updated_by_details;
+  const authorName = userDetails?.full_name ?? entry.updated_by;
   const filteredNote = entry.note ?? "";
 
   return (
@@ -36,11 +46,11 @@ export function UpdateEntry({
           size="sm"
           shape="circle"
           image={userDetails?.user_image ?? undefined}
-          label={userDetails?.full_name ?? entry.updated_by}
+          label={authorName}
         />
 
         <span className="text-base font-medium text-ink-gray-7">
-          {userDetails?.full_name ?? entry.updated_by}
+          {authorName}
         </span>
         <span className="text-base text-ink-gray-6">posted an update.</span>
         <span className="ml-auto text-base text-ink-gray-5">
@@ -60,29 +70,41 @@ export function UpdateEntry({
             )}
             {entry.risk_level && <RiskLevelBadge level={entry.risk_level} />}
 
-            {canEdit && (
-              <Dropdown
-                placement="center"
-                button={{
-                  variant: "ghost",
-                  icon: DotHorizontal,
-                  className: "ml-auto",
-                }}
-                options={[
-                  {
-                    key: "edit",
-                    label: "Edit",
-                    onClick: onEdit,
-                  },
-                  {
-                    key: "delete",
-                    label: "Delete",
-                    theme: "red",
-                    onClick: onDelete,
-                  },
-                ]}
-              />
-            )}
+            {showActions &&
+              (canEdit ? (
+                <Dropdown
+                  placement="center"
+                  button={{
+                    variant: "ghost",
+                    icon: DotHorizontal,
+                    className: "ml-auto",
+                  }}
+                  options={[
+                    {
+                      key: "edit",
+                      label: "Edit",
+                      onClick: onEdit,
+                    },
+                    {
+                      key: "delete",
+                      label: "Delete",
+                      theme: "red",
+                      onClick: onDelete,
+                    },
+                  ]}
+                />
+              ) : (
+                <Tooltip text={UPDATE_ACTIONS_TOOLTIP(authorName)}>
+                  <span tabIndex={0} className="ml-auto">
+                    <Button
+                      variant="ghost"
+                      label="Update actions"
+                      icon={DotHorizontal}
+                      disabled
+                    />
+                  </span>
+                </Tooltip>
+              ))}
           </div>
 
           {/* Note text */}
