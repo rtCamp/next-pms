@@ -5,6 +5,8 @@ import { isLoggedIn, loadBoot, redirectToLogin } from "./boot";
 import { router } from "./router";
 import { createSocket, socketKey } from "./socket";
 import { stripHtml } from "./utils/text";
+import { applyStartingColorScheme } from "./utils/theme";
+import { notifyVersionUpdates } from "./versionUpdate";
 import "./style.css";
 
 function configureFrappeUI(boot: Boot) {
@@ -34,9 +36,12 @@ async function init() {
 
   const boot = await loadBoot();
   configureFrappeUI(boot);
+  applyStartingColorScheme(boot.desk_theme);
 
   const app = createApp(App).use(router);
-  app.provide(socketKey, createSocket(boot));
+  const socket = createSocket(boot);
+  notifyVersionUpdates(socket);
+  app.provide(socketKey, socket);
   app.mount("#app");
 }
 

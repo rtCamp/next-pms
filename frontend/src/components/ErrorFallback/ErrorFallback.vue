@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onErrorCaptured, ref } from "vue";
 import type { ErrorFallbackSlotProps } from "./types";
+import { isRenderError } from "./utils";
 
 defineSlots<{
   default?: () => unknown;
@@ -9,7 +10,10 @@ defineSlots<{
 
 const error = ref<Error | null>(null);
 
-onErrorCaptured((err) => {
+onErrorCaptured((err, _instance, info) => {
+  // As React's error boundaries: an error in an event handler or a watcher
+  // leaves the content in place and goes on to the app's error handler.
+  if (!isRenderError(info)) return;
   error.value = err instanceof Error ? err : new Error(String(err));
   console.error("Uncaught error:", err);
   // Stop propagation so a parent boundary or the app error handler doesn't

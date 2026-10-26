@@ -1,7 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import ErrorFallback from "./ErrorFallback.vue";
-import { CustomFallback, DefaultFallback } from "./ErrorFallback.stories";
+import {
+  CustomFallback,
+  DefaultFallback,
+  HandlerError,
+} from "./ErrorFallback.stories";
 
 const meta = {
   title: "Components/ErrorFallback/Interactions",
@@ -42,6 +46,17 @@ export const CatchesErrorAndResets: Story = {
 
     await userEvent.click(canvas.getByRole("button", { name: "Try again" }));
     await waitFor(() => expect(canvas.queryByRole("alert")).toBeNull());
+    await expect(canvas.getByText("Content loaded")).toBeVisible();
+  },
+};
+
+export const LeavesContentOnHandlerError: Story = {
+  ...HandlerError,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Save" }));
+    await expect(await canvas.findByText("Logged: Save failed")).toBeVisible();
+    await expect(canvas.queryByRole("alert")).toBeNull();
     await expect(canvas.getByText("Content loaded")).toBeVisible();
   },
 };

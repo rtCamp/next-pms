@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { Button } from "frappe-ui";
 import {
-  NotificationTray,
   notificationIcon,
   type NotificationEntry,
 } from "@/components/NotificationTray";
@@ -10,16 +9,10 @@ import { useNotifications } from "@/composables/useNotifications";
 
 defineOptions({ inheritAttrs: false });
 
-const { notifications, loading, markAsViewed, markAllAsViewed } =
+const { notifications, loading, trayOpen, markAsViewed, openNotification } =
   useNotifications();
-const trayOpen = ref(false);
 
 const unread = computed(() => notifications.value.filter((n) => !n.read));
-
-async function open(notification: NotificationEntry) {
-  await markAsViewed(notification.id);
-  if (notification.href) window.location.assign(notification.href);
-}
 
 // A modified or middle click opens the link elsewhere and only marks it viewed.
 function onClick(event: MouseEvent, notification: NotificationEntry) {
@@ -28,7 +21,7 @@ function onClick(event: MouseEvent, notification: NotificationEntry) {
     return;
   }
   event.preventDefault();
-  open(notification);
+  openNotification(notification);
 }
 </script>
 
@@ -76,10 +69,4 @@ function onClick(event: MouseEvent, notification: NotificationEntry) {
       </a>
     </li>
   </ul>
-  <NotificationTray
-    v-model:open="trayOpen"
-    :notifications="notifications"
-    @mark-all-read="markAllAsViewed"
-    @notification-click="open"
-  />
 </template>

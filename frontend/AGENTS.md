@@ -44,14 +44,20 @@ Storybook 10 (Vue 3 + Vite) with the MCP, Docs, Vitest, A11y and Themes addons, 
 
 ```
 src/
-  main.ts          app entry: boot data, frappe-ui config, socket, router
+  main.ts          app entry: boot data, frappe-ui config, theme seeding, socket, router
+  App.vue          the shell: loading screen, session error page, sidebar, and each page in an ErrorFallback;
+                   provides the app's notifications (provideNotifications)
   boot.ts          login check and boot data (fetched from the server on the dev server)
   socket.ts        realtime socket; use useSocket() in components
+  versionUpdate.ts the "New version available" toast on the realtime version-update event
   router.ts        routes, based at /next-pms, and the navigation guards (employee and role checks)
   router-meta.d.ts route meta: title, roles, standalone
   session/         useSession(): the signed-in user, roles and employee record; ROLE_ACCESS, hasAnyRole
-  layout/          AppSidebar (frappe-ui Sidebar), AppSidebarSection, the nav links (sidebarSections.ts), the
-                   Apps menu (apps.ts) and StatusMessage for the status pages
+  layout/          AppSidebar (frappe-ui Sidebar) with the search palette (GlobalSearch, Mod+K), the notification
+                   tray and the Settings dialog; AppSidebarSection, the nav links and search pages
+                   (sidebarSections.ts), the Apps menu (apps.ts), usePreloadRoute (loads a page's code on hovering
+                   its link), StatusMessage for the status pages and SessionError; settings/ holds the Settings
+                   dialog's panels and the Timesheet Settings form helpers (systemSettings.ts, with unit tests)
   pages/           route components; WorkInProgress stands in for pages not rebuilt yet. A rebuilt page gets a
                    folder (pages/tasks/, pages/projects/): the route component, its parts and dialogs, cells/, and
                    page-only use* composables (provide/inject state, filters and columns kept in the URL);
@@ -80,7 +86,8 @@ src/
                    (also the ToDo linking the other tabs reuse: LinkedTodos, LinkedChip), tracking/, …)
   components/      components frappe-ui lacks, one folder each; see components/Components.md
   composables/     shared use* composables: lookups, the like toggle, URL query updates, editor attributes,
-                   values saved in localStorage (useSavedState), notifications, infinite scroll, project phases,
+                   values saved in localStorage (useSavedState), notifications (useNotifications reads the shell's),
+                   the user's PMS settings (usePmsSettings), infinite scroll, project phases,
                    the unsaved changes guard, realtime updates (useDocUpdates for one document,
                    useDoctypeListUpdates for a doctype's list)
   icons/           custom icons lucide lacks, as Vue SFCs exported from icons/index.ts; everything else uses lucide-* (P4)
@@ -92,7 +99,8 @@ src/
 
 **Routes.** Give each route a `meta.title` (the tab title), and `meta.roles` from `ROLE_ACCESS` when only some
 roles may open it. The `beforeEach` guard in `router.ts` sends users without an Employee record to `/no-employee`
-and users without a role to `/no-access`. `meta.standalone` marks a status page: no sidebar, no guard checks.
+and users without a role to `/no-access`; when the session lookups fail, `App.vue` shows SessionError (Retry,
+Log out) instead of the page. `meta.standalone` marks a status page: no sidebar, no guard checks.
 `meta.scroll: false` hands scrolling to the page (DesktopShell stops scrolling it), for pages whose header or toolbar
 stays put while a pane scrolls, like the task list's rows. The note editor routes are children of `project-details`:
 the page shows them in place of its tabs, and `App.vue` keys the route view by project (`project:<id>`) rather than

@@ -10,6 +10,8 @@ interface Boot {
     can_create?: string[];
   };
   currencies?: string[];
+  /** The user's Desk theme: `Light`, `Dark` or `Automatic`. */
+  desk_theme?: string;
   sysdefaults?: { currency?: string };
   /** Server-side filters to add to lookups; `project` limits a contractor to their projects. */
   global_filters?: { project?: unknown[][] };

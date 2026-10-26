@@ -1,8 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
-import { defineComponent, h, ref } from "vue";
+import { defineComponent, h, onErrorCaptured, ref } from "vue";
 import { Button } from "frappe-ui";
 import ErrorFallback from "./ErrorFallback.vue";
 
+// A child that throws while rendering, and ErrorSink below: each needs its own
+// component, so this file has two.
+// eslint-disable-next-line vue/one-component-per-file -- see above
 const Bomb = defineComponent({
   name: "Bomb",
   props: { broken: Boolean, message: { type: String, default: "" } },
@@ -86,3 +89,50 @@ const withCustomFallback = () => ({
 });
 
 export const CustomFallback: Story = { render: withCustomFallback };
+
+// Stands in for the app's error handler: shows what reaches it, so the story
+// doesn't end in an uncaught error.
+// eslint-disable-next-line vue/one-component-per-file -- see Bomb
+const ErrorSink = defineComponent({
+  name: "ErrorSink",
+  setup(_props, { slots }) {
+    const message = ref("");
+    onErrorCaptured((err) => {
+      message.value = err instanceof Error ? err.message : String(err);
+      return false;
+    });
+    return () =>
+      h("div", { class: "flex flex-col gap-2" }, [
+        slots.default?.(),
+        message.value &&
+          h(
+            "p",
+            { class: "text-sm text-ink-gray-5" },
+            `Logged: ${message.value}`,
+          ),
+      ]);
+  },
+});
+
+/** An event handler's error leaves the content in place and goes on up. */
+export const HandlerError: Story = {
+  render: () => ({
+    components: { ErrorFallback, ErrorSink, Bomb, Button },
+    setup() {
+      function fail() {
+        throw new Error("Save failed");
+      }
+      return { fail };
+    },
+    template: `
+      <ErrorSink>
+        <div class="flex w-80 flex-col gap-2">
+          <ErrorFallback>
+            <Button label="Save" @click="fail" />
+            <Bomb />
+          </ErrorFallback>
+        </div>
+      </ErrorSink>
+    `,
+  }),
+};

@@ -1,4 +1,16 @@
-import { computed, onScopeDispose } from "vue";
+import {
+  computed,
+  inject,
+  onScopeDispose,
+  provide,
+  ref,
+  toValue,
+  watch,
+  type ComputedRef,
+  type InjectionKey,
+  type MaybeRefOrGetter,
+  type Ref,
+} from "vue";
 import { dayjs, toast, useList } from "frappe-ui";
 import type { NotificationEntry } from "@/components/NotificationTray";
 import { useSession } from "@/session";
@@ -46,11 +58,30 @@ export function toNotificationEntry(doc: NotificationDoc): NotificationEntry {
   };
 }
 
+export interface AppNotifications {
+  /** The latest notifications, newest first. */
+  notifications: ComputedRef<NotificationEntry[]>;
+  unreadCount: ComputedRef<number>;
+  loading: ComputedRef<boolean>;
+  /** Whether the shell's notification tray is open. */
+  trayOpen: Ref<boolean>;
+  markAsViewed: (id: string) => Promise<void>;
+  markAllAsViewed: () => Promise<void>;
+  /** Marks the notification viewed, then follows its link. */
+  openNotification: (notification: NotificationEntry) => Promise<void>;
+}
+
+const notificationsKey: InjectionKey<AppNotifications> =
+  Symbol("notifications");
+
 /**
- * The signed-in user's 20 latest notifications, newest first, reloaded on the realtime
- * `notification` and `pm_report_ready` events. Call from a component's setup.
+ * Loads the signed-in user's 20 latest notifications for the whole app, newest first,
+ * and reloads them on the realtime `notification` and `pm_report_ready` events. Call
+ * once, in the shell; `enabled` gates the loading on the user's roles.
  */
-export function useNotifications() {
+export function provideNotifications(
+  enabled: MaybeRefOrGetter<boolean>,
+): AppNotifications {
   const session = useSession();
   const socket = useSocket();
 
@@ -69,16 +100,27 @@ export function useNotifications() {
     filters: () => ({ user: session.userId }),
     orderBy: "creation desc",
     limit: NOTIFICATION_LIMIT,
-    immediate: Boolean(session.userId),
+    immediate: false,
   });
 
-  const reload = () => list.reload();
+  // The roles arrive with the session, after the shell is set up.
+  watch(
+    () => toValue(enabled) && Boolean(session.userId),
+    (load) => {
+      if (load) list.reload();
+    },
+    { immediate: true },
+  );
+
+  const reload = () => {
+    if (toValue(enabled)) list.reload();
+  };
   for (const event of NOTIFICATION_EVENTS) socket.on(event, reload);
   onScopeDispose(() => {
     for (const event of NOTIFICATION_EVENTS) socket.off(event, reload);
   });
 
-  const docs = computed(() => list.data ?? []);
+  const docs = computed(() => (toValue(enabled) ? (list.data ?? []) : []));
 
   /** Marks the notifications viewed; a failure shows a toast and doesn't reject. */
   async function markViewed(ids: string[]) {
@@ -103,11 +145,36 @@ export function useNotifications() {
     await markViewed(unread.map((doc) => doc.name));
   }
 
-  return {
+  const notifications: AppNotifications = {
     notifications: computed(() => docs.value.map(toNotificationEntry)),
     unreadCount: computed(() => docs.value.filter((doc) => !doc.viewed).length),
     loading: computed(() => list.loading),
+    trayOpen: ref(false),
     markAsViewed,
     markAllAsViewed,
+    async openNotification(notification) {
+      await markAsViewed(notification.id);
+      if (notification.href) window.location.assign(notification.href);
+    },
   };
+  provide(notificationsKey, notifications);
+  return notifications;
+}
+
+/**
+ * The shell's notifications. Without the shell (stories) or for a user without
+ * notification access, an empty set whose actions do nothing, as in React.
+ */
+export function useNotifications(): AppNotifications {
+  return (
+    inject(notificationsKey, null) ?? {
+      notifications: computed(() => []),
+      unreadCount: computed(() => 0),
+      loading: computed(() => false),
+      trayOpen: ref(false),
+      markAsViewed: async () => {},
+      markAllAsViewed: async () => {},
+      openNotification: async () => {},
+    }
+  );
 }
