@@ -9,7 +9,30 @@ defineSlots<{
 
 const error = ref<Error | null>(null);
 
-onErrorCaptured((err) => {
+// Vue's error types for building a component: setup, render, update and the
+// create and mount hooks. Dev builds pass the name, production builds a link
+// ending in the code.
+const RENDER_ERRORS = new Map([
+  ["0", "setup function"],
+  ["1", "render function"],
+  ["15", "component update"],
+  ["bc", "beforeCreate hook"],
+  ["c", "created hook"],
+  ["bm", "beforeMount hook"],
+  ["m", "mounted hook"],
+]);
+
+function isRenderError(info: string): boolean {
+  const code = info.match(/#runtime-(\w+)$/)?.[1];
+  return code
+    ? RENDER_ERRORS.has(code)
+    : [...RENDER_ERRORS.values()].includes(info);
+}
+
+onErrorCaptured((err, _instance, info) => {
+  // As React's error boundaries: an error in an event handler or a watcher
+  // leaves the content in place and goes on to the app's error handler.
+  if (!isRenderError(info)) return;
   error.value = err instanceof Error ? err : new Error(String(err));
   console.error("Uncaught error:", err);
   // Stop propagation so a parent boundary or the app error handler doesn't

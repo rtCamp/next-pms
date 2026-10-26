@@ -131,9 +131,9 @@ router.beforeEach(async (to): Promise<RouteLocationRaw | true> => {
 
   const session = useSession();
   await session.load();
-  // The lookups failed (the error handler has already shown a toast). Let the
-  // page render rather than send everyone to "no employee".
-  if (session.hasEmployee === null) return true;
+  // The lookups failed: App.vue shows the session error instead of the page,
+  // rather than everyone being sent to "no employee".
+  if (session.error) return true;
 
   if (!session.hasEmployee) return { name: "no-employee", replace: true };
   if (to.meta.roles && !session.hasAnyRole(to.meta.roles)) {
