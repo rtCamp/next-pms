@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
-import { expect, fn, screen, userEvent, waitFor } from "storybook/test";
+import { expect, fn, screen, userEvent, waitFor, within } from "storybook/test";
 import { onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import AppSidebar from "./AppSidebar.vue";
@@ -71,7 +71,7 @@ export const Notifications: Story = {
       canvas.getByRole("button", { name: "Notifications" }),
     );
     const tray = await screen.findByRole("dialog", { name: "Notifications" });
-    await expect(tray).toBeVisible();
+    await waitFor(() => expect(tray).toBeVisible());
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   },
@@ -249,5 +249,50 @@ export const PreloadsPageCode: Story = {
     tasks.focus();
     await userEvent.hover(tasks);
     await expect(loadTasks).toHaveBeenCalledOnce();
+  },
+};
+
+let storyRouter: ReturnType<typeof useRouter> | undefined;
+
+/** Ctrl+K opens the search palette; it lists the user's pages and goes to the picked one. */
+export const Search: Story = {
+  args: { roles: ["Projects Manager"] },
+  render: (args) => ({
+    components: { AppSidebar },
+    setup() {
+      storyRouter = useRouter();
+      return { args };
+    },
+    template: `
+      <div class="flex h-[600px]">
+        <AppSidebar v-bind="args" />
+      </div>
+    `,
+  }),
+  play: async ({ canvas }) => {
+    await expect(
+      canvas.getByRole("button", { name: "Search" }),
+    ).toBeInTheDocument();
+
+    await userEvent.keyboard("{Control>}k{/Control}");
+    const palette = await screen.findByRole("dialog", { name: "Search" });
+    await expect(
+      within(palette).getByRole("option", { name: "Dashboard - Manager" }),
+    ).toBeInTheDocument();
+    await expect(
+      within(palette).queryByRole("option", { name: "Dashboard - Leadership" }),
+    ).not.toBeInTheDocument();
+
+    await userEvent.keyboard("alloc");
+    await waitFor(() =>
+      expect(within(palette).getAllByRole("option")).toHaveLength(2),
+    );
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await waitFor(() =>
+      expect(storyRouter?.currentRoute.value.fullPath).toBe(
+        "/allocations/team",
+      ),
+    );
   },
 };

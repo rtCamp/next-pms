@@ -6,6 +6,7 @@ import {
   SidebarHeader,
   SidebarItem,
   useColorScheme,
+  useKeyboardShortcut,
 } from "frappe-ui";
 import { NotificationTray } from "@/components/NotificationTray";
 import { useNotifications } from "@/composables/useNotifications";
@@ -14,7 +15,9 @@ import logo from "@/assets/logo.svg";
 import { switchableApps, type AppLink } from "./apps";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
 import AppSidebarSection from "./AppSidebarSection.vue";
+import GlobalSearch from "./GlobalSearch.vue";
 import {
+  computeSearchItems,
   computeSections,
   type NavAction,
   type NavItem,
@@ -31,7 +34,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{ logout: [] }>();
 
-// The sidebar and the notification tray; nothing is passed through.
+// The sidebar, the search palette and the notification tray; nothing is passed through.
 defineOptions({ inheritAttrs: false });
 
 const { resolvedColorScheme, toggleColorScheme } = useColorScheme();
@@ -52,8 +55,23 @@ function itemKey(item: NavItem | NavAction) {
   return "to" in item ? item.to : item.action;
 }
 
+const searchOpen = ref(false);
+const searchItems = computed(() =>
+  computeSearchItems(props.roles, props.employee),
+);
+useKeyboardShortcut({
+  combo: "Mod+K",
+  description: "Search",
+  // Also from a focused field, as in React.
+  allowInInput: true,
+  handler: () => {
+    searchOpen.value = !searchOpen.value;
+  },
+});
+
 function runAction(action: NavAction["action"]) {
-  if (action === "notifications") trayOpen.value = true;
+  if (action === "search") searchOpen.value = true;
+  else trayOpen.value = true;
 }
 
 // `null` until toggled, so Sidebar auto-collapses on narrow screens.
@@ -144,6 +162,8 @@ const menuItems = computed(() => [
       <SidebarCollapseToggle />
     </div>
   </Sidebar>
+
+  <GlobalSearch v-model:open="searchOpen" :items="searchItems" />
 
   <NotificationTray
     v-if="hasNotifications"

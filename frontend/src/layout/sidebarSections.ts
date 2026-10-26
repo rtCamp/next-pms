@@ -10,12 +10,19 @@ export interface NavItem {
 export interface NavAction {
   label: string;
   icon: string;
-  action: "notifications";
+  action: "search" | "notifications";
 }
 
 export interface NavSection {
   label: string;
   items: NavItem[];
+}
+
+/** The Team timesheet, filtered on the user's reports. */
+function teamTimesheetLink(employeeId?: string | null): string {
+  return employeeId
+    ? `/timesheet/team?reportsTo=${encodeURIComponent(employeeId)}`
+    : "/timesheet/team";
 }
 
 /**
@@ -50,9 +57,7 @@ export function computeSections(
       : []),
   ];
 
-  const team = employeeId
-    ? `/timesheet/team?reportsTo=${encodeURIComponent(employeeId)}`
-    : "/timesheet/team";
+  const team = teamTimesheetLink(employeeId);
   const timesheets: NavItem[] = can(ROLE_ACCESS.reviewTimesheets)
     ? [
         { label: "Personal", icon: "lucide-clock", to: "/timesheet" },
@@ -67,6 +72,7 @@ export function computeSections(
   ];
 
   const topItems: (NavItem | NavAction)[] = [
+    { label: "Search", icon: "lucide-search", action: "search" },
     ...(timesheets.length === 1 ? timesheets : []),
     ...(can(ROLE_ACCESS.notifications)
       ? [
@@ -97,4 +103,44 @@ export function computeSections(
   ].filter((section) => section.items.length > 1);
 
   return { topItems, sections };
+}
+
+/** A page offered by the search palette. */
+export interface SearchItem {
+  label: string;
+  to: string;
+}
+
+/**
+ * The pages the search palette offers the user, in the React app's order and wording.
+ * @param employeeId The user's Employee ID; Timesheet - Team filters on their reports.
+ */
+export function computeSearchItems(
+  roles: readonly Role[],
+  employeeId?: string | null,
+): SearchItem[] {
+  const can = (allowed: readonly Role[]) => hasAnyRole(roles, allowed);
+  const team = teamTimesheetLink(employeeId);
+
+  return [
+    { label: "Timesheet - Personal", to: "/timesheet" },
+    { label: "Allocations - Team", to: "/allocations/team" },
+    { label: "Allocations - Project", to: "/allocations/project" },
+    { label: "Tasks", to: "/tasks" },
+    ...(can(ROLE_ACCESS.leadershipDashboard)
+      ? [{ label: "Dashboard - Leadership", to: "/dashboard/leadership" }]
+      : []),
+    ...(can(ROLE_ACCESS.managerDashboard)
+      ? [{ label: "Dashboard - Manager", to: "/dashboard/manager" }]
+      : []),
+    ...(can(ROLE_ACCESS.projects)
+      ? [{ label: "Projects", to: "/projects" }]
+      : []),
+    ...(can(ROLE_ACCESS.reviewTimesheets)
+      ? [
+          { label: "Timesheet - Team", to: team },
+          { label: "Timesheet - Projects", to: "/timesheet/project" },
+        ]
+      : []),
+  ];
 }
