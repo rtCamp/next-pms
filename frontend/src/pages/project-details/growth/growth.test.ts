@@ -18,6 +18,7 @@ import {
   growthUpdateItems,
   hasActiveFilters,
   isClosingStatus,
+  lastUpdatedText,
   nameFilterOptions,
   openStatuses,
   ownerFilterOptions,
@@ -319,5 +320,13 @@ describe("the update form and log", () => {
     expect(
       deletedGrowthUpdateLog(doc(), "u2").map((update) => update.name),
     ).toEqual(["u1"]);
+  });
+});
+
+describe("lastUpdatedText", () => {
+  it("shows a datetime's date in the project date format", () => {
+    expect(lastUpdatedText("2025-03-04 10:00:00.000000")).toBe("Mar 4, 2025");
+    const year = new Date().getFullYear();
+    expect(lastUpdatedText(`${year}-01-15 09:30:00`)).toBe("Jan 15");
   });
 });

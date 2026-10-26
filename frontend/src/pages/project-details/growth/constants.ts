@@ -7,9 +7,6 @@ export const GROWTH_DOCTYPE = "PMS Growth Initiative";
 export const GROWTH_STATUS_DOCTYPE = "PMS Growth Initiative Status";
 export const GROWTH_CATEGORY_DOCTYPE = "PMS Growth Initiative Category";
 
-export const ACTIVITY_API =
-  "/api/v2/method/next_pms.next_projects.api.activity.get_activity";
-
 export const CLIENT_PRIORITIES = ["Low", "Medium", "High"] as const;
 
 /** Each status's dot colour; hard-coded as React. */
