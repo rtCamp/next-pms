@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import LoadError from "@/pages/project-details/LoadError.vue";
+import GrowthDetail from "./GrowthDetail.vue";
 import GrowthHeader from "./GrowthHeader.vue";
 import GrowthList from "./GrowthList.vue";
 import { provideGrowth } from "./useGrowth";
@@ -11,7 +12,8 @@ const { growthId, loading, loadError, refresh } = provideGrowth();
 </script>
 
 <template>
-  <div v-if="!growthId" class="flex flex-col gap-3.5">
+  <GrowthDetail v-if="growthId" :key="growthId" :growth-id="growthId" />
+  <div v-else class="flex flex-col gap-3.5">
     <GrowthHeader />
     <LoadError
       v-if="loadError"
