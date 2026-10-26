@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { expect, fn, screen, userEvent, waitFor } from "storybook/test";
+import { onUnmounted } from "vue";
+import { useRouter } from "vue-router";
 import AppSidebar from "./AppSidebar.vue";
 import { APPS } from "./AppSidebar.fixtures";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
@@ -196,5 +198,39 @@ export const AppsSubmenu: Story = {
     await userEvent.keyboard("{Escape}");
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+  },
+};
+
+const loadTasks = fn(async () => ({ render: () => null }));
+
+/** Hovering or focusing a link loads its page's code once, before the click. */
+export const PreloadsPageCode: Story = {
+  render: (args) => ({
+    components: { AppSidebar },
+    setup() {
+      const router = useRouter();
+      router.addRoute({
+        path: "/tasks",
+        name: "preload-tasks",
+        component: loadTasks,
+      });
+      onUnmounted(() => router.removeRoute("preload-tasks"));
+      return { args };
+    },
+    template: `
+      <div class="flex h-[600px]">
+        <AppSidebar v-bind="args" />
+      </div>
+    `,
+  }),
+  play: async ({ canvas }) => {
+    const tasks = canvas.getByRole("link", { name: "Tasks" });
+    await expect(loadTasks).not.toHaveBeenCalled();
+    await userEvent.hover(tasks);
+    await waitFor(() => expect(loadTasks).toHaveBeenCalledOnce());
+    await userEvent.unhover(tasks);
+    tasks.focus();
+    await userEvent.hover(tasks);
+    await expect(loadTasks).toHaveBeenCalledOnce();
   },
 };

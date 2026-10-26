@@ -13,6 +13,7 @@ import { switchableApps, type AppLink } from "./apps";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
 import AppSidebarSection from "./AppSidebarSection.vue";
 import { computeSections } from "./sidebarSections";
+import { usePreloadRoute } from "./usePreloadRoute";
 
 const props = defineProps<{
   roles: readonly Role[];
@@ -25,6 +26,7 @@ const props = defineProps<{
 const emit = defineEmits<{ logout: [] }>();
 
 const { resolvedColorScheme, toggleColorScheme } = useColorScheme();
+const preload = usePreloadRoute();
 
 const nav = computed(() => computeSections(props.roles, props.employee));
 const topItems = computed(() => nav.value.topItems);
@@ -94,6 +96,8 @@ const menuItems = computed(() => [
         :label="item.label"
         :icon="item.icon"
         :route="item.to"
+        @mouseenter="preload(item.to)"
+        @focusin="preload(item.to)"
       />
 
       <AppSidebarSection

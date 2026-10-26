@@ -3,6 +3,7 @@ import { computed, ref, useId, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { SidebarItem } from "frappe-ui";
 import type { NavItem } from "./sidebarSections";
+import { usePreloadRoute } from "./usePreloadRoute";
 
 const props = defineProps<{
   label: string;
@@ -12,6 +13,7 @@ const props = defineProps<{
 
 const route = useRoute();
 const router = useRouter();
+const preload = usePreloadRoute();
 // SidebarItem marks the active item by route name; open the section holding it.
 const hasActiveItem = computed(() =>
   props.items.some((item) => {
@@ -71,6 +73,8 @@ const bodyId = useId();
           :label="item.label"
           :icon="item.icon"
           :route="item.to"
+          @mouseenter="preload(item.to)"
+          @focusin="preload(item.to)"
         />
       </div>
     </div>
