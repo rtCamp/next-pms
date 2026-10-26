@@ -27,10 +27,9 @@ const postedAt = computed(() =>
 );
 
 const actions = [
-  { label: "Edit", icon: "lucide-pencil", onClick: () => emit("edit") },
+  { label: "Edit", onClick: () => emit("edit") },
   {
     label: "Delete",
-    icon: "lucide-trash-2",
     theme: "red" as const,
     onClick: () => emit("delete"),
   },

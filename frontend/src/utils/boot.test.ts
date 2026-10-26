@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { hasProjectField } from "./boot";
+import { canCreate, hasProjectField } from "./boot";
 
 describe("hasProjectField", () => {
   let saved: Boot | undefined;
@@ -32,5 +32,31 @@ describe("hasProjectField", () => {
     expect(hasProjectField("custom_source")).toBe(false);
     window.boot = undefined;
     expect(hasProjectField("custom_source")).toBe(false);
+  });
+});
+
+describe("canCreate", () => {
+  let saved: Boot | undefined;
+  beforeEach(() => {
+    saved = window.boot;
+  });
+  afterEach(() => {
+    window.boot = saved;
+  });
+
+  it("reads the user's creatable doctypes", () => {
+    window.boot = {
+      sitename: "test",
+      user: { name: "me@example.com", can_create: ["Risk"] },
+    };
+    expect(canCreate("Risk")).toBe(true);
+    expect(canCreate("Project")).toBe(false);
+  });
+
+  it("is true without the list", () => {
+    window.boot = { sitename: "test", user: { name: "me@example.com" } };
+    expect(canCreate("Risk")).toBe(true);
+    window.boot = undefined;
+    expect(canCreate("Risk")).toBe(true);
   });
 });

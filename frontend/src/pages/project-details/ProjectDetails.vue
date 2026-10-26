@@ -33,6 +33,8 @@ import OverviewTab from "./overview/OverviewTab.vue";
 import ProjectDetailsHeader from "./ProjectDetailsHeader.vue";
 import RagStatsTab from "./rag-stats/RagStatsTab.vue";
 import ReportsTab from "./reports/ReportsTab.vue";
+import { RISK_PARAM } from "./risks/constants";
+import RisksTab from "./risks/RisksTab.vue";
 import { selectedTab, visibleTabs } from "./tabs";
 import TodoDialog from "./to-do/TodoDialog.vue";
 import TodosTab from "./to-do/TodosTab.vue";
@@ -53,6 +55,7 @@ const TAB_PANELS: Partial<Record<ProjectTabKey, Component>> = {
   "to-do": TodosTab,
   feedback: FeedbackTab,
   notes: NotesTab,
+  risks: RisksTab,
 };
 
 const route = useRoute();
@@ -91,10 +94,11 @@ function selectTab(value: string | number) {
   patchQuery(
     {
       [TAB_PARAM]: key === DEFAULT_TAB ? null : key,
-      // Leaving Feedback, Calendar or Notes drops its view (the Calendar's table tab
-      // and search, the open note), so coming back opens the default view.
+      // Leaving Feedback, Calendar, Notes or Risks drops its view (the Calendar's table
+      // tab and search, the open note or risk), so coming back opens the default view.
       ...(activeTab.value === "feedback" && { [VIEW_PARAM]: null }),
       ...(activeTab.value === "notes" && { [NOTE_PARAM]: null }),
+      ...(activeTab.value === "risks" && { [RISK_PARAM]: null }),
       ...(activeTab.value === "calendar" && {
         [CALENDAR_VIEW_PARAM]: null,
         [TYPE_PARAM]: null,
