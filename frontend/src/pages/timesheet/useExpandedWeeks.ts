@@ -5,7 +5,8 @@ import { DEFAULT_AUTO_EXPAND_WEEKS } from "./constants";
 /** How many weeks a timesheet page opens expanded, from the user's PMS settings. */
 export function useExpandedWeeks() {
   const settings = usePmsSettings();
-  settings.load();
+  // Fresh on every page, so a changed system default shows.
+  settings.reload();
 
   const count = computed(() => {
     const data = settings.data;

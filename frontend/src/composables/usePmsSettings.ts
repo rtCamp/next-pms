@@ -1,4 +1,4 @@
-import { computed, reactive } from "vue";
+import { computed, effectScope, reactive } from "vue";
 import { useCall } from "frappe-ui";
 
 const PMS_SETTINGS_API =
@@ -16,7 +16,6 @@ export type PmsSettingsUpdate = Pick<
 >;
 
 function createPmsSettings() {
-  let loading: Promise<void> | undefined;
   const settings = useCall<PmsSettings>({
     url: `${PMS_SETTINGS_API}.get_pms_settings`,
     immediate: false,
@@ -32,14 +31,8 @@ function createPmsSettings() {
     loading: computed(() => settings.loading),
     error: computed(() => settings.error),
     saving: computed(() => update.loading),
-    /** Loads the settings once; later calls reuse the first load. */
-    load() {
-      loading ??= settings.fetch().then(() => {
-        // A failed load may be retried by the next reader.
-        if (settings.error) loading = undefined;
-      });
-      return loading;
-    },
+    /** Fetches the settings again, e.g. after a system default changed. */
+    reload: () => settings.reload(),
     /** Saves the user's own settings, then reloads them for every reader. */
     async save(values: PmsSettingsUpdate) {
       await update.submit({ settings: values });
@@ -52,9 +45,10 @@ let pmsSettings: ReturnType<typeof createPmsSettings> | undefined;
 
 /**
  * The signed-in user's PMS settings (`PMS User Setting`), shared app-wide so a save in
- * Settings reaches an open timesheet. Call `load()` before reading.
+ * Settings reaches an open timesheet. Call `reload()` before reading.
  */
 export function usePmsSettings() {
-  pmsSettings ??= createPmsSettings();
+  // A detached scope, so the calls outlive whichever component asks first.
+  pmsSettings ??= effectScope(true).run(createPmsSettings)!;
   return pmsSettings;
 }

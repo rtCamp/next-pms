@@ -2,6 +2,7 @@
 import { computed, reactive, ref, watch } from "vue";
 import {
   Button,
+  ErrorMessage,
   SettingsBody,
   SettingsContent,
   SettingsDialog,
@@ -32,7 +33,6 @@ import TimesheetsPanel from "./TimesheetsPanel.vue";
 
 const props = defineProps<{ roles: readonly Role[] }>();
 
-// The dialog and its unsaved-changes prompt; nothing is passed through.
 defineOptions({ inheritAttrs: false });
 
 const open = defineModel<boolean>("open", { default: false });
@@ -41,7 +41,6 @@ const canManageSystem = computed(() =>
   hasAnyRole(props.roles, ROLE_ACCESS.systemSettings),
 );
 
-// The user's own settings.
 const pms = usePmsSettings();
 const userForm = reactive({ weeks: "", useSystem: true });
 
@@ -64,7 +63,6 @@ const userDirty = computed(() => {
   );
 });
 
-// The system settings: one doc behind both system tabs.
 const systemDoc = useDoc<SystemSettings>({
   doctype: "Timesheet Settings",
   name: "Timesheet Settings",
@@ -83,17 +81,27 @@ const systemChanges = computed(() =>
 );
 const systemDirty = computed(() => Object.keys(systemChanges.value).length > 0);
 
+// A reload (on open, after a save) keeps the edits made while it was in flight.
 watch(
   () => pms.data,
-  () => resetUserForm(),
+  (_data, previous) => {
+    const saved = savedUserForm(previous ?? null);
+    if (
+      userForm.weeks === saved.weeks &&
+      userForm.useSystem === saved.useSystem
+    ) {
+      resetUserForm();
+    }
+  },
   { immediate: true },
 );
 watch(
   () => systemDoc.doc,
   (doc) => {
     if (!doc) return;
+    const edited = systemDirty.value;
     savedSystem.value = toForm(doc);
-    resetSystemForm();
+    if (!edited) resetSystemForm();
   },
 );
 
@@ -101,17 +109,10 @@ watch(
   open,
   (isOpen) => {
     if (!isOpen) return;
-    pms.load();
+    pms.reload();
     if (canManageSystem.value) systemDoc.reload();
   },
   { immediate: true },
-);
-
-watch(
-  () => pms.error ?? systemDoc.error,
-  (error) => {
-    if (error) toast.error(errorMessage(error));
-  },
 );
 
 const savingUser = ref(false);
@@ -137,6 +138,8 @@ async function saveSystem(): Promise<boolean> {
   try {
     await systemDoc.setValue.submit(systemChanges.value);
     toast.success("Settings saved");
+    // The user tab shows the system default for expanded weeks.
+    pms.reload();
     return true;
   } catch (error) {
     toast.error(errorMessage(error));
@@ -144,7 +147,6 @@ async function saveSystem(): Promise<boolean> {
   }
 }
 
-// Closing with unsaved edits asks first.
 const confirmClose = ref(false);
 
 function onOpenChange(next: boolean) {
@@ -224,14 +226,18 @@ function discardAndClose() {
               variant="solid"
               label="Save"
               :loading="savingUser"
-              :disabled="!userDirty"
+              :disabled="!userDirty || !pms.data"
               @click="saveUser"
             />
           </template>
         </SettingsHeader>
         <SettingsBody>
-          <div v-if="!pms.data && pms.loading" class="flex justify-center">
-            <Spinner class="size-6" />
+          <div v-if="!pms.data" class="flex justify-center">
+            <Spinner v-if="pms.loading" class="size-6" />
+            <ErrorMessage
+              v-else-if="pms.error"
+              :message="errorMessage(pms.error)"
+            />
           </div>
           <TimesheetsPanel
             v-else
@@ -273,6 +279,10 @@ function discardAndClose() {
           <SettingsBody>
             <div v-if="!systemDoc.doc" class="flex justify-center">
               <Spinner v-if="systemDoc.loading" class="size-6" />
+              <ErrorMessage
+                v-else-if="systemDoc.error"
+                :message="errorMessage(systemDoc.error)"
+              />
             </div>
             <SystemTimesheetsPanel
               v-else-if="panel.value === 'system-timesheets'"
