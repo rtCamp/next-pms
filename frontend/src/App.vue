@@ -45,12 +45,7 @@ function viewKey(viewRoute: RouteLocationNormalizedLoaded) {
 <template>
   <FrappeUIProvider>
     <div class="h-screen bg-surface-base text-ink-gray-8">
-      <div
-        v-if="starting"
-        class="flex h-full items-center justify-center"
-        role="status"
-        aria-label="Loading"
-      >
+      <div v-if="starting" class="flex h-full items-center justify-center">
         <Spinner class="size-6 text-ink-gray-5" />
       </div>
       <SessionError v-else-if="sessionFailed" @loaded="recheckRoute" />
