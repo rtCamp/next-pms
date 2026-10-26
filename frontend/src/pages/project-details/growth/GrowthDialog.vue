@@ -69,13 +69,20 @@ function reset(values: GrowthForm) {
     delete errors[key as keyof GrowthFormErrors];
 }
 
+/** Counts openings, so a read for an earlier one is ignored. */
+let openings = 0;
+
 watch(open, async (isOpen) => {
   if (!isOpen) return;
+  const opening = ++openings;
   editingDoc.value = null;
   reset(growthForm(null, today()));
-  if (!editingId.value) return;
+  const name = editingId.value;
+  if (!name) return;
   const doc = await existing.fetch();
-  if (!doc || !open.value) return;
+  // A superseded read resolves with the data it had, possibly another initiative's.
+  if (opening !== openings || !open.value || existing.error) return;
+  if (!doc || doc.name !== name) return;
   editingDoc.value = doc;
   reset(growthForm(doc, today()));
 });

@@ -91,8 +91,12 @@ function reset(values: RiskForm, owner: Person | null) {
     delete errors[key as keyof RiskFormErrors];
 }
 
+/** Counts openings, so a read for an earlier one is ignored. */
+let openings = 0;
+
 watch(open, async (isOpen) => {
   if (!isOpen) return;
+  const opening = ++openings;
   categories.fetch();
   editingRisk.value = null;
   if (!editingId.value) {
@@ -108,9 +112,12 @@ watch(open, async (isOpen) => {
     );
     return;
   }
+  const name = editingId.value;
   reset(riskForm(null), null);
   const risk = await existing.fetch();
-  if (!risk || !open.value) return;
+  // A superseded read resolves with the data it had, possibly another risk's.
+  if (opening !== openings || !open.value || existing.error) return;
+  if (!risk || risk.name !== name) return;
   editingRisk.value = risk;
   // As React: the current owner is labelled by their user ID.
   reset(
