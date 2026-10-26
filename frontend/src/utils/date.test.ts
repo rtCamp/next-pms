@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { dayjs, getConfig, setConfig } from "frappe-ui";
 import {
   formatProjectDate,
   getRangeLabel,
   getVisibleDays,
   getWeekStart,
+  systemToLocalDateTime,
 } from "./date";
 
 afterEach(() => vi.useRealTimers());
@@ -68,5 +70,50 @@ describe("formatProjectDate", () => {
   it("shows another year", () => {
     vi.useFakeTimers({ now: new Date(2026, 9, 16), toFake: ["Date"] });
     expect(formatProjectDate("2025-03-02")).toBe("Mar 2, 2025");
+  });
+});
+
+describe("systemToLocalDateTime", () => {
+  const system = getConfig("systemTimezone");
+  const local = getConfig("localTimezone");
+  afterEach(() => {
+    setConfig("systemTimezone", system);
+    setConfig("localTimezone", local);
+  });
+
+  it("converts a system time to the user's time zone", () => {
+    setConfig("systemTimezone", "Asia/Kolkata");
+    setConfig("localTimezone", "America/New_York");
+    expect(systemToLocalDateTime("2026-10-22 19:30:00")).toBe(
+      "2026-10-22 10:00:00",
+    );
+    expect(systemToLocalDateTime("2026-10-23 05:00:00")).toBe(
+      "2026-10-22 19:30:00",
+    );
+  });
+
+  it("round-trips through the picker's local to system conversion", () => {
+    setConfig("systemTimezone", "Asia/Kolkata");
+    setConfig("localTimezone", "America/New_York");
+    const stored = "2026-10-22 19:30:00";
+    const shown = systemToLocalDateTime(stored);
+    expect(
+      dayjs
+        .tz(shown, "America/New_York")
+        .tz("Asia/Kolkata")
+        .format("YYYY-MM-DD HH:mm:ss"),
+    ).toBe(stored);
+  });
+
+  it("keeps the value when no system time zone is set", () => {
+    setConfig("systemTimezone", null);
+    expect(systemToLocalDateTime("2026-10-22 19:30:00")).toBe(
+      "2026-10-22 19:30:00",
+    );
+  });
+
+  it("returns an empty string for an unset value", () => {
+    expect(systemToLocalDateTime("")).toBe("");
+    expect(systemToLocalDateTime(null)).toBe("");
   });
 });

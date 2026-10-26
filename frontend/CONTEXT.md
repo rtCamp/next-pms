@@ -58,7 +58,8 @@ time is logged on it. Kept per week in `localStorage` under `next-pms:importedTa
 _Avoid_: pinned task, favourite.
 
 **Unsaved changes guard** — the page-level check that asks Save / Discard / Keep Editing before an action or
-navigation would drop an open, edited entry (`provideUnsavedChanges` in `composables/useUnsavedChanges.ts`).
+navigation would drop an open, edited entry (`provideUnsavedChanges` in `composables/useUnsavedChanges.ts`). The
+Timesheet pages and the Project details page (the Overview tab's edits and the note editor) provide one.
 
 ## Planning
 
@@ -125,6 +126,37 @@ _Avoid_: ticket, issue, todo (a `ToDo` is a separate Frappe doctype).
 **Task status** — a task's `status`: `Open`, `Working`, `Pending Review`, `Overdue`, `Template`, `Completed`,
 `Cancelled`. In code: `TaskStatusValue` and `TASK_STATUSES` from `components/TaskStatus` (P16).
 
+**ToDo** — a Frappe `ToDo`: a dated action assigned to one user. The Project details page's ToDos tab lists the
+ToDos that reference the project (`reference_type` Project) and creates them there. Title, start and end are rtcamp
+custom fields (`custom_title`, `custom_from_time`, `custom_to_time`), shown and required only when the boot data says
+they exist (`has_todo_custom_fields`). Start and end are stored in system time and shown in the user's time zone. Its
+statuses are the ToDo doctype's options (`todo_status_options` in the boot data, e.g. Backlog and In Progress besides
+Open, Closed and Cancelled); one the app has no icon for shows as Open. In code: `provideTodos()` / `useTodos()` in
+`pages/project-details/to-do/`.
+_Avoid_: task (a `Task` is a separate doctype), action item.
+
+**Linked ToDo** — a project ToDo tied to one milestone, touchpoint or growth initiative through that record's
+`linked_todos` rows (`PMS Linked ToDo`). A ToDo has at most one such record and always still references the Project;
+unlinking keeps the ToDo, and deleting the record keeps its ToDos. The ToDo dialog's "Linked to" field, the linked
+chip on a ToDos tab row and the Calendar's ToDos cell show it. In code: `LinkedRecord`, `useTodos().linkedTo()` and
+`LinkedTodos.vue` in `pages/project-details/to-do/`.
+_Avoid_: action item (Growth's label for them), sub-task, attached ToDo.
+
+**Milestone** — a dated goal on a project's timeline, from a start to a planned end, completed on an actual end date
+(a `Project Timeline Item` of type Milestone). It has an owner, a category (its "Type", e.g. Delivery or Invoice),
+watchers (users following it) and may be marked internal. The Calendar tab shows milestones in the month grid, the
+Gantt and their table.
+_Avoid_: deliverable, phase (a project phase is a separate thing), event.
+
+**Touchpoint** — a dated contact with the client or the team on one scheduled day, e.g. a check-in or a meeting (a
+`Project Timeline Item` of type Touchpoint, whose start is its scheduled date). Otherwise as a milestone.
+_Avoid_: meeting (one category of touchpoint), event.
+
+**Timeline item** — a milestone or touchpoint, the `Project Timeline Item` doctype; its category is a `Project
+Timeline Item Category` for that type, `Other - <type>` when none is picked. In code: `TimelineItem` and
+`provideTimeline()` / `useTimeline()` in `pages/project-details/calendar/`.
+_Avoid_: calendar event, timeline entry.
+
 **Project phase** — a named, coloured stage a project moves through (`Project Phase`). The kanban has a column per
 phase, ordered by `position`. In code: `useProjectPhases()` and `PhaseIcon`.
 _Avoid_: stage, status (status is a separate field).
@@ -132,16 +164,115 @@ _Avoid_: stage, status (status is a separate field).
 **RAG status** — a project's red / amber / green health (`custom_project_rag_status`), shown as a coloured dot.
 _Avoid_: risk (a `Risk` is a separate doctype), health.
 
-**Project budget** — purchased, consumed and remaining hours for a project over a period (`Project Budget`).
+**Project budget** — purchased, consumed and remaining hours for a project over a period (`Project Budget`, the
+project's `custom_project_budget_hours` rows). The Tracking tab lists them as **contracts**, each optionally tied to a
+sales order and invoice.
 
-**Status update** — a written project update with a status, comments and pinning (`Project Status Update`).
-_Avoid_: report (a `Project Report` is a separate doctype), note.
+**Project rate** — a member's hourly billing rate on a project from a valid-from date (`Project Billing Team`, the
+project's `custom_project_billing_team` rows), shown under the project's flat rate on the Tracking tab.
+_Avoid_: billing team (for a single rate).
 
-**Risk** — a project risk with category, level, status, owner and mitigation plan (`Risk`).
+**About sidebar** — the "About this project" column beside the Project details tabs: summary, details, links,
+budget burn, hours progress, members (project manager, lead engineer and the users the project is shared with) and
+customer contacts. Adding a member shares the Project with their user.
+_Avoid_: info panel, project sidebar (the app's navigation sidebar is a different thing).
+
+**Tracking layout** — the order and visibility of the Tracking tab's widgets, shared by everyone on the project: one
+public `PMS View Setting` row of type `Tracking`. Only Projects Managers change it, and only the task completion,
+budget burn and cost burn widgets can be hidden.
+
+**Optional project field** — a Project field the page shows that another app adds (Sourcing's source, territory
+and previous CMS; the NDA, case study and testimonial Checks). The boot data says which exist
+(`optional_project_fields`); read it with `hasProjectField()` and leave a missing field out of the UI and the save.
+
+**Repository connection** — a GitHub repository linked to a project (`custom_project_repository_connections` rows
+pointing at `GitHub Repository`, a doctype from another app). Listed on the Overview tab when the doctype exists
+(`has_repository_connections`); adding or unlinking one saves at once, outside the tab's edit mode.
+_Avoid_: repo link, integration.
+
+**Customer feedback** — a submitted `Customer Feedback` (rtcamp app) a customer contact gives for one period:
+**client feedback** rates the project (`evaluation_type` Project), **team feedback** rates one employee
+(Engineer, Project Manager, Project Coordinator, Quality Engineer). Ratings are stored as 0–1 and shown as stars on
+the API's `star_max` scale (4). The Feedback tab shows the client feedback by month and lists the team feedback of
+the project's customer, picked with `?view=client|team` (client is the default and stays out of the URL).
+_Avoid_: review, survey, rating (for the whole record).
+
+**Feedback schedule** — a `Customer Feedback Schedule`: a request for feedback over a period, sent to a customer
+contact, for projects or for employees. The Feedback tab's month timeline is built from a project's schedules, so a
+month whose schedule has no feedback yet shows "-".
+_Avoid_: feedback request (for the record), survey.
+
+**Project comments** — a comment thread on something shown on the Project details page (RAG stats, a customer
+feedback, a note), wired to `<Comments>` by `useProjectComments` with the thread's own list, add, update and delete
+endpoints.
+
+**Note** — a written project update on the Project details page's Notes tab: a title and a rich-text body whose
+task lists can be ticked in place, with comments and a pin (`Project Status Update`). The tab lists the project's
+published notes, pinned first, and `?note=` opens one. The app saves every note as published (`status` Publish),
+which notifies the project's subscribers and its account manager. Notes are written on the note editor routes
+(`/projects/:projectId/notes/new` and `…/notes/:noteId/edit`), shown in place of the tabs beside the About sidebar.
+In code: `provideNotes()` / `useNotes()` and `NoteEditor` in `pages/project-details/notes/`.
+_Avoid_: status update (the doctype's name, not the UI's), report (a `Project Report` is a separate doctype), post.
+
+**Note template** — a title and body a note can start from (`Project Status Update Template`), named by its
+`template_name`, with an optional template category and a short description of up to 140 characters. Picked in the
+template picker, which opens the new-note route with `?template=`; written on the note editor with `?mode=template`
+or on `…/notes/templates/:templateId/edit`, and renamed when its title changes.
+_Avoid_: preset, draft.
+
+**Template category** — a named group of note templates (`Project Status Update Template Category`). Typing a new
+one in the save-template dialog creates it.
+_Avoid_: tag, type.
+
+**Note subscription** — a user's opt-in to be notified of every note published on a project
+(`PMS Project Update Subscription`), set with the Notes tab's Subscribe button. A project's account manager
+(`custom_account_manager_`, a site field that may not exist) is always notified and can't unsubscribe.
+_Avoid_: follow (that's Frappe's document follow), watch.
+
+**Risk** — something that may hurt a project, with a category, a level (Low, Medium, High), a status (To-do, In
+Progress, Escalated, Blocked, Mitigated), a summary and a mitigation plan (`Risk`). Its **risk owner** is the user
+responsible for it, the project manager unless picked; its creator shows as "Owner". A risk changes level and status
+only through risk updates. The Risks tab lists the project's risks in an open and a mitigated group, and `?risk=`
+opens one. In code: `provideRisks()` / `useRisks()` and `useRiskDetail()` in `pages/project-details/risks/`.
+_Avoid_: issue, RAG status (that's the project's health).
+
+**Risk update** — a row of a risk's update log (`Risk Update`): a status, a level and a note, posted by its author.
+_Avoid_: comment, status update (that's a note).
+
+**Update log** — a record's table of updates (a risk's `risk_update_log`, a growth initiative's `update_log`, whose
+rows also carry the closed status, priority and billable outcome). The
+server takes the last row as the record's current state, stamps each new row's author (`updated_by`) and lets only
+the author or a System Manager change or delete a row. A save writes the whole table back, so the app sends the rows
+in their stored order with their `updated_by` (`toUpdateLogRows` in `pages/project-details/shared/`) and shows them
+newest first.
+_Avoid_: history, activity (that's the record's Version log).
+
+**Owner-gated permission** — the access rule of risks and growth initiatives: System Manager, Projects Manager,
+Delivery Manager, Delivery User and Timesheet Manager edit and delete any; a Projects User edits only the ones they
+own (the risk owner, the activity owner) and deletes none. The backend enforces it in `has_permission`; the page
+hides the actions with `useOwnerGatedPermissions()`.
+_Avoid_: owner permission, record permission.
+
+**Follower** — a user following a document through Frappe's document follow (`Document Follow`), notified of its
+changes; shown as "watchers" on a risk or growth initiative. Following needs the user's "Send notifications for
+documents followed by me" setting, else the server ignores it. In code: `useFollow()` and `useFollowers()` in
+`pages/project-details/shared/`.
+_Avoid_: subscriber (that's a note subscription), watcher (in code).
 
 **Growth initiative** — an upsell or expansion idea on a project, tracked from ideation to close
-(`PMS Growth Initiative`).
-_Avoid_: opportunity, lead.
+(`PMS Growth Initiative`): an activity (its title), a category, a priority for the client, a status, a billable
+outcome, a description and a desired outcome. Its **activity owner** carries it (and gates it, see owner-gated
+permission) and its **ideation owner** proposed it. A status (`PMS Growth Initiative Status` of type Status) may close
+it (`is_closed`), and then it needs a **closed status** (Won, Lost, Not Pursued). Status, priority and billable
+outcome change only through its update log's updates. Its linked ToDos show as "Action items". The Growth tab lists
+the project's initiatives in an open and a closed group, and `?growth=` opens one. In code: `provideGrowth()` /
+`useGrowth()` and `useGrowthDetail()` in `pages/project-details/growth/`.
+_Avoid_: opportunity, lead, deal.
+
+**Record activity** — a document's history as the Growth detail shows it: who created it, who last edited it, and
+each tracked change (from its Versions) as "changed the value of X from a to b", or rows added, removed and changed
+in a table (`get_activity`). In code: `ActivitySection` in `pages/project-details/shared/`.
+_Avoid_: timeline (that's the Calendar's), audit log, update log (that's the updates).
 
 ## Dashboards
 
@@ -160,7 +291,8 @@ notification tray (`useNotifications`).
 **Boot data** — the session data the server puts on `window.boot` (user, site name, timezones, feature flags).
 In development `src/boot.ts` fetches it before the app mounts.
 
-**View** — a named set of filters, sort and column layout for a list page, saved as a `PMS View Setting` row. The
+**View** — a named set of filters, sort and column layout for a list page, saved as a `PMS View Setting` row (a
+tracking layout is a different kind of row and never shows as a view). The
 projects page has two built-in views (List, Kanban) and the user's own and public saved views, picked with the
 `view` query param.
 _Avoid_: filter preset, layout (the column layout is one part of a view).

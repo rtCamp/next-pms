@@ -17,3 +17,8 @@ export function errorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   return String(error ?? "Something went wrong");
 }
+
+/** Whether a call failed because a newer request for it replaced (aborted) it. */
+export function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "AbortError";
+}

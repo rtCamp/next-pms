@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   floatToTime,
   formatCurrency,
+  formatFileSize,
   formatHours,
   formatNumber,
   formatPercentage,
@@ -75,5 +76,18 @@ describe("formatCurrency", () => {
 
   it("formats unlisted currencies in the Indian format", () => {
     expect(formatCurrency(1234567, "SGD")).toMatch(/^SGD\s12,34,567\.00$/);
+  });
+});
+
+describe("formatFileSize", () => {
+  it.each([
+    [0, "0 B"],
+    [1023, "1023 B"],
+    [1024, "1 KB"],
+    [1536, "2 KB"],
+    [1024 * 1024, "1 MB"],
+    [5.4 * 1024 * 1024, "5 MB"],
+  ])("formats %d bytes as %s", (bytes, expected) => {
+    expect(formatFileSize(bytes)).toBe(expected);
   });
 });

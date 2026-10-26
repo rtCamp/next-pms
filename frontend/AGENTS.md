@@ -37,7 +37,7 @@ Storybook 10 (Vue 3 + Vite) with the MCP, Docs, Vitest, A11y and Themes addons, 
 | `npm run lint` / `lint:fix` | ESLint over `.vue`, `.ts` and stories: Vue, TypeScript, Storybook, Tailwind class, accessibility and composable rules; formatting is Prettier's |
 | `npm run storybook` | Storybook on port 6006 (also serves the Storybook MCP at `/mcp`) |
 | `npm run test-storybook` | Runs every story as a test in headless Chromium (Vitest), including an accessibility check |
-| `npm run test-unit` | Runs the `*.test.ts` unit tests under `src/` (the `src/utils/` helpers, `GanttGrid`'s geometry, the allocations pages' pure modules) in headless Chromium (Vitest) |
+| `npm run test-unit` | Runs the `*.test.ts` unit tests under `src/` (helpers, composables, page logic, `GanttGrid`'s geometry) in headless Chromium (Vitest) |
 | `npm run build-storybook` | Static Storybook in `storybook-static/` |
 
 ## Layout
@@ -61,10 +61,28 @@ src/
                    puts them in shared/ (layout, URL state, paged loading with the realtime refresh, the Add / Edit,
                    Edit schedule and delete dialogs, and pure .ts modules with unit tests) beside team/ and project/;
                    its dialogs have no stories
+                   A page with tabs keeps the shell at the folder root and one subfolder per tab
+                   (pages/project-details/: the shell, useProjectDetails, the shared RichTextEditor,
+                   useProjectComments, LoadError and createOwnWrites (skips a write's own realtime echo);
+                   about/ for the About sidebar; calendar/ (provideTimeline, the month grid, TimelineGantt,
+                   the tables, the one TimelineItemDialog and the pure calendar.ts with unit tests); email/,
+                   feedback/, growth/ (provideGrowth, the group list's cells, the ?growth= detail with its
+                   action items and activity, the Create / Edit initiative and update dialogs, and the pure
+                   growth.ts with unit tests), notes/ (provideNotes, the cards, the ?note= detail with its
+                   read-only task toggles, NoteEditor for the editor child routes, the template picker and
+                   save-template dialogs, and the pure notes.ts with unit tests), overview/, rag-stats/,
+                   reports/, risks/
+                   (provideRisks, the group list's cells, the ?risk= detail, the Create / Edit risk and update
+                   dialogs, and the pure risks.ts with unit tests), shared/ (what Risks and Growth share:
+                   owner-gated permissions, the update log helpers, follow, followers, attachments and upload,
+                   the linked-ToDo delete check, the group list, the update entry, the activity section and the
+                   pills, with unit tests for the pure .ts), to-do/
+                   (also the ToDo linking the other tabs reuse: LinkedTodos, LinkedChip), tracking/, …)
   components/      components frappe-ui lacks, one folder each; see components/Components.md
   composables/     shared use* composables: lookups, the like toggle, URL query updates, editor attributes,
                    values saved in localStorage (useSavedState), notifications, infinite scroll, project phases,
-                   the unsaved changes guard
+                   the unsaved changes guard, realtime updates (useDocUpdates for one document,
+                   useDoctypeListUpdates for a doctype's list)
   icons/           custom icons lucide lacks, as Vue SFCs exported from icons/index.ts; everything else uses lucide-* (P4)
   utils/           helpers shared by components and pages (date.ts, text.ts, cn.ts); add one only when something needs it
 ```
@@ -76,7 +94,9 @@ src/
 roles may open it. The `beforeEach` guard in `router.ts` sends users without an Employee record to `/no-employee`
 and users without a role to `/no-access`. `meta.standalone` marks a status page: no sidebar, no guard checks.
 `meta.scroll: false` hands scrolling to the page (DesktopShell stops scrolling it), for pages whose header or toolbar
-stays put while a pane scrolls, like the task list's rows.
+stays put while a pane scrolls, like the task list's rows. The note editor routes are children of `project-details`:
+the page shows them in place of its tabs, and `App.vue` keys the route view by project (`project:<id>`) rather than
+by path, so opening the editor doesn't remount the page while another project still does.
 
 Never edit the build output in `../next_pms/public/frontend` by hand.
 
@@ -118,6 +138,9 @@ These win over the vendored skills.
   - `DATA.md` says `submit()` returns before the request when `refetch: true`. It awaits the request in both modes
     (`useCall.ts`).
 - **frappe-ui skill mapping**: use our `MonthPicker` for picking a month, not `Select` as the skill suggests.
+- **Accordions with header actions**: frappe-ui's experimental `Accordion` renders `item-suffix` inside the trigger
+  button, so an action there nests a button in a button. The About sidebar builds its sections from reka-ui's
+  Accordion parts instead, with the actions beside the trigger (`pages/project-details/about/SidebarSection.vue`).
 
 ## Working rules
 

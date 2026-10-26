@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { provide, toRef } from "vue";
+import { normalizeClass, provide, toRef, useAttrs } from "vue";
 import { Spinner } from "frappe-ui";
+import { cn } from "@/utils/cn";
 import CommentInput from "./CommentInput.vue";
 import CommentThread from "./CommentThread.vue";
 import { commentsContextKey } from "./context";
 import type { CommentsProps } from "./types";
+
+defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(defineProps<CommentsProps>(), {
   isLoading: false,
@@ -13,6 +16,15 @@ const props = withDefaults(defineProps<CommentsProps>(), {
   title: "Comments",
   inputPlaceholder: "Type a comment",
   inputSubmitLabel: "Post",
+});
+
+const attrs = useAttrs();
+const rootAttrs = () => ({
+  ...attrs,
+  class: cn(
+    "mt-6 flex flex-col gap-5 border-t border-outline-gray-2 pt-6",
+    normalizeClass(attrs.class),
+  ),
 });
 
 defineSlots<{
@@ -33,7 +45,7 @@ provide(commentsContextKey, {
 </script>
 
 <template>
-  <section class="mt-6 flex flex-col gap-5 border-t border-outline-gray-2 pt-6">
+  <section v-bind="rootAttrs()">
     <slot name="title">
       <h2 class="text-lg font-medium text-ink-gray-8">{{ title }}</h2>
     </slot>

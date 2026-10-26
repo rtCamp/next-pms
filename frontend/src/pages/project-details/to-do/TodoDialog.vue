@@ -1,0 +1,353 @@
+<script setup lang="ts">
+import { computed, reactive, ref, watch } from "vue";
+import {
+  Avatar,
+  Button,
+  Combobox,
+  DateTimePicker,
+  Dialog,
+  ErrorMessage,
+  Select,
+  TextInput,
+} from "frappe-ui";
+import type { LookupOption } from "@/composables/useRemoteLookup";
+import { useUserLookup } from "@/composables/useUserLookup";
+import RichTextEditor from "@/pages/project-details/RichTextEditor.vue";
+import { useSession } from "@/session";
+import { systemToLocalDateTime } from "@/utils/date";
+import { errorMessage } from "@/utils/errors";
+import { PRIORITY_DOT, TODO_PRIORITIES } from "./constants";
+import {
+  emptyTodoForm,
+  linkKey,
+  linkOptions as toLinkOptions,
+  statusColor,
+  statusIcon,
+  statusOptions as todoStatusOptions,
+  todoToForm,
+  validateTodo,
+} from "./todos";
+import type { TodoErrors, TodoForm, TodoPriority, TodoStatus } from "./types";
+import { useTodos } from "./useTodos";
+
+const DATE_TIME_FORMAT = "YYYY-MM-DD h:mm a";
+
+const todos = useTodos();
+const session = useSession();
+const {
+  customFields,
+  editing,
+  createLinkedTo,
+  editorOpen: open,
+  saving,
+  linkableLoading,
+  linkableRecords,
+} = todos;
+
+const form = reactive<TodoForm>(emptyTodoForm(session.userId));
+const errors = reactive<TodoErrors>({});
+const assigneeQuery = ref("");
+const assigneeOption = ref<LookupOption | null>(null);
+
+watch(open, (isOpen) => {
+  if (!isOpen) return;
+  const todo = editing.value;
+  Object.assign(
+    form,
+    todo
+      ? todoToForm(todo)
+      : emptyTodoForm(session.userId, createLinkedTo.value),
+  );
+  assigneeOption.value = todo
+    ? {
+        label: todo.assigneeName,
+        value: todo.allocated_to,
+        image: todo.assigneeImage ?? undefined,
+      }
+    : {
+        label: session.userName || session.userId,
+        value: session.userId,
+        image: session.userImage || undefined,
+      };
+  for (const key of Object.keys(errors)) delete errors[key as keyof TodoForm];
+  assigneeQuery.value = "";
+});
+
+for (const key of Object.keys(form) as (keyof TodoForm)[]) {
+  watch(
+    () => form[key],
+    () => delete errors[key],
+  );
+}
+
+const lookup = useUserLookup({
+  enabled: open,
+  // In input mode the combobox puts the selected label in the query; not a search.
+  query: () =>
+    assigneeQuery.value === assigneeOption.value?.label
+      ? ""
+      : assigneeQuery.value,
+  selected: assigneeOption,
+});
+
+const searchError = computed(() =>
+  lookup.error ? errorMessage(lookup.error) : null,
+);
+
+const assignee = computed({
+  get: () => form.assignee || null,
+  set: (value) => {
+    form.assignee = value ? String(value) : "";
+    assigneeOption.value =
+      lookup.options.find((option) => option.value === form.assignee) ?? null;
+  },
+});
+
+const statusOptions = computed(() => todoStatusOptions(form.status));
+const priorityOptions = TODO_PRIORITIES.map((priority) => ({
+  label: priority,
+  value: priority,
+}));
+
+const status = computed({
+  get: () => form.status,
+  set: (value) => {
+    if (value) form.status = value as TodoStatus;
+  },
+});
+const priority = computed({
+  get: () => form.priority,
+  set: (value) => {
+    if (value) form.priority = value as TodoPriority;
+  },
+});
+
+// frappe-ui's DateTimePicker converts local to system time when it emits, but reads
+// its value as local time, so the value going in is converted here.
+const startAt = computed({
+  get: () => systemToLocalDateTime(form.startAt),
+  set: (value: string) => (form.startAt = value),
+});
+const endAt = computed({
+  get: () => systemToLocalDateTime(form.endAt),
+  set: (value: string) => (form.endAt = value),
+});
+
+const isEdit = computed(() => editing.value !== null);
+
+/** The ToDo is linked to a record the user may not link to: shown, but not changed. */
+const linkLocked = computed(
+  () =>
+    Boolean(form.linkedTo) &&
+    !linkableLoading.value &&
+    !todos.canLink(form.linkedTo),
+);
+const linkRecords = computed(() => {
+  const records = linkableRecords.value;
+  return linkLocked.value && form.linkedTo
+    ? [...records, form.linkedTo]
+    : records;
+});
+const linkOptions = computed(() => toLinkOptions(linkRecords.value));
+const linkedTo = computed({
+  get: () => (form.linkedTo ? linkKey(form.linkedTo) : null),
+  set: (value) => {
+    form.linkedTo =
+      linkRecords.value.find((record) => linkKey(record) === value) ?? null;
+  },
+});
+
+function personOf(option: unknown) {
+  return option as { label: string; image?: string };
+}
+
+function statusOf(option: unknown) {
+  return (option as { value: string }).value;
+}
+
+async function submit() {
+  Object.assign(errors, validateTodo(form, customFields));
+  if (Object.keys(errors).length) return;
+  if (await todos.save({ ...form })) open.value = false;
+}
+</script>
+
+<template>
+  <Dialog
+    v-model:open="open"
+    :title="isEdit ? 'Edit ToDo' : 'Add ToDo'"
+    size="lg"
+    :dismissible="!saving"
+  >
+    <form class="-mt-2 space-y-4" novalidate @submit.prevent="submit">
+      <TextInput
+        v-if="customFields"
+        v-model="form.title"
+        label="Title"
+        required
+        :error="errors.title"
+        size="md"
+        variant="outline"
+        placeholder="Add a title"
+      />
+      <div class="flex flex-col gap-1.5">
+        <span class="text-base text-ink-gray-5">Description</span>
+        <RichTextEditor
+          v-model="form.description"
+          label="Description"
+          placeholder="Add a description..."
+          content-class="h-40 overflow-auto text-ink-gray-8"
+          :disabled="saving"
+        />
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <Select
+          v-model="status"
+          class="w-fit"
+          size="sm"
+          variant="subtle"
+          :options="statusOptions"
+          aria-label="Status"
+        >
+          <template #prefix>
+            <span
+              class="size-3.5"
+              :class="[statusIcon(form.status), statusColor(form.status)]"
+              aria-hidden="true"
+            />
+          </template>
+          <template #item-prefix="{ item }">
+            <span
+              class="size-3.5"
+              :class="[statusIcon(statusOf(item)), statusColor(statusOf(item))]"
+              aria-hidden="true"
+            />
+          </template>
+        </Select>
+        <Combobox
+          v-model="assignee"
+          v-model:query="assigneeQuery"
+          class="w-56"
+          size="md"
+          variant="subtle"
+          :options="lookup.options"
+          :loading="lookup.loading"
+          :filterable="false"
+          :error="errors.assignee"
+          open-on-focus
+          placeholder="Assignee"
+          aria-label="Assignee"
+        >
+          <template #item-prefix="{ item }">
+            <Avatar
+              size="xs"
+              shape="circle"
+              :image="personOf(item).image"
+              :label="personOf(item).label"
+            />
+          </template>
+          <template v-if="searchError && !lookup.options.length" #empty>
+            <span role="alert" class="text-ink-red-6">{{ searchError }}</span>
+          </template>
+          <template v-else-if="searchError" #footer>
+            <p role="alert" class="px-3 py-1.5 text-base text-ink-red-6">
+              {{ searchError }}
+            </p>
+          </template>
+        </Combobox>
+        <template v-if="customFields">
+          <div class="flex flex-col gap-1">
+            <DateTimePicker v-model="startAt" :format="DATE_TIME_FORMAT">
+              <template #trigger="{ displayLabel, open: pickerOpen, setOpen }">
+                <Button
+                  variant="subtle"
+                  size="md"
+                  icon-right="lucide-calendar"
+                  :aria-label="
+                    displayLabel ? `Start: ${displayLabel}` : 'Start'
+                  "
+                  @click="setOpen(!pickerOpen)"
+                >
+                  <span class="truncate text-sm text-ink-gray-7">
+                    {{ displayLabel || "Start" }}
+                  </span>
+                </Button>
+              </template>
+            </DateTimePicker>
+            <ErrorMessage v-if="errors.startAt" :message="errors.startAt" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <DateTimePicker v-model="endAt" :format="DATE_TIME_FORMAT">
+              <template #trigger="{ displayLabel, open: pickerOpen, setOpen }">
+                <Button
+                  variant="subtle"
+                  size="md"
+                  icon-right="lucide-calendar"
+                  :aria-label="displayLabel ? `End: ${displayLabel}` : 'End'"
+                  @click="setOpen(!pickerOpen)"
+                >
+                  <span class="truncate text-sm text-ink-gray-7">
+                    {{ displayLabel || "End" }}
+                  </span>
+                </Button>
+              </template>
+            </DateTimePicker>
+            <ErrorMessage v-if="errors.endAt" :message="errors.endAt" />
+          </div>
+        </template>
+        <Select
+          v-model="priority"
+          class="w-fit"
+          size="sm"
+          variant="subtle"
+          :options="priorityOptions"
+          aria-label="Priority"
+        >
+          <template #prefix>
+            <span
+              class="inline-block size-2 rounded-full"
+              :class="PRIORITY_DOT[form.priority]"
+              aria-hidden="true"
+            />
+          </template>
+        </Select>
+        <Combobox
+          v-if="linkableLoading || linkOptions.length"
+          v-model="linkedTo"
+          class="w-88"
+          size="md"
+          variant="subtle"
+          :options="linkOptions"
+          :loading="linkableLoading"
+          :disabled="linkLocked"
+          open-on-focus
+          placeholder="Link to milestone, touchpoint or growth initiative"
+          aria-label="Linked to"
+        >
+          <template v-if="form.linkedTo && !linkLocked" #suffix="{ clear }">
+            <button
+              type="button"
+              class="inline-flex shrink-0 items-center justify-center rounded-1 text-ink-gray-6 outline-none hover:text-ink-gray-8 focus-visible:ring focus-visible:ring-outline-gray-3"
+              aria-label="Clear the linked record"
+              @pointerdown.stop
+              @click.stop="clear()"
+            >
+              <span class="lucide-x size-4" aria-hidden="true" />
+            </button>
+          </template>
+        </Combobox>
+      </div>
+    </form>
+
+    <template #actions>
+      <Button
+        class="w-full"
+        variant="solid"
+        :label="isEdit ? 'Save' : 'Create'"
+        :loading="saving"
+        :disabled="saving"
+        @click="submit"
+      />
+    </template>
+  </Dialog>
+</template>

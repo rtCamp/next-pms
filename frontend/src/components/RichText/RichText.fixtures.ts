@@ -14,3 +14,6 @@ export const UNSAFE =
   '<p>Hello</p><script>alert(2)</script><p onclick="alert(3)">World</p><p><a href="javascript:alert(1)">Open</a></p>';
 
 export const TWO_PARAGRAPHS = "<p>First line</p><p>Second line</p>";
+
+export const RICH_TEXT =
+  '<p style="text-align: center">Goals for <mark data-color="#fef9c3" style="background-color: #fef9c3; color: inherit">Q4</mark></p><table><tbody><tr><th><p>Milestone</p></th><th><p>Due</p></th></tr><tr><td><p>Beta</p></td><td><p>Nov 1</p></td></tr></tbody></table><ul data-type="taskList"><li data-type="taskItem" data-checked="true"><label><input type="checkbox" checked="checked"><span></span></label><div><p>Kick-off</p></div></li><li data-type="taskItem" data-checked="false"><label><input type="checkbox"><span></span></label><div><p>Launch</p></div></li></ul>';
