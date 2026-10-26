@@ -35,7 +35,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{ logout: [] }>();
 
-// The sidebar and its dialogs; nothing is passed through.
 defineOptions({ inheritAttrs: false });
 
 const { resolvedColorScheme, toggleColorScheme } = useColorScheme();
@@ -64,8 +63,9 @@ const searchItems = computed(() =>
 useKeyboardShortcut({
   combo: "Mod+K",
   description: "Search",
-  // Also from a focused field, as in React.
+  // From anywhere, as in React: a focused field or an open dialog, the palette included.
   allowInInput: true,
+  allowInDialog: true,
   handler: () => {
     searchOpen.value = !searchOpen.value;
   },
