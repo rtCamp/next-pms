@@ -218,7 +218,8 @@ export const AppsSubmenu: Story = {
   },
 };
 
-const loadTasks = fn(async () => ({ render: () => null }));
+// A new loader per render: the preload remembers loaders it has called.
+let loadTasks = fn();
 
 /** Hovering or focusing a link loads its page's code once, before the click. */
 export const PreloadsPageCode: Story = {
@@ -226,6 +227,7 @@ export const PreloadsPageCode: Story = {
     components: { AppSidebar },
     setup() {
       const router = useRouter();
+      loadTasks = fn(async () => ({ render: () => null }));
       router.addRoute({
         path: "/tasks",
         name: "preload-tasks",
