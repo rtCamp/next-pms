@@ -5,6 +5,7 @@ import {
   provide,
   reactive,
   ref,
+  watch,
   type InjectionKey,
 } from "vue";
 import { useRoute } from "vue-router";
@@ -60,6 +61,10 @@ function createRisks() {
     JSON.stringify(riskListFilters(projectId.value, quick, advanced.value)),
   );
 
+  /** The filters and sort the rows were last read for. */
+  const query = computed(() => `${filters.value} ${riskOrderBy(sort.value)}`);
+  const loadedQuery = ref<string | null>(null);
+
   const list = useCall<RiskRow[], Params>({
     url: GET_LIST_URL,
     params: () => ({
@@ -71,6 +76,12 @@ function createRisks() {
     }),
     refetch: true,
   });
+  watch(
+    () => list.loading,
+    (loading) => {
+      if (!loading) loadedQuery.value = query.value;
+    },
+  );
 
   const peopleRows = useCall<Pick<RiskRow, "owner" | "risk_owner">[], Params>({
     url: GET_LIST_URL,
@@ -94,26 +105,27 @@ function createRisks() {
   }
 
   /** The open detail's reloads, run after a change to any risk. */
-  const changeListeners = new Set<() => void>();
+  const changeListeners = new Set<(name?: string) => void>();
 
   /** Runs `listener` after a local or realtime change to a risk, until the caller's scope ends. */
-  function onRisksChanged(listener: () => void) {
+  function onRisksChanged(listener: (name?: string) => void) {
     changeListeners.add(listener);
     onScopeDispose(() => changeListeners.delete(listener));
   }
 
-  function refetch() {
+  /** Reads the list again and tells the listeners; `name` is the changed record, when known. */
+  function refetch(name?: string) {
     refresh();
-    changeListeners.forEach((listener) => listener());
+    changeListeners.forEach((listener) => listener(name));
   }
 
   const { localWrite, isOwnEcho } = createOwnWrites({
     userId: () => session.userId,
-    onMissedUpdate: refetch,
+    onMissedUpdate: () => refetch(),
   });
 
   useDoctypeListUpdates(RISK_DOCTYPE, (update) => {
-    if (!isOwnEcho(update)) refetch();
+    if (!isOwnEcho(update)) refetch(update.name);
   });
 
   const riskId = computed(() => queryString(route.query[RISK_PARAM]));
@@ -212,10 +224,13 @@ function createRisks() {
     ),
     items,
     groups: computed(() => riskGroups(items.value)),
-    loading: computed(() => list.loading),
-    /** The list failed to load; a refetch that replaced it doesn't count. */
+    /** A first load or a filter or sort change is being read; background reloads don't count. */
+    loading: computed(
+      () => list.loading && (!list.data || loadedQuery.value !== query.value),
+    ),
+    /** The list couldn't be read and there's nothing to show; a failed background reload keeps the rows. */
     loadError: computed(() =>
-      list.error && !isAbortError(list.error) ? list.error : null,
+      list.error && !isAbortError(list.error) && !list.data ? list.error : null,
     ),
     refresh,
     onRisksChanged,

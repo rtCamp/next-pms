@@ -82,7 +82,9 @@ export function useGrowthDetail(growthId: string) {
   }
 
   const reload = () => doc.reload();
-  growth.onGrowthChanged(reload);
+  growth.onGrowthChanged((name) => {
+    if (!name || name === growthId) reload();
+  });
 
   /** The Add / Edit update dialog: open while `updateDialogOpen`; `editingUpdate` is `null` when adding. */
   const updateDialogOpen = ref(false);
@@ -164,8 +166,10 @@ export function useGrowthDetail(growthId: string) {
     initiative,
     /** The first read is still running. */
     loading: computed(() => doc.loading && !doc.data),
-    /** The read failed for another reason than a missing initiative. */
-    loadError: computed(() => (notFound.value ? null : error.value)),
+    /** The first read failed for another reason than a missing initiative; a failed reload keeps it shown. */
+    loadError: computed(() =>
+      notFound.value || doc.data ? null : error.value,
+    ),
     notFound,
     reload,
     users,
