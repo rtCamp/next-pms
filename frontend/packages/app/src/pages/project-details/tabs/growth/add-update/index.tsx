@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import {
   Button,
   Dialog,
@@ -26,6 +27,7 @@ import {
   GROWTH_DOCTYPE,
 } from "../constants";
 import { useGrowth } from "../context";
+import { GROWTH_HELP } from "../help";
 import type { ClientPriority, GrowthUpdateEntry } from "../types";
 import { EMPTY_UPDATE_VALUES } from "./constants";
 import { toUpdateLogRows, type GrowthUpdateRow } from "./payload";
@@ -257,9 +259,12 @@ export function AddUpdateModal({
           name="billable_outcome"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="block text-base text-ink-gray-5">
-                Billable outcome
-              </label>
+              <div className="flex items-center gap-1.5">
+                <label className="block text-base text-ink-gray-5">
+                  Billable outcome
+                </label>
+                <InfoHoverCard help={GROWTH_HELP.billableOutcome} />
+              </div>
               <TextInput
                 type="number"
                 size="md"

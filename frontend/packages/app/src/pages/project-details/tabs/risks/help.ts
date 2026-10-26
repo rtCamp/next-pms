@@ -35,6 +35,3 @@ export const RISK_OWNER_TOOLTIP =
   "The person responsible for handling this risk.";
 
 export const OWNER_TOOLTIP = "The person who logged this risk.";
-
-export const UPDATE_ACTIONS_TOOLTIP = (author: string) =>
-  `Only ${author} or a System Manager can edit or delete this update.`;

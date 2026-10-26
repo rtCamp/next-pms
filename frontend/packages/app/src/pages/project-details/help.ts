@@ -42,3 +42,6 @@ export const MEMBER_REMOVE_TOOLTIP = {
     `Pick someone else as ${roles.join(" and ")} first`,
   billingTeam: "Delete their rate in Project rates on the Tracking tab first",
 };
+
+export const UPDATE_ACTIONS_TOOLTIP = (author: string) =>
+  `Only ${author} or a System Manager can edit or delete this update.`;
