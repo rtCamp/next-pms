@@ -6,6 +6,13 @@ export interface NavItem {
   to: string;
 }
 
+/** A top item that opens a panel instead of a page. */
+export interface NavAction {
+  label: string;
+  icon: string;
+  action: "notifications";
+}
+
 export interface NavSection {
   label: string;
   items: NavItem[];
@@ -19,7 +26,7 @@ export interface NavSection {
 export function computeSections(
   roles: readonly Role[],
   employeeId?: string | null,
-): { topItems: NavItem[]; sections: NavSection[] } {
+): { topItems: (NavItem | NavAction)[]; sections: NavSection[] } {
   const can = (allowed: readonly Role[]) => hasAnyRole(roles, allowed);
 
   const dashboards: NavItem[] = [
@@ -59,8 +66,17 @@ export function computeSections(
     { label: "Projects", icon: "lucide-folder", to: "/allocations/project" },
   ];
 
-  const topItems: NavItem[] = [
+  const topItems: (NavItem | NavAction)[] = [
     ...(timesheets.length === 1 ? timesheets : []),
+    ...(can(ROLE_ACCESS.notifications)
+      ? [
+          {
+            label: "Notifications",
+            icon: "lucide-bell",
+            action: "notifications" as const,
+          },
+        ]
+      : []),
     ...(can(ROLE_ACCESS.projects)
       ? [
           {

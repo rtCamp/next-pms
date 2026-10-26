@@ -7,10 +7,11 @@ import {
   type RouteLocationNormalizedLoaded,
 } from "vue-router";
 import { ErrorFallback } from "@/components/ErrorFallback";
+import { provideNotifications } from "@/composables/useNotifications";
 import type { AppLink } from "./layout/apps";
 import AppSidebar from "./layout/AppSidebar.vue";
 import SessionError from "./layout/SessionError.vue";
-import { useSession } from "./session";
+import { ROLE_ACCESS, useSession } from "./session";
 
 const route = useRoute();
 const router = useRouter();
@@ -18,6 +19,7 @@ const session = useSession();
 const apps = useCall<AppLink[]>({
   url: "/api/v2/method/frappe.apps.get_apps",
 });
+provideNotifications(() => session.hasAnyRole(ROLE_ACCESS.notifications));
 
 // The first navigation waits for the session in the router guard.
 const starting = computed(() => route.matched.length === 0);

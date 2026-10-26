@@ -57,6 +57,23 @@ export const Employee: Story = {
     await expect(
       canvas.getByRole("button", { name: "Allocations" }),
     ).toBeInTheDocument();
+    await expect(
+      canvas.queryByRole("button", { name: "Notifications" }),
+    ).not.toBeInTheDocument();
+  },
+};
+
+/** Projects and delivery roles get Notifications, which opens the tray beside the sidebar. */
+export const Notifications: Story = {
+  args: { roles: ["Projects User"] },
+  play: async ({ canvas }) => {
+    await userEvent.click(
+      canvas.getByRole("button", { name: "Notifications" }),
+    );
+    const tray = await screen.findByRole("dialog", { name: "Notifications" });
+    await expect(tray).toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   },
 };
 
