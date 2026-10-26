@@ -1,6 +1,8 @@
 import frappe
 from frappe import _
 
+from next_pms.next_projects.api.constant import ALLOWED_ROLES
+
 LINKED_TODO_DOCTYPE = "PMS Linked ToDo"
 LINKED_TODO_OWNERS = {
     "Project Timeline Item": "title",
@@ -36,8 +38,10 @@ def validate_linked_todos(doc):
     if not doc.flags.ignore_permissions:
         before = doc.get_doc_before_save()
         already_linked = {row.todo for row in before.get("linked_todos")} if before else set()
-        for todo in set(todos) - already_linked:
-            frappe.has_permission("ToDo", "read", doc=todo, throw=True)
+        new_links = set(todos) - already_linked
+        if new_links and not has_project_page_access(doc.project):
+            for todo in new_links:
+                frappe.has_permission("ToDo", "read", doc=todo, throw=True)
 
     for row in get_todo_owner_rows(todos):
         if (row.parenttype, row.parent) != (doc.doctype, doc.name):
@@ -46,6 +50,12 @@ def validate_linked_todos(doc):
                     frappe.bold(row.todo), _(row.parenttype), frappe.bold(row.parent)
                 )
             )
+
+
+def has_project_page_access(project: str) -> bool:
+    return bool(set(ALLOWED_ROLES).intersection(frappe.get_roles())) and frappe.has_permission(
+        "Project", "read", doc=project
+    )
 
 
 def get_todo_owner_rows(todos: list[str]) -> list[dict]:
