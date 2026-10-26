@@ -2,6 +2,7 @@
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import LoadError from "@/pages/project-details/LoadError.vue";
 import GrowthDetail from "./GrowthDetail.vue";
+import GrowthDialog from "./GrowthDialog.vue";
 import GrowthHeader from "./GrowthHeader.vue";
 import GrowthList from "./GrowthList.vue";
 import { provideGrowth } from "./useGrowth";
@@ -25,4 +26,5 @@ const { growthId, loading, loadError, refresh } = provideGrowth();
       <GrowthList />
     </LoadingOverlay>
   </div>
+  <GrowthDialog />
 </template>
