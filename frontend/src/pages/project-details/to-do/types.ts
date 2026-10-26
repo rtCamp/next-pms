@@ -5,7 +5,7 @@ export type KnownTodoStatus =
   "Open" | "Backlog" | "In Progress" | "Closed" | "Cancelled";
 export type TodoPriority = "Low" | "Medium" | "High";
 
-/** A `ToDo` row as the list reads it. */
+/** A project `ToDo`. */
 export interface TodoDoc {
   name: string;
   allocated_to: string;
@@ -16,16 +16,10 @@ export interface TodoDoc {
   reference_name: string;
   creation: string;
   modified: string;
-  /** rtcamp custom fields, read only when `boot.has_todo_custom_fields`. */
+  /** rtcamp custom fields, sent only when `boot.has_todo_custom_fields`. */
   custom_title?: string | null;
   custom_from_time?: string | null;
   custom_to_time?: string | null;
-}
-
-export interface TodoUser {
-  name: string;
-  full_name: string | null;
-  user_image: string | null;
 }
 
 export type LinkedRecordType = "Milestone" | "Touchpoint" | "Growth Initiative";
@@ -40,12 +34,17 @@ export interface LinkedRecord {
 
 export type RecordRef = Pick<LinkedRecord, "doctype" | "name">;
 
-/** `get_todo_links`: the record each linked ToDo belongs to, by ToDo name. */
-export type TodoLinks = Record<string, LinkedRecord>;
+/** A `get_project_todos` row: a ToDo with its assignee and, when linked, its record. */
+export interface ProjectTodoRow extends TodoDoc {
+  /** The assignee's full name, or their user ID when they have none. */
+  allocated_to_full_name: string | null;
+  allocated_to_image: string | null;
+  linked?: LinkedRecord;
+}
 
 /** A ToDo with its assignee's name and avatar and its linked record resolved. */
 export interface Todo extends TodoDoc {
-  /** The assignee's full name, or their email when the User can't be read. */
+  /** The assignee's full name, or their email when they have none. */
   assigneeName: string;
   assigneeImage: string | null;
   linked: LinkedRecord | null;

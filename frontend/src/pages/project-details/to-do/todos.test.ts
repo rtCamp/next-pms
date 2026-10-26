@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { getConfig, setConfig } from "frappe-ui";
 import {
-  assigneeIds,
   deleteTodoMessage,
   emptyTodoForm,
   formatTodoCount,
@@ -16,15 +15,14 @@ import {
   statusHoverColor,
   statusIcon,
   statusOptions,
-  todoFields,
   todoStatuses,
   todoTitle,
   toTodoFields,
   unlinkTodoMessage,
   validateTodo,
-  resolveTodos,
+  toTodo,
 } from "./todos";
-import type { LinkedRecord, TodoDoc, TodoForm } from "./types";
+import type { LinkedRecord, ProjectTodoRow, TodoDoc, TodoForm } from "./types";
 
 const milestone: LinkedRecord = {
   doctype: "Project Timeline Item",
@@ -65,19 +63,6 @@ describe("hasTodoCustomFields", () => {
     expect(hasTodoCustomFields()).toBe(true);
     window.boot = { sitename: "s" };
     expect(hasTodoCustomFields()).toBe(false);
-  });
-});
-
-describe("todoFields", () => {
-  it("reads the custom fields only when the site has them", () => {
-    expect(todoFields(false)).not.toContain("custom_title");
-    expect(todoFields(true)).toEqual(
-      expect.arrayContaining([
-        "custom_title",
-        "custom_from_time",
-        "custom_to_time",
-      ]),
-    );
   });
 });
 
@@ -126,35 +111,33 @@ describe("formatTodoDateTime", () => {
   });
 });
 
-describe("resolveTodos", () => {
-  it("adds the assignee's name and image, or the email when unknown", () => {
-    const [known, unknown] = resolveTodos(
-      [doc(), doc({ name: "TD-2", allocated_to: "b@example.com" })],
-      [{ name: "a@example.com", full_name: "Ann", user_image: "/a.png" }],
-      { "TD-2": milestone },
-    );
-    expect(known).toMatchObject({
+describe("toTodo", () => {
+  const row = (overrides: Partial<ProjectTodoRow> = {}): ProjectTodoRow => ({
+    ...doc(),
+    allocated_to_full_name: "Ann",
+    allocated_to_image: "/a.png",
+    ...overrides,
+  });
+
+  it("takes the assignee's name and image and the linked record", () => {
+    expect(toTodo(row({ linked: milestone }))).toMatchObject({
+      name: "TD-1",
       assigneeName: "Ann",
       assigneeImage: "/a.png",
-      linked: null,
-    });
-    expect(unknown).toMatchObject({
-      assigneeName: "b@example.com",
-      assigneeImage: null,
       linked: milestone,
     });
   });
-});
 
-describe("assigneeIds", () => {
-  it("lists each assignee once, sorted", () => {
-    expect(
-      assigneeIds([
-        doc({ allocated_to: "b@example.com" }),
-        doc({ allocated_to: "a@example.com" }),
-        doc({ allocated_to: "b@example.com" }),
-      ]),
-    ).toEqual(["a@example.com", "b@example.com"]);
+  it("falls back to the user ID, no image and no link", () => {
+    const todo = toTodo(
+      row({ allocated_to_full_name: null, allocated_to_image: null }),
+    );
+    expect(todo).toMatchObject({
+      assigneeName: "a@example.com",
+      assigneeImage: null,
+      linked: null,
+    });
+    expect(todo).not.toHaveProperty("allocated_to_full_name");
   });
 });
 
@@ -250,15 +233,18 @@ describe("linked records", () => {
   });
 
   it("groups the linked ToDos by record, in order", () => {
-    const todos = resolveTodos(
-      [
-        doc(),
-        doc({ name: "TD-2" }),
-        doc({ name: "TD-3" }),
-        doc({ name: "TD-4" }),
-      ],
-      [],
-      { "TD-1": milestone, "TD-3": touchpoint, "TD-4": milestone },
+    const links: Record<string, LinkedRecord> = {
+      "TD-1": milestone,
+      "TD-3": touchpoint,
+      "TD-4": milestone,
+    };
+    const todos = ["TD-1", "TD-2", "TD-3", "TD-4"].map((name) =>
+      toTodo({
+        ...doc({ name }),
+        allocated_to_full_name: null,
+        allocated_to_image: null,
+        linked: links[name],
+      }),
     );
     const byRecord = todosByRecord(todos);
     const names = (record: LinkedRecord) =>

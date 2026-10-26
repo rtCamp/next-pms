@@ -20,35 +20,16 @@ import type {
   LinkedRecord,
   RecordRef,
   Todo,
+  ProjectTodoRow,
   TodoDoc,
   TodoErrors,
   TodoForm,
-  TodoLinks,
   TodoStatus,
-  TodoUser,
 } from "./types";
 
 /** Whether the site has the rtcamp ToDo fields: title, start and end. */
 export function hasTodoCustomFields(): boolean {
   return Boolean(window.boot?.has_todo_custom_fields);
-}
-
-/** The ToDo fields the list reads; the custom ones only when the site has them. */
-export function todoFields(customFields: boolean): (keyof TodoDoc)[] {
-  return [
-    "name",
-    "allocated_to",
-    "description",
-    "status",
-    "priority",
-    "reference_type",
-    "reference_name",
-    "creation",
-    "modified",
-    ...(customFields
-      ? (["custom_title", "custom_from_time", "custom_to_time"] as const)
-      : []),
-  ];
 }
 
 function htmlText(html: string): string {
@@ -72,32 +53,15 @@ export function formatTodoDateTime(value: string | null | undefined): string {
   return dayjs(systemToLocalDateTime(value)).format("D MMM, hh:mm a");
 }
 
-/**
- * Each ToDo with its assignee's name and avatar (the email stands in for an unreadable
- * User) and the record it is linked to.
- */
-export function resolveTodos(
-  todos: TodoDoc[],
-  users: TodoUser[],
-  links: TodoLinks,
-): Todo[] {
-  const byName = new Map(users.map((user) => [user.name, user]));
-  return todos.map((todo) => {
-    const user = byName.get(todo.allocated_to);
-    return {
-      ...todo,
-      assigneeName: user?.full_name || todo.allocated_to,
-      assigneeImage: user?.user_image || null,
-      linked: links[todo.name] ?? null,
-    };
-  });
-}
-
-/** The distinct assignees of `todos`, sorted, for the User lookup. */
-export function assigneeIds(todos: TodoDoc[]): string[] {
-  return [
-    ...new Set(todos.map((todo) => todo.allocated_to).filter(Boolean)),
-  ].sort();
+/** A `get_project_todos` row as a `Todo`; the user ID stands in for a missing name. */
+export function toTodo(row: ProjectTodoRow): Todo {
+  const { allocated_to_full_name, allocated_to_image, linked, ...todo } = row;
+  return {
+    ...todo,
+    assigneeName: allocated_to_full_name || todo.allocated_to,
+    assigneeImage: allocated_to_image || null,
+    linked: linked ?? null,
+  };
 }
 
 export function emptyTodoForm(

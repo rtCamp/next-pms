@@ -10,33 +10,30 @@ import {
   type InjectionKey,
   type MaybeRefOrGetter,
 } from "vue";
-import { dialog, toast, useCall, useList } from "frappe-ui";
+import { dialog, toast, useCall } from "frappe-ui";
 import { useDoctypeListUpdates } from "@/composables/useDoctypeListUpdates";
 import { createOwnWrites } from "@/pages/project-details/ownWrites";
 import { useSession } from "@/session";
 import { errorMessage, isAbortError } from "@/utils/errors";
-import { TODO_API, TODO_LIMIT } from "./constants";
+import { TODO_API } from "./constants";
 import {
-  assigneeIds,
   deleteTodoMessage,
   hasTodoCustomFields,
   isSameRecord,
   linkKey,
-  resolveTodos,
   todosByRecord,
-  todoFields,
+  toTodo,
   toTodoFields,
   unlinkTodoMessage,
 } from "./todos";
 import type {
   LinkedRecord,
+  ProjectTodoRow,
   RecordRef,
   Todo,
   TodoDoc,
   TodoForm,
-  TodoLinks,
   TodoStatus,
-  TodoUser,
 } from "./types";
 
 /** Runs a write that saves a record, remembering the record `nameOf` names in its result. */
@@ -49,16 +46,12 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
   const session = useSession();
   const customFields = hasTodoCustomFields();
 
-  // Loaded by the first tab that shows the ToDos, not with the page.
-  const list = useList<TodoDoc>({
-    doctype: "ToDo",
-    fields: todoFields(customFields),
-    filters: () => ({
-      reference_type: "Project",
-      reference_name: toValue(projectId),
-    }),
-    orderBy: "creation desc",
-    limit: TODO_LIMIT,
+  const project = () => ({ project: toValue(projectId) });
+  // Loaded by the first tab that shows the ToDos, not with the page. Everyone who can
+  // open the project gets its ToDos, each with its assignee and linked record.
+  const list = useCall<ProjectTodoRow[], { project: string }>({
+    url: `${TODO_API}.get_project_todos`,
+    params: project,
     immediate: false,
     onError: (error) => {
       if (list.data && !isAbortError(error)) toast.error(errorMessage(error));
@@ -66,34 +59,44 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
   });
   const loaded = ref(false);
 
-  const assignees = computed(() => assigneeIds(list.data ?? []));
-  const users = useList<TodoUser>({
-    doctype: "User",
-    fields: ["name", "full_name", "user_image"],
-    filters: () => ({ name: ["in", assignees.value] }),
-    limit: TODO_LIMIT,
-    immediate: false,
-    refetch: false,
-  });
-  watch(
-    () => assignees.value.join(),
-    (key) => {
-      if (key) users.fetch();
-    },
-  );
-
-  const project = () => ({ project: toValue(projectId) });
-  const links = useCall<TodoLinks, { project: string }>({
-    url: `${TODO_API}.get_todo_links`,
-    params: project,
-    immediate: false,
-  });
   const linkable = useCall<LinkedRecord[], { project: string }>({
     url: `${TODO_API}.get_linkable_records`,
     params: project,
     immediate: false,
   });
   let linkableLoaded = false;
+
+  // Separate calls: a newer submit aborts the one in flight on the same call.
+  const create = useCall<TodoDoc, { project: string; todo: Partial<TodoDoc> }>({
+    url: `${TODO_API}.create_project_todo`,
+    method: "POST",
+    immediate: false,
+  });
+  const updateCall = () =>
+    useCall<TodoDoc, { todo: string; values: Partial<TodoDoc> }>({
+      url: `${TODO_API}.update_project_todo`,
+      method: "POST",
+      immediate: false,
+    });
+  const update = updateCall();
+  const statusUpdate = updateCall();
+  const remove = useCall<unknown, { todo: string }>({
+    url: `${TODO_API}.delete_project_todo`,
+    method: "POST",
+    immediate: false,
+  });
+  // Done / reopen on several rows go one at a time, as they share a call.
+  let statusQueue: Promise<unknown> = Promise.resolve();
+  function setStatus(todo: string, status: TodoStatus) {
+    const write = statusQueue.then(() =>
+      statusUpdate.submit({ todo, values: { status } }),
+    );
+    statusQueue = write.then(
+      () => undefined,
+      () => undefined,
+    );
+    return write;
+  }
 
   const createLinked = useCall<
     TodoDoc,
@@ -117,7 +120,6 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
     if (loaded.value) return;
     loaded.value = true;
     list.fetch();
-    links.fetch();
   }
 
   /** Loads the records the user may link ToDos to, once; `refreshLinks()` reloads them. */
@@ -128,14 +130,12 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
   }
 
   function refresh() {
-    if (!loaded.value) return;
-    list.reload();
-    links.reload();
+    if (loaded.value) list.reload();
   }
 
   /** Reloads which ToDos are linked where, and what may be linked, after a linked record changed. */
   function refreshLinks() {
-    if (loaded.value) links.reload();
+    refresh();
     if (linkableLoaded) linkable.reload();
   }
 
@@ -179,9 +179,7 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
     if (!isOwnEcho(update)) refresh();
   });
 
-  const todos = computed<Todo[]>(() =>
-    resolveTodos(list.data ?? [], users.data ?? [], links.data ?? {}),
-  );
+  const todos = computed<Todo[]>(() => (list.data ?? []).map(toTodo));
 
   const byRecord = computed(() => todosByRecord(todos.value));
 
@@ -199,9 +197,11 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
     pendingStatus.set(todo.name, status);
     try {
       await localWrite(
-        () => list.setValue.submit({ name: todo.name, status }),
+        () => setStatus(todo.name, status),
         () => todo.name,
       );
+      // Shows the new status until the list has it.
+      await list.reload();
     } catch (error) {
       toast.error(errorMessage(error));
     } finally {
@@ -217,7 +217,7 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
       onConfirm: async () => {
         try {
           await localWrite(
-            () => list.delete.submit({ name: todo.name }),
+            () => remove.submit({ todo: todo.name }),
             () => todo.name,
           );
         } catch (error) {
@@ -226,6 +226,7 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
         }
         toast.success("ToDo deleted");
         if (todo.linked) refreshLinks();
+        else refresh();
       },
     });
   }
@@ -300,7 +301,7 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
       if (todo) {
         await updateLink(todo, linkedTo);
         await localWrite(
-          () => list.setValue.submit({ name: todo.name, ...fields }),
+          () => update.submit({ todo: todo.name, values: fields }),
           () => todo.name,
         );
       } else if (linkedTo) {
@@ -315,25 +316,20 @@ function createTodos(projectId: MaybeRefOrGetter<string>) {
             ),
           (created) => created?.name,
         );
-        list.reload();
       } else {
         await localWrite(
-          () =>
-            list.insert.submit({
-              ...fields,
-              assigned_by: session.userId,
-              reference_type: "Project",
-              reference_name: toValue(projectId),
-            } as Partial<TodoDoc>),
+          () => create.submit({ project: toValue(projectId), todo: fields }),
           (created) => created?.name,
         );
+        refresh();
       }
     } catch (error) {
       toast.error(errorMessage(error));
       return false;
     } finally {
       saving.value = false;
-      // As React: the links reload even when an edit failed, as its link may have changed.
+      // As React: the list and links reload even when an edit failed, as its link
+      // may have changed.
       if (todo || linkedTo) refreshLinks();
     }
     toast.success(todo ? "ToDo updated" : "ToDo created");
