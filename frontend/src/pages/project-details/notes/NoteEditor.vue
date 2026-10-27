@@ -240,7 +240,7 @@ const canSaveTemplate = computed(
         <input
           ref="titleInput"
           v-model="form.title"
-          class="w-full border-0 bg-transparent p-0 text-4xl-semibold leading-tight text-ink-gray-7 placeholder:text-ink-gray-4 focus-visible:outline-none"
+          class="w-full border-0 bg-transparent p-0 text-4xl-semibold leading-tight text-ink-gray-7 placeholder:text-ink-gray-4 focus:ring-0 focus-visible:outline-none"
           :disabled="saving"
           :placeholder="templateMode ? 'Add template title' : 'Add note title'"
           :aria-label="templateMode ? 'Template title' : 'Note title'"

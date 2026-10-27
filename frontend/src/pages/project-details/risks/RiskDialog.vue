@@ -80,6 +80,7 @@ const categoryOptions = computed(() =>
 const form = reactive<RiskForm>(riskForm(null));
 const errors = reactive<RiskFormErrors>({});
 const ownerQuery = ref("");
+const levelMenuHost = ref<HTMLElement>();
 /** The owner shown when the lookup's results don't include them. */
 const ownerPerson = ref<Person | null>(null);
 
@@ -239,6 +240,8 @@ async function submit() {
         variant="outline"
         :options="LEVEL_OPTIONS"
         placeholder="Select level"
+        side="bottom"
+        :portal-to="levelMenuHost"
       >
         <template #item-prefix="{ item }">
           <PriorityIcon
@@ -246,7 +249,19 @@ async function submit() {
             :class="levelInk(item.value)"
           />
         </template>
+        <template #item-label="{ item }">
+          <span class="text-sm" :class="levelInk(item.value)">
+            {{ item.label }}
+          </span>
+        </template>
       </Select>
+      <!-- eslint-disable better-tailwindcss/no-restricted-classes -- Select has no prop for its list's width; the list renders in here to keep React's compact one -->
+      <div
+        v-if="!isEdit"
+        ref="levelMenuHost"
+        class="absolute [&_[data-slot=content]]:min-w-0"
+      />
+      <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
       <DisabledField v-if="isEdit" label="Status">
         <span v-if="editingRisk?.status" class="text-base text-ink-gray-7">
           <RiskStatusBadge :status="editingRisk.status" />

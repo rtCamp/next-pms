@@ -73,12 +73,14 @@ const createOptions = [
           aria-label="Search description"
         />
       </div>
+      <!-- Select shows "All" for the "" option; unset, it shows the name as React does. -->
       <Select
-        v-model="author"
+        :model-value="author || undefined"
         class="w-fit max-md:w-full"
         :options="authorOptions"
         placeholder="Select Author"
         aria-label="Author"
+        @update:model-value="author = String($event ?? '')"
       />
     </div>
     <TemplatePickerDialog v-model:open="pickerOpen" />

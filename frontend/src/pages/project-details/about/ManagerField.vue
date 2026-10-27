@@ -20,6 +20,7 @@ const { updateManager, isBusy } = useProjectSidebar();
 
 const query = ref("");
 const open = ref(false);
+const menuHost = ref<HTMLElement>();
 
 const lookup = useEmployeeLookup({
   enabled: open,
@@ -67,6 +68,7 @@ const value = computed({
         open-on-focus
         placeholder="N/A"
         :aria-label="label"
+        :portal-to="menuHost"
       >
         <!-- The current manager is always an option, so the list may not be empty. -->
         <template v-if="searchError && !options.length" #empty>
@@ -78,6 +80,12 @@ const value = computed({
           </p>
         </template>
       </Combobox>
+      <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
+      <!-- eslint-disable better-tailwindcss/no-restricted-classes -- Combobox has no prop for its list's width or row height; the list renders in here to keep React's (field-wide, 28px rows) -->
+      <div
+        ref="menuHost"
+        class="absolute [&_[data-slot=content]]:w-[--reka-combobox-trigger-width] [&_[data-slot=item]]:min-h-7 [&_[data-slot=item]>div]:min-h-7 [&_[data-slot=item]>div]:py-1"
+      />
       <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
     </div>
   </MemberHoverCard>

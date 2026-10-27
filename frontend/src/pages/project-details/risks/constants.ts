@@ -36,7 +36,8 @@ export const RISK_COLUMNS: GroupColumn<RiskColumnKey>[] = [
   { key: "risk_category", label: "Risk category", width: "128px", flex: 1 },
   { key: "summary", label: "Risk Summary", width: "264px", flex: 4 },
   { key: "risk_owner", label: "Risk owner", width: "140px", flex: 0 },
-  { key: "risk_level", label: "Risk level", width: "74px", flex: 0 },
+  // 6px wider than React: InterVar sets the label 2px wider than Inter.
+  { key: "risk_level", label: "Risk level", width: "80px", flex: 0 },
   { key: "status", label: "Status", width: "120px", flex: 1 },
 ];
 

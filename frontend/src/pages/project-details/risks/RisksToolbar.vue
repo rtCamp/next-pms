@@ -60,33 +60,38 @@ const LEVEL_OPTIONS = [
 <template>
   <div class="flex flex-wrap items-center justify-between gap-2">
     <div class="flex flex-wrap gap-2">
+      <!-- Select shows "All" for the "" option; unset, it shows the name as React does. -->
       <Select
-        v-model="quick.riskOwner"
+        :model-value="quick.riskOwner || undefined"
         class="w-36 text-ink-gray-7"
         :options="riskOwnerOptions"
         placeholder="Risk owner"
         aria-label="Risk owner"
+        @update:model-value="quick.riskOwner = String($event ?? '')"
       />
       <Select
-        v-model="quick.owner"
+        :model-value="quick.owner || undefined"
         class="w-36 text-ink-gray-7"
         :options="ownerOptions"
         placeholder="Owner"
         aria-label="Owner"
+        @update:model-value="quick.owner = String($event ?? '')"
       />
       <Select
-        v-model="quick.status"
+        :model-value="quick.status || undefined"
         class="w-30 text-ink-gray-7"
         :options="STATUS_OPTIONS"
         placeholder="Status"
         aria-label="Status"
+        @update:model-value="quick.status = String($event ?? '')"
       />
       <Select
-        v-model="quick.riskLevel"
+        :model-value="quick.riskLevel || undefined"
         class="w-30 text-ink-gray-7"
         :options="LEVEL_OPTIONS"
         placeholder="Risk level"
         aria-label="Risk level"
+        @update:model-value="quick.riskLevel = String($event ?? '')"
       />
     </div>
     <div class="flex gap-2">

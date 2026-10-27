@@ -106,7 +106,7 @@ export function scoreClass(score: number | null, selected: boolean): string {
   if (selected) return "text-ink-base";
   if (score === null) return "text-ink-gray-4";
   if (score >= 80) return "text-ink-gray-6";
-  if (score >= 60) return "text-ink-amber-7";
+  if (score >= 60) return "text-ink-amber-8";
   return "text-ink-red-7";
 }
 
