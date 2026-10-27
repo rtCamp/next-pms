@@ -106,6 +106,7 @@ export { Comments, type CommentNode, type CommentsProps } from "./comments";
 export { default as GlobalSearch } from "./globalSearch";
 export {
   default as NotificationTray,
+  NotificationIcon,
   type NotificationTrayProps,
 } from "./notificationTray";
 export {
