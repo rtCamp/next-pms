@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import {
-  Button,
-  DesktopShell,
-  FrappeUIProvider,
-  Spinner,
-  useCall,
-} from "frappe-ui";
+import { Button, DesktopShell, FrappeUIProvider, Spinner } from "frappe-ui";
 import {
   useRoute,
   useRouter,
@@ -14,7 +8,6 @@ import {
 } from "vue-router";
 import { ErrorFallback } from "@/components/ErrorFallback";
 import { provideNotifications } from "@/composables/useNotifications";
-import type { AppLink } from "./layout/apps";
 import AppSidebar from "./layout/AppSidebar.vue";
 import SessionError from "./layout/SessionError.vue";
 import StatusMessage from "./layout/StatusMessage.vue";
@@ -23,9 +16,6 @@ import { ROLE_ACCESS, useSession } from "./session";
 const route = useRoute();
 const router = useRouter();
 const session = useSession();
-const apps = useCall<AppLink[]>({
-  url: "/api/v2/method/frappe.apps.get_apps",
-});
 provideNotifications(() => session.hasAnyRole(ROLE_ACCESS.notifications));
 
 // The first navigation waits for the session in the router guard.
@@ -101,7 +91,6 @@ function viewKey(viewRoute: RouteLocationNormalizedLoaded) {
               :roles="session.roles"
               :employee="session.employee"
               :employee-name="session.employeeName"
-              :apps="apps.data ?? []"
               @logout="session.logout()"
             />
           </ErrorFallback>
