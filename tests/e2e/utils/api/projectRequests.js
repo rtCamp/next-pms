@@ -158,14 +158,15 @@ export const deleteAllocation = async (allocationId) => {
  * Views are ordinary documents, so tests that need one as a precondition seed it
  * rather than depending on a view somebody created by hand on the environment.
  */
-export const createView = async (payload) => {
+export const createView = async ({ role = "admin", ...payload }) => {
+  // The creating role owns the view; a private view also names its user.
   return await apiRequest(
     "/api/resource/PMS View Setting",
     {
       method: "POST",
       data: payload,
     },
-    "admin",
+    role,
   );
 };
 // ------------------------------------------------------------------------------------------

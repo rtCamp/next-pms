@@ -25,6 +25,7 @@ import employeeTimesheetWeeksData from "../data/employee/timesheetWeeks";
 import managerProjectTimesheetData from "../data/manager/projectTimesheet";
 import managerTeamTimesheetData from "../data/manager/teamTimesheet";
 import managerAllocationsData from "../data/manager/allocations";
+import managerProjectsData from "../data/manager/projects";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import {
   createProject,
@@ -908,8 +909,12 @@ export const cleanUpProjects = async (data) => {
           ...[
             "PMS Growth Initiative",
             "Project Timeline Item",
+            "Risk",
             "Project Status Update",
             "PMS Project Update Subscription",
+            // rtcamp only; the lists are empty where the doctypes are missing.
+            "Project RAG Trigger Log",
+            "Project RAG Status",
           ].map((name) => [name, [["project", "=", projectId]]]),
         ]) {
           try {
@@ -1127,6 +1132,7 @@ export const readAndCleanAllOrphanData = async () => {
     ...managerProjectTimesheetData,
     ...managerTeamTimesheetData,
     ...managerAllocationsData,
+    ...managerProjectsData,
   };
 
   await deleteLeaveOfEmployee();

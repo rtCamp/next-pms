@@ -327,7 +327,12 @@ export class ProjectPage {
   /**
    * Adds a single "<Field> Equals <Value>" condition to the filter panel.
    */
-  async addFilterCondition(fieldLabel, value, needsNewRow) {
+  async addFilterCondition(
+    fieldLabel,
+    value,
+    needsNewRow,
+    operator = "Equals",
+  ) {
     if (
       !(await this.filterFieldInput
         .first()
@@ -362,15 +367,17 @@ export class ProjectPage {
       .first()
       .click();
 
-    const operator = this.filterOperatorInput.last();
-    await operator.click();
+    const operatorInput = this.filterOperatorInput.last();
+    await operatorInput.click();
     await this.page
-      .getByRole("option", { name: exactly("Equals") })
+      .getByRole("option", { name: exactly(operator) })
       .first()
       .click();
 
     const valueInput = this.filterValueInput.last();
     await valueInput.click();
+    // Long option lists render only their first entries; typing narrows them.
+    await valueInput.fill(value).catch(() => {});
 
     // Wait for the list the new condition produces before anything reads the
     // rows. networkidle alone is not a barrier here: the refetch is debounced,

@@ -415,6 +415,29 @@ const bookAllocations = async (entry, specs) => {
   }
 };
 
+/**
+ * Creates the records a case's projects need: `payloadProjectDocs` [{ doctype, key,
+ * project: <postfix>, reuseBy, ...fields }]. `project` fills the doc's project link;
+ * `reuseBy` names a field to find an existing record by instead of creating another.
+ * Names are recorded in `entry.docs[key]`.
+ */
+const createProjectDocs = async (entry, specs) => {
+  entry.docs = {};
+  for (const { doctype, key, project, reuseBy, ...fields } of specs) {
+    const data = {
+      ...fields,
+      ...(project !== undefined
+        ? { project: projectIdOf(entry, project) }
+        : {}),
+    };
+    const [existing] = reuseBy
+      ? await getDocList(doctype, [[reuseBy, "=", data[reuseBy]]])
+      : [];
+    entry.docs[key] =
+      existing?.name ?? (await createDocument(doctype, data)).name;
+  }
+};
+
 /** Tags a case's projects: `payloadProjectTags` [{ project: <postfix>, tag }]. */
 const tagProjects = async (entry, specs) => {
   for (const { project, tag } of specs) {
@@ -462,13 +485,18 @@ export const reseedAllocations = async (entry, employee) => {
  *   payloadLikeTasks            [{ employee, project, subject }] - the employee stars the task
  *   payloadWeekAllocations      [{ employee, project, weeksAgo, from, to, hours, ... }] - see bookAllocations
  *   payloadProjectTags          [{ project, tag }] - tags the case's projects
+ *   payloadProjectDocs          [{ doctype, key, project, reuseBy, ...fields }] - see createProjectDocs
  */
 export const createWeekTimeForTestCases = async (testCaseIDs, jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
   const [tcId] = testCaseIDs;
   const stubPath = path.join(jsonDir, `${tcId}.json`);
   const entry = (await readJSONFile(stubPath))[tcId];
-  if (!entry?.payloadCreateWeekTime && !entry?.payloadCreateWeekEmployees) {
+  if (
+    !entry?.payloadCreateWeekTime &&
+    !entry?.payloadCreateWeekEmployees &&
+    !entry?.payloadProjectDocs
+  ) {
     return;
   }
 
@@ -485,6 +513,7 @@ export const createWeekTimeForTestCases = async (testCaseIDs, jsonDir) => {
   await bookLeave(entry, entry.payloadWeekLeave ?? []);
   await bookAllocations(entry, entry.payloadWeekAllocations ?? []);
   await tagProjects(entry, entry.payloadProjectTags ?? []);
+  await createProjectDocs(entry, entry.payloadProjectDocs ?? []);
   await decideWeeks(entry, tcId, entry.payloadWeekStatus ?? [], booked);
 
   for (const { employee, project, subject } of entry.payloadLikeTasks ?? []) {

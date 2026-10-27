@@ -16,6 +16,7 @@ import employeeTimesheetWeeksData from "../data/employee/timesheetWeeks";
 import managerProjectTimesheetData from "../data/manager/projectTimesheet";
 import managerTeamTimesheetData from "../data/manager/teamTimesheet";
 import managerAllocationsData from "../data/manager/allocations";
+import managerProjectsData from "../data/manager/projects";
 
 /**
  * Creates a JSON file with initial data
@@ -282,6 +283,7 @@ export const populateJsonStubs = async (jsonDir, testCaseIDs) => {
     manager_projectTimesheet: managerProjectTimesheetData,
     manager_teamTimesheet: managerTeamTimesheetData,
     manager_allocations: managerAllocationsData,
+    manager_projects: managerProjectsData,
   };
 
   for (const tcId of testCaseIDs) {
