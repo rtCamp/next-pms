@@ -59,7 +59,7 @@ function clear(close: () => void) {
           :aria-pressed="orderOf(field) !== null"
           @click="toggle(field)"
         >
-          {{ label }}
+          <span class="text-sm">{{ label }}</span>
           <template v-if="orderOf(field)" #suffix>
             <span
               class="size-4"
@@ -82,9 +82,10 @@ function clear(close: () => void) {
             variant="ghost"
             theme="red"
             class="w-full justify-between"
-            label="Clear sort"
             @click="clear(close)"
-          />
+          >
+            <span class="text-sm text-ink-red-5">Clear sort</span>
+          </Button>
         </template>
       </div>
     </template>
