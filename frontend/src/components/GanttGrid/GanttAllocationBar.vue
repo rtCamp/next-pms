@@ -182,7 +182,9 @@ onScopeDispose(() => grid.clearActiveEdit(edit));
         @keydown="onKeydown"
       />
     </template>
-    <GanttAllocationCard :entries="entries" />
+    <template #default="{ close }">
+      <GanttAllocationCard :entries="entries" @close="close" />
+    </template>
   </HoverCard>
   <GanttBarActions
     v-if="modified"

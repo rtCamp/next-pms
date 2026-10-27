@@ -21,12 +21,15 @@ withDefaults(
 
 const emit = defineEmits<{
   add: [];
+  /** After Add, Edit or Delete, whose dialog opens over the card. */
+  close: [];
 }>();
 
 const grid = useGanttGrid();
 
 function edit(entry: CardEntry) {
   grid.emit("edit", allocationEventData(entry.bar, entry.employeeName));
+  emit("close");
 }
 
 function remove(entry: CardEntry) {
@@ -35,6 +38,7 @@ function remove(entry: CardEntry) {
     allocationEventData(entry.bar, entry.employeeName),
     allocationSummaryText(entry.bar),
   );
+  emit("close");
 }
 </script>
 
@@ -68,7 +72,10 @@ function remove(entry: CardEntry) {
       class="w-full shrink-0"
       icon-left="lucide-plus"
       label="Add"
-      @click="emit('add')"
+      @click="
+        emit('add');
+        emit('close');
+      "
     />
   </div>
 </template>
