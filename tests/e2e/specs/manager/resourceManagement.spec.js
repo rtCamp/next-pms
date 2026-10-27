@@ -12,6 +12,7 @@ import {
   getDateForWeekday,
 } from "../../utils/dateUtils";
 import { readJSONFile } from "../../utils/fileUtils";
+import { scaleTimeout } from "../../utils/timeouts";
 import teamData from "../../data/manager/team";
 
 /** @type {TimelinePage} */ let timelinePage;
@@ -508,8 +509,7 @@ test.describe("Manager : Resource Management Tab", () => {
       "4",
     );
     createdAllocations.push(allocationName);
-    await projectPage.goto();
-    await projectPage.filterByProject(projectName);
+    await projectPage.gotoProjectAllocations(projectName);
     await projectPage.clickEditIcon(projectName, date, day);
     await projectPage.clickOnBillableToggle();
     await projectPage.clickSaveButton();
@@ -547,20 +547,26 @@ test.describe("Manager : Resource Management Tab", () => {
       "4",
     );
     createdAllocations.push(allocationName);
-    await projectPage.goto();
-    await projectPage.filterByProject(projectName);
+    await projectPage.gotoProjectAllocations(projectName);
     await projectPage.clickEditIcon(projectName, date, day);
     await projectPage.editAllocationFromProjectTab(updatedHours, updatedHours);
     await projectPage.clickSaveButton();
     await expect(
       page.getByText("Allocation updated successfully"),
     ).toBeVisible();
-    let allocationTime = await projectPage.getAllocationFromProjectTab(
-      projectName,
-      date,
-      day,
-    );
-    expect(allocationTime).toEqual(updatedHours);
+    await expect
+      .poll(
+        async () => {
+          await projectPage.gotoProjectAllocations(projectName);
+          return projectPage.getAllocationFromProjectTab(
+            projectName,
+            date,
+            day,
+          );
+        },
+        { timeout: scaleTimeout(45000), intervals: [2000] },
+      )
+      .toEqual(updatedHours);
   });
 
   test("TC111: Allocation for more than 8 hours per day / allocation of more than 24 hours per day.", async ({

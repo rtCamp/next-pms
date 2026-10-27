@@ -127,6 +127,25 @@ export class ProjectPage extends TimelinePage {
   }
 
   /**
+   * Opens the grid filtered to one project and waits for its allocation chip. The
+   * first response after a save can still miss the allocation, so reload a few times.
+   */
+  async gotoProjectAllocations(projectName, attempts = 3) {
+    for (let attempt = 1; ; attempt++) {
+      await this.goto();
+      await this.filterByProject(projectName);
+      try {
+        await this.allocationChip
+          .first()
+          .waitFor({ state: "visible", timeout: scaleTimeout(8000) });
+        return;
+      } catch (err) {
+        if (attempt >= attempts) throw err;
+      }
+    }
+  }
+
+  /**
    * Adds an allocation for a specific employee by clicking on their cell and filling the allocation form.
    */
   async addAllocationFromProjectTab(
