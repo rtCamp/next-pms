@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import type { FieldHelp } from "@next-pms/design-system/components";
+import type { FieldHelp, HelpTip } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
@@ -58,3 +58,25 @@ export const DECIDED_ENTRY_TOOLTIP =
 
 export const EDIT_ENTRY_TOOLTIP =
   "Correct the duration or comment before you decide.";
+
+export const REVIEW_WEEK_STEPS = [
+  "Select the status icon at the end of the member's row. Weeks that are Not submitted don't have one.",
+  "Untick any day you want to leave out of the decision.",
+  "Select Approve, or select Reject and give a reason.",
+];
+
+export const TEAM_TIMESHEET_TIPS: HelpTip[] = [
+  {
+    id: "review-week",
+    title: "Approve or reject a week",
+    body: "Only the ticked days are approved or rejected, so you can approve part of a week and reject the rest afterwards.",
+    steps: REVIEW_WEEK_STEPS,
+    wiki: "Team-Timesheet#approve-a-week",
+  },
+  {
+    id: "log-member-time",
+    title: "Log time for a team member",
+    body: "Select a day's cell on a member's row to open Add time with them and that date filled in. On a task row, hover or select the cell to type hours straight in.",
+    wiki: "Team-Timesheet#log-time-for-a-team-member",
+  },
+];
