@@ -10,7 +10,6 @@ defineProps<{
 }>();
 </script>
 
-<!-- frappe-ui's SidebarHeader with React's sizes: a 48px trigger and a 32px logo. -->
 <template>
   <div data-slot="sidebar-header" class="shrink-0 p-2">
     <Dropdown :options="menuItems" match-trigger-width>

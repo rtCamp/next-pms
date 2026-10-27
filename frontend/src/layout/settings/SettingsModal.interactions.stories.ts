@@ -57,6 +57,26 @@ export const SavesUserSettings: Story = {
   },
 };
 
+/** Save with nothing changed confirms without writing, on the user and system tabs. */
+export const SaveWithoutChangesWritesNothing: Story = {
+  ...SystemManager,
+  play: async () => {
+    for (const index of [0, 1]) {
+      await userEvent.click(
+        (await screen.findAllByRole("tab", { name: "Timesheets" }))[index],
+      );
+      const panel = await screen.findByRole("tabpanel");
+      const save = within(panel).getByRole("button", { name: "Save" });
+      await waitFor(() => expect(save).toBeEnabled());
+      await userEvent.click(save);
+    }
+    await expect(await screen.findAllByText("Settings saved")).not.toHaveLength(
+      0,
+    );
+    await expect(requests).toEqual([]);
+  },
+};
+
 /** A system tab sends only the fields that changed. */
 export const SavesChangedSystemFields: Story = {
   ...SystemManager,

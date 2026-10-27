@@ -137,11 +137,11 @@ export const TIME_ENTRY_STATUS_CLASS: Partial<
   Record<ApprovalStatusValue, string>
 > = {
   Approved: "text-ink-green-8",
-  Rejected: "text-ink-red-8",
-  "Approval Pending": "text-ink-amber-8",
-  "Processing Timesheet": "text-ink-amber-8",
+  Rejected: "text-ink-red-7",
+  "Approval Pending": "text-ink-amber-7",
+  "Processing Timesheet": "text-ink-amber-7",
   "Partially Approved": "text-ink-green-8",
-  "Partially Rejected": "text-ink-red-8",
+  "Partially Rejected": "text-ink-red-7",
 };
 
 /** Hours a day the time-entry forms allow when the employee's are unknown. */

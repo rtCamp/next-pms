@@ -278,6 +278,12 @@ export const CardEditEmitsEdit: Story = {
         endDate: new Date(2026, 9, 30),
       }),
     );
+    // The card closes as the Edit dialog opens.
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: "Edit allocation" }),
+      ).toBeNull(),
+    );
   },
 };
 
@@ -302,6 +308,11 @@ export const CardDeleteEmitsDeleteWithTheSeries: Story = {
         hoursPerDay: "8h/day",
         totalHours: "40 hours",
       },
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: "Delete allocation" }),
+      ).toBeNull(),
     );
   },
 };
@@ -333,6 +344,9 @@ export const SummaryCardAddsForItsDays: Story = {
       startDate: new Date(2026, 9, 21),
       endDate: new Date(2026, 9, 23),
     });
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: "Add" })).toBeNull(),
+    );
   },
 };
 

@@ -117,6 +117,11 @@ watch(
 
 const savingUser = ref(false);
 async function saveUser(): Promise<boolean> {
+  // Save is enabled before any edit, as in React; with nothing changed, don't write.
+  if (!userDirty.value) {
+    toast.success("Settings saved");
+    return true;
+  }
   savingUser.value = true;
   try {
     await pms.save({
@@ -135,6 +140,10 @@ async function saveUser(): Promise<boolean> {
 }
 
 async function saveSystem(): Promise<boolean> {
+  if (!systemDirty.value) {
+    toast.success("Settings saved");
+    return true;
+  }
   try {
     await systemDoc.setValue.submit(systemChanges.value);
     toast.success("Settings saved");
