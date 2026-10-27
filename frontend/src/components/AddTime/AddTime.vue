@@ -367,7 +367,7 @@ function shortcutDate(daysAgo: number) {
     <template #actions>
       <div class="flex w-full items-center justify-between gap-2">
         <Button
-          class="w-full"
+          class="flex-1"
           variant="subtle"
           label="Save and add another"
           :loading="saving === 'addAnother'"
@@ -375,7 +375,7 @@ function shortcutDate(daysAgo: number) {
           @click="submit(true)"
         />
         <Button
-          class="w-full"
+          class="flex-1"
           variant="solid"
           label="Save and close"
           :loading="saving === 'close'"

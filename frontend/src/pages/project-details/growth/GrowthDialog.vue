@@ -308,14 +308,14 @@ async function submit(another: boolean) {
       <div class="flex w-full items-center gap-2">
         <Button
           v-if="!isEdit"
-          class="w-full"
+          class="flex-1"
           label="Save and create another"
           :loading="submitting === 'another'"
           :disabled="disabled"
           @click="submit(true)"
         />
         <Button
-          class="w-full"
+          class="flex-1"
           variant="solid"
           label="Save"
           :loading="submitting === 'close'"
