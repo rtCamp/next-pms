@@ -8,7 +8,13 @@ import type { FieldHelp, HelpTip } from "@next-pms/design-system/components";
  * Internal dependencies.
  */
 import { ROUTES } from "@/lib/constant";
+import {
+  LEADERSHIP_DASHBOARD_TIPS,
+  MANAGER_DASHBOARD_TIPS,
+} from "@/pages/dashboard/help";
 import { PERSONAL_TIMESHEET_TIPS } from "@/pages/timesheet/personal/help";
+import { PROJECT_TIMESHEET_TIPS } from "@/pages/timesheet/project/help";
+import { TEAM_TIMESHEET_TIPS } from "@/pages/timesheet/team/help";
 
 export const NOTIFICATIONS_HELP = {
   title: "Notifications",
@@ -25,14 +31,24 @@ export const NOTIFICATION_ITEM_TOOLTIP =
 
 const HELP_PAGES: { route: string; tips: HelpTip[] }[] = [
   { route: ROUTES["timesheet-personal"], tips: PERSONAL_TIMESHEET_TIPS },
+  { route: ROUTES["timesheet-team"], tips: TEAM_TIMESHEET_TIPS },
+  { route: ROUTES["timesheet-project"], tips: PROJECT_TIMESHEET_TIPS },
+  { route: ROUTES["dashboard-manager"], tips: MANAGER_DASHBOARD_TIPS },
+  { route: ROUTES["dashboard-leadership"], tips: LEADERSHIP_DASHBOARD_TIPS },
 ];
 
 export const GENERAL_TIPS: HelpTip[] = [
   {
     id: "search",
     title: "Jump anywhere with search",
-    body: "Press Ctrl+K (Cmd+K on Mac) from anywhere to jump to a page. Type part of its name to narrow the list.",
+    body: "Press Ctrl+K (Cmd+K on Mac) on any page, type part of a page's name and select it.",
     wiki: "Navigation-and-Layout#global-search",
+  },
+  {
+    id: "app-menu",
+    title: "Open Settings and the app menu",
+    body: "Select Next PMS at the top of the sidebar. Ctrl+Shift+Comma (Cmd+Shift+Comma on Mac) opens Settings directly.",
+    wiki: "Navigation-and-Layout#header-menu",
   },
 ];
 

@@ -1,12 +1,13 @@
 /**
  * External dependencies.
  */
-import type { FieldHelp } from "@next-pms/design-system/components";
+import type { FieldHelp, HelpTip } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
  */
 import { PERSONAL_TIMESHEET_HELP } from "@/pages/timesheet/personal/help";
+import { REVIEW_WEEK_STEPS } from "@/pages/timesheet/team/help";
 
 const ROLLUP_WIKI = "Project-Timesheet#the-rollup-table";
 
@@ -36,3 +37,19 @@ export const PROJECT_TIMESHEET_HELP = {
     wiki: ROLLUP_WIKI,
   },
 } satisfies Record<string, FieldHelp>;
+
+export const PROJECT_TIMESHEET_TIPS: HelpTip[] = [
+  {
+    id: "review-project-week",
+    title: "Approve or reject time on a project",
+    body: "Here you decide only the time a member logged on this project. Their other projects that week stay as they are.",
+    steps: REVIEW_WEEK_STEPS,
+    wiki: ROLLUP_WIKI,
+  },
+  {
+    id: "log-member-time",
+    title: "Log time for a team member",
+    body: "Select a day's cell on a member's row to open Add time with them, the project and that date filled in. On a task row, hover or select the cell to type hours straight in.",
+    wiki: "Project-Timesheet#log-time-for-a-listed-employee",
+  },
+];

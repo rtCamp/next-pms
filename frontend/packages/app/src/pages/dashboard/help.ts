@@ -1,11 +1,12 @@
 /**
  * External dependencies.
  */
-import type { FieldHelp } from "@next-pms/design-system/components";
+import type { FieldHelp, HelpTip } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
  */
+import { ROLE_ACCESS } from "@/lib/constant";
 import { STATUS_ICONS } from "./widget/timesheet-summary/statusIcon";
 
 const KPI_WIKI = "Leadership-Dashboard#key-performance-indicators";
@@ -269,3 +270,64 @@ export const TEAM_TIMESHEETS_HELP = {
     wiki: MANAGER_TIMESHEETS_WIKI,
   },
 } satisfies Record<string, FieldHelp>;
+
+const HEATMAP_ROLES_TIP: HelpTip = {
+  id: "heatmap-roles",
+  title: "Choose roles in the Heatmap",
+  body: "The Heatmap starts with delivery roles such as engineering, QA and project management selected. Your choice in the role filter is kept for both dashboards.",
+  wiki: `${MANAGER_WIKI}#check-allocation-coverage-by-role`,
+};
+
+const CALENDAR_DATE_TIP: HelpTip = {
+  id: "calendar-date",
+  title: "Jump to a date in the calendar",
+  body: "Select the date range above the calendar and pick a date. It shows the two weeks starting that Monday.",
+  wiki: `${MANAGER_WIKI}#move-through-the-calendar`,
+};
+
+export const MANAGER_DASHBOARD_TIPS: HelpTip[] = [
+  {
+    id: "dashboard-scope",
+    title: "What this dashboard covers",
+    body: "Most cards show your direct reports and the projects you manage. At risk projects, Members without allocation and the Heatmap cover the whole organisation.",
+    wiki: `${MANAGER_WIKI}#roles--permissions`,
+  },
+  HEATMAP_ROLES_TIP,
+  CALENDAR_DATE_TIP,
+  {
+    id: "member-timesheet",
+    title: "Review a member's timesheet",
+    body: "Select a name in Timesheets to review and approve that member's time in Team Timesheet.",
+    wiki: `${MANAGER_WIKI}#follow-up-on-notifications-and-reviews`,
+    roles: ROLE_ACCESS.reviewTimesheets,
+  },
+  {
+    id: "approve-leave",
+    title: "Approve or reject leave",
+    body: "Decide your direct reports' open requests in Upcoming time-offs.",
+    steps: [
+      "Select ✓ on an open request to approve it, or ✕ to reject it.",
+      "To reject, enter a Rejection reason.",
+      "Select Approve leave or Reject leave.",
+    ],
+    wiki: `${MANAGER_WIKI}#approve-a-leave-request`,
+  },
+];
+
+export const LEADERSHIP_DASHBOARD_TIPS: HelpTip[] = [
+  {
+    id: "two-dashboards",
+    title: "Leadership and Manager dashboards",
+    body: "Leadership shows money and capacity across the organisation. Manager shows your direct reports and the projects you manage.",
+    wiki: "Roles-and-Access#who-can-see-what",
+    roles: ROLE_ACCESS.managerDashboard,
+  },
+  {
+    ...HEATMAP_ROLES_TIP,
+    wiki: `${LEADERSHIP_WIKI}#check-allocation-coverage-by-role`,
+  },
+  {
+    ...CALENDAR_DATE_TIP,
+    wiki: `${LEADERSHIP_WIKI}#inspect-milestones-and-touchpoints-day-by-day`,
+  },
+];
