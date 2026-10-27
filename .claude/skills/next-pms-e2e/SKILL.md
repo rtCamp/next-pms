@@ -270,7 +270,8 @@ Rules when probing, because this is production-shaped staging data:
   `DELETE /api/resource/...` fails on.
 - **Never probe while a run is live**, yours or anyone's. The probe picks the
   newest cached state for the role, which can be a running worker's, and loading
-  the app on an API session mints a CSRF token that breaks that run's writes.
+  the app on an API session mints a CSRF token (the suite now recovers from it, and
+  `probe.mjs` / `cleanup.mjs` use browser states only, but your own scripts must not).
   Check right before every probe batch, not once:
   `ps -axo pid,command | grep "playwright test --config" | grep -v -E "grep|/bin/zsh -c|test-server"`.
 - To check a seeding helper without the full global setup, run a scratch

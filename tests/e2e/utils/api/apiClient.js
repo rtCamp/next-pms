@@ -21,6 +21,41 @@ export const loadAuthState = (role) => {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const CSRF_TOKEN = /csrf_token["']?\s*[:=]\s*["']([a-f0-9]{16,})["']/i;
+let csrfRecoveryLogged = false;
+
+/** Frappe's refusal of a write on a session that holds a CSRF token the request did not send. */
+const isCsrfRefusal = async (res) =>
+  res.status() === 400 &&
+  /CSRFTokenError/.test(await res.text().catch(() => ""));
+
+/**
+ * The `<role>-API.json` sessions carry no CSRF token, so the suite's writes send none and
+ * Frappe skips the check. Anything that loads the desk on such a session (a probe, a cleanup
+ * script, someone's browser) mints a token onto it server-side, and every later write is
+ * refused. Read the token from the desk page and send the same request with it.
+ */
+const retryWithCsrfToken = async (
+  requestContext,
+  endpoint,
+  fetchOptions,
+  refused,
+) => {
+  const html = await (await requestContext.fetch("/app")).text();
+  const token = html.match(CSRF_TOKEN)?.[1];
+  if (!token) return refused;
+  if (!csrfRecoveryLogged) {
+    csrfRecoveryLogged = true;
+    console.warn(
+      "⚠️ An API session was refused with CSRFTokenError (something loaded the app on it); sending its CSRF token instead.",
+    );
+  }
+  return requestContext.fetch(endpoint, {
+    ...fetchOptions,
+    headers: { ...fetchOptions?.headers, "X-Frappe-CSRF-Token": token },
+  });
+};
+
 /**
  * Wraps requestContext.fetch() with retry + exponential backoff on transport-level
  * network failures (connection drops, DNS failures, timeouts).
@@ -38,7 +73,10 @@ export const fetchWithRetry = async (
   let attempt = 0;
   for (;;) {
     try {
-      return await requestContext.fetch(endpoint, fetchOptions);
+      const res = await requestContext.fetch(endpoint, fetchOptions);
+      return (await isCsrfRefusal(res))
+        ? await retryWithCsrfToken(requestContext, endpoint, fetchOptions, res)
+        : res;
     } catch (err) {
       attempt += 1;
       if (attempt > retries) {
@@ -114,9 +152,9 @@ export const deleteWithLockRetry = async (
  * Deletes a document, returning { deleted, reason } rather than throwing, so
  * teardown can clear dependants and report what survived.
  *
- * Do NOT fetch a CSRF token here. The `<role>-API.json` states carry no
- * csrf_token, which is why Frappe skips CSRF for them; hitting `/app` mints one
- * onto the session and every later CSRF-less write on it fails.
+ * Do NOT fetch a CSRF token up front. The `<role>-API.json` states carry no
+ * csrf_token, which is why Frappe skips CSRF for them; fetchWithRetry only reads one
+ * after a CSRFTokenError, because hitting `/app` mints one onto the session.
  */
 export const deleteDocument = async (doctype, name, role = "admin") => {
   if (!name) return { deleted: false, reason: "no name given" };

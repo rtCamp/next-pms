@@ -243,6 +243,18 @@ export const createRevieweeForTestCases = async (testCaseIDs = [], jsonDir) => {
  *
  * Runs after createTaskForTestCases, which is what supplies the task id.
  */
+/** Approving a leave makes an Attendance that keeps pointing at it after a cancel, blocking its delete. */
+const deleteLeaveAttendance = async (leave) => {
+  for (const { name, docstatus } of await getDocList(
+    "Attendance",
+    [["leave_application", "=", leave]],
+    { fields: ["name", "docstatus"] },
+  )) {
+    if (docstatus === 1) await cancelDocument("Attendance", name);
+    await deleteDocument("Attendance", name);
+  }
+};
+
 /**
  * Writes TC53's expected team roster by asking who reports to the manager.
  *
@@ -420,6 +432,8 @@ export const deleteEmployeeByName = async () => {
         fields: ["name", "docstatus"],
       })) {
         if (doc.docstatus === 1) await cancelDocument(doctype, doc.name);
+        if (doctype === "Leave Application")
+          await deleteLeaveAttendance(doc.name);
         await deleteWithLockRetry(() => deleteDocument(doctype, doc.name), {
           label: `${doctype} ${doc.name}`,
         });

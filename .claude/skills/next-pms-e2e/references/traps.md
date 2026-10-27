@@ -67,7 +67,7 @@ created it again.
 → Not your change. Check `curl <base>/api/method/ping`, let the teardown run,
 confirm nothing is left, rerun.
 
-**Setup dies with `CSRFTokenError` on the manager's API session.**
+**Setup dies with `CSRFTokenError` on the manager's API session.** (Now self-healing, see the next entry; the leftover-project part still applies.)
 Seen after an aborted run left dozens of `TC<n> Project` records, and when a
 probe loaded the app on a role while a run was live.
 → Delete the leftover seed projects with the suite's own helpers, never probe
@@ -325,9 +325,17 @@ why the suite's own writes work while sending no token. Fetching `/app` on one o
 those sessions (what `cleanup.mjs delete` does, and what any desk page visit does)
 mints a token onto the session server-side. From that moment every CSRF-less POST
 and DELETE on it fails, so the next run's *seeding* breaks, not just deletes.
-→ Prefer `--role manager` for ad-hoc cleanup, or delete `auth/<role>-API.json`
-afterwards so the fixture logs in fresh. Symptom to recognise: `frappe.auth.get_logged_user`
-returns the right user (session valid) but every write returns `CSRFTokenError`.
+→ Fixed in the suite: `fetchWithRetry` (`utils/api/apiClient.js`) reads the token from
+`/app` after a `CSRFTokenError` and retries the write once with `X-Frappe-CSRF-Token`
+(it logs one warning when it does). `probe.mjs` and `cleanup.mjs` prefer a browser state
+(`<role>-w<N>.json`), skip expired ones, and use `<role>-API.json` only as a last resort
+with a warning. Never load `/app` with an API session while a run is live. Symptom if it ever recurs:
+`frappe.auth.get_logged_user` returns the right user but every write returns `CSRFTokenError`.
+
+**A seeded employee cannot be deleted: `LinkExistsError` on their approved leave.**
+Approving a leave makes an Attendance record that keeps pointing at it after the leave is
+cancelled, so neither the leave nor the employee can go. `employeeHelper` now deletes a
+leave's Attendance (cancelling it first) before the leave.
 
 **A delete "succeeded" but the record is still there.**
 Frappe refuses to delete a document anything still links to (`LinkExistsError`),
