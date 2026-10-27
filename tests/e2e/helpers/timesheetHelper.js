@@ -26,6 +26,7 @@ import managerProjectTimesheetData from "../data/manager/projectTimesheet";
 import managerTeamTimesheetData from "../data/manager/teamTimesheet";
 import managerAllocationsData from "../data/manager/allocations";
 import managerProjectsData from "../data/manager/projects";
+import managerDashboardData from "../data/manager/dashboard";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import {
   createProject,
@@ -916,6 +917,13 @@ export const cleanUpProjects = async (data) => {
             "Project RAG Trigger Log",
             "Project RAG Status",
           ].map((name) => [name, [["project", "=", projectId]]]),
+          [
+            "NextPMS Notifications",
+            [
+              ["linked_doctype", "=", "Project"],
+              ["linked_document", "=", projectId],
+            ],
+          ],
         ]) {
           try {
             const linked = await getDocList(doctype, filters);
@@ -1133,6 +1141,7 @@ export const readAndCleanAllOrphanData = async () => {
     ...managerTeamTimesheetData,
     ...managerAllocationsData,
     ...managerProjectsData,
+    ...managerDashboardData,
   };
 
   await deleteLeaveOfEmployee();

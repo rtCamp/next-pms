@@ -319,15 +319,20 @@ const bookTime = async (entry, specs, taskOf) => {
   return booked;
 };
 
-/** Books the half-day or full-day leaves of `payloadWeekLeave` as admin, who may backdate them. */
+/**
+ * Books the leaves of `payloadWeekLeave` as admin, who may backdate them: from `day` to
+ * `toDay` (default the same day). `status: "approved"` approves it through the app; `key`
+ * records its name in `entry.leaves[key]`. Approving needs the employee to report to the manager.
+ */
 const bookLeave = async (entry, specs) => {
+  entry.leaves ??= {};
   for (const spec of specs) {
     const date = dateInWeek(spec.weeksAgo, spec.day);
-    await createDocument("Leave Application", {
+    const { name } = await createDocument("Leave Application", {
       employee: employeeId(entry, spec.employee),
       leave_type: spec.leaveType ?? "Unpaid Time Off",
       from_date: date,
-      to_date: date,
+      to_date: dateInWeek(spec.weeksAgo, spec.toDay ?? spec.day),
       leave_approver: process.env.REP_MAN_EMAIL,
       ...(spec.half
         ? {
@@ -338,7 +343,35 @@ const bookLeave = async (entry, specs) => {
         : {}),
       description: spec.reason,
     });
+    if (spec.status === "approved") {
+      await apiRequest(
+        "/api/method/next_pms.api.dashboard.approve_leave_application",
+        { method: "POST", data: { name } },
+        // Newer builds let only the reporting manager action a leave.
+        "manager",
+      );
+    }
+    if (spec.key) entry.leaves[spec.key] = name;
   }
+};
+
+/**
+ * Books a case's leave again when a retry finds it already decided, and returns its
+ * name. The decided one is removed first: HRMS refuses an overlapping leave.
+ */
+export const reseedLeave = async (entry, key) => {
+  const name = entry.leaves?.[key];
+  const leave = name ? await getDocument("Leave Application", name) : null;
+  if (leave?.status === "Open" && leave.docstatus === 0) return name;
+  if (leave) {
+    if (leave.docstatus === 1) await cancelDocument("Leave Application", name);
+    await deleteDocument("Leave Application", name);
+  }
+  await bookLeave(
+    entry,
+    (entry.payloadWeekLeave ?? []).filter((spec) => spec.key === key),
+  );
+  return entry.leaves[key];
 };
 
 /** Sends weeks for approval as admin and decides them, all days or only `days`. */
@@ -417,17 +450,31 @@ const bookAllocations = async (entry, specs) => {
 
 /**
  * Creates the records a case's projects need: `payloadProjectDocs` [{ doctype, key,
- * project: <postfix>, reuseBy, ...fields }]. `project` fills the doc's project link;
+ * project: <postfix>, linkedProject: <postfix>, reuseBy, ...fields }]. `project` fills the
+ * doc's project link and `linkedProject` its linked_doctype/linked_document pair;
  * `reuseBy` names a field to find an existing record by instead of creating another.
  * Names are recorded in `entry.docs[key]`.
  */
 const createProjectDocs = async (entry, specs) => {
   entry.docs = {};
-  for (const { doctype, key, project, reuseBy, ...fields } of specs) {
+  for (const {
+    doctype,
+    key,
+    project,
+    linkedProject,
+    reuseBy,
+    ...fields
+  } of specs) {
     const data = {
       ...fields,
       ...(project !== undefined
         ? { project: projectIdOf(entry, project) }
+        : {}),
+      ...(linkedProject !== undefined
+        ? {
+            linked_doctype: "Project",
+            linked_document: projectIdOf(entry, linkedProject),
+          }
         : {}),
     };
     const [existing] = reuseBy
@@ -480,7 +527,7 @@ export const reseedAllocations = async (entry, employee) => {
  *   payloadCreateWeekTime       [{ employee, project, subject, weeksAgo, days, hours, comment, role }]
  *                               `project` is the postfix of the payloadCreateProject it books against;
  *                               `weeksAgo` may be "pastBackdateLimit"
- *   payloadWeekLeave            [{ employee, weeksAgo, day, half, reason }] - booked as admin
+ *   payloadWeekLeave            [{ employee, weeksAgo, day, toDay, half, reason, status, key }] - booked as admin
  *   payloadWeekStatus           [{ employee, weeksAgo, status: "pending" | "approved" | "rejected", days, note }]
  *   payloadLikeTasks            [{ employee, project, subject }] - the employee stars the task
  *   payloadWeekAllocations      [{ employee, project, weeksAgo, from, to, hours, ... }] - see bookAllocations
