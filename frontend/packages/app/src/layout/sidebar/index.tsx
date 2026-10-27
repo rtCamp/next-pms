@@ -6,13 +6,17 @@ import { useNavigate, useLocation } from "react-router";
 import {
   ErrorFallback,
   GlobalSearch,
+  HelpPanel,
   NotificationTray,
 } from "@next-pms/design-system/components";
 import {
+  Button,
   Sidebar as BaseSidebar,
+  Tooltip,
   type SidebarSectionType,
 } from "@rtcamp/frappe-ui-react";
 import {
+  Help,
   Notifications,
   People,
   Time,
@@ -36,16 +40,22 @@ import {
 import LinkWithPreload from "@/components/linkWithPreload";
 import { SettingsModal } from "@/components/settings";
 import { ROLE_ACCESS, ROUTES } from "@/lib/constant";
-import { hasAnyRole } from "@/lib/utils";
+import { hasAnyRole, mergeClassNames as cn } from "@/lib/utils";
 import logo from "@/logo.svg";
 import { useNotifications } from "@/providers/notifications";
 import { useTheme } from "@/providers/theme/hook";
 import { useUser } from "@/providers/user";
-import { NOTIFICATION_ITEM_TOOLTIP, NOTIFICATIONS_HELP } from "./help";
+import {
+  GENERAL_TIPS,
+  NOTIFICATION_ITEM_TOOLTIP,
+  NOTIFICATIONS_HELP,
+  tipsForPath,
+} from "./help";
 
 const Sidebar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const notifications = useNotifications(({ state }) => state.notifications);
   const isNotificationsOpen = useNotifications(({ state }) => state.isTrayOpen);
   const markAsViewed = useNotifications(({ actions }) => actions.markAsViewed);
@@ -358,7 +368,33 @@ const Sidebar = () => {
             items: allocationItems,
           },
         ]}
-      />
+      >
+        <div slot="footer-items">
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start py-1 px-4 text-ink-gray-6",
+              isSidebarCollapsed && "px-2",
+              isHelpOpen &&
+                "bg-surface-selected shadow-sm hover:bg-surface-selected",
+            )}
+            onClick={() => setIsHelpOpen((prev) => !prev)}
+            iconLeft={() => (
+              <Tooltip
+                text="Help"
+                placement="right"
+                disabled={!isSidebarCollapsed}
+              >
+                <Help className="min-w-4 w-4 text-ink-gray-6" />
+              </Tooltip>
+            )}
+          >
+            {!isSidebarCollapsed && (
+              <span className="flex-1 truncate text-sm">Help</span>
+            )}
+          </Button>
+        </div>
+      </BaseSidebar>
 
       <GlobalSearch
         open={isSearchOpen}
@@ -366,6 +402,14 @@ const Sidebar = () => {
         items={searchItems}
       />
       <SettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
+      <HelpPanel
+        open={isHelpOpen}
+        onOpenChange={setIsHelpOpen}
+        pageTips={tipsForPath(pathname)}
+        generalTips={GENERAL_TIPS}
+        roles={roles}
+        className={isSidebarCollapsed ? "left-12" : "left-60"}
+      />
 
       {hasNotificationAccess && (
         <NotificationTray

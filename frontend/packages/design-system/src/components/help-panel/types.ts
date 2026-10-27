@@ -2,6 +2,8 @@ export type HelpTip = {
   id: string;
   title: string;
   body: string;
+  /** Numbered steps shown under the body, for how-to tips. */
+  steps?: string[];
   wiki?: string;
   /** Only shown to users who hold one of these roles. */
   roles?: readonly string[];
@@ -18,5 +20,3 @@ export type HelpPanelProps = {
   roles: string[];
   className?: string;
 };
-
-export type OpenTips = { tips: HelpTip[]; index: number };
