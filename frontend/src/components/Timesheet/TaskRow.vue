@@ -98,7 +98,7 @@ function cellClass(entry: TaskRowTimeEntry) {
   return [
     "text-base",
     (entry.status && TIME_ENTRY_STATUS_CLASS[entry.status]) ??
-      (entry.disabled ? "text-ink-gray-5" : "text-ink-gray-6"),
+      (entry.disabled ? "text-ink-gray-5" : "text-ink-gray-8"),
   ];
 }
 </script>

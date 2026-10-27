@@ -24,7 +24,10 @@ const summary = computed(() =>
       class="w-full"
       align="end"
     >
-      <template #summary>{{ summary }}</template>
+      <!-- MultiSelect greys an empty selection, but here empty means "All". -->
+      <template #summary>
+        <span class="text-ink-gray-8">{{ summary }}</span>
+      </template>
     </MultiSelect>
   </div>
 </template>

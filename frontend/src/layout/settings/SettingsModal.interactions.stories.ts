@@ -39,11 +39,11 @@ export const SavesUserSettings: Story = {
       "Default Expanded Weeks in Timesheet View",
     );
     await waitFor(() => expect(weeks).toHaveValue(2));
-    await expect(save).toBeDisabled();
+    // Enabled before any edit, as in React.
+    await expect(save).toBeEnabled();
 
     await userEvent.clear(weeks);
     await userEvent.type(weeks, "4");
-    await expect(save).toBeEnabled();
     await userEvent.click(save);
 
     await waitFor(() =>
@@ -54,6 +54,26 @@ export const SavesUserSettings: Story = {
         },
       }),
     );
+  },
+};
+
+/** Save with nothing changed confirms without writing, on the user and system tabs. */
+export const SaveWithoutChangesWritesNothing: Story = {
+  ...SystemManager,
+  play: async () => {
+    for (const index of [0, 1]) {
+      await userEvent.click(
+        (await screen.findAllByRole("tab", { name: "Timesheets" }))[index],
+      );
+      const panel = await screen.findByRole("tabpanel");
+      const save = within(panel).getByRole("button", { name: "Save" });
+      await waitFor(() => expect(save).toBeEnabled());
+      await userEvent.click(save);
+    }
+    await expect(await screen.findAllByText("Settings saved")).not.toHaveLength(
+      0,
+    );
+    await expect(requests).toEqual([]);
   },
 };
 

@@ -115,8 +115,8 @@ describe("scoreClass", () => {
   it("colours by score, and white on the selected pill", () => {
     expect(scoreClass(null, false)).toBe("text-ink-gray-4");
     expect(scoreClass(80, false)).toBe("text-ink-gray-6");
-    expect(scoreClass(79, false)).toBe("text-ink-amber-7");
-    expect(scoreClass(60, false)).toBe("text-ink-amber-7");
+    expect(scoreClass(79, false)).toBe("text-ink-amber-8");
+    expect(scoreClass(60, false)).toBe("text-ink-amber-8");
     expect(scoreClass(59, false)).toBe("text-ink-red-7");
     expect(scoreClass(10, true)).toBe("text-ink-base");
   });

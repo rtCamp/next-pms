@@ -46,7 +46,7 @@ const canAdd = computed(() => !props.disabled && !props.locked);
     <span v-else>{{ time }}</span>
     <span
       v-if="nonBillable"
-      class="absolute -bottom-0.5 left-1/2 block size-1 -translate-x-1/2 rounded-full bg-surface-amber-3"
+      class="absolute -bottom-0.5 left-1/2 block size-1 -translate-x-1/2 rounded-full bg-surface-amber-7"
       role="img"
       aria-label="Non-billable"
     />

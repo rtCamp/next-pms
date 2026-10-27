@@ -93,6 +93,10 @@ What it changes, for reference when a class reaches you some other way:
 | `text-base font-medium` | `text-base-medium` |
 | `rounded-sm` (4px), `rounded` (8px), `-md` (10px), `-lg` (12px), `-xl` (16px), `-2xl` (20px) | `rounded-1`, `-4`, `-5`, `-6`, `-7`, `-8`; sides too (`rounded-t-2xl` → `rounded-t-8`) |
 
+Two shades the codemod gets wrong, measured on the rendered pages: React's `ink-red-4` and `ink-amber-4` are
+closest to Vue's `-7`, not `-8` (red-4 is rgb(181,42,42): red-7 is rgb(180,29,29), red-8 rgb(148,31,31)). And it
+leaves `bg-surface-amber-3` (the non-billable dot) as is, which renders far lighter in Vue; use `bg-surface-amber-7`.
+
 `<colour>` is red, blue, green, amber or violet. Full map:
 `frontend/node_modules/frappe-ui/tailwind/migrate-tokens-v2.js`; valid colour names:
 `frontend/node_modules/frappe-ui/tailwind/tokens/colors.js`. The default line height changed from 1.15 to 1.35;

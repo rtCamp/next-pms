@@ -8,6 +8,7 @@ import {
   dayjs,
   ErrorMessage,
   FormLabel,
+  ScrollArea,
   Select,
   Spinner,
   TextInput,
@@ -158,164 +159,177 @@ async function submit(another: boolean) {
     :title="isEdit ? 'Edit growth initiative' : 'Create growth initiative'"
     size="md"
     position="top"
-    :padding-top="120"
+    :padding-top="88"
     :dismissible="!saving"
   >
     <div v-if="loadingDoc" class="flex justify-center py-8">
       <Spinner class="size-5" />
     </div>
     <ErrorMessage v-else-if="readError" :message="errorMessage(readError)" />
-    <form
+    <!-- React caps the dialog at 70vh plus its footer; the title takes the 92px here. -->
+    <ScrollArea
       v-else
-      class="-mt-2 space-y-4"
-      novalidate
-      @submit.prevent="submit(false)"
+      class="-mx-1 -mt-2"
+      viewport-class="max-h-[calc(70vh-92px)] px-1"
     >
-      <TextInput
-        v-model="form.activity"
-        label="Activity"
-        required
-        :error="errors.activity"
-        size="md"
-        variant="outline"
-        placeholder="Enter activity"
-      />
-      <Combobox
-        v-model="category"
-        label="Category"
-        size="md"
-        variant="outline"
-        :options="categoryOptions"
-        :loading="mastersLoading"
-        open-on-focus
-        placeholder="Select category"
-      />
-      <div class="flex flex-col gap-1.5">
-        <FormLabel label="Description" />
-        <RichTextEditor
-          v-model="form.description"
-          label="Description"
-          placeholder="Describe the initiative..."
-          content-class="h-24 overflow-auto"
-          :disabled="saving"
+      <form class="space-y-4" novalidate @submit.prevent="submit(false)">
+        <TextInput
+          v-model="form.activity"
+          label="Activity"
+          required
+          :error="errors.activity"
+          size="md"
+          variant="outline"
+          placeholder="Enter activity"
         />
-      </div>
-      <template v-if="isEdit">
-        <DisabledField label="Priority for Client">
-          <GrowthPriorityPill
-            v-if="editingDoc?.client_priority"
-            :priority="editingDoc.client_priority"
+        <Combobox
+          v-model="category"
+          label="Category"
+          size="md"
+          variant="outline"
+          :options="categoryOptions"
+          :loading="mastersLoading"
+          open-on-focus
+          placeholder="Select category"
+        >
+          <template v-if="category" #suffix="{ clear }">
+            <Button
+              class="size-4 shrink-0"
+              variant="ghost"
+              size="xs"
+              icon="lucide-x"
+              label="Clear category"
+              @click.stop="clear()"
+            />
+          </template>
+        </Combobox>
+        <div class="flex flex-col gap-1.5">
+          <FormLabel label="Description" />
+          <RichTextEditor
+            v-model="form.description"
+            label="Description"
+            placeholder="Describe the initiative..."
+            content-class="h-24 overflow-auto"
+            :disabled="saving"
           />
-          <span v-else>—</span>
-        </DisabledField>
-        <DisabledField label="Status">
-          <span class="text-ink-gray-7">
-            <GrowthStatusBadge :status="editingDoc?.status" />
-          </span>
-        </DisabledField>
-        <DisabledField v-if="editingDoc?.closed_status" label="Closed status">
-          {{ editingDoc.closed_status }}
-        </DisabledField>
-        <DisabledField label="Billable outcome">
-          {{ formatCurrency(editingDoc?.billable_outcome ?? 0, currency) }}
-        </DisabledField>
-        <UpdateLogNote :message="EDIT_LOG_NOTE" />
-      </template>
-      <template v-else>
-        <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- frappe-ui's Select renders a <label> from `label` -->
-        <Select
-          v-model="form.client_priority"
-          label="Priority for Client"
-          size="md"
-          variant="outline"
-          :options="PRIORITY_OPTIONS"
-          placeholder="Select priority"
-        />
-        <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- frappe-ui's Select renders a <label> from `label` -->
-        <Select
-          v-model="form.status"
-          label="Status"
-          required
-          :error="errors.status"
-          size="md"
-          variant="outline"
-          :options="statusOptions"
-          placeholder="Select status"
-        />
-        <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- frappe-ui's Select renders a <label> from `label` -->
-        <Select
-          v-if="closing"
-          v-model="form.closed_status"
-          label="Closed status"
-          required
-          :error="errors.closed_status"
-          size="md"
-          variant="outline"
-          :options="closedStatusOptions"
-          placeholder="Select closed status"
-        />
-      </template>
-      <div class="flex flex-col gap-1.5">
-        <FormLabel label="Desired outcome / ROI" />
-        <RichTextEditor
-          v-model="form.desired_outcome"
-          label="Desired outcome / ROI"
-          placeholder="Describe the desired outcome..."
-          content-class="h-24 overflow-auto"
-          :disabled="saving"
-        />
-      </div>
-      <DatePicker
-        v-model="form.ideation_date"
-        label="Ideation date"
-        required
-        :error="errors.ideation_date"
-        :clearable="false"
-        size="md"
-        variant="outline"
-        placeholder="Ideation date"
-      >
-        <template #suffix>
-          <span class="lucide-calendar size-4 shrink-0" aria-hidden="true" />
+        </div>
+        <template v-if="isEdit">
+          <DisabledField label="Priority for Client">
+            <GrowthPriorityPill
+              v-if="editingDoc?.client_priority"
+              :priority="editingDoc.client_priority"
+            />
+            <span v-else>—</span>
+          </DisabledField>
+          <DisabledField label="Status">
+            <span class="text-ink-gray-7">
+              <GrowthStatusBadge :status="editingDoc?.status" />
+            </span>
+          </DisabledField>
+          <DisabledField v-if="editingDoc?.closed_status" label="Closed status">
+            {{ editingDoc.closed_status }}
+          </DisabledField>
+          <DisabledField label="Billable outcome">
+            {{ formatCurrency(editingDoc?.billable_outcome ?? 0, currency) }}
+          </DisabledField>
+          <UpdateLogNote :message="EDIT_LOG_NOTE" />
         </template>
-      </DatePicker>
-      <GrowthOwnerField
-        v-model="form.activity_owner"
-        label="Activity owner"
-        placeholder="Select activity owner"
-        :enabled="open"
-      />
-      <GrowthOwnerField
-        v-model="form.ideation_owner"
-        label="Ideation owner"
-        placeholder="Select ideation owner"
-        :enabled="open"
-      />
-      <TextInput
-        v-if="!isEdit"
-        v-model="form.billable_outcome"
-        label="Billable outcome"
-        type="number"
-        min="0"
-        :error="errors.billable_outcome"
-        size="md"
-        variant="outline"
-        placeholder="0"
-      />
-    </form>
+        <template v-else>
+          <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- frappe-ui's Select renders a <label> from `label` -->
+          <Select
+            v-model="form.client_priority"
+            label="Priority for Client"
+            size="md"
+            variant="outline"
+            :options="PRIORITY_OPTIONS"
+            placeholder="Select priority"
+          />
+          <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- frappe-ui's Select renders a <label> from `label` -->
+          <Select
+            v-model="form.status"
+            label="Status"
+            required
+            :error="errors.status"
+            size="md"
+            variant="outline"
+            :options="statusOptions"
+            placeholder="Select status"
+          />
+          <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- frappe-ui's Select renders a <label> from `label` -->
+          <Select
+            v-if="closing"
+            v-model="form.closed_status"
+            label="Closed status"
+            required
+            :error="errors.closed_status"
+            size="md"
+            variant="outline"
+            :options="closedStatusOptions"
+            placeholder="Select closed status"
+          />
+        </template>
+        <div class="flex flex-col gap-1.5">
+          <FormLabel label="Desired outcome / ROI" />
+          <RichTextEditor
+            v-model="form.desired_outcome"
+            label="Desired outcome / ROI"
+            placeholder="Describe the desired outcome..."
+            content-class="h-24 overflow-auto"
+            :disabled="saving"
+          />
+        </div>
+        <DatePicker
+          v-model="form.ideation_date"
+          label="Ideation date"
+          required
+          :error="errors.ideation_date"
+          :clearable="false"
+          size="md"
+          variant="outline"
+          placeholder="Ideation date"
+        >
+          <template #suffix>
+            <span class="lucide-calendar size-4 shrink-0" aria-hidden="true" />
+          </template>
+        </DatePicker>
+        <GrowthOwnerField
+          v-model="form.activity_owner"
+          label="Activity owner"
+          placeholder="Select activity owner"
+          :enabled="open"
+        />
+        <GrowthOwnerField
+          v-model="form.ideation_owner"
+          label="Ideation owner"
+          placeholder="Select ideation owner"
+          :enabled="open"
+        />
+        <TextInput
+          v-if="!isEdit"
+          v-model="form.billable_outcome"
+          label="Billable outcome"
+          type="number"
+          min="0"
+          :error="errors.billable_outcome"
+          size="md"
+          variant="outline"
+          placeholder="0"
+        />
+      </form>
+    </ScrollArea>
 
     <template #actions>
       <div class="flex w-full items-center gap-2">
         <Button
           v-if="!isEdit"
-          class="w-full"
+          class="flex-1"
           label="Save and create another"
           :loading="submitting === 'another'"
           :disabled="disabled"
           @click="submit(true)"
         />
         <Button
-          class="w-full"
+          class="flex-1"
           variant="solid"
           label="Save"
           :loading="submitting === 'close'"

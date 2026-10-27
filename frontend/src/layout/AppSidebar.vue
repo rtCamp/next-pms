@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { computed, h, onScopeDispose, ref, watch } from "vue";
+import { computed, onScopeDispose, ref, watch } from "vue";
 import {
   Sidebar,
   SidebarCollapseToggle,
-  SidebarHeader,
   SidebarItem,
   useColorScheme,
   useKeyboardShortcut,
@@ -13,8 +12,8 @@ import { useNotifications } from "@/composables/useNotifications";
 import type { Role } from "@/session";
 import logo from "@/assets/logo.svg";
 import { rememberColorScheme } from "@/utils/theme";
-import { switchableApps, type AppLink } from "./apps";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
+import AppSidebarHeader from "./AppSidebarHeader.vue";
 import AppSidebarSection from "./AppSidebarSection.vue";
 import GlobalSearch from "./GlobalSearch.vue";
 import SettingsModal from "./settings/SettingsModal.vue";
@@ -30,8 +29,6 @@ const props = defineProps<{
   roles: readonly Role[];
   employee?: string | null;
   employeeName?: string;
-  /** Apps to offer under "Apps", from `frappe.apps.get_apps`. */
-  apps?: readonly AppLink[];
 }>();
 
 const emit = defineEmits<{ logout: [] }>();
@@ -105,16 +102,17 @@ narrowQuery.addEventListener("change", onNarrowChange);
 onScopeDispose(() => narrowQuery.removeEventListener("change", onNarrowChange));
 const sidebarCollapsed = computed(() => collapsed.value ?? isNarrow.value);
 
+// Apps and Desk are outside the SPA, so the router can't take them.
 const menuItems = computed(() => [
   {
     label: "Apps",
     icon: "lucide-layout-grid",
-    submenu: switchableApps(props.apps ?? []).map((app) => ({
-      label: app.title,
-      icon: h("img", { src: app.logo, alt: "", class: "size-4" }),
-      // Outside the SPA, so the router can't take these.
-      onClick: () => window.location.assign(app.route),
-    })),
+    onClick: () => window.location.assign("/apps"),
+  },
+  {
+    label: "Switch To Desk",
+    icon: "lucide-arrow-left-right",
+    onClick: () => window.location.assign("/desk"),
   },
   {
     label: "Settings",
@@ -124,27 +122,28 @@ const menuItems = computed(() => [
     },
   },
   {
-    label: resolvedColorScheme.value === "dark" ? "Light mode" : "Dark mode",
+    label: "Toggle Theme",
     icon: resolvedColorScheme.value === "dark" ? "lucide-sun" : "lucide-moon",
     onClick: () => {
       toggleColorScheme();
       rememberColorScheme(resolvedColorScheme.value);
     },
   },
-  { label: "Log out", icon: "lucide-log-out", onClick: () => emit("logout") },
+  { label: "Logout", icon: "lucide-log-out", onClick: () => emit("logout") },
 ]);
 </script>
 
 <template>
   <Sidebar v-model:collapsed="collapsed">
-    <SidebarHeader
+    <AppSidebarHeader
       title="Next PMS"
       :subtitle="employeeName"
       :logo="logo"
       :menu-items="menuItems"
+      :collapsed="sidebarCollapsed"
     />
 
-    <div class="flex-1 overflow-y-auto px-2 pt-2">
+    <div class="flex-1 overflow-y-auto px-2">
       <template v-for="item in topItems" :key="itemKey(item)">
         <SidebarItem
           v-if="'to' in item"
@@ -153,13 +152,21 @@ const menuItems = computed(() => [
           :route="item.to"
           @mouseenter="preload(item.to)"
           @focusin="preload(item.to)"
-        />
+        >
+          <span class="truncate text-base leading-tighter">{{
+            item.label
+          }}</span>
+        </SidebarItem>
         <SidebarItem
           v-else
           :label="item.label"
           :icon="item.icon"
           @click="runAction(item.action)"
-        />
+        >
+          <span class="truncate text-base leading-tighter">{{
+            item.label
+          }}</span>
+        </SidebarItem>
       </template>
 
       <AppSidebarSection

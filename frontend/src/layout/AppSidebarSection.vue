@@ -75,7 +75,11 @@ const bodyId = useId();
           :route="item.to"
           @mouseenter="preload(item.to)"
           @focusin="preload(item.to)"
-        />
+        >
+          <span class="truncate text-base leading-tighter">{{
+            item.label
+          }}</span>
+        </SidebarItem>
       </div>
     </div>
   </div>

@@ -262,6 +262,7 @@ function avatarOf(option: unknown) {
         <FormLabel label="Recurrence" />
         <TabButtons
           v-model="recurrence"
+          fluid
           :options="recurrenceOptions"
           aria-label="Recurrence"
         />
@@ -396,7 +397,7 @@ function avatarOf(option: unknown) {
           :disabled="state.locks.isMetadataLocked"
         />
         <span
-          class="inline-block size-1 rounded-full bg-surface-amber-3"
+          class="inline-block size-1 rounded-full bg-surface-amber-7"
           aria-hidden="true"
         />
       </div>

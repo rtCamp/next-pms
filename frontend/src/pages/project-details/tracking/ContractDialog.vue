@@ -162,7 +162,11 @@ async function submit() {
         variant="outline"
         size="md"
         placeholder="Enter hours"
-      />
+      >
+        <template #suffix>
+          <span class="pr-2 text-sm text-ink-gray-5">/h</span>
+        </template>
+      </TextInput>
       <Combobox
         v-model="salesOrder"
         v-model:query="orderQuery"

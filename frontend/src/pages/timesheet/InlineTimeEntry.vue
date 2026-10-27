@@ -421,7 +421,7 @@ const entryViews = computed(() => displayEntries.value.map(toEntryView));
           >
             <template v-if="cell.nonBillable" #prefix>
               <span
-                class="block size-1 rounded-full bg-surface-amber-3"
+                class="block size-1 rounded-full bg-surface-amber-7"
                 role="img"
                 aria-label="Non-billable"
               />

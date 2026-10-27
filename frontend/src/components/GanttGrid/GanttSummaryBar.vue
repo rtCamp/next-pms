@@ -103,11 +103,14 @@ function add() {
         :ai="bar.isAiCreated"
       />
     </template>
-    <GanttAllocationCard
-      :entries="entries"
-      :day-off="dayOff"
-      addable
-      @add="add"
-    />
+    <template #default="{ close }">
+      <GanttAllocationCard
+        :entries="entries"
+        :day-off="dayOff"
+        addable
+        @add="add"
+        @close="close"
+      />
+    </template>
   </HoverCard>
 </template>

@@ -54,8 +54,8 @@ src/
   router-meta.d.ts route meta: title, roles, standalone
   session/         useSession(): the signed-in user, roles and employee record; ROLE_ACCESS, hasAnyRole
   layout/          AppSidebar (frappe-ui Sidebar) with the search palette (GlobalSearch, Mod+K), the notification
-                   tray and the Settings dialog; AppSidebarSection, the nav links and search pages
-                   (sidebarSections.ts), the Apps menu (apps.ts), usePreloadRoute (loads a page's code on hovering
+                   tray and the Settings dialog; AppSidebarHeader, AppSidebarSection, the nav links and search pages
+                   (sidebarSections.ts), usePreloadRoute (loads a page's code on hovering
                    its link), StatusMessage for the status pages and SessionError; settings/ holds the Settings
                    dialog's panels and the Timesheet Settings form helpers (systemSettings.ts, with unit tests)
   pages/           route components; WorkInProgress stands in for pages not rebuilt yet. A rebuilt page gets a
@@ -99,7 +99,7 @@ src/
 
 **Routes.** Give each route a `meta.title` (the tab title), and `meta.roles` from `ROLE_ACCESS` when only some
 roles may open it. The `beforeEach` guard in `router.ts` sends users without an Employee record to `/no-employee`
-and users without a role to `/no-access`; when the session lookups fail, `App.vue` shows SessionError (Retry,
+and users without a route's role to `/not-found`, as React does (unknown paths redirect there too); when the session lookups fail, `App.vue` shows SessionError (Retry,
 Log out) instead of the page. `meta.standalone` marks a status page: no sidebar, no guard checks.
 `meta.scroll: false` hands scrolling to the page (DesktopShell stops scrolling it), for pages whose header or toolbar
 stays put while a pane scrolls, like the task list's rows. The note editor routes are children of `project-details`:
@@ -166,8 +166,10 @@ These win over the vendored skills.
 - Add React or another UI kit alongside frappe-ui.
 - Call the server with `fetch` or axios; use the frappe-ui composables (P3).
 - Add Pinia or another store library; shared state goes in a composable over frappe-ui calls, like `useSession()`.
-- Restyle frappe-ui's `Sidebar` parts beyond matching the React sidebar's layout. `AppSidebarSection` draws its own
-  section heading and indents its items to match React; everything else composes frappe-ui's parts as they are.
+- Restyle frappe-ui's `Sidebar` parts beyond matching the React sidebar's layout. `AppSidebarHeader` replaces
+  `SidebarHeader` (React's 48px trigger and 32px logo), `AppSidebarSection` draws its own section heading and indents
+  its items, and the nav labels go in `SidebarItem`'s slot at 14px, all to match React; everything else composes
+  frappe-ui's parts as they are.
 - Hard-code colours or reach for raw Tailwind palettes; use the semantic tokens (P4).
 - Add an icon library; use `lucide-*` icons, and ask before adding one to `src/icons/` (P4).
 - Make broad refactors, rename public APIs or change backend code unless asked.

@@ -126,13 +126,13 @@ const rangeModel = computed({
             {{ floatToTime(ownSummary.totalHours) }}
           </span>
         </div>
-        <span v-else />
         <Select
           v-model="rangeModel"
           :options="TASK_LOG_RANGE_OPTIONS"
           :variant="isTeam ? 'ghost' : 'subtle'"
           aria-label="Date range"
-          class="w-auto text-sm text-ink-gray-7"
+          class="w-auto text-ink-gray-7"
+          :class="!isTeam && 'text-sm'"
         />
       </div>
 

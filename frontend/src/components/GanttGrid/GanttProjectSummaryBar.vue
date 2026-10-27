@@ -59,6 +59,13 @@ function add() {
         :ai="bar.isAiCreated"
       />
     </template>
-    <GanttAllocationCard :entries="entries" addable @add="add" />
+    <template #default="{ close }">
+      <GanttAllocationCard
+        :entries="entries"
+        addable
+        @add="add"
+        @close="close"
+      />
+    </template>
   </HoverCard>
 </template>

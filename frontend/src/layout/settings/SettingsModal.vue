@@ -117,6 +117,11 @@ watch(
 
 const savingUser = ref(false);
 async function saveUser(): Promise<boolean> {
+  // Save is enabled before any edit, as in React; with nothing changed, don't write.
+  if (!userDirty.value) {
+    toast.success("Settings saved");
+    return true;
+  }
   savingUser.value = true;
   try {
     await pms.save({
@@ -135,6 +140,10 @@ async function saveUser(): Promise<boolean> {
 }
 
 async function saveSystem(): Promise<boolean> {
+  if (!systemDirty.value) {
+    toast.success("Settings saved");
+    return true;
+  }
   try {
     await systemDoc.setValue.submit(systemChanges.value);
     toast.success("Settings saved");
@@ -146,6 +155,9 @@ async function saveSystem(): Promise<boolean> {
     return false;
   }
 }
+
+const footerClass =
+  "flex shrink-0 justify-end border-t border-outline-gray-1 px-8 py-5";
 
 const confirmClose = ref(false);
 
@@ -220,17 +232,7 @@ function discardAndClose() {
         <SettingsHeader
           title="Timesheets"
           description="Configure your timesheet preferences."
-        >
-          <template #actions>
-            <Button
-              variant="solid"
-              label="Save"
-              :loading="savingUser"
-              :disabled="!userDirty || !pms.data"
-              @click="saveUser"
-            />
-          </template>
-        </SettingsHeader>
+        />
         <SettingsBody>
           <div v-if="!pms.data" class="flex justify-center">
             <Spinner v-if="pms.loading" class="size-6" />
@@ -246,6 +248,15 @@ function discardAndClose() {
             :system-weeks="pms.data?.system_auto_expand_weeks_by_default"
           />
         </SettingsBody>
+        <div :class="footerClass">
+          <Button
+            variant="solid"
+            label="Save"
+            :loading="savingUser"
+            :disabled="!pms.data"
+            @click="saveUser"
+          />
+        </div>
       </SettingsPanel>
 
       <template v-if="canManageSystem">
@@ -265,17 +276,10 @@ function discardAndClose() {
           :key="panel.value"
           :value="panel.value"
         >
-          <SettingsHeader :title="panel.title" :description="panel.description">
-            <template #actions>
-              <Button
-                variant="solid"
-                label="Save"
-                :loading="systemDoc.setValue.loading"
-                :disabled="!systemDirty"
-                @click="saveSystem"
-              />
-            </template>
-          </SettingsHeader>
+          <SettingsHeader
+            :title="panel.title"
+            :description="panel.description"
+          />
           <SettingsBody>
             <div v-if="!systemDoc.doc" class="flex justify-center">
               <Spinner v-if="systemDoc.loading" class="size-6" />
@@ -289,6 +293,15 @@ function discardAndClose() {
             />
             <ResourceManagementPanel v-else />
           </SettingsBody>
+          <div :class="footerClass">
+            <Button
+              variant="solid"
+              label="Save"
+              :loading="systemDoc.setValue.loading"
+              :disabled="!systemDoc.doc"
+              @click="saveSystem"
+            />
+          </div>
         </SettingsPanel>
       </template>
     </SettingsContent>

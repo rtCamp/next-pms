@@ -94,12 +94,6 @@ const routes: RouteRecordRaw[] = [
     meta: { title: "Manager Dashboard", roles: ROLE_ACCESS.managerDashboard },
   },
   {
-    path: "/no-access",
-    name: "no-access",
-    component: () => import("./pages/NoAccess.vue"),
-    meta: { title: "No Access", standalone: true },
-  },
-  {
     path: "/no-employee",
     name: "no-employee",
     component: () => import("./pages/NoEmployee.vue"),
@@ -111,11 +105,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import("./pages/NotFound.vue"),
     meta: { title: "Page Not Found", standalone: true },
   },
-  {
-    path: "/:pathMatch(.*)*",
-    component: () => import("./pages/NotFound.vue"),
-    meta: { title: "Page Not Found", standalone: true },
-  },
+  { path: "/:pathMatch(.*)*", redirect: { name: "not-found" } },
 ];
 
 export const router = createRouter({
@@ -137,7 +127,7 @@ router.beforeEach(async (to): Promise<RouteLocationRaw | true> => {
 
   if (!session.hasEmployee) return { name: "no-employee", replace: true };
   if (to.meta.roles && !session.hasAnyRole(to.meta.roles)) {
-    return { name: "no-access", replace: true };
+    return { name: "not-found", replace: true };
   }
   return true;
 });

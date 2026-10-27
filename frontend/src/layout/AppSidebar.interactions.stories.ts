@@ -3,7 +3,6 @@ import { expect, fn, screen, userEvent, waitFor, within } from "storybook/test";
 import { onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import AppSidebar from "./AppSidebar.vue";
-import { APPS } from "./AppSidebar.fixtures";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
 
 const meta = {
@@ -15,7 +14,6 @@ const meta = {
     roles: [],
     employee: "HR-EMP-00042",
     employeeName: "Asha Rao",
-    apps: APPS,
     onLogout: fn(),
   },
   beforeEach: () => {
@@ -186,33 +184,33 @@ export const MobileCollapsedShowsClosedSections: Story = {
   },
 };
 
-/** Log out sits in the header menu and is left to the parent. */
+/** Logout sits in the header menu and is left to the parent. */
 export const LogOut: Story = {
   play: async ({ args, canvas }) => {
     await userEvent.click(canvas.getByRole("button", { name: /Next PMS/ }));
     await userEvent.click(
-      await screen.findByRole("menuitem", { name: "Log out" }),
+      await screen.findByRole("menuitem", { name: "Logout" }),
     );
     await waitFor(() => expect(args.onLogout).toHaveBeenCalledOnce());
   },
 };
 
-/** Apps lists Desk first, then the other apps, without this one. */
-export const AppsSubmenu: Story = {
+/** The header menu has React's items, in React's order. */
+export const HeaderMenu: Story = {
   play: async ({ canvas }) => {
     await userEvent.click(canvas.getByRole("button", { name: /Next PMS/ }));
-    await userEvent.click(
-      await screen.findByRole("menuitem", { name: "Apps" }),
-    );
-    await screen.findByRole("menuitem", { name: "Desk" });
+    await screen.findByRole("menu");
     const labels = screen
       .getAllByRole("menuitem")
       .map((item) => item.textContent?.trim());
-    const apps = labels.slice(labels.indexOf("Desk"));
-    await expect(apps.slice(0, 3)).toEqual(["Desk", "ERPNext", "HR"]);
-    await expect(labels).not.toContain("Switch To Desk");
+    await expect(labels).toEqual([
+      "Apps",
+      "Switch To Desk",
+      "Settings",
+      "Toggle Theme",
+      "Logout",
+    ]);
 
-    await userEvent.keyboard("{Escape}");
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
   },
