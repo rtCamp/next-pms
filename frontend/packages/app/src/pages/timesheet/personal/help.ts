@@ -7,7 +7,13 @@ export const PERSONAL_TIMESHEET_TIPS: HelpTip[] = [
   {
     id: "add-time-entry",
     title: "Add a time entry",
-    body: "Select Add time, pick the project and task, then click the Duration bar for the hours and drag to fine-tune. Add a comment and save.",
+    body: "Log hours on a task from the Add time dialog.",
+    steps: [
+      "Select Add time.",
+      "Pick the project and task.",
+      "Select the Duration bar for the hours, then drag to fine-tune.",
+      "Add a comment and save.",
+    ],
     wiki: "Personal-Timesheet#log-time-with-the-add-time-dialog",
   },
   {
