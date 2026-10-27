@@ -74,7 +74,8 @@ const timesheets = useDashboardCall<TeamTimesheet[]>(
       v-else
       :columns="COLUMNS.map((column) => column.width)"
       aria-label="Team timesheets"
-      class="list-row-px-1"
+      :row-height="40"
+      class="list-row-px-2"
     >
       <ListHeader>
         <ListHeaderCell

@@ -28,15 +28,19 @@ const display = computed(() => {
     <span class="truncate text-base text-ink-gray-5">
       {{ KPI_LABELS[kpiKey] }}
     </span>
-    <div class="shrink-0">
-      <MonthPicker
-        v-model="month"
-        variant="ghost"
-        icon="lucide-chevron-down"
-        align="end"
-        class="text-ink-gray-5"
-        :aria-label="`${KPI_LABELS[kpiKey]} month, ${month}`"
-      />
+    <div class="flex shrink-0">
+      <MonthPicker v-model="month" align="end">
+        <template #trigger="{ label }">
+          <button
+            type="button"
+            class="flex items-center gap-0.5 text-sm text-ink-gray-5"
+            :aria-label="`${KPI_LABELS[kpiKey]} month, ${label}`"
+          >
+            {{ label }}
+            <span class="lucide-chevron-down size-4" aria-hidden="true" />
+          </button>
+        </template>
+      </MonthPicker>
     </div>
   </div>
   <Skeleton v-if="loading" class="h-8 w-32" />

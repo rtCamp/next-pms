@@ -157,3 +157,25 @@ export const ReopensOnMonthView: Story = {
     await expect(screen.queryByText(rangeOf(2027))).toBeNull();
   },
 };
+
+export const CustomTrigger: Story = {
+  args: { modelValue: "January 2026" },
+  render: (args) => ({
+    components: { MonthPicker },
+    setup: () => ({ args }),
+    template: `
+      <MonthPicker v-bind="args">
+        <template #trigger="{ label }">
+          <button type="button" class="text-sm text-ink-gray-5">{{ label }}</button>
+        </template>
+      </MonthPicker>
+    `,
+  }),
+  play: async ({ canvasElement, args }) => {
+    await open(canvasElement, "January 2026");
+    await userEvent.click(screen.getByRole("button", { name: "Feb" }));
+    await waitFor(() =>
+      expect(args["onUpdate:modelValue"]).toHaveBeenCalledWith("February 2026"),
+    );
+  },
+};

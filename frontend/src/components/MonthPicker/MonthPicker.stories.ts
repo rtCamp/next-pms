@@ -54,16 +54,19 @@ export const FitWidth: Story = {
 };
 
 export const InlineTrigger: Story = {
-  args: { modelValue: "January 2026", icon: "lucide-chevron-down" },
+  args: { modelValue: "January 2026" },
   render: (args) => ({
     components: { MonthPicker },
     setup: () => ({ args }),
     template: `
-      <MonthPicker
-        v-bind="args"
-        variant="ghost"
-        class="!h-auto !w-auto !justify-center gap-0.5 !p-0 text-sm !text-ink-gray-5 !bg-transparent"
-      />
+      <MonthPicker v-bind="args">
+        <template #trigger="{ label }">
+          <button type="button" class="flex items-center gap-0.5 text-sm text-ink-gray-5">
+            {{ label }}
+            <span class="lucide-chevron-down size-4" aria-hidden="true" />
+          </button>
+        </template>
+      </MonthPicker>
     `,
   }),
 };

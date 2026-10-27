@@ -14,6 +14,11 @@ const props = withDefaults(defineProps<MonthPickerProps>(), {
 
 const emit = defineEmits<{ "update:modelValue": [value: string] }>();
 
+defineSlots<{
+  /** Replaces the trigger button; render one focusable element. */
+  trigger?: (props: { label: string }) => unknown;
+}>();
+
 const MONTHS = [
   "January",
   "February",
@@ -77,11 +82,17 @@ function selectYear(value: number) {
 <template>
   <Popover :side="side" :align="align" @open="onOpen">
     <template #trigger>
-      <Button v-bind="$attrs" class="w-full justify-between" :icon-right="icon">
-        <span :class="{ 'text-ink-gray-5': !modelValue }">
-          {{ modelValue || placeholder }}
-        </span>
-      </Button>
+      <slot name="trigger" :label="modelValue || placeholder">
+        <Button
+          v-bind="$attrs"
+          class="w-full justify-between"
+          :icon-right="icon"
+        >
+          <span :class="{ 'text-ink-gray-5': !modelValue }">
+            {{ modelValue || placeholder }}
+          </span>
+        </Button>
+      </slot>
     </template>
 
     <div class="p-2" :class="{ 'min-w-52': view === 'year' }">
