@@ -20,16 +20,19 @@ const shownWeeks = computed({
 </script>
 
 <template>
-  <div class="flex max-w-sm flex-col gap-4">
+  <div class="max-w-sm pt-10">
     <TextInput
       v-model="shownWeeks"
       type="number"
       min="0"
       step="1"
       label="Default Expanded Weeks in Timesheet View"
-      description="Number of recent weeks expanded by default."
+      aria-describedby="expanded-weeks-help"
       :disabled="useSystem"
     />
-    <Checkbox v-model="useSystem" label="Use system default" />
+    <Checkbox v-model="useSystem" class="mt-4" label="Use system default" />
+    <p id="expanded-weeks-help" class="mt-2 text-p-sm text-ink-gray-6">
+      Number of recent weeks expanded by default.
+    </p>
   </div>
 </template>

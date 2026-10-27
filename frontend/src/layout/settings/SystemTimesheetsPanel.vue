@@ -21,7 +21,7 @@ const departments = table("allowed_departments", "department");
 </script>
 
 <template>
-  <div>
+  <div class="pt-10">
     <section>
       <h3 class="text-lg-semibold text-ink-gray-8">Time Entry Rules</h3>
       <div class="mt-5 flex max-w-sm flex-col gap-5">

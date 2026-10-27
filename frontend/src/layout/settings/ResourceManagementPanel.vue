@@ -25,7 +25,7 @@ const currency = computed({
 </script>
 
 <template>
-  <div>
+  <div class="pt-10">
     <section>
       <h3 class="text-lg-semibold text-ink-gray-8">Rate Display</h3>
       <div class="mt-5 max-w-sm">

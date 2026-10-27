@@ -39,11 +39,11 @@ export const SavesUserSettings: Story = {
       "Default Expanded Weeks in Timesheet View",
     );
     await waitFor(() => expect(weeks).toHaveValue(2));
-    await expect(save).toBeDisabled();
+    // Enabled before any edit, as in React.
+    await expect(save).toBeEnabled();
 
     await userEvent.clear(weeks);
     await userEvent.type(weeks, "4");
-    await expect(save).toBeEnabled();
     await userEvent.click(save);
 
     await waitFor(() =>
