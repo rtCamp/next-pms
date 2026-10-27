@@ -319,7 +319,7 @@ function shortcutDate(daysAgo: number) {
             </template>
           </DatePicker>
         </div>
-        <div class="flex flex-1 flex-col">
+        <div class="flex flex-1 flex-col sm:w-48 sm:flex-none">
           <DurationInput
             v-model="duration"
             label="Duration"

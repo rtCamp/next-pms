@@ -284,6 +284,7 @@ async function submit() {
         <TabButtons
           v-model="form.leaveDuration"
           :options="durationOptions"
+          fluid
           aria-label="Leave duration"
         />
       </div>

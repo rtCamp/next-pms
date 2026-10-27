@@ -120,8 +120,8 @@ export const totalHoursClass = cva("lining-nums tabular-nums", {
   variants: {
     theme: {
       green: "text-ink-green-8",
-      red: "text-ink-red-8",
-      amber: "text-ink-amber-8",
+      red: "text-ink-red-7",
+      amber: "text-ink-amber-7",
       gray: "text-ink-gray-6",
     },
     weight: {

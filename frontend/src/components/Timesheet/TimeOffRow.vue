@@ -40,7 +40,7 @@ defineSlots<{
       >
         <span
           v-if="entry.time === ''"
-          class="flex-1 text-center text-ink-gray-4"
+          class="ml-2 flex-1 text-center text-ink-gray-4"
         >
           -
         </span>
@@ -54,7 +54,7 @@ defineSlots<{
     <div
       :class="[
         CELL_CLASS,
-        'text-base-medium text-ink-amber-8 lining-nums tabular-nums',
+        'text-base-medium text-ink-amber-7 lining-nums tabular-nums',
       ]"
     >
       {{ totalHours }}

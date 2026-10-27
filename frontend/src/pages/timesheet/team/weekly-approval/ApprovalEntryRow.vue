@@ -135,13 +135,13 @@ watch(description, () => (descriptionError.value = ""));
     </div>
     <template v-else>
       <span
-        class="relative size-fit text-base tabular-nums"
+        class="relative -m-1.5 size-fit rounded-4 p-1.5 text-base tabular-nums ring-1 ring-inset ring-outline-gray-1"
         :class="isRejected ? 'text-ink-red-8' : 'text-ink-gray-6'"
       >
         {{ floatToTime(isRejected ? entry.rejectedHours : entry.hours) }}
         <span
           v-if="!entry.isBillable"
-          class="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-surface-amber-3"
+          class="absolute bottom-0.5 left-1/2 size-1 -translate-x-1/2 rounded-full bg-surface-amber-7"
           role="img"
           aria-label="Non-billable"
         />
