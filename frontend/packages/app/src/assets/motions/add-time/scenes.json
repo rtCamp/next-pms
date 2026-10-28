@@ -1,0 +1,1 @@
+{"width":1920,"height":1080,"background":"#F4F4F5","fonts":{"sans":{"family":"Inter"}},"scenes":[{"id":"add-time","name":"Add time","dur":15.9,"desc":"The cursor clicks Add time, picks a project and task, sets the duration, writes a comment and saves; the hours appear in the week."}]}

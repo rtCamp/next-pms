@@ -1,0 +1,1 @@
+{"width":1920,"height":1080,"background":"#F4F4F5","fonts":{"sans":{"family":"Inter"}},"scenes":[{"id":"partial","name":"Approve part of a week","dur":14,"desc":"Open a submitted week from its status icon, untick one day, approve the rest; the week turns Partially approved."}]}

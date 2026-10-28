@@ -7,7 +7,6 @@ import type { FieldHelp, HelpTip } from "@next-pms/design-system/components";
  * Internal dependencies.
  */
 import { PERSONAL_TIMESHEET_HELP } from "@/pages/timesheet/personal/help";
-import { REVIEW_WEEK_STEPS } from "@/pages/timesheet/team/help";
 
 const ROLLUP_WIKI = "Project-Timesheet#the-rollup-table";
 
@@ -40,16 +39,26 @@ export const PROJECT_TIMESHEET_HELP = {
 
 export const PROJECT_TIMESHEET_TIPS: HelpTip[] = [
   {
-    id: "review-project-week",
-    title: "Approve or reject time on a project",
-    body: "Here you decide only the time a member logged on this project. Their other projects that week stay as they are.",
-    steps: REVIEW_WEEK_STEPS,
+    id: "approve-project-time",
+    title: "Approve time on a project",
+    body: "Approve only the time a member logged on this project. Their other projects that week stay as they are.",
+    steps: [
+      "Select the status icon at the end of the member's row, under the project.",
+      "Select Approve.",
+    ],
     wiki: ROLLUP_WIKI,
+    motion: () => import("@/assets/motions/approve-project-time?motion"),
   },
   {
-    id: "log-member-time",
-    title: "Log time for a team member",
-    body: "Select a day's cell on a member's row to open Add time with them, the project and that date filled in. On a task row, hover or select the cell to type hours straight in.",
-    wiki: "Project-Timesheet#log-time-for-a-listed-employee",
+    id: "reject-project-time",
+    title: "Reject time on a project",
+    body: "Send a member's time on this project back with a reason. Their other projects that week stay as they are.",
+    steps: [
+      "Select the status icon at the end of the member's row, under the project.",
+      "Select Reject.",
+      "Enter the reason and select Reject timesheet.",
+    ],
+    wiki: ROLLUP_WIKI,
+    motion: () => import("@/assets/motions/reject-project-time?motion"),
   },
 ];
