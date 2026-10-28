@@ -1,0 +1,1 @@
+{"width":1920,"height":1080,"background":"#F4F4F5","fonts":{"sans":{"family":"Inter"}},"scenes":[{"id":"change-phase","name":"Change a phase","dur":6.4,"desc":"In the Kanban view, the cursor grabs the Atlas UI Stabilization card in Kick Off, drags it to the top of the Discovery column and lets go. The card settles in Discovery, its new phase."}]}
