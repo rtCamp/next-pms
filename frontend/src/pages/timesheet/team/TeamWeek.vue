@@ -14,6 +14,7 @@ import type { TeamFilterArgs, TeamMember, TeamWeekSummary } from "./types";
 import { useTeamTimesheet } from "./useTeamTimesheet";
 import { useTeamWeekMembers } from "./useTeamWeekMembers";
 import type { WeeklyApprovalTarget } from "./weekly-approval/types";
+import { TEAM_TIMESHEET_HELP } from "./help";
 
 const props = defineProps<{
   week: TeamWeekSummary;
@@ -150,6 +151,7 @@ function review(member: TeamMember) {
           :leaves="member.leaves"
           :holidays="member.holidays"
           :daily-hours="dailyHours"
+          :help="TEAM_TIMESHEET_HELP.timeOff"
         />
       </template>
     </MemberGroup>

@@ -9,6 +9,7 @@ import TeamWeek from "./TeamWeek.vue";
 import { useTeamTimesheet } from "./useTeamTimesheet";
 import type { WeeklyApprovalTarget } from "./weekly-approval/types";
 import WeeklyApprovalDialog from "./weekly-approval/WeeklyApprovalDialog.vue";
+import { TEAM_TIMESHEET_HELP } from "./help";
 
 defineOptions({ inheritAttrs: false });
 
@@ -58,6 +59,8 @@ const reviewOpen = computed({
             class="pl-2"
             :levels="['Week', 'Member', 'Project', 'Task']"
             :days="days"
+            :help="TEAM_TIMESHEET_HELP.dayCells"
+            :total-help="TEAM_TIMESHEET_HELP.total"
           />
         </div>
         <TeamWeek

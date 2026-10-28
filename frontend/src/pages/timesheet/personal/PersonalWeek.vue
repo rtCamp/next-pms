@@ -16,6 +16,7 @@ import { useImportedTasks } from "@/pages/timesheet/useImportedTasks";
 import { useTimesheetDialogs } from "@/pages/timesheet/useTimesheetDialogs";
 import PersonalTaskRow from "./PersonalTaskRow.vue";
 import { usePersonalTimesheet } from "./usePersonalTimesheet";
+import { PERSONAL_TIMESHEET_HELP } from "./help";
 
 const props = defineProps<{
   week: TimesheetWeek;
@@ -134,6 +135,7 @@ function submitForApproval() {
         :leaves="leaves"
         :holidays="holidays"
         :daily-hours="dailyHours"
+        :help="PERSONAL_TIMESHEET_HELP.timeOff"
       />
     </template>
   </WeekGroup>

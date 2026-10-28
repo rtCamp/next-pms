@@ -8,6 +8,7 @@ import {
   ErrorMessage,
   Textarea,
   toast,
+  Tooltip,
   useCall,
 } from "frappe-ui";
 import {
@@ -22,6 +23,7 @@ import {
 import { errorMessage } from "@/utils/errors";
 import { floatToTime } from "@/utils/format";
 import type { TimesheetData } from "@/pages/timesheet/types";
+import { DECIDED_DAY_TOOLTIP } from "@/pages/timesheet/team/help";
 import ApprovalEntryRow from "./ApprovalEntryRow.vue";
 import type { ApprovalEntry, WeeklyApprovalTarget } from "./types";
 import { groupEntriesByDay, toApprovalWeek } from "./utils";
@@ -307,12 +309,21 @@ const fade = {
                   <span class="text-lg-medium tabular-nums text-ink-green-8">
                     {{ floatToTime(day.totalHours) }}
                   </span>
-                  <Checkbox
-                    :model-value="checkedDays.has(day.date)"
-                    :disabled="isReadOnly || day.isDecided"
-                    :aria-label="`Select ${day.label}`"
-                    @update:model-value="setChecked(day.date, Boolean($event))"
-                  />
+                  <Tooltip
+                    :text="DECIDED_DAY_TOOLTIP"
+                    :disabled="!day.isDecided"
+                  >
+                    <div class="flex items-center">
+                      <Checkbox
+                        :model-value="checkedDays.has(day.date)"
+                        :disabled="isReadOnly || day.isDecided"
+                        :aria-label="`Select ${day.label}`"
+                        @update:model-value="
+                          setChecked(day.date, Boolean($event))
+                        "
+                      />
+                    </div>
+                  </Tooltip>
                 </div>
               </div>
               <div v-if="!collapsedDays.has(day.date)">

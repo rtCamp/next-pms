@@ -10,6 +10,7 @@ import {
   ListRow,
   ListRows,
 } from "frappe-ui/list";
+import { InfoHoverCard, type FieldHelp } from "@/components/InfoHoverCard";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { TaskStatus, type TaskStatusValue } from "@/components/TaskStatus";
 import { useInfiniteScroll } from "@/composables/useInfiniteScroll";
@@ -19,6 +20,7 @@ import AddTimeCell from "./cells/AddTimeCell.vue";
 import LikeCell from "./cells/LikeCell.vue";
 import SubjectCell from "./cells/SubjectCell.vue";
 import { TASK_PRIORITIES, TASK_SORTABLE_FIELDS } from "./constants";
+import { TASK_LIST_HELP } from "./help";
 import type { TaskListItem, TaskPriority } from "./types";
 import { useTaskColumns } from "./useTaskColumns";
 import { useTaskFilters } from "./useTaskFilters";
@@ -34,6 +36,10 @@ const ACTION_COLUMN_LABELS: Record<string, string> = {
   add_time: "Add time",
   like: "Star",
   actions: "Actions",
+};
+
+const COLUMN_HELP: Partial<Record<string, FieldHelp>> = {
+  status: TASK_LIST_HELP.status,
 };
 
 /** Roles that may delete any task; others may delete only their own. */
@@ -134,8 +140,21 @@ useInfiniteScroll({
       >
         <ListHeader class="data-[slot=list-header]:h-[45px]">
           <template v-for="column in columns" :key="column.key">
+            <!-- frappe-ui's sort cell is one button, so the card sits beside it. -->
+            <div
+              v-if="COLUMN_HELP[column.key]"
+              class="flex min-w-0 items-center gap-2"
+            >
+              <ListHeaderCellSort
+                :direction="sortDirection(column.key)"
+                @click="sortBy(column.key)"
+              >
+                {{ column.label }}
+              </ListHeaderCellSort>
+              <InfoHoverCard :help="COLUMN_HELP[column.key]!" />
+            </div>
             <ListHeaderCellSort
-              v-if="SORT_FIELD_BY_COLUMN.has(column.key)"
+              v-else-if="SORT_FIELD_BY_COLUMN.has(column.key)"
               :direction="sortDirection(column.key)"
               @click="sortBy(column.key)"
             >

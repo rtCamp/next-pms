@@ -4,6 +4,7 @@ import { Tooltip } from "frappe-ui";
 import { FilledStarIcon } from "@/icons";
 import { isLikedBy, useToggleLike } from "@/composables/useToggleLike";
 import { useSession } from "@/session";
+import { STAR_TASK_TOOLTIP } from "@/pages/tasks/help";
 
 const props = defineProps<{ name: string; likedBy: string | null }>();
 const emit = defineEmits<{ toggled: [] }>();
@@ -19,7 +20,7 @@ const label = computed(() => (like.liked ? "Unstar task" : "Star task"));
 </script>
 
 <template>
-  <Tooltip :text="label">
+  <Tooltip :text="like.liked ? label : STAR_TASK_TOOLTIP">
     <button
       type="button"
       class="inline-flex size-4 shrink-0 cursor-pointer items-center justify-center rounded-4 disabled:cursor-not-allowed"

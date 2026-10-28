@@ -19,6 +19,7 @@ import type {
 } from "./types";
 import { useProjectTimesheet } from "./useProjectTimesheet";
 import { useProjectWeekProjects } from "./useProjectWeekProjects";
+import { PROJECT_TIMESHEET_HELP } from "./help";
 
 const props = defineProps<{
   week: ProjectWeekSummary;
@@ -167,6 +168,7 @@ function review(member: ProjectMember, projectId: string, projectName: string) {
             :leaves="member.leaves"
             :holidays="member.holidays"
             :daily-hours="dailyHours"
+            :help="PROJECT_TIMESHEET_HELP.timeOff"
           />
         </template>
       </MemberGroup>

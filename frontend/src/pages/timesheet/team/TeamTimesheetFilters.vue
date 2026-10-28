@@ -2,9 +2,11 @@
 import { computed } from "vue";
 import { TextInput } from "frappe-ui";
 import { Filter, FilterLinkValue } from "@/components/Filter";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import type { ApprovalStatusValue } from "@/components/ApprovalStatus";
 import ApprovalStatusFilter from "@/pages/timesheet/ApprovalStatusFilter.vue";
 import { TEAM_TIMESHEET_FILTER_FIELDS } from "@/pages/timesheet/constants";
+import { TEAM_TIMESHEET_HELP } from "./help";
 import ReportsToFilter from "./ReportsToFilter.vue";
 import { useTeamTimesheet } from "./useTeamTimesheet";
 
@@ -50,7 +52,10 @@ const externalFilterCount = computed(
         aria-label="Search members"
         :debounce="400"
       />
-      <ReportsToFilter v-model="reportsTo" />
+      <div class="flex items-center gap-1.5">
+        <ReportsToFilter v-model="reportsTo" />
+        <InfoHoverCard :help="TEAM_TIMESHEET_HELP.reportsTo" />
+      </div>
       <ApprovalStatusFilter v-model="approvalStatus" />
     </div>
     <Filter

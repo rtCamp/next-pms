@@ -24,6 +24,15 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const WithHelp: Story = {
+  args: {
+    help: {
+      title: "Time-off",
+      summary: "Leave and holidays on each day.",
+    },
+  },
+};
+
 export const CustomPrefix: Story = {
   render: (args) => ({
     components: { TimeOffRow },

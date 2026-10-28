@@ -8,6 +8,7 @@ import WeeklyApprovalDialog from "@/pages/timesheet/team/weekly-approval/WeeklyA
 import { useExpandedWeeks } from "@/pages/timesheet/useExpandedWeeks";
 import ProjectWeek from "./ProjectWeek.vue";
 import { useProjectTimesheet } from "./useProjectTimesheet";
+import { PROJECT_TIMESHEET_HELP } from "./help";
 
 defineOptions({ inheritAttrs: false });
 
@@ -49,6 +50,8 @@ const reviewOpen = computed({
             class="pl-2"
             :levels="['Week', 'Project', 'Member', 'Task']"
             :days="days"
+            :help="PROJECT_TIMESHEET_HELP.dayCells"
+            :total-help="PROJECT_TIMESHEET_HELP.total"
           />
         </div>
         <ProjectWeek

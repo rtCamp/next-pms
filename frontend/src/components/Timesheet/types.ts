@@ -1,4 +1,5 @@
 import type { ApprovalStatusValue } from "@/components/ApprovalStatus";
+import type { FieldHelp } from "@/components/InfoHoverCard";
 import type { TaskStatusValue } from "@/components/TaskStatus";
 import type { WorkingFrequency } from "@/session";
 
@@ -49,6 +50,10 @@ export interface HeaderRowProps {
   levels: string[];
   /** Day labels, one per column. */
   days: string[];
+  /** Info card shown after the levels. */
+  help?: FieldHelp;
+  /** Info card shown after the Total label. */
+  totalHelp?: FieldHelp;
 }
 
 export interface WeekRowProps {
@@ -123,6 +128,8 @@ export interface TaskRowProps {
 export interface TimeOffRowProps {
   /** Label for the row. */
   label?: string;
+  /** Info card shown next to the label. */
+  help?: FieldHelp;
   /** One cell per day. */
   timeOffEntries: TimeOffEntry[];
   /** Total hours of time off in the week. */
@@ -319,6 +326,8 @@ export interface TaskWeekRowProps {
 export interface TimeOffWeekRowProps {
   /** Label for the row. */
   label?: string;
+  /** Info card shown next to the label. */
+  help?: FieldHelp;
   /** The week's dates as `YYYY-MM-DD`, one per column. */
   dates: string[];
   leaves: TimesheetLeave[];

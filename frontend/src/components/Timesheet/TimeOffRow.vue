@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Tooltip } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { ACTION_CELL_CLASS, CELL_CLASS, ROW_CLASS } from "./constants";
 import type { TimeOffRowProps } from "./types";
 
@@ -22,7 +23,10 @@ defineSlots<{
           <span class="lucide-calendar-x-2 size-4" aria-hidden="true" />
         </slot>
       </span>
-      <span class="min-w-0 truncate text-base-medium">{{ label }}</span>
+      <div class="flex min-w-0 items-center gap-1.5">
+        <span class="min-w-0 truncate text-base-medium">{{ label }}</span>
+        <InfoHoverCard v-if="help" :help="help" />
+      </div>
     </div>
 
     <Tooltip

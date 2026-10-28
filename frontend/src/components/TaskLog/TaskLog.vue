@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Avatar, Dialog, Select, Spinner } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { TaskBadges } from "@/components/TaskBadges";
 import { TaskProgress } from "@/components/TaskProgress";
 import { TaskStatus } from "@/components/TaskStatus";
 import { floatToTime } from "@/utils/format";
 import { DEFAULT_TASK_LOG_RANGE, TASK_LOG_RANGE_OPTIONS } from "./constants";
+import { TASK_LOG_HELP } from "./help";
 import TaskLogEntryItem from "./TaskLogEntryItem.vue";
 import type { TaskLogProps } from "./types";
 
@@ -81,24 +83,27 @@ const rangeModel = computed({
       />
 
       <div class="mt-4 flex justify-between text-sm">
-        <!-- eslint-disable-next-line better-tailwindcss/no-restricted-classes -- no scale step for 3px -->
-        <div class="mb-0.5 flex gap-[3px]">
-          <div class="flex gap-1">
-            <span
-              class="font-medium"
-              :class="progress > 100 ? 'text-ink-red-8' : 'text-ink-gray-8'"
-            >
-              {{ floatToTime(details.actualHours) }}
-            </span>
-            <span class="text-ink-gray-5">Actual</span>
+        <div class="flex items-center gap-1.5">
+          <!-- eslint-disable-next-line better-tailwindcss/no-restricted-classes -- no scale step for 3px -->
+          <div class="mb-0.5 flex gap-[3px]">
+            <div class="flex gap-1">
+              <span
+                class="font-medium"
+                :class="progress > 100 ? 'text-ink-red-8' : 'text-ink-gray-8'"
+              >
+                {{ floatToTime(details.actualHours) }}
+              </span>
+              <span class="text-ink-gray-5">Actual</span>
+            </div>
+            <span class="text-ink-gray-5">/</span>
+            <div class="flex gap-1">
+              <span class="text-ink-gray-7">
+                {{ floatToTime(details.estimatedHours) }}
+              </span>
+              <span class="text-ink-gray-5">Est.</span>
+            </div>
           </div>
-          <span class="text-ink-gray-5">/</span>
-          <div class="flex gap-1">
-            <span class="text-ink-gray-7">
-              {{ floatToTime(details.estimatedHours) }}
-            </span>
-            <span class="text-ink-gray-5">Est.</span>
-          </div>
+          <InfoHoverCard :help="TASK_LOG_HELP.progress" />
         </div>
         <div class="text-ink-gray-6">{{ progress }}%</div>
       </div>

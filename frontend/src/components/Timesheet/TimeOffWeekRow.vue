@@ -26,6 +26,7 @@ const timeOff = computed(() =>
     v-if="timeOff.visible"
     v-bind="$attrs"
     :label="label"
+    :help="help"
     :time-off-entries="timeOff.cells"
     :total-hours="floatToTime(timeOff.total)"
   />
