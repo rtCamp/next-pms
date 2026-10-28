@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Skeleton } from "frappe-ui";
+import { Skeleton, Tooltip } from "frappe-ui";
 import {
   List,
   ListCell,
@@ -9,9 +9,14 @@ import {
   ListRow,
   ListRows,
 } from "frappe-ui/list";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { useSavedState } from "@/composables/useSavedState";
 import { MANAGED_PROJECTS_CUSTOMERS_KEY } from "@/pages/dashboard/constants";
 import { useDashboardCall } from "@/pages/dashboard/dashboardCall";
+import {
+  MANAGED_PROJECTS_HELP,
+  MANAGED_PROJECTS_HOURS_TOOLTIP,
+} from "@/pages/dashboard/help";
 import WidgetFilter from "@/pages/dashboard/WidgetFilter.vue";
 import { formatHours } from "@/utils/format";
 import HoursBurnBar from "./HoursBurnBar.vue";
@@ -25,10 +30,29 @@ defineOptions({ inheritAttrs: false });
 
 const COLUMNS = [
   { label: "Projects", width: "minmax(0, 1fr)" },
-  { label: "Remaining", width: "96px", align: "right" },
-  { label: "Hours Burn", width: "140px" },
-  { label: "Billable (last week)", width: "160px", align: "right" },
-  { label: "Non-billable (last week)", width: "176px", align: "right" },
+  {
+    label: "Remaining",
+    width: "96px",
+    align: "right",
+    help: MANAGED_PROJECTS_HELP.remaining,
+  },
+  {
+    label: "Hours Burn",
+    width: "140px",
+    help: MANAGED_PROJECTS_HELP.hoursBurn,
+  },
+  {
+    label: "Billable (last week)",
+    width: "160px",
+    align: "right",
+    tooltip: MANAGED_PROJECTS_HOURS_TOOLTIP,
+  },
+  {
+    label: "Non-billable (last week)",
+    width: "176px",
+    align: "right",
+    tooltip: MANAGED_PROJECTS_HOURS_TOOLTIP,
+  },
 ];
 
 const projects = useDashboardCall<ProjectSummary[]>(
@@ -89,9 +113,14 @@ const rows = computed(() =>
           :key="column.label"
           :class="column.align === 'right' && 'justify-end'"
         >
-          <span class="truncate text-sm text-ink-gray-5">
-            {{ column.label }}
-          </span>
+          <Tooltip :text="column.tooltip" :disabled="!column.tooltip">
+            <span class="truncate text-sm text-ink-gray-5">
+              {{ column.label }}
+            </span>
+          </Tooltip>
+          <template v-if="column.help" #suffix>
+            <InfoHoverCard :help="column.help" />
+          </template>
         </ListHeaderCell>
       </ListHeader>
       <ListRows v-slot="{ item }" :items="rows">

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Skeleton } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { MonthPicker } from "@/components/MonthPicker";
+import { LEADERSHIP_KPI_HELP } from "@/pages/dashboard/help";
 import { formatCurrency, formatPercentage } from "@/utils/format";
 import { KPI_LABELS, type KpiKey, type KpiMetric } from "./kpi";
 
@@ -25,8 +27,11 @@ const display = computed(() => {
 
 <template>
   <div class="flex w-full items-center justify-between gap-2">
-    <span class="truncate text-base text-ink-gray-5">
-      {{ KPI_LABELS[kpiKey] }}
+    <span class="flex min-w-0 items-center gap-1.5">
+      <span class="truncate text-base text-ink-gray-5">
+        {{ KPI_LABELS[kpiKey] }}
+      </span>
+      <InfoHoverCard :help="LEADERSHIP_KPI_HELP[kpiKey]" />
     </span>
     <div class="flex shrink-0">
       <MonthPicker v-model="month" align="end">

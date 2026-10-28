@@ -11,7 +11,12 @@ import {
   ListRows,
 } from "frappe-ui/list";
 import { ApprovalStatus } from "@/components/ApprovalStatus";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { useDashboardCall } from "@/pages/dashboard/dashboardCall";
+import {
+  MANAGER_WIDGET_HELP,
+  TEAM_TIMESHEETS_HELP,
+} from "@/pages/dashboard/help";
 import { formatHours } from "@/utils/format";
 import {
   LAST_WEEK,
@@ -27,9 +32,25 @@ const COLUMNS = [
   { label: "Members", width: "minmax(0, 1fr)" },
   { label: "Billable h", width: "96px", align: "right" },
   { label: "Non-billable h", width: "112px", align: "right" },
-  { label: "Expected h", width: "96px", align: "right" },
-  { label: "Delta", width: "72px", align: "right" },
-  { label: "Status", width: "48px", align: "right", hidden: true },
+  {
+    label: "Expected h",
+    width: "96px",
+    align: "right",
+    help: TEAM_TIMESHEETS_HELP.expected,
+  },
+  {
+    label: "Delta",
+    width: "72px",
+    align: "right",
+    help: TEAM_TIMESHEETS_HELP.delta,
+  },
+  {
+    label: "Status",
+    width: "48px",
+    align: "right",
+    hidden: true,
+    help: TEAM_TIMESHEETS_HELP.status,
+  },
 ];
 
 const period = ref(LAST_WEEK);
@@ -55,7 +76,10 @@ const timesheets = useDashboardCall<TeamTimesheet[]>(
   </div>
   <template v-else>
     <div class="flex items-center justify-between gap-4">
-      <h3 class="text-lg-semibold text-ink-gray-8">Timesheets</h3>
+      <div class="flex min-w-0 items-center gap-1.5">
+        <h3 class="text-lg-semibold text-ink-gray-8">Timesheets</h3>
+        <InfoHoverCard :help="MANAGER_WIDGET_HELP.timesheets" />
+      </div>
       <div class="w-fit shrink-0">
         <Select
           v-model="period"
@@ -89,6 +113,9 @@ const timesheets = useDashboardCall<TeamTimesheet[]>(
           >
             {{ column.label }}
           </span>
+          <template v-if="column.help" #suffix>
+            <InfoHoverCard :help="column.help" />
+          </template>
         </ListHeaderCell>
       </ListHeader>
       <ListRows v-slot="{ item }" :items="timesheets.data">

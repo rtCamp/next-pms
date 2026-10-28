@@ -2,6 +2,7 @@
 import { computed, watch } from "vue";
 import { ErrorMessage, Skeleton } from "frappe-ui";
 import { cva } from "class-variance-authority";
+import { InfoHoverCard, type FieldHelp } from "@/components/InfoHoverCard";
 import { useSavedState } from "@/composables/useSavedState";
 import { HEATMAP_ROLES_KEY } from "@/pages/dashboard/constants";
 import { useDashboardCall } from "@/pages/dashboard/dashboardCall";
@@ -21,6 +22,8 @@ import {
 } from "./heatmap";
 
 defineOptions({ inheritAttrs: false });
+
+defineProps<{ help: FieldHelp }>();
 
 const range = heatmapRange(new Date());
 const heatmap = useDashboardCall<AllocationHeatmap>(
@@ -74,7 +77,10 @@ const stateClass = cva("", {
   </template>
   <template v-else>
     <div class="flex shrink-0 items-start justify-between gap-4">
-      <h3 class="text-lg-semibold text-ink-gray-8">Heatmap</h3>
+      <div class="flex min-w-0 items-center gap-1.5">
+        <h3 class="text-lg-semibold text-ink-gray-8">Heatmap</h3>
+        <InfoHoverCard :help="help" />
+      </div>
       <WidgetFilter
         v-model="selectedRoles"
         noun="role"
