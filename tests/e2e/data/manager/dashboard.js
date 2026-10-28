@@ -13,10 +13,8 @@ const project = (postfix, label, extra = {}) => ({
     company: COMPANY,
     customer: "QA-INR",
     custom_project_phase: "Delivery Prep",
-    status: "Open",
     custom_project_manager: process.env.REP_MAN_EMAIL,
     project_type: "Fixed Cost",
-    custom_project_budget_hours: [],
     ...extra,
   },
   [`payloadDeleteProject${postfix}`]: {
@@ -87,7 +85,6 @@ module.exports = {
         reason: `${PREFIX} leave to reject`,
       },
       {
-        key: "away",
         employee: "DbAway",
         weeksAgo: -2,
         day: "Thu",
@@ -107,7 +104,6 @@ module.exports = {
         title: `${PREFIX} notice ${Date.now()}`,
         label: `${PREFIX} notification for the dashboard`,
         url: "/next-pms/tasks",
-        viewed: 0,
       },
       // Stays unread: a fresh site has no other, and the card would be empty once the first is read.
       {
@@ -118,7 +114,6 @@ module.exports = {
         title: `${PREFIX} second notice ${Date.now()}`,
         label: `${PREFIX} second notification for the dashboard`,
         url: "/next-pms/tasks",
-        viewed: 0,
       },
     ],
   },
