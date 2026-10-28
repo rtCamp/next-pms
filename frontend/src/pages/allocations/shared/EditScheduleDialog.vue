@@ -9,6 +9,8 @@ import {
   TextInput,
 } from "frappe-ui";
 import { DurationInput } from "@/components/DurationInput";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
+import { ALLOCATION_DIALOG_HELP } from "./help";
 import { toDisplayHours } from "./schedule";
 import ScheduleDayStrip from "./ScheduleDayStrip.vue";
 import ScheduleSummaryTable from "./ScheduleSummaryTable.vue";
@@ -104,10 +106,18 @@ const applyMode = computed({
             "
           />
         </div>
-        <div class="flex-1">
+        <div class="flex-1 space-y-1.5">
+          <div class="flex items-center gap-1.5">
+            <FormLabel
+              id="edit-total-hours"
+              label="Edit total hours"
+              required
+            />
+            <InfoHoverCard :help="ALLOCATION_DIALOG_HELP.scheduleTotalHours" />
+          </div>
           <TextInput
+            id="edit-total-hours"
             v-model="totalHours"
-            label="Edit total hours"
             required
             type="number"
             variant="outline"
@@ -121,15 +131,20 @@ const applyMode = computed({
         </div>
       </div>
 
-      <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- frappe-ui's Select renders a <label> from `label` -->
-      <Select
-        v-if="state.isRecurring"
-        v-model="applyMode"
-        label="Apply edits to"
-        variant="outline"
-        size="md"
-        :options="APPLY_MODE_OPTIONS"
-      />
+      <div v-if="state.isRecurring" class="space-y-1.5">
+        <div class="flex items-center gap-1.5">
+          <FormLabel id="apply-edits-to" label="Apply edits to" />
+          <InfoHoverCard :help="ALLOCATION_DIALOG_HELP.applyEditsTo" />
+        </div>
+        <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- FormLabel above labels it through `id` -->
+        <Select
+          id="apply-edits-to"
+          v-model="applyMode"
+          variant="outline"
+          size="md"
+          :options="APPLY_MODE_OPTIONS"
+        />
+      </div>
 
       <div class="space-y-1.5">
         <FormLabel label="Schedule summary" />

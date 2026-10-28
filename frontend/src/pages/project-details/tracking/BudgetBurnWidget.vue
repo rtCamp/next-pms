@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { ProgressBar } from "@/components/ProgressBar";
+import { TRACKING_HELP } from "./help";
 import LegendItem from "./LegendItem.vue";
 import { useTracking } from "./useTracking";
 import WidgetCard from "./WidgetCard.vue";
 
 const { tracking, money } = useTracking();
 
+const hasBurn = computed(() => Boolean(tracking.value?.budget_burn));
 const actual = computed(() => tracking.value?.budget_burn?.actual ?? 0);
 const forecasted = computed(() => tracking.value?.budget_burn?.forecasted ?? 0);
 const total = computed(() => tracking.value?.budget_burn?.total_budget ?? 0);
 </script>
 
 <template>
-  <WidgetCard title="Budget burn (to date)">
+  <WidgetCard title="Budget burn (to date)" :help="TRACKING_HELP.budgetBurn">
     <ProgressBar
       label="Budget burn"
       :value="actual"
@@ -26,17 +28,17 @@ const total = computed(() => tracking.value?.budget_burn?.total_budget ?? 0);
       <LegendItem
         swatch-class="bg-surface-green-7"
         label="Actual budget burn"
-        :value="money(actual)"
+        :value="hasBurn ? money(actual) : 'N/A'"
       />
       <LegendItem
         swatch-class="bg-surface-green-3"
         label="Forecasted budget burn"
-        :value="money(forecasted)"
+        :value="hasBurn ? money(forecasted) : 'N/A'"
       />
       <LegendItem
         swatch-class="bg-surface-gray-3"
         label="Total project budget"
-        :value="money(total)"
+        :value="hasBurn ? money(total) : 'N/A'"
       />
     </div>
   </WidgetCard>

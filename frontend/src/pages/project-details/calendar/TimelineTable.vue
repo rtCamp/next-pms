@@ -9,11 +9,13 @@ import {
   ListRow,
   ListRows,
 } from "frappe-ui/list";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { LINKED_RECORD_ICON } from "@/pages/project-details/to-do/constants";
 import { formatProjectDate } from "@/utils/date";
 import AvatarStack from "./AvatarStack.vue";
 import { isOverdue } from "./calendar";
 import type { TableColumn } from "./constants";
+import { CALENDAR_HELP } from "./help";
 import ItemActions from "./ItemActions.vue";
 import ItemHoverCard from "./ItemHoverCard.vue";
 import TodosCell from "./TodosCell.vue";
@@ -49,8 +51,15 @@ function hasColumn(key: TableColumn["key"]) {
       :style="{ gridTemplateColumns: tracks }"
     >
       <ListHeader class="col-span-full">
-        <ListHeaderCell v-for="column in columns" :key="column.key">
+        <ListHeaderCell
+          v-for="column in columns"
+          :key="column.key"
+          :class="column.help && 'gap-1.5'"
+        >
           {{ column.label }}
+          <template v-if="column.help" #suffix>
+            <InfoHoverCard :help="CALENDAR_HELP[column.help]" />
+          </template>
         </ListHeaderCell>
       </ListHeader>
       <ListRows v-slot="{ item }" :items="items" row-key="name">

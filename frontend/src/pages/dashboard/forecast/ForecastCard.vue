@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { ErrorMessage, Skeleton } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { useSavedState } from "@/composables/useSavedState";
 import { FORECAST_ROLES_KEY } from "@/pages/dashboard/constants";
 import { useDashboardCall } from "@/pages/dashboard/dashboardCall";
+import { LEADERSHIP_WIDGET_HELP } from "@/pages/dashboard/help";
 import {
   filterBySelected,
   roleOptions as toRoleOptions,
@@ -46,9 +48,12 @@ const segments = computed(() =>
   </template>
   <template v-else>
     <div class="flex items-start justify-between gap-4">
-      <h3 class="text-lg-semibold text-ink-gray-8">
-        Forecast breakdown for the next month
-      </h3>
+      <div class="flex min-w-0 items-center gap-1.5">
+        <h3 class="text-lg-semibold text-ink-gray-8">
+          Forecast breakdown for the next month
+        </h3>
+        <InfoHoverCard :help="LEADERSHIP_WIDGET_HELP.forecast" />
+      </div>
       <WidgetFilter
         v-model="selectedRoles"
         noun="role"

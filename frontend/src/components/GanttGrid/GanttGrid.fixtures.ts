@@ -1,3 +1,6 @@
+import type { FieldHelp } from "@/components/InfoHoverCard";
+import { CELL_WIDTH } from "./constants";
+import GanttBar, { type BarVariant } from "./GanttBar.vue";
 import type { Allocation, GanttEmployee, GanttProjectGroup } from "./types";
 
 /** Monday of the first week shown. */
@@ -241,3 +244,36 @@ export const MANY_EMPLOYEES: GanttEmployee[] = Array.from(
     id: `HR-EMP-${String(index + 100).padStart(4, "0")}`,
   }),
 );
+
+const sampleBar = (variant: BarVariant, label: string) => ({
+  component: GanttBar,
+  props: {
+    variant,
+    label,
+    left: 0,
+    width: 3 * CELL_WIDTH,
+    class: "relative",
+    style: { top: 0 },
+  },
+});
+
+export const ROW_HEADER_HELP: FieldHelp = {
+  title: "Members grid",
+  summary:
+    "How much of each member's working day is allocated, across all their projects.",
+  legend: [
+    { label: "Partly allocated", ...sampleBar("under", "4h free") },
+    { label: "Fully allocated", ...sampleBar("full", "Full") },
+    { label: "Over capacity", ...sampleBar("over", "2h over") },
+  ],
+  details: [
+    "Each column is one day in every view. A pill covers the days in a row with the same hours allocated.",
+  ],
+};
+
+export const CARD_TOOLTIPS = {
+  rateTooltip: "Hourly cost = CTC ÷ 12 ÷ (weekly hours × 4).",
+  capacityTooltip: "Working hours per week.",
+  remainingHoursTooltip: "Hours still allocated on this project.",
+  hoursTooltip: "Hours per day × days in this stretch of the allocation.",
+};

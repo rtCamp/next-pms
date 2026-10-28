@@ -1,4 +1,7 @@
 export { default as GanttGrid } from "./GanttGrid.vue";
+export { default as GanttBar } from "./GanttBar.vue";
+export type { BarVariant } from "./GanttBar.vue";
+export { default as GanttTimeoffBar } from "./GanttTimeoffBar.vue";
 export type * from "./types";
 export {
   BAR_HEIGHT,

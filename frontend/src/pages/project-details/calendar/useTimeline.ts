@@ -227,7 +227,10 @@ function createTimeline() {
     method: "POST",
     immediate: false,
   });
-  const { toggleFollow: updateFollow } = useFollow(TIMELINE_ITEM_DOCTYPE);
+  const { toggleFollow: updateFollow } = useFollow(
+    TIMELINE_ITEM_DOCTYPE,
+    "Turn on Send Notifications For Documents Followed By Me in your user settings in Desk, then try again.",
+  );
   const createItem = useCall<{ name: string }, Record<string, unknown>>({
     url: `${TIMELINE_API}.create_project_timeline_item`,
     method: "POST",

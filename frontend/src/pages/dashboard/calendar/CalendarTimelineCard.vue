@@ -6,6 +6,7 @@ import {
   DEFAULT_VISIBLE_DAYS,
   getWeekStart,
 } from "@/components/CalendarTimeline";
+import { InfoHoverCard, type FieldHelp } from "@/components/InfoHoverCard";
 import { useSavedState } from "@/composables/useSavedState";
 import { CALENDAR_PROJECTS_KEY } from "@/pages/dashboard/constants";
 import { useDashboardCall } from "@/pages/dashboard/dashboardCall";
@@ -16,6 +17,8 @@ import {
   projectOptions,
   type CalendarItem,
 } from "./calendarEvents";
+
+defineProps<{ help: FieldHelp }>();
 
 const rangeStart = ref(getWeekStart(new Date()));
 const today = new Date();
@@ -71,6 +74,9 @@ const rangeLabel = computed(() =>
     :today="today"
     :range-label="rangeLabel"
   >
+    <template #title-suffix>
+      <InfoHoverCard :help="help" />
+    </template>
     <template #filter>
       <WidgetFilter
         v-model="selectedProjects"

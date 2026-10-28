@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { Button, Dropdown } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import TruncatedText from "@/pages/project-details/TruncatedText.vue";
 import { cn } from "@/utils/cn";
 import { formatPercentage } from "@/utils/format";
+import { TRACKING_HELP } from "./help";
 import type { WidgetLayout } from "./types";
 import { useTracking } from "./useTracking";
 
@@ -34,6 +36,9 @@ const rows = computed(() => {
             key: "project-value",
             label: "Total project value",
             value: amount(projectValue),
+            help: projected
+              ? TRACKING_HELP.totalProjectValue
+              : TRACKING_HELP.currentProjectValue,
           },
         ]
       : []),
@@ -41,11 +46,17 @@ const rows = computed(() => {
       key: "profit",
       label: projected ? "Projected profit" : "Current profit",
       value: amount(profit),
+      help: projected
+        ? TRACKING_HELP.projectedProfit
+        : TRACKING_HELP.currentProfit,
     },
     {
       key: "margin",
       label: projected ? "Projected profit margin" : "Current profit margin",
       value: margin == null ? "N/A" : formatPercentage(margin),
+      help: projected
+        ? TRACKING_HELP.projectedMargin
+        : TRACKING_HELP.currentMargin,
     },
   ];
 });
@@ -123,9 +134,12 @@ const isRow = computed(() => props.layout === "row");
             )
           "
         >
-          <span class="truncate pr-6 text-base leading-tighter text-ink-gray-5">
-            {{ row.label }}
-          </span>
+          <div class="flex min-w-0 items-center gap-1.5 pr-6">
+            <span class="truncate text-base leading-tighter text-ink-gray-5">
+              {{ row.label }}
+            </span>
+            <InfoHoverCard :help="row.help" />
+          </div>
           <TruncatedText
             class="text-2xl-medium leading-tighter text-ink-gray-8"
             :text="row.value"

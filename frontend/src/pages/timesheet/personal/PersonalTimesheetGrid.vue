@@ -8,6 +8,7 @@ import { useExpandedWeeks } from "@/pages/timesheet/useExpandedWeeks";
 import PersonalTaskLog from "./PersonalTaskLog.vue";
 import PersonalWeek from "./PersonalWeek.vue";
 import { usePersonalTimesheet } from "./usePersonalTimesheet";
+import { PERSONAL_TIMESHEET_HELP } from "./help";
 
 defineOptions({ inheritAttrs: false });
 
@@ -50,6 +51,8 @@ const taskLogOpen = computed({
             class="pl-2"
             :levels="['Week', 'Project', 'Task']"
             :days="days"
+            :help="PERSONAL_TIMESHEET_HELP.dayCells"
+            :total-help="PERSONAL_TIMESHEET_HELP.total"
           />
         </div>
         <PersonalWeek

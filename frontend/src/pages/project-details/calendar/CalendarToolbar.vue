@@ -8,8 +8,10 @@ import {
   TabButtons,
   TextInput,
 } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { dateKey } from "./calendar";
 import { CALENDAR_VIEWS, TYPE_FILTERS } from "./constants";
+import { CALENDAR_HELP } from "./help";
 import type { CalendarView, TypeFilter } from "./types";
 import { useTimeline } from "./useTimeline";
 
@@ -109,16 +111,18 @@ function pick(value: string) {
           :options="CALENDAR_VIEWS"
           aria-label="View"
         />
-        <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- aria-label reaches frappe-ui's trigger -->
-        <Select
-          v-if="!isList"
-          v-model="filterModel"
-          class="w-min"
-          size="sm"
-          variant="subtle"
-          :options="TYPE_FILTERS"
-          aria-label="Show"
-        />
+        <template v-if="!isList">
+          <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- aria-label reaches frappe-ui's trigger -->
+          <Select
+            v-model="filterModel"
+            class="w-min"
+            size="sm"
+            variant="subtle"
+            :options="TYPE_FILTERS"
+            aria-label="Show"
+          />
+          <InfoHoverCard :help="CALENDAR_HELP.entries" />
+        </template>
       </div>
     </div>
   </div>

@@ -89,9 +89,9 @@ describe("toMembers and splitMembers", () => {
 
 describe("removeBlockedReason", () => {
   it.each([
-    ["pm", "Project Manager cannot be removed here"],
-    ["both", "Project Manager & Lead Engineer cannot be removed here"],
-    ["bill", "Billing team members cannot be removed here"],
+    ["pm", "Pick someone else as Project Manager first"],
+    ["both", "Pick someone else as Project Manager and Lead Engineer first"],
+    ["bill", "Delete their rate in Project rates on the Tracking tab first"],
     ["dev", undefined],
   ])("for %s", (userId, reason) => {
     expect(removeBlockedReason(sidebar(), userId)).toBe(reason);

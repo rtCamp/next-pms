@@ -16,6 +16,8 @@ const rangeStart = defineModel<Date>("rangeStart", { required: true });
 defineSlots<{
   /** Replaces the whole built-in header (range picker, navigation, filter). */
   header?: () => unknown;
+  /** Beside the range picker, e.g. an info card. */
+  "title-suffix"?: () => unknown;
   /** Extra controls after the navigation buttons, e.g. a project filter. */
   filter?: () => unknown;
 }>();
@@ -76,32 +78,37 @@ const columnStyle = computed(() => ({
   <div class="flex flex-col gap-3">
     <div class="flex flex-wrap items-center justify-between gap-2 px-4 pt-4">
       <slot name="header">
-        <DatePicker
-          :model-value="pickerValue"
-          :clearable="false"
-          side="bottom"
-          align="start"
-          @update:model-value="pick"
-        >
-          <template #trigger="{ open, setOpen }">
-            <Button
-              variant="ghost"
-              aria-haspopup="dialog"
-              :aria-expanded="open"
-              @click="setOpen(!open)"
-            >
-              <span class="whitespace-nowrap text-lg-semibold text-ink-gray-8">
-                {{ label }}
-              </span>
-              <template #suffix>
+        <div class="flex min-w-0 items-center gap-1.5">
+          <DatePicker
+            :model-value="pickerValue"
+            :clearable="false"
+            side="bottom"
+            align="start"
+            @update:model-value="pick"
+          >
+            <template #trigger="{ open, setOpen }">
+              <Button
+                variant="ghost"
+                aria-haspopup="dialog"
+                :aria-expanded="open"
+                @click="setOpen(!open)"
+              >
                 <span
-                  class="lucide-chevron-down size-4 text-ink-gray-5"
-                  aria-hidden="true"
-                />
-              </template>
-            </Button>
-          </template>
-        </DatePicker>
+                  class="whitespace-nowrap text-lg-semibold text-ink-gray-8"
+                >
+                  {{ label }}
+                </span>
+                <template #suffix>
+                  <span
+                    class="lucide-chevron-down size-4 text-ink-gray-5"
+                    aria-hidden="true"
+                  />
+                </template>
+              </Button>
+            </template>
+          </DatePicker>
+          <slot name="title-suffix" />
+        </div>
         <div class="flex flex-wrap items-center gap-2">
           <div class="flex items-center gap-1">
             <Button

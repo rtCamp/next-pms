@@ -15,10 +15,12 @@ import {
   useCall,
   useDoctype,
 } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { useEmployeeLookup } from "@/composables/useEmployeeLookup";
 import { useSession } from "@/session";
 import { errorMessage } from "@/utils/errors";
 import { LEAVE_DURATIONS } from "./constants";
+import { PERSONAL_TIMESHEET_HELP } from "@/pages/timesheet/personal/help";
 import type { LeaveDuration } from "./types";
 
 const props = withDefaults(
@@ -288,21 +290,26 @@ async function submit() {
           aria-label="Leave duration"
         />
       </div>
-      <DatePicker
-        v-if="showHalfDayDate"
-        v-model="form.halfDayDate"
-        label="Half Day Date"
-        required
-        :error="errors.halfDayDate"
-        variant="outline"
-        format="MMM D, YYYY"
-        placeholder="Select half day date"
-        :typeable="false"
-      >
-        <template #suffix>
-          <span class="lucide-calendar size-4 shrink-0" aria-hidden="true" />
-        </template>
-      </DatePicker>
+      <div v-if="showHalfDayDate" class="space-y-1.5">
+        <div class="flex min-w-0 items-center gap-1.5">
+          <FormLabel id="half-day-date" label="Half Day Date" required />
+          <InfoHoverCard :help="PERSONAL_TIMESHEET_HELP.halfDayDate" />
+        </div>
+        <DatePicker
+          id="half-day-date"
+          v-model="form.halfDayDate"
+          required
+          :error="errors.halfDayDate"
+          variant="outline"
+          format="MMM D, YYYY"
+          placeholder="Select half day date"
+          :typeable="false"
+        >
+          <template #suffix>
+            <span class="lucide-calendar size-4 shrink-0" aria-hidden="true" />
+          </template>
+        </DatePicker>
+      </div>
       <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- frappe-ui's Select renders a <label> from `label` -->
       <Select
         v-model="form.leaveType"

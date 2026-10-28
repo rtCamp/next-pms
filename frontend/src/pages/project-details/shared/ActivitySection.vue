@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Spinner } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { useSession } from "@/session";
 import { formatRelativeTimeShort } from "@/utils/text";
 import { activityKey, activityName, tableChangeText } from "./activity";
+import { ACTIVITY_HELP } from "./help";
 import { useActivity } from "./useActivity";
 
 const props = defineProps<{
@@ -25,7 +27,10 @@ function who(userId: string) {
 
 <template>
   <section>
-    <h3 class="mb-3 text-lg-medium text-ink-gray-7">Activity</h3>
+    <div class="mb-3 flex min-w-0 items-center gap-1.5">
+      <h3 class="text-lg-medium text-ink-gray-7">Activity</h3>
+      <InfoHoverCard :help="ACTIVITY_HELP" />
+    </div>
     <Spinner v-if="loading" class="size-4" />
     <p v-else-if="error" class="text-sm text-ink-red-8">
       Could not load activity.

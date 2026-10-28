@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { expect, within } from "storybook/test";
 import HeaderRow from "./HeaderRow.vue";
-import visual from "./HeaderRow.stories";
+import visual, { WithHelp } from "./HeaderRow.stories";
 
 const meta = {
   ...visual,
@@ -30,5 +30,18 @@ export const LevelsAreText: Story = {
     }
     await expect(canvas.queryByRole("button")).toBeNull();
     await expect(canvas.queryByRole("navigation")).toBeNull();
+  },
+};
+
+export const HelpCardsBesideLevelsAndTotal: Story = {
+  args: WithHelp.args,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(
+      canvas.getByRole("button", { name: "About Day cells" }),
+    ).toBeVisible();
+    await expect(
+      canvas.getByRole("button", { name: "About Total" }),
+    ).toBeVisible();
   },
 };

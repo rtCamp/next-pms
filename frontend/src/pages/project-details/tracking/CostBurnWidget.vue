@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { ProgressBar } from "@/components/ProgressBar";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
+import { TRACKING_HELP } from "./help";
 import LegendItem from "./LegendItem.vue";
 import { useTracking } from "./useTracking";
 import WidgetCard from "./WidgetCard.vue";
@@ -19,6 +20,7 @@ const total = computed(() => tracking.value?.expected_total_cost ?? 0);
 <template>
   <WidgetCard
     title="Cost burn (to date)"
+    :help="TRACKING_HELP.costBurn"
     :link="{
       label: 'All Timesheets',
       href: `/desk/timesheet?parent_project=${projectId}`,

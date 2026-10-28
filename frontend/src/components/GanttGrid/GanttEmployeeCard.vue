@@ -10,6 +10,10 @@ const props = defineProps<{
   employee: Omit<GanttEmployee, "projects">;
   /** Shows the link to the employee's record. */
   canOpen: boolean;
+  /** Tooltip on the hourly rate line. */
+  rateTooltip?: string;
+  /** Tooltip on the working hours line. */
+  capacityTooltip?: string;
 }>();
 
 const href = computed(() =>
@@ -58,10 +62,18 @@ const hasDetails = computed(() =>
         <GanttCardDetail v-if="employee.department" icon="lucide-users">
           {{ employee.department }}
         </GanttCardDetail>
-        <GanttCardDetail v-if="employee.rate" icon="lucide-banknote">
+        <GanttCardDetail
+          v-if="employee.rate"
+          icon="lucide-banknote"
+          :tooltip="rateTooltip"
+        >
           {{ employee.rate }}
         </GanttCardDetail>
-        <GanttCardDetail v-if="employee.capacity" icon="lucide-clock">
+        <GanttCardDetail
+          v-if="employee.capacity"
+          icon="lucide-clock"
+          :tooltip="capacityTooltip"
+        >
           {{ employee.capacity }}
         </GanttCardDetail>
         <GanttCardDetail v-if="employee.manager" icon="lucide-headset">

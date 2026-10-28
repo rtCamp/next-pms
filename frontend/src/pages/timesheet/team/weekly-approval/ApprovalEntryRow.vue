@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue";
-import { Alert, Button, ErrorMessage } from "frappe-ui";
+import { Alert, Button, ErrorMessage, Tooltip } from "frappe-ui";
 import { Editor, EditorContent } from "frappe-ui/editor";
 import { ApprovalStatus } from "@/components/ApprovalStatus";
 import { DurationInput } from "@/components/DurationInput";
@@ -8,6 +8,10 @@ import { RichText } from "@/components/RichText";
 import { TaskStatus } from "@/components/TaskStatus";
 import { TIME_ENTRY_COMMENT_KIT } from "@/components/Timesheet";
 import { useEditorAttributes } from "@/composables/useEditorAttributes";
+import {
+  DECIDED_ENTRY_TOOLTIP,
+  EDIT_ENTRY_TOOLTIP,
+} from "@/pages/timesheet/team/help";
 import { floatToTime } from "@/utils/format";
 import { stripTags } from "@/utils/text";
 import type { ApprovalEntry } from "./types";
@@ -146,18 +150,25 @@ watch(description, () => (descriptionError.value = ""));
           aria-label="Non-billable"
         />
       </span>
-      <Button
-        class="opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
-        :class="locked && 'invisible'"
-        variant="ghost"
-        aria-label="Edit time entry"
-        :disabled="locked"
-        @click="edit"
-      >
-        <template #icon>
-          <span class="lucide-pencil size-4 text-ink-gray-7" />
-        </template>
-      </Button>
+      <Tooltip :text="locked ? DECIDED_ENTRY_TOOLTIP : EDIT_ENTRY_TOOLTIP">
+        <div
+          class="size-fit opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
+        >
+          <Button
+            variant="ghost"
+            aria-label="Edit time entry"
+            :disabled="locked"
+            @click="edit"
+          >
+            <template #icon>
+              <span
+                class="lucide-pencil size-4"
+                :class="!locked && 'text-ink-gray-7'"
+              />
+            </template>
+          </Button>
+        </div>
+      </Tooltip>
     </template>
   </div>
 </template>

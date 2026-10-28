@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRouter } from "vue-router";
-import { Avatar } from "frappe-ui";
+import { Avatar, Tooltip } from "frappe-ui";
 import { formatProjectDate } from "@/utils/date";
 import RagDot from "../cells/RagDot.vue";
 import { CLICK_DRAG_THRESHOLD_PX } from "../constants";
-import type { KanbanProjectItem } from "../types";
+import { KANBAN_CARD_TOOLTIP, PROJECT_HEALTH_TOOLTIP } from "../help";
+import type { KanbanProjectItem, RagStatus } from "../types";
 
 const props = defineProps<{ project: KanbanProjectItem }>();
 
@@ -18,9 +19,24 @@ const dateRange = computed(() =>
     .join(" - "),
 );
 
+const healthTooltip = computed(
+  () =>
+    PROJECT_HEALTH_TOOLTIP[
+      props.project.rag_status?.toLowerCase() as RagStatus
+    ] as string | undefined,
+);
+
 const people = computed(() => [
-  { icon: "lucide-headset", person: props.project.project_manager },
-  { icon: "lucide-code", person: props.project.engineering_manager },
+  {
+    icon: "lucide-headset",
+    tooltip: KANBAN_CARD_TOOLTIP.projectManager,
+    person: props.project.project_manager,
+  },
+  {
+    icon: "lucide-code",
+    tooltip: KANBAN_CARD_TOOLTIP.leadEngineer,
+    person: props.project.engineering_manager,
+  },
 ]);
 
 function open() {
@@ -55,7 +71,9 @@ function onPointerUp(event: PointerEvent) {
     <div
       class="flex w-full items-center gap-2 rounded-t-8 border-b border-outline-gray-1 px-3.5 py-3"
     >
-      <RagDot :status="project.rag_status" />
+      <Tooltip v-if="healthTooltip" :text="healthTooltip">
+        <RagDot :status="project.rag_status" />
+      </Tooltip>
       <span
         class="min-w-0 flex-1 truncate text-base-medium leading-tighter text-ink-gray-7"
         >{{ project.project_name }}</span
@@ -64,31 +82,33 @@ function onPointerUp(event: PointerEvent) {
     <div
       class="flex w-full flex-col gap-3.5 px-4 text-base leading-tighter text-ink-gray-6"
     >
-      <div class="flex w-full items-center gap-2">
-        <span class="lucide-calendar size-4 shrink-0" aria-hidden="true" />
-        <span class="truncate">{{ dateRange || "N/A" }}</span>
-      </div>
-      <div
-        v-for="row in people"
-        :key="row.icon"
-        class="flex w-full items-center gap-2"
-      >
-        <span class="size-4 shrink-0" :class="row.icon" aria-hidden="true" />
-        <template v-if="row.person">
-          <Avatar
-            size="xs"
-            shape="circle"
-            :image="row.person.image ?? undefined"
-            :label="row.person.full_name"
-          />
-          <span class="truncate">{{ row.person.full_name }}</span>
-        </template>
-        <span v-else class="truncate">N/A</span>
-      </div>
-      <div class="flex w-full items-center gap-2">
-        <span class="lucide-layout-grid size-4 shrink-0" aria-hidden="true" />
-        <span class="truncate">{{ project.billing_type ?? "N/A" }}</span>
-      </div>
+      <Tooltip :text="KANBAN_CARD_TOOLTIP.dates">
+        <div class="flex w-full items-center gap-2">
+          <span class="lucide-calendar size-4 shrink-0" aria-hidden="true" />
+          <span class="truncate">{{ dateRange || "N/A" }}</span>
+        </div>
+      </Tooltip>
+      <Tooltip v-for="row in people" :key="row.icon" :text="row.tooltip">
+        <div class="flex w-full items-center gap-2">
+          <span class="size-4 shrink-0" :class="row.icon" aria-hidden="true" />
+          <template v-if="row.person">
+            <Avatar
+              size="xs"
+              shape="circle"
+              :image="row.person.image ?? undefined"
+              :label="row.person.full_name"
+            />
+            <span class="truncate">{{ row.person.full_name }}</span>
+          </template>
+          <span v-else class="truncate">N/A</span>
+        </div>
+      </Tooltip>
+      <Tooltip :text="KANBAN_CARD_TOOLTIP.billingType">
+        <div class="flex w-full items-center gap-2">
+          <span class="lucide-layout-grid size-4 shrink-0" aria-hidden="true" />
+          <span class="truncate">{{ project.billing_type ?? "N/A" }}</span>
+        </div>
+      </Tooltip>
     </div>
   </div>
 </template>

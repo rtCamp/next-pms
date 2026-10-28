@@ -3,7 +3,11 @@ import { Button } from "frappe-ui";
 import { useArgs } from "storybook/preview-api";
 import { expect, fn, screen, userEvent, waitFor, within } from "storybook/test";
 import NotificationTray from "./NotificationTray.vue";
-import { NOTIFICATIONS } from "./NotificationTray.fixtures";
+import {
+  ITEM_TOOLTIP,
+  NOTIFICATIONS,
+  TRAY_HELP,
+} from "./NotificationTray.fixtures";
 
 const meta = {
   title: "Components/NotificationTray/Interactions",
@@ -158,6 +162,28 @@ export const ClickNotification: Story = {
     );
     await expect(args.onNotificationClick).toHaveBeenLastCalledWith(
       NOTIFICATIONS[2],
+    );
+  },
+};
+
+export const ShowsHelp: Story = {
+  args: { help: TRAY_HELP, itemTooltip: ITEM_TOOLTIP },
+  play: async () => {
+    const dialog = await screen.findByRole("dialog", {
+      name: "Notifications",
+    });
+    await userEvent.hover(
+      within(dialog).getByRole("button", { name: "About Notifications" }),
+    );
+    await waitFor(() =>
+      expect(screen.getByText("Alerts you haven't read yet.")).toBeVisible(),
+    );
+
+    await userEvent.hover(
+      within(dialog).getByRole("link", { name: /New risk/ }),
+    );
+    await waitFor(() =>
+      expect(screen.getByRole("tooltip", { name: ITEM_TOOLTIP })).toBeVisible(),
     );
   },
 };

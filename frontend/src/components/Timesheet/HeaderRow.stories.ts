@@ -25,3 +25,16 @@ export const Personal: Story = {};
 export const Team: Story = {
   args: { levels: ["Week", "Member", "Project", "Task"] },
 };
+
+export const WithHelp: Story = {
+  args: {
+    help: {
+      title: "Day cells",
+      summary: "Hours logged on each day.",
+    },
+    totalHelp: {
+      title: "Total",
+      summary: "Hours logged in the week plus time-off.",
+    },
+  },
+};

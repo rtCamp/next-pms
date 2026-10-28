@@ -7,6 +7,7 @@ import {
   watch,
 } from "vue";
 import { Skeleton } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { useInfiniteScroll } from "@/composables/useInfiniteScroll";
 import {
   HEADER_HEIGHT,
@@ -137,7 +138,10 @@ function startColumnResize(event: PointerEvent) {
               class="sticky left-0 z-10 border border-l-0 border-outline-gray-1 bg-surface-base p-3 pl-4.5 text-start text-lg-medium text-ink-gray-7"
               :style="{ ...headerCellStyle, height: `${HEADER_HEIGHT}px` }"
             >
-              {{ rowHeaderLabel }}
+              <div class="flex min-w-0 items-center gap-1.5">
+                {{ rowHeaderLabel }}
+                <InfoHoverCard v-if="rowHeaderHelp" :help="rowHeaderHelp" />
+              </div>
             </th>
             <GanttWeekHeader
               v-for="(week, index) in timeline.weeks"

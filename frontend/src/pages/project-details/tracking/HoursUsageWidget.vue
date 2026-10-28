@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { ProgressBar } from "@/components/ProgressBar";
 import { formatHours } from "@/utils/format";
+import { TRACKING_HELP } from "./help";
 import LegendItem from "./LegendItem.vue";
 import WidgetCard from "./WidgetCard.vue";
 import { useTracking } from "./useTracking";
@@ -17,7 +18,7 @@ const remaining = computed(() => tracking.value?.hours_remaining ?? 0);
 </script>
 
 <template>
-  <WidgetCard title="Hours usage">
+  <WidgetCard title="Hours usage" :help="TRACKING_HELP.hoursUsage">
     <ProgressBar
       label="Hours usage"
       :value="billable"

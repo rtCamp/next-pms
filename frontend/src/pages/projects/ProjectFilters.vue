@@ -3,12 +3,12 @@ import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { Combobox, MultiSelect, Select, TextInput } from "frappe-ui";
 import { ColumnSelector } from "@/components/ColumnSelector";
 import { Filter, FilterLinkValue, type FilterField } from "@/components/Filter";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { SortSelector } from "@/components/SortSelector";
 import { useProjectPhases } from "@/composables/useProjectPhases";
 import { useSession } from "@/session";
 import {
   BILLING_TYPE_OPTIONS,
-  CURRENCY_REQUIRED_TOOLTIP,
   MAX_PINNED_COLUMNS,
   MONETARY_SORT_FIELDS,
   PIN_LIMIT_TOOLTIP,
@@ -16,6 +16,7 @@ import {
   PROJECT_STATUS_OPTIONS,
   RAG_OPTIONS,
 } from "./constants";
+import { CURRENCY_HELP, CURRENCY_SORT_TOOLTIP } from "./help";
 import type { ProjectStatus, RagStatus } from "./types";
 import {
   AVAILABLE_PROJECT_COLUMNS,
@@ -170,7 +171,7 @@ const sortFields = computed(() =>
     return {
       ...field,
       disabled,
-      tooltipText: disabled ? CURRENCY_REQUIRED_TOOLTIP : undefined,
+      tooltipText: disabled ? CURRENCY_SORT_TOOLTIP : undefined,
     };
   }),
 );
@@ -208,25 +209,28 @@ const externalFilterCount = computed(
         placeholder="RAG Status"
         aria-label="RAG Status"
       />
-      <Combobox
-        v-model="currency"
-        class="w-28 shrink-0"
-        :options="currencyOptions"
-        placeholder="Currency"
-        aria-label="Currency"
-      >
-        <template v-if="currency" #suffix="{ clear }">
-          <button
-            type="button"
-            class="inline-flex shrink-0 items-center justify-center rounded-1 text-ink-gray-6 outline-none hover:text-ink-gray-8 focus-visible:ring focus-visible:ring-outline-gray-3"
-            aria-label="Clear currency"
-            @pointerdown.stop
-            @click.stop="clear()"
-          >
-            <span class="lucide-x size-4" aria-hidden="true" />
-          </button>
-        </template>
-      </Combobox>
+      <div class="flex shrink-0 items-center gap-1.5">
+        <Combobox
+          v-model="currency"
+          class="w-28"
+          :options="currencyOptions"
+          placeholder="Currency"
+          aria-label="Currency"
+        >
+          <template v-if="currency" #suffix="{ clear }">
+            <button
+              type="button"
+              class="inline-flex shrink-0 items-center justify-center rounded-1 text-ink-gray-6 outline-none hover:text-ink-gray-8 focus-visible:ring focus-visible:ring-outline-gray-3"
+              aria-label="Clear currency"
+              @pointerdown.stop
+              @click.stop="clear()"
+            >
+              <span class="lucide-x size-4" aria-hidden="true" />
+            </button>
+          </template>
+        </Combobox>
+        <InfoHoverCard :help="CURRENCY_HELP" />
+      </div>
       <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- aria-label reaches frappe-ui's trigger -->
       <Select
         v-model="phase"

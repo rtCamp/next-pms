@@ -1,11 +1,21 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Avatar, Badge, Button, Skeleton, toast, useCall } from "frappe-ui";
+import {
+  Avatar,
+  Badge,
+  Button,
+  Skeleton,
+  Tooltip,
+  toast,
+  useCall,
+} from "frappe-ui";
 import { useDashboardCall } from "@/pages/dashboard/dashboardCall";
+import { LEAVE_APPROVAL_TOOLTIP } from "@/pages/dashboard/help";
 import { errorMessage } from "@/utils/errors";
 import ApproveLeaveDialog from "./ApproveLeaveDialog.vue";
 import {
   awaitsApproval,
+  canApprove,
   leaveWindow,
   openLeavesFirst,
   type EmployeeOnLeave,
@@ -125,22 +135,30 @@ function reject(leaveId: string, reason: string) {
             size="lg"
             :label="leave.status"
           />
-          <div v-if="awaitsApproval(leave)" class="flex gap-1.5">
-            <Button
-              variant="solid"
-              theme="green"
-              icon="lucide-check"
-              :label="`Approve leave of ${leave.employee_name}`"
-              @click="approving = leave"
-            />
-            <Button
-              variant="solid"
-              theme="red"
-              icon="lucide-x"
-              :label="`Reject leave of ${leave.employee_name}`"
-              @click="rejecting = leave"
-            />
-          </div>
+          <Tooltip
+            v-if="leave.status === 'Open'"
+            :text="LEAVE_APPROVAL_TOOLTIP"
+            :disabled="canApprove(leave)"
+          >
+            <div class="flex gap-1.5">
+              <Button
+                variant="solid"
+                theme="green"
+                icon="lucide-check"
+                :label="`Approve leave of ${leave.employee_name}`"
+                :disabled="!canApprove(leave)"
+                @click="approving = leave"
+              />
+              <Button
+                variant="solid"
+                theme="red"
+                icon="lucide-x"
+                :label="`Reject leave of ${leave.employee_name}`"
+                :disabled="!canApprove(leave)"
+                @click="rejecting = leave"
+              />
+            </div>
+          </Tooltip>
         </div>
       </li>
     </ul>

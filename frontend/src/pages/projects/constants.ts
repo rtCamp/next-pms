@@ -17,9 +17,6 @@ export const DEFAULT_PROJECT_SORT: SortState = {
 /** Sorts that need a currency, since the server converts the amounts into it. */
 export const MONETARY_SORT_FIELDS = ["burn_rate_per_week", "total_budget"];
 
-export const CURRENCY_REQUIRED_TOOLTIP =
-  "Select a currency to enable this sort";
-
 export const RAG_STATUSES: RagStatus[] = ["red", "amber", "green"];
 
 export const RAG_OPTIONS = [

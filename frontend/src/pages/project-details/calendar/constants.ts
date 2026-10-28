@@ -1,3 +1,4 @@
+import type { CALENDAR_HELP } from "./help";
 import type {
   CalendarView,
   TableTab,
@@ -89,6 +90,7 @@ export interface TableColumn {
     | "watchers"
     | "actions";
   label: string;
+  help?: keyof typeof CALENDAR_HELP;
 }
 
 export const MILESTONE_COLUMNS: TableColumn[] = [
@@ -96,10 +98,14 @@ export const MILESTONE_COLUMNS: TableColumn[] = [
   { key: "category", label: "Type" },
   { key: "startDate", label: "Start date" },
   { key: "plannedEndDate", label: "Planned end" },
-  { key: "actualEndDate", label: "Actual end" },
+  {
+    key: "actualEndDate",
+    label: "Actual end",
+    help: "milestoneActualEnd",
+  },
   { key: "todos", label: "ToDos" },
   { key: "owner", label: "Owners" },
-  { key: "watchers", label: "Watchers" },
+  { key: "watchers", label: "Watchers", help: "watchers" },
   { key: "actions", label: "" },
 ];
 
@@ -109,7 +115,11 @@ export const TOUCHPOINT_COLUMNS: TableColumn[] = MILESTONE_COLUMNS.filter(
   column.key === "plannedEndDate"
     ? { ...column, label: "Planned date" }
     : column.key === "actualEndDate"
-      ? { ...column, label: "Actual date" }
+      ? {
+          ...column,
+          label: "Actual date",
+          help: "touchpointActualDate",
+        }
       : column,
 );
 

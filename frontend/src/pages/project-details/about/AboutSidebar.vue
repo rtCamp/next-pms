@@ -2,6 +2,8 @@
 import { ref } from "vue";
 import { Button } from "frappe-ui";
 import { AccordionRoot } from "reka-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
+import { PROJECT_ABOUT_HELP } from "@/pages/project-details/help";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
 import { errorMessage } from "@/utils/errors";
 import AddCustomersDialog from "./AddCustomersDialog.vue";
@@ -83,6 +85,12 @@ const addCustomersOpen = ref(false);
             tooltip="Open in Desk"
             :href="`/desk/project/${encodeURIComponent(projectId)}`"
           />
+        </template>
+        <template v-else-if="section.value === 'budget'" #actions>
+          <InfoHoverCard :help="PROJECT_ABOUT_HELP.budget" />
+        </template>
+        <template v-else-if="section.value === 'progress'" #actions>
+          <InfoHoverCard :help="PROJECT_ABOUT_HELP.progress" />
         </template>
         <template v-else-if="section.value === 'customers'" #actions>
           <Button

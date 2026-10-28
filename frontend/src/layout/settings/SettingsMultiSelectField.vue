@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { MultiSelect } from "frappe-ui";
+import { computed, ref, useId } from "vue";
+import { FormLabel, MultiSelect } from "frappe-ui";
+import { InfoHoverCard, type FieldHelp } from "@/components/InfoHoverCard";
 import { useDoctypeLinkLookup } from "@/composables/useDoctypeLinkLookup";
 
 const props = defineProps<{
   label: string;
   /** The linked doctype, e.g. `"Role"`. */
   doctype: string;
+  help?: FieldHelp;
 }>();
+
+const id = useId();
 
 const model = defineModel<string[]>({ required: true });
 
@@ -35,13 +39,20 @@ const value = computed({
 </script>
 
 <template>
-  <MultiSelect
-    v-model="value"
-    v-model:query="query"
-    :label="label"
-    :options="options"
-    :loading="lookup.loading"
-    :filterable="false"
-    :placeholder="`Select ${label}`"
-  />
+  <div class="space-y-1.5">
+    <div class="flex min-w-0 items-center gap-1.5">
+      <FormLabel :id="id" :label="label" />
+      <InfoHoverCard v-if="help" :help="help" />
+    </div>
+    <MultiSelect
+      :id="id"
+      v-model="value"
+      v-model:query="query"
+      class="w-full"
+      :options="options"
+      :loading="lookup.loading"
+      :filterable="false"
+      :placeholder="`Select ${label}`"
+    />
+  </div>
 </template>

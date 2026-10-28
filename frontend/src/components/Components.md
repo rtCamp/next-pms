@@ -34,7 +34,8 @@ across components live in `src/utils/`.
 | `DurationInput/` | `DurationInput` |
 | `ErrorFallback/` | `ErrorFallback` |
 | `Filter/` | `Filter`, `FilterLinkValue` (the `#link-value` input: searches the field's doctype or `customMethod`), `DEFAULT_OPERATORS` |
-| `GanttGrid/` | `GanttGrid` (the Team and Project allocations grid: weeks of day columns, employee or project rows with their allocation bars, hover cards, resize and drag-to-create; renders and emits, fetches nothing; needs `provideUnsavedChanges()` above it) and its row and event types; its day-column sizes and `buildTimeline` / `columnIndex`, also used by the Calendar tab's Gantt |
+| `GanttGrid/` | `GanttGrid` (the Team and Project allocations grid: weeks of day columns, employee or project rows with their allocation bars, hover cards, resize and drag-to-create; renders and emits, fetches nothing; needs `provideUnsavedChanges()` above it) and its row and event types; `GanttBar` and `GanttTimeoffBar` (the bars alone, for help legends); its day-column sizes and `buildTimeline` / `columnIndex`, also used by the Calendar tab's Gantt |
+| `InfoHoverCard/` | `InfoHoverCard` (the info icon beside a label: a card explaining it on hover or focus, or a plain tooltip), `FieldHelp` |
 | `LoadingOverlay/` | `LoadingOverlay` |
 | `MonthPicker/` | `MonthPicker` |
 | `NotificationTray/` | `NotificationTray`, `notificationIcon` |

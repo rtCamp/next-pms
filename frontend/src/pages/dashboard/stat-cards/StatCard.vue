@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { RouterLink } from "vue-router";
 import { Skeleton } from "frappe-ui";
+import { InfoHoverCard, type FieldHelp } from "@/components/InfoHoverCard";
 import { formatNumber } from "@/utils/format";
 import { cn } from "@/utils/cn";
 
@@ -14,6 +15,7 @@ const props = defineProps<{
   /** Makes the card a link. */
   to?: string;
   loading?: boolean;
+  help?: FieldHelp;
 }>();
 
 const cardClass =
@@ -27,18 +29,27 @@ const display = computed(() => formatNumber(props.value));
     <Skeleton class="h-5 w-28" />
     <Skeleton class="h-8 w-16" />
   </div>
-  <component
-    :is="to ? RouterLink : 'div'"
+  <div
     v-else
-    :to="to"
-    :class="cn(cardClass, to && 'transition-colors hover:bg-surface-gray-1')"
+    :class="
+      cn(cardClass, to && 'relative transition-colors hover:bg-surface-gray-1')
+    "
   >
-    <span class="truncate text-base text-ink-gray-5">{{ label }}</span>
+    <RouterLink
+      v-if="to"
+      :to="to"
+      :aria-label="label"
+      class="absolute inset-0 rounded-6"
+    />
+    <span class="flex min-w-0 items-center gap-1.5">
+      <span class="truncate text-base text-ink-gray-5">{{ label }}</span>
+      <InfoHoverCard v-if="help" :help="help" class="relative z-10" />
+    </span>
     <div class="flex items-baseline gap-1">
       <span class="text-3xl-medium text-ink-gray-8">{{ display }}</span>
       <span v-if="subLabel" class="truncate text-base text-ink-gray-5">
         {{ subLabel }}
       </span>
     </div>
-  </component>
+  </div>
 </template>

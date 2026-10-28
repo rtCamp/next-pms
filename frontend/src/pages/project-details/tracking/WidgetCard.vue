@@ -1,5 +1,11 @@
 <script setup lang="ts">
-defineProps<{ title: string; link?: { label: string; href: string } }>();
+import { InfoHoverCard, type FieldHelp } from "@/components/InfoHoverCard";
+
+defineProps<{
+  title: string;
+  link?: { label: string; href: string };
+  help?: FieldHelp;
+}>();
 </script>
 
 <template>
@@ -8,9 +14,12 @@ defineProps<{ title: string; link?: { label: string; href: string } }>();
     class="flex min-w-0 flex-1 flex-col gap-4 rounded-7 border border-outline-gray-1 bg-surface-elevation-1 p-3"
   >
     <div class="flex items-center justify-between gap-2">
-      <h3 class="text-base-medium leading-tighter text-ink-gray-8">
-        {{ title }}
-      </h3>
+      <div class="flex min-w-0 items-center gap-1.5">
+        <h3 class="text-base-medium leading-tighter text-ink-gray-8">
+          {{ title }}
+        </h3>
+        <InfoHoverCard v-if="help" :help="help" />
+      </div>
       <a
         v-if="link"
         :href="link.href"

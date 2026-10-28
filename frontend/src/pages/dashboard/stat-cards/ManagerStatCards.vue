@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useDashboardCall } from "@/pages/dashboard/dashboardCall";
+import { MANAGER_STAT_HELP } from "@/pages/dashboard/help";
 import { AT_RISK_PROJECTS_URL } from "./links";
 import StatCard from "./StatCard.vue";
 import type {
@@ -26,12 +27,14 @@ const outstandingTimesheets = useDashboardCall<OutstandingTimesheets>(
   <div class="flex w-full gap-3">
     <StatCard
       label="At risk projects"
+      :help="MANAGER_STAT_HELP.atRiskProjects"
       :value="atRiskProjects.data ?? undefined"
       :loading="atRiskProjects.loading && atRiskProjects.data == null"
       :to="AT_RISK_PROJECTS_URL"
     />
     <StatCard
       label="Members without allocation"
+      :help="MANAGER_STAT_HELP.membersWithoutAllocation"
       sub-label="this week"
       :value="membersWithoutAllocation.data?.count"
       :loading="
@@ -41,12 +44,14 @@ const outstandingTimesheets = useDashboardCall<OutstandingTimesheets>(
     />
     <StatCard
       label="Timesheets to review"
+      :help="MANAGER_STAT_HELP.timesheetsToReview"
       sub-label="this week"
       :value="timesheetsToReview.data?.length"
       :loading="timesheetsToReview.loading && timesheetsToReview.data == null"
     />
     <StatCard
       label="Outstanding timesheets"
+      :help="MANAGER_STAT_HELP.outstandingTimesheets"
       :value="outstandingTimesheets.data?.count"
       :loading="
         outstandingTimesheets.loading && outstandingTimesheets.data == null

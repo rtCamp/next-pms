@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { Badge, Button, Tooltip } from "frappe-ui";
+import { EVERYONE_BADGE_TOOLTIP } from "@/pages/project-details/help";
 import AddMembersDialog from "./AddMembersDialog.vue";
 import ExpandableList from "./ExpandableList.vue";
 import ManagerField from "./ManagerField.vue";
@@ -44,7 +45,7 @@ const addOpen = ref(false);
         </h4>
         <Tooltip
           v-if="sidebar?.is_shared_with_everyone"
-          text="Shared with everyone in the organization"
+          :text="EVERYONE_BADGE_TOOLTIP"
         >
           <Badge variant="subtle" size="sm" label="Everyone" tabindex="0">
             <template #prefix>

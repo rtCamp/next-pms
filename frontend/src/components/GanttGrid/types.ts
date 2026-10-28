@@ -1,3 +1,5 @@
+import type { FieldHelp } from "@/components/InfoHoverCard";
+
 /** `team` lists employees with their projects below; `project` lists projects with their employees below. */
 export type GanttGridVariant = "team" | "project";
 
@@ -165,6 +167,16 @@ export interface GanttGridProps {
   projects?: GanttProjectGroup[];
   /** Title of the row header column, e.g. "Members". */
   rowHeaderLabel: string;
+  /** Info card shown after the row header label, explaining the marks in the grid. */
+  rowHeaderHelp?: FieldHelp;
+  /** Tooltip on the hourly rate line of the employee card. */
+  rateTooltip?: string;
+  /** Tooltip on the working hours line of the employee card. */
+  capacityTooltip?: string;
+  /** Tooltip on the remaining hours line of the project card. */
+  remainingHoursTooltip?: string;
+  /** Tooltip on the hours line of each allocation in the allocation card. */
+  hoursTooltip?: string;
   /** Show Saturday and Sunday columns; when false they are left out, not just shaded. */
   showWeekend?: boolean;
   /** The user may add, edit, resize and delete allocations, and open employee and project links. */

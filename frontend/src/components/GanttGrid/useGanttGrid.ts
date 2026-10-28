@@ -50,6 +50,10 @@ function createGanttGrid(props: Readonly<GanttGridProps>, emit: Emit) {
   const canManageAiAllocations = computed(
     () => props.canManageAiAllocations ?? false,
   );
+  const rateTooltip = computed(() => props.rateTooltip);
+  const capacityTooltip = computed(() => props.capacityTooltip);
+  const remainingHoursTooltip = computed(() => props.remainingHoursTooltip);
+  const hoursTooltip = computed(() => props.hoursTooltip);
 
   const timeline = computed(() =>
     buildTimeline({
@@ -134,6 +138,10 @@ function createGanttGrid(props: Readonly<GanttGridProps>, emit: Emit) {
     showWeekend,
     hasRoleAccess,
     canManageAiAllocations,
+    rateTooltip,
+    capacityTooltip,
+    remainingHoursTooltip,
+    hoursTooltip,
     timeline,
     columnWidth,
     range,

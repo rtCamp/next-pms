@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
 import { Button, Dialog, FormLabel, Switch, TextInput, toast } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { errorMessage } from "@/utils/errors";
 import { DEFAULT_VIEW_ICON } from "./constants";
 import EmojiPicker from "./EmojiPicker.vue";
+import { PUBLIC_VIEW_HELP } from "./help";
 import { useProjectViews } from "./useProjectViews";
 
 const views = useProjectViews();
@@ -83,7 +85,14 @@ async function submit() {
           />
         </div>
       </div>
-      <Switch v-model="form.isPublic" size="sm" label="Make this view public" />
+      <div class="flex min-w-0 items-center gap-1.5">
+        <Switch
+          v-model="form.isPublic"
+          size="sm"
+          label="Make this view public"
+        />
+        <InfoHoverCard :help="PUBLIC_VIEW_HELP" />
+      </div>
     </form>
 
     <template #actions>

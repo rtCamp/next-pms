@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { expect, screen, userEvent, waitFor, within } from "storybook/test";
 import TimeOffRow from "./TimeOffRow.vue";
-import visual from "./TimeOffRow.stories";
+import visual, { WithHelp } from "./TimeOffRow.stories";
 
 const meta = {
   ...visual,
@@ -36,5 +36,14 @@ export const HolidayTooltip: Story = {
     await waitFor(() =>
       expect(screen.getByRole("tooltip")).toHaveTextContent("Christmas"),
     );
+  },
+};
+
+export const HelpCardBesideLabel: Story = {
+  args: WithHelp.args,
+  play: async ({ canvasElement }) => {
+    await expect(
+      within(canvasElement).getByRole("button", { name: "About Time-off" }),
+    ).toBeVisible();
   },
 };

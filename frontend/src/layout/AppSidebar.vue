@@ -16,6 +16,7 @@ import { SIDEBAR_COLLAPSED_KEY } from "./constants";
 import AppSidebarHeader from "./AppSidebarHeader.vue";
 import AppSidebarSection from "./AppSidebarSection.vue";
 import GlobalSearch from "./GlobalSearch.vue";
+import { NOTIFICATION_ITEM_TOOLTIP, NOTIFICATIONS_HELP } from "./help";
 import SettingsModal from "./settings/SettingsModal.vue";
 import {
   computeSearchItems,
@@ -191,6 +192,8 @@ const menuItems = computed(() => [
     v-model:open="trayOpen"
     :notifications="notifications.notifications.value"
     :offset-class="sidebarCollapsed ? 'left-12' : 'left-60'"
+    :help="NOTIFICATIONS_HELP"
+    :item-tooltip="NOTIFICATION_ITEM_TOOLTIP"
     @mark-all-read="notifications.markAllAsViewed"
     @notification-click="notifications.openNotification"
   />

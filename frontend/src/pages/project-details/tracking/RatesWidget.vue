@@ -9,7 +9,9 @@ import {
   ListRow,
   ListRows,
 } from "frappe-ui/list";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
+import { TRACKING_HELP } from "./help";
 import RateDialog from "./RateDialog.vue";
 import {
   formatRateDate,
@@ -145,12 +147,13 @@ function remove(row: RateRow) {
             v-if="item.kind === 'flat'"
             class="mt-2 rounded-5 bg-surface-gray-2"
           >
-            <ListCell class="min-w-0">
+            <ListCell class="min-w-0 gap-1.5">
               <span
                 class="truncate text-base-medium leading-tighter text-ink-gray-7"
               >
                 Flat rate
               </span>
+              <InfoHoverCard :help="TRACKING_HELP.flatRate" />
             </ListCell>
             <ListCell
               class="justify-end text-base leading-tighter tabular-nums text-ink-gray-6"
