@@ -67,7 +67,7 @@ const Sidebar = () => {
 
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
 
   const {
     isSidebarCollapsed,
@@ -405,7 +405,7 @@ const Sidebar = () => {
       <HelpPanel
         open={isHelpOpen}
         onOpenChange={setIsHelpOpen}
-        pageTips={tipsForPath(pathname)}
+        pageTips={tipsForPath(pathname, search)}
         generalTips={GENERAL_TIPS}
         roles={roles}
         className={isSidebarCollapsed ? "left-12" : "left-60"}
