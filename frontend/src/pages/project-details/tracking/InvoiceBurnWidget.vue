@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { ProgressBar } from "@/components/ProgressBar";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
+import { TRACKING_HELP } from "./help";
 import LegendItem from "./LegendItem.vue";
 import { useTracking } from "./useTracking";
 import WidgetCard from "./WidgetCard.vue";
@@ -19,6 +20,7 @@ const total = computed(() => burn.value?.total_project_amount ?? null);
 <template>
   <WidgetCard
     title="Invoice burn (to date)"
+    :help="TRACKING_HELP.invoiceBurn"
     :link="{
       label: 'All invoices',
       href: `/desk/sales-invoice?project=${projectId}`,

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { cn } from "@/utils/cn";
+import { TRACKING_HELP } from "./help";
 import type { WidgetLayout } from "./types";
 import { useTracking } from "./useTracking";
 
@@ -28,9 +30,12 @@ const isRow = computed(() => props.layout === "row");
     aria-label="Task completion"
     class="flex flex-1 flex-col gap-3 rounded-7 border border-outline-gray-1 bg-surface-elevation-1 p-3"
   >
-    <h3 class="text-base-medium leading-tighter text-ink-gray-8">
-      Task completion
-    </h3>
+    <div class="flex min-w-0 items-center gap-1.5">
+      <h3 class="text-base-medium leading-tighter text-ink-gray-8">
+        Task completion
+      </h3>
+      <InfoHoverCard :help="TRACKING_HELP.taskCompletion" />
+    </div>
     <div
       :class="
         cn(

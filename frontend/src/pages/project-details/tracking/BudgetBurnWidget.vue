@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { ProgressBar } from "@/components/ProgressBar";
+import { TRACKING_HELP } from "./help";
 import LegendItem from "./LegendItem.vue";
 import { useTracking } from "./useTracking";
 import WidgetCard from "./WidgetCard.vue";
@@ -14,7 +15,7 @@ const total = computed(() => tracking.value?.budget_burn?.total_budget ?? 0);
 </script>
 
 <template>
-  <WidgetCard title="Budget burn (to date)">
+  <WidgetCard title="Budget burn (to date)" :help="TRACKING_HELP.budgetBurn">
     <ProgressBar
       label="Budget burn"
       :value="actual"

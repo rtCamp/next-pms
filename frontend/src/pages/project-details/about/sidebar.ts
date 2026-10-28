@@ -1,4 +1,5 @@
 import type { EmployeeLookupOption } from "@/composables/useEmployeeLookup";
+import { MEMBER_REMOVE_TOOLTIP } from "@/pages/project-details/help";
 import { formatNumber } from "@/utils/format";
 import {
   ENGINEERING_MANAGER_ROLE,
@@ -80,9 +81,9 @@ export function removeBlockedReason(
   userId: string,
 ): string | undefined {
   const labels = roleLabels(sidebar, userId);
-  if (labels.length) return `${labels.join(" & ")} cannot be removed here`;
+  if (labels.length) return MEMBER_REMOVE_TOOLTIP.manager(labels);
   if (billingTeamUserIds(sidebar).has(userId)) {
-    return "Billing team members cannot be removed here";
+    return MEMBER_REMOVE_TOOLTIP.billingTeam;
   }
   return undefined;
 }

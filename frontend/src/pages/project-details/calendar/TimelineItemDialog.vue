@@ -11,11 +11,13 @@ import {
   TextInput,
   useList,
 } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import type { LookupOption } from "@/composables/useRemoteLookup";
 import { useUserLookup } from "@/composables/useUserLookup";
 import { errorMessage } from "@/utils/errors";
 import { itemForm, validateItemForm } from "./calendar";
 import { CATEGORY_LIMIT } from "./constants";
+import { CALENDAR_HELP } from "./help";
 import type {
   TimelineCategory,
   TimelineItemErrors,
@@ -228,7 +230,10 @@ async function submit() {
           </p>
         </template>
       </Combobox>
-      <Checkbox v-model="form.isInternal" label="Mark as internal" />
+      <div class="flex min-w-0 items-center gap-1.5">
+        <Checkbox v-model="form.isInternal" label="Mark as internal" />
+        <InfoHoverCard :help="CALENDAR_HELP.internal" />
+      </div>
     </form>
 
     <template #actions>

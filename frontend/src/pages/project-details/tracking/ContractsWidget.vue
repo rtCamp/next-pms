@@ -9,6 +9,7 @@ import {
   ListRow,
   ListRows,
 } from "frappe-ui/list";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
 import ContractDialog from "./ContractDialog.vue";
 import {
@@ -21,6 +22,7 @@ import {
   type ContractInput,
   type ContractRow,
 } from "./contracts";
+import { TRACKING_HELP } from "./help";
 import RowActions from "./RowActions.vue";
 import { useTracking } from "./useTracking";
 
@@ -28,7 +30,13 @@ const COLUMNS = [
   { key: "startDate", label: "Start date", width: "88px" },
   { key: "endDate", label: "End date", width: "88px" },
   { key: "hoursBought", label: "Hours bought", width: "88px", right: true },
-  { key: "hoursUsed", label: "Hours used", width: "88px", right: true },
+  {
+    key: "hoursUsed",
+    label: "Hours used",
+    width: "88px",
+    right: true,
+    help: TRACKING_HELP.contractHours,
+  },
   { key: "hoursLeft", label: "Hours left", width: "88px", right: true },
   { key: "salesOrder", label: "Sales order", width: "minmax(120px,1fr)" },
   { key: "salesInvoice", label: "Sales invoice", width: "minmax(120px,1fr)" },
@@ -126,6 +134,9 @@ function remove(row: ContractRow) {
             :class="'right' in column && 'justify-end'"
           >
             {{ column.label }}
+            <template v-if="'help' in column" #suffix>
+              <InfoHoverCard :help="column.help" />
+            </template>
           </ListHeaderCell>
         </ListHeader>
         <p

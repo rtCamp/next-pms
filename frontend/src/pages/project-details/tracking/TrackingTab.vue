@@ -14,6 +14,7 @@ import {
 } from "./constants";
 import CostBurnWidget from "./CostBurnWidget.vue";
 import FinancialsWidget from "./FinancialsWidget.vue";
+import { TRACKING_HELP } from "./help";
 import HoursUsageWidget from "./HoursUsageWidget.vue";
 import InvoiceBurnWidget from "./InvoiceBurnWidget.vue";
 import ContractsWidget from "./ContractsWidget.vue";
@@ -41,13 +42,18 @@ const WIDGETS: Record<WidgetKey, WidgetEntry> = {
   cost_burn: { component: CostBurnWidget },
   lifetime_to_date: {
     component: LifetimeWidget,
-    props: { title: "Lifetime value to date", field: "lifetime_value_to_date" },
+    props: {
+      title: "Lifetime value to date",
+      field: "lifetime_value_to_date",
+      help: TRACKING_HELP.lifetimeToDate,
+    },
   },
   lifetime_expected: {
     component: LifetimeWidget,
     props: {
       title: "Expected lifetime value",
       field: "expected_lifetime_value",
+      help: TRACKING_HELP.lifetimeExpected,
     },
   },
   contracts: { component: ContractsWidget },

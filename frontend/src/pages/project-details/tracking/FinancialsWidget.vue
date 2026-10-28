@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
 import { cn } from "@/utils/cn";
 import FinancialsBlock from "./FinancialsBlock.vue";
+import { TRACKING_HELP } from "./help";
 import KnowledgePoint from "./KnowledgePoint.vue";
 import type { WidgetLayout } from "./types";
 import { useTracking } from "./useTracking";
@@ -45,6 +46,7 @@ const isRow = computed(() => props.layout === "row");
         title="Total project value"
         :value="totalProjectValue"
         :href="salesOrderHref"
+        :help="TRACKING_HELP.totalProjectValue"
       />
     </div>
     <!-- eslint-disable-next-line better-tailwindcss/no-restricted-classes -- the preset has no flex-grow scale; React gave the block twice the card's width -->

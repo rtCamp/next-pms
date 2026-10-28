@@ -4,9 +4,12 @@ import { UPDATE_FOLLOW_URL } from "./constants";
 
 /**
  * Follows and unfollows documents of `doctype` with Frappe's document follow, toasting
- * the outcome as React did.
+ * the outcome as React did; `followOffMessage` is the error when follow is off for the user.
  */
-export function useFollow(doctype: string) {
+export function useFollow(
+  doctype: string,
+  followOffMessage = "Document follow is not enabled for current user.",
+) {
   const call = useCall<
     unknown,
     { doctype: string; doc_name: string; following: boolean }
@@ -30,7 +33,7 @@ export function useFollow(doctype: string) {
     }
     // Frappe answers a follow it didn't make (follow off for the user, …) with nothing.
     if (!following && !result) {
-      toast.error("Document follow is not enabled for current user.");
+      toast.error(followOffMessage);
       return false;
     }
     toast.success(following ? "Unfollowed document" : "Following document");
