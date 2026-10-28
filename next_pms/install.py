@@ -27,6 +27,7 @@ def after_install():
     setup_project_permissions_for_managers()
     setup_time_report_frequency()
     setup_custom_docperms()
+    setup_core_search_indexes()
 
 
 def setup_timesheet_rejection_reason_field():
@@ -665,3 +666,25 @@ def _insert_masters(doctype, records):
             continue
 
         frappe.get_doc({"doctype": doctype, **record}).insert(ignore_permissions=True)
+
+
+CORE_SEARCH_INDEXES = (
+    ("Employee", "user_id"),
+    ("Employee", "reports_to"),
+    ("Timesheet", "parent_project"),
+    ("Timesheet Detail", "task"),
+    ("Timesheet Detail", "from_time"),
+)
+
+
+def setup_core_search_indexes() -> None:
+    """Index hot filter columns on doctypes owned by other apps.
+
+    The search_index property setter is what stops a later schema sync from dropping a
+    single-column index; frappe.db.add_index skips creating it while migrating."""
+    import frappe
+    from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+    for doctype, fieldname in CORE_SEARCH_INDEXES:
+        make_property_setter(doctype, fieldname, "search_index", 1, "Check")
+        frappe.db.add_index(doctype, [fieldname])
