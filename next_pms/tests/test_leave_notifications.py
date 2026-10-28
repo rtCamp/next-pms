@@ -230,8 +230,13 @@ class TestLeaveApplicationNotifications(LeaveNotificationTestCase):
     def test_url_points_at_the_manager_dashboard(self):
         self._apply_for_leave("dashboard-url", custom_notify_users=[{"user": NOTIFIED_USER}])
 
-        for user in (APPROVER_USER, MANAGER_USER, NOTIFIED_USER):
+        for user in (MANAGER_USER, NOTIFIED_USER):
             self.assertEqual(self._notifications(user)[0]["url"], MANAGER_DASHBOARD_URL)
+
+    def test_designated_approver_who_cannot_see_the_leave_on_the_dashboard_is_sent_to_desk(self):
+        self._apply_for_leave("approver-url")
+
+        self.assertIsNone(self._notifications(APPROVER_USER)[0]["url"])
 
     def test_url_falls_back_to_the_desk_form_without_dashboard_access(self):
         leave = self._apply_for_leave("tray-only-approver", leave_approver=TRAY_ONLY_USER)

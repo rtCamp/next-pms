@@ -115,37 +115,50 @@ def leave_application_after_insert(doc, method=None):
     to_date = formatdate(getdate(doc.to_date), "dd/mm/yyyy")
     label = _("{0} requested leave from {1} to {2}").format(doc.employee_name or doc.employee, from_date, to_date)
 
-    for user in _leave_notification_recipients(doc):
-        url = MANAGER_DASHBOARD_URL if _has_any_role(user, MANAGER_DASHBOARD_ROLES) else None
-        create_notification(user, _("Leave request"), label, "Leave Application", doc.name, url=url)
+    recipients, dashboard_users = _leave_notification_recipients(doc)
+    for user in sorted(recipients):
+        url = MANAGER_DASHBOARD_URL if user in dashboard_users else None
+        frappe.get_doc(
+            {
+                "doctype": "NextPMS Notifications",
+                "user": user,
+                "title": _("Leave request"),
+                "label": truncate(label, frappe.db.VARCHAR_LEN),
+                "linked_doctype": "Leave Application",
+                "linked_document": doc.name,
+                "url": url,
+            }
+        ).insert(ignore_permissions=True)
+        frappe.publish_realtime(event="notification", user=user, after_commit=True)
 
 
 def _leave_notification_recipients(doc):
-    """Users to notify about a leave request, without the actor and without duplicates.
+    """Users to notify about a leave request, and which of them can see it on the manager dashboard.
 
-    The leave approver, the employee's reporting manager and the notify users can all
-    resolve to the same person, so the sources are collected into one set.
+    Returns ``(recipients, dashboard_users)``. The actor and duplicates are dropped: the leave
+    approver, the employee's reporting manager and the notify users can all be the same person.
+    The dashboard lists a leave only for the reporting manager and the notify users, so a
+    designated approver outside both is sent to Desk instead.
     """
-    users = {doc.leave_approver}
-
     _, reports_to_user = get_reviewer(doc.employee)
-    if reports_to_user:
-        users.add(reports_to_user)
-
+    dashboard_users = {reports_to_user}
     if frappe.get_meta("Leave Application").has_field("custom_notify_users"):
-        users.update(row.user for row in doc.get("custom_notify_users") or [])
+        dashboard_users.update(row.user for row in doc.get("custom_notify_users") or [])
 
+    users = dashboard_users | {doc.leave_approver}
     users.discard(None)
     users.discard(frappe.session.user)
     if not users:
-        return set()
+        return set(), set()
 
     enabled_users = frappe.get_all(
         "User",
         filters={"name": ["in", list(users)], "enabled": 1},
         pluck="name",
     )
-    return {user for user in enabled_users if _has_any_role(user, NOTIFICATION_TRAY_ROLES)}
+    recipients = {user for user in enabled_users if _has_any_role(user, NOTIFICATION_TRAY_ROLES)}
+    dashboard_users = {user for user in recipients & dashboard_users if _has_any_role(user, MANAGER_DASHBOARD_ROLES)}
+    return recipients, dashboard_users
 
 
 def _has_any_role(user, roles):
