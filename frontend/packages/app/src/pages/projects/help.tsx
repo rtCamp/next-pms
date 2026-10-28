@@ -4,6 +4,7 @@
 import {
   BudgetBurnBar,
   type FieldHelp,
+  type HelpTip,
 } from "@next-pms/design-system/components";
 
 /**
@@ -171,3 +172,36 @@ export const KANBAN_CARD_TOOLTIP = {
   leadEngineer: "Lead engineer",
   billingType: "Billing type",
 };
+
+export const PROJECTS_TIPS: HelpTip[] = [
+  {
+    id: "switch-view",
+    title: "Switch views from the page title",
+    body: "Select the view name next to Projects, such as List view, to switch to Kanban view or one of your saved views. The filters you set carry over between List view and Kanban view.",
+    wiki: "Projects#switch-between-list-and-kanban",
+  },
+  {
+    id: "save-view",
+    title: "Save your filters and columns as a view",
+    body: "Set the filters, sort and columns you want, then select Create view in the toolbar. On a saved view, select Save changes and then Update to keep new changes.",
+    wiki: "Saved-Views#create-a-saved-view",
+  },
+  {
+    id: "manage-view",
+    title: "Edit or share a saved view from its ⋯ menu",
+    body: "Open the view menu next to Projects and select ⋯ on a saved view to duplicate, edit, make public or delete it. Views someone else created can only be duplicated.",
+    wiki: "Saved-Views#manage-a-saved-view",
+  },
+  {
+    id: "columns",
+    title: "Sort, move and pin columns",
+    body: "In List view, select a column name to sort by it, and again to reverse the order. Drag a header sideways to move it, or open the arrow beside its name and select Pin column to keep up to 3 columns in view as you scroll.",
+    wiki: "Projects#customise-columns",
+  },
+  {
+    id: "change-phase",
+    title: "Drag a card to change its phase",
+    body: "In Kanban view, drag a project's card to another phase column. The new phase is saved at once.",
+    wiki: "Projects#kanban-view",
+  },
+];

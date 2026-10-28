@@ -9,9 +9,15 @@ import type { FieldHelp, HelpTip } from "@next-pms/design-system/components";
  */
 import { ROUTES } from "@/lib/constant";
 import {
+  ALLOCATION_DIALOG_TIPS,
+  PROJECT_ALLOCATION_TIPS,
+  TEAM_ALLOCATION_TIPS,
+} from "@/pages/allocations/help";
+import {
   LEADERSHIP_DASHBOARD_TIPS,
   MANAGER_DASHBOARD_TIPS,
 } from "@/pages/dashboard/help";
+import { PROJECTS_TIPS } from "@/pages/projects/help";
 import { PERSONAL_TIMESHEET_TIPS } from "@/pages/timesheet/personal/help";
 import { PROJECT_TIMESHEET_TIPS } from "@/pages/timesheet/project/help";
 import { TEAM_TIMESHEET_TIPS } from "@/pages/timesheet/team/help";
@@ -35,6 +41,15 @@ const HELP_PAGES: { route: string; tips: HelpTip[] }[] = [
   { route: ROUTES["timesheet-project"], tips: PROJECT_TIMESHEET_TIPS },
   { route: ROUTES["dashboard-manager"], tips: MANAGER_DASHBOARD_TIPS },
   { route: ROUTES["dashboard-leadership"], tips: LEADERSHIP_DASHBOARD_TIPS },
+  {
+    route: ROUTES["allocations-team"],
+    tips: [...TEAM_ALLOCATION_TIPS, ...ALLOCATION_DIALOG_TIPS],
+  },
+  {
+    route: ROUTES["allocations-project"],
+    tips: [...PROJECT_ALLOCATION_TIPS, ...ALLOCATION_DIALOG_TIPS],
+  },
+  { route: ROUTES.project, tips: PROJECTS_TIPS },
 ];
 
 export const GENERAL_TIPS: HelpTip[] = [
