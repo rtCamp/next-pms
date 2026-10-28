@@ -308,19 +308,70 @@ export const ALLOCATION_DIALOG_HELP = {
   },
 } satisfies Record<string, FieldHelp>;
 
+const VARY_HOURS_TIP: HelpTip = {
+  id: "vary-hours",
+  title: "Vary the hours day by day",
+  body: "Each save sets one hours value on the dates you select, so save once for each different value. Recurring allocations and ones with day changes can only change their hours here.",
+  steps: [
+    "Hover the allocation's bar and select its edit icon.",
+    "Select Edit Schedule next to Start and end date.",
+    "Select the day chips to change. Select a chip again to drop it.",
+    "Set Edit hours / day or Edit total hours, check the Schedule summary, then select Save changes.",
+  ],
+  wiki: "Team-Allocations#vary-the-hours-day-by-day",
+  roles: ROLE_ACCESS.manageAllocations,
+};
+
 export const TEAM_ALLOCATION_TIPS: HelpTip[] = [
+  {
+    id: "add-allocation",
+    title: "Add an allocation",
+    body: "Allocate a member to a project for a set of days, or repeat it over several weeks.",
+    steps: [
+      "Select Add allocation.",
+      "Pick the Employee, then the Project.",
+      "To repeat it every week, select Recurring.",
+      "Pick the Start and end date and set Hours / day.",
+      "Set Repeat for if it's recurring, then select Allocate.",
+    ],
+    wiki: "Team-Allocations#add-allocation",
+    roles: ROLE_ACCESS.manageAllocations,
+    motion: () => import("@/assets/motions/add-allocation?motion"),
+  },
+  {
+    id: "allocate-from-grid",
+    title: "Allocate straight from the grid",
+    body: "Start an allocation with the member and dates filled in, and the project too on a project row.",
+    steps: [
+      "Hover an empty day on a member's or project row and select +. For several days, drag from + across them.",
+      "Finish in Add allocation and select Allocate.",
+    ],
+    wiki: "Team-Allocations#inline-editing",
+    roles: ROLE_ACCESS.manageAllocations,
+    motion: () => import("@/assets/motions/drag-to-allocate?motion"),
+  },
+  {
+    id: "resize-allocation",
+    title: "Drag a bar's edge to change its dates",
+    body: "Change an allocation's dates by dragging its bar. Recurring allocations and ones set to 0 hours can't be dragged.",
+    steps: [
+      "Expand a member.",
+      "Drag the left or right edge of a project bar, then select Save.",
+      "Check the dates in Edit allocation and select Save Changes.",
+    ],
+    wiki: "Team-Allocations#resize-a-booking-on-the-grid",
+    roles: ROLE_ACCESS.manageAllocations,
+    motion: () => import("@/assets/motions/resize-allocation?motion"),
+  },
+  {
+    ...VARY_HOURS_TIP,
+    motion: () => import("@/assets/motions/edit-schedule?motion"),
+  },
   {
     id: "allocation-card",
     title: "Hover a bar to open its card",
     body: "Rest the pointer on a bar for a moment, or select it, to see every allocation behind it. If you can change allocations, edit and delete them from the icons in that card.",
     wiki: "Team-Allocations#the-allocation-summary-card",
-  },
-  {
-    id: "allocate-from-grid",
-    title: "Allocate straight from the grid",
-    body: "Hover an empty day on a member's or project row and select +, or drag from + across several days. Add allocation opens with the member and dates filled in, and the project too on a project row.",
-    wiki: "Team-Allocations#inline-editing",
-    roles: ROLE_ACCESS.manageAllocations,
   },
   {
     id: "add-project",
@@ -329,28 +380,43 @@ export const TEAM_ALLOCATION_TIPS: HelpTip[] = [
     wiki: "Team-Allocations#expanding-a-member-row",
     roles: ROLE_ACCESS.manageAllocations,
   },
-  {
-    id: "resize-allocation",
-    title: "Drag a bar's edge to change its dates",
-    body: "Expand a member and drag the left or right edge of a project bar, then select Save to finish in Edit allocation. Recurring allocations and ones set to 0 hours can't be dragged.",
-    wiki: "Team-Allocations#resize-a-booking-on-the-grid",
-    roles: ROLE_ACCESS.manageAllocations,
-  },
 ];
 
 export const PROJECT_ALLOCATION_TIPS: HelpTip[] = [
+  {
+    id: "allocate-from-grid",
+    title: "Allocate straight from the grid",
+    body: "Start an allocation with the project and dates filled in, and the member too on a member's row.",
+    steps: [
+      "Hover an empty day on a project's row or a member's row and select +. For several days, drag from + across them.",
+      "Finish in Add allocation and select Allocate.",
+    ],
+    wiki: "Project-Allocations#inline-editing",
+    roles: ROLE_ACCESS.manageAllocations,
+    motion: () => import("@/assets/motions/drag-to-allocate-project?motion"),
+  },
+  {
+    id: "resize-allocation",
+    title: "Drag a bar's edge to change its dates",
+    body: "Change an allocation's dates by dragging its bar. Recurring allocations and ones set to 0 hours can't be dragged.",
+    steps: [
+      "Expand a project.",
+      "Drag the left or right edge of a member's bar, then select Save.",
+      "Check the dates in Edit allocation and select Save Changes.",
+    ],
+    wiki: "Project-Allocations#resize-an-allocation-on-the-grid",
+    roles: ROLE_ACCESS.manageAllocations,
+    motion: () => import("@/assets/motions/resize-allocation-project?motion"),
+  },
+  {
+    ...VARY_HOURS_TIP,
+    motion: () => import("@/assets/motions/edit-schedule-project?motion"),
+  },
   {
     id: "allocation-card",
     title: "Hover a bar to open its card",
     body: "Rest the pointer on a bar, or select it, to see every allocation behind it, member by member on a project's row. If you can change allocations, edit and delete them from the icons in that card.",
     wiki: "Project-Allocations#the-allocation-summary-card",
-  },
-  {
-    id: "allocate-from-grid",
-    title: "Allocate straight from the grid",
-    body: "Hover an empty day on a project's row or a member's row and select +, or drag from + across several days. Add allocation opens with the project and dates filled in, and the member too on a member's row.",
-    wiki: "Project-Allocations#inline-editing",
-    roles: ROLE_ACCESS.manageAllocations,
   },
   {
     id: "add-member",
@@ -359,34 +425,14 @@ export const PROJECT_ALLOCATION_TIPS: HelpTip[] = [
     wiki: "Project-Allocations#the-projects-grid",
     roles: ROLE_ACCESS.manageAllocations,
   },
-  {
-    id: "resize-allocation",
-    title: "Drag a bar's edge to change its dates",
-    body: "Expand a project and drag the left or right edge of a member's bar, then select Save to finish in Edit allocation. Recurring allocations and ones set to 0 hours can't be dragged.",
-    wiki: "Project-Allocations#resize-an-allocation-on-the-grid",
-    roles: ROLE_ACCESS.manageAllocations,
-  },
 ];
 
 export const ALLOCATION_DIALOG_TIPS: HelpTip[] = [
   {
     id: "employee-project-filter",
-    title: "Employee and Project filter each other",
-    body: "Picking a project lists only its team under Employee, and picking an employee lists only their projects. To allocate someone outside the team, add them to the project's team first.",
+    title: "Can't find someone in Employee or Project?",
+    body: "Once you pick a project, Employee only lists the people on that project's team. Once you pick an employee, Project only lists the projects they're on. To allocate someone who isn't on the team, add them to the project's team first.",
     wiki: "Team-Allocations#add-allocation",
-    roles: ROLE_ACCESS.manageAllocations,
-  },
-  {
-    id: "vary-hours",
-    title: "Vary the hours day by day",
-    body: "Each save sets one hours value on the dates you select, so save once for each different value. Recurring allocations and ones with day changes can only change their hours here.",
-    steps: [
-      "Hover the allocation's bar and select its edit icon.",
-      "Select Edit Schedule next to Start and end date.",
-      "Select the day chips to change. Select a chip again to drop it.",
-      "Set Edit hours / day or Edit total hours, check the Schedule summary, then select Save changes.",
-    ],
-    wiki: "Team-Allocations#vary-the-hours-day-by-day",
     roles: ROLE_ACCESS.manageAllocations,
   },
 ];
