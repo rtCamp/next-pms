@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Select } from "frappe-ui";
+import { computed, ref } from "vue";
+import { MultiSelect, Select } from "frappe-ui";
 import { useDoctypeLinkLookup } from "@/composables/useDoctypeLinkLookup";
 import {
   COMPLEXITY_OPTIONS,
@@ -16,6 +17,30 @@ const { values, draft, editing, saving } = useOverview();
 
 const hostLookup = ({ query, selected }: LinkLookupInputs) =>
   useDoctypeLinkLookup({ doctype: "Host", query, selected });
+
+const techStackQuery = ref("");
+const techStackLookup = useDoctypeLinkLookup({
+  doctype: "Technology",
+  filters: [["disabled", "=", 0]],
+  enabled: editing,
+  query: techStackQuery,
+});
+// The picked values stay listed while a search shows other results.
+const techStackOptions = computed(() => {
+  const picked = draft.value?.tech_stack ?? [];
+  return [
+    ...picked.map((value) => ({ label: value, value })),
+    ...techStackLookup.options.filter(
+      (option) => !picked.includes(option.value),
+    ),
+  ];
+});
+const techStack = computed({
+  get: () => draft.value?.tech_stack ?? [],
+  set: (next: (string | number)[]) => {
+    if (draft.value) draft.value.tech_stack = next.map(String);
+  },
+});
 </script>
 
 <template>
@@ -77,6 +102,22 @@ const hostLookup = ({ query, selected }: LinkLookupInputs) =>
           placeholder="Select host"
           :create-lookup="hostLookup"
           :disabled="saving"
+        />
+      </OverviewField>
+      <OverviewField
+        icon="lucide-layers"
+        label="Tech stack"
+        :value="values.tech_stack.join(', ') || EMPTY"
+        :editing="editing"
+      >
+        <MultiSelect
+          v-model="techStack"
+          v-model:query="techStackQuery"
+          :options="techStackOptions"
+          :loading="techStackLookup.loading"
+          :filterable="false"
+          :disabled="saving"
+          placeholder="Select tech stack"
         />
       </OverviewField>
     </div>

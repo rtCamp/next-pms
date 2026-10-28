@@ -44,8 +44,10 @@ export const RICH_TEXT_FIELDS = [
   "custom_key_goals",
 ] as const satisfies readonly OverviewField[];
 
-/** The Overview's values as the editors hold them: every field a string. */
-export type OverviewDraft = Record<OverviewField, string>;
+/** The Overview's values as the editors hold them: every field a string, the tech stack a list of `Technology` names. */
+export type OverviewDraft = Record<OverviewField, string> & {
+  tech_stack: string[];
+};
 
 const ESCAPES: Record<string, string> = {
   "&": "&amp;",
@@ -75,7 +77,9 @@ export function toEditorHtml(value: string): string {
 
 /** The Project's Overview values, as the editors hold them. */
 export function toDraft(doc: ProjectDoc): OverviewDraft {
-  const draft = {} as OverviewDraft;
+  const draft = {
+    tech_stack: doc.tech_stack?.map((row) => row.technology) ?? [],
+  } as OverviewDraft;
   for (const field of OVERVIEW_FIELDS) {
     const value = doc[field];
     draft[field] = value === null || value === undefined ? "" : String(value);
@@ -119,13 +123,16 @@ export function changedFields(
   seed: OverviewDraft,
   hasField: (fieldname: string) => boolean = hasProjectField,
 ): Partial<ProjectDoc> {
-  const changes: Record<string, string | number> = {};
+  const changes: Record<string, unknown> = {};
   for (const field of OVERVIEW_FIELDS) {
     if (OPTIONAL_FIELDS.includes(field) && !hasField(field)) continue;
     if (sameValue(field, draft[field], seed[field])) continue;
     changes[field] = (CHECK_FIELDS as readonly OverviewField[]).includes(field)
       ? Number(draft[field] === "1")
       : draft[field];
+  }
+  if (draft.tech_stack.join("\n") !== seed.tech_stack.join("\n")) {
+    changes.tech_stack = draft.tech_stack.map((technology) => ({ technology }));
   }
   return changes as Partial<ProjectDoc>;
 }

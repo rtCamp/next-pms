@@ -42,6 +42,16 @@ describe("toDraft", () => {
     expect(draft.custom_permission_for_testimonial).toBe("");
   });
 
+  it("reads the tech stack as Technology names, empty when unset", () => {
+    expect(toDraft(DOC).tech_stack).toEqual([]);
+    expect(
+      toDraft({
+        ...DOC,
+        tech_stack: [{ technology: "Vue" }, { technology: "Python" }],
+      }).tech_stack,
+    ).toEqual(["Vue", "Python"]);
+  });
+
   it("reads Desk plain text in the rich-text fields as HTML", () => {
     const draft = toDraft({
       ...DOC,
@@ -90,6 +100,19 @@ describe("changedFields", () => {
     const draft = { ...toDraft(doc), priority: "High" };
     draft.priority = "Medium";
     expect(changedFields(draft, toDraft(doc), all)).toEqual({});
+  });
+
+  it("saves a changed tech stack as its rows", () => {
+    const seed = toDraft({ ...doc, tech_stack: [{ technology: "Vue" }] });
+    expect(changedFields({ ...seed }, seed, all)).toEqual({});
+    expect(
+      changedFields({ ...seed, tech_stack: ["Vue", "Python"] }, seed, all),
+    ).toEqual({
+      tech_stack: [{ technology: "Vue" }, { technology: "Python" }],
+    });
+    expect(changedFields({ ...seed, tech_stack: [] }, seed, all)).toEqual({
+      tech_stack: [],
+    });
   });
 
   it("saves a cleared field as an empty string", () => {
