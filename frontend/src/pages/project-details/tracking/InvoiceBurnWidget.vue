@@ -11,8 +11,8 @@ const { tracking, money } = useTracking();
 
 const burn = computed(() => tracking.value?.invoice_burn);
 const currency = computed(() => burn.value?.currency);
-const paid = computed(() => burn.value?.invoiced_and_paid ?? 0);
-const unpaid = computed(() => burn.value?.invoiced_but_not_paid ?? 0);
+const paid = computed(() => burn.value?.invoiced_and_paid);
+const unpaid = computed(() => burn.value?.invoiced_but_not_paid);
 const total = computed(() => burn.value?.total_project_amount ?? null);
 </script>
 
@@ -26,8 +26,8 @@ const total = computed(() => burn.value?.total_project_amount ?? null);
   >
     <ProgressBar
       label="Invoice burn"
-      :value="paid"
-      :secondary-value="paid + unpaid"
+      :value="paid ?? 0"
+      :secondary-value="(paid ?? 0) + (unpaid ?? 0)"
       :max-value="total || 0"
       indicator-class="bg-surface-violet-7"
       secondary-indicator-class="bg-surface-blue-7"
@@ -36,12 +36,12 @@ const total = computed(() => burn.value?.total_project_amount ?? null);
       <LegendItem
         swatch-class="bg-surface-violet-7"
         label="Invoiced and paid"
-        :value="money(paid, currency)"
+        :value="paid === undefined ? 'N/A' : money(paid, currency)"
       />
       <LegendItem
         swatch-class="bg-surface-blue-7"
         label="Invoiced but not paid"
-        :value="money(unpaid, currency)"
+        :value="unpaid === undefined ? 'N/A' : money(unpaid, currency)"
       />
       <LegendItem
         swatch-class="bg-surface-gray-3"
