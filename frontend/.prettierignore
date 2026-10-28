@@ -1,0 +1,2 @@
+# Help motions are copied as exported; never reformat them.
+packages/app/src/components/help-panel/motions/*/

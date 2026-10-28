@@ -2,11 +2,12 @@
  * External dependencies.
  */
 import { Accordion } from "@base-ui/react/accordion";
-import { Lightbulb, SmallDown } from "@rtcamp/frappe-ui-react/icons";
+import { Lightbulb, Play, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
+import TipMotion from "./tipMotion";
 import type { HelpTip } from "./types";
 
 type TipListProps = {
@@ -23,7 +24,11 @@ export default function TipList({ label, tips }: TipListProps) {
         <Accordion.Item key={tip.id} value={tip.id}>
           <Accordion.Header>
             <Accordion.Trigger className="group flex w-full items-center gap-2 rounded-md p-2 text-left text-sm text-ink-gray-8 hover:bg-surface-gray-2">
-              <Lightbulb className="size-4 shrink-0 text-ink-gray-5" />
+              {tip.motion ? (
+                <Play className="size-4 shrink-0 text-ink-gray-5" />
+              ) : (
+                <Lightbulb className="size-4 shrink-0 text-ink-gray-5" />
+              )}
               <span className="flex-1">{tip.title}</span>
               <SmallDown className="size-4 shrink-0 text-ink-gray-4 transition-transform duration-200 group-data-panel-open:rotate-180" />
             </Accordion.Trigger>
@@ -37,6 +42,9 @@ export default function TipList({ label, tips }: TipListProps) {
                     <li key={step}>{step}</li>
                   ))}
                 </ol>
+              )}
+              {tip.motion && (
+                <TipMotion motion={tip.motion} title={tip.title} />
               )}
             </div>
           </Accordion.Panel>
