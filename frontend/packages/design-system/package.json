@@ -10,7 +10,8 @@
     "./date": "./src/utils/date.ts",
     "./utils": "./src/utils/index.ts",
     "./components": "./src/components/index.ts",
-    "./hooks": "./src/hooks.ts"
+    "./hooks": "./src/hooks.ts",
+    "./motion": "./src/components/motion-player/motion.d.ts"
   },
   "files": [
     "src",

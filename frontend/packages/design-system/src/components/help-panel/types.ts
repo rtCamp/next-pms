@@ -1,3 +1,8 @@
+/**
+ * Internal dependencies.
+ */
+import type { MotionModule } from "../motion-player/kit";
+
 export type HelpTip = {
   id: string;
   title: string;
@@ -5,6 +10,8 @@ export type HelpTip = {
   /** Numbered steps shown under the body, for how-to tips. */
   steps?: string[];
   wiki?: string;
+  /** Lazy import of the motion that shows the task, played under the text. */
+  motion?: () => Promise<MotionModule>;
   /** Only shown to users who hold one of these roles. */
   roles?: readonly string[];
 };
