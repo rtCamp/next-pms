@@ -10,7 +10,7 @@ from frappe.utils import add_days, formatdate, getdate, today
 
 from next_pms.api.dashboard import approve_leave_application, reject_leave_application
 from next_pms.next_pms.notifications import MANAGER_DASHBOARD_URL
-from next_pms.tests.utils import make_employee
+from next_pms.tests.utils import assign_empty_holiday_list, make_employee
 
 MANAGER_USER = "leave-notify-manager@example.com"
 APPROVER_USER = "leave-notify-approver@example.com"
@@ -104,6 +104,7 @@ class LeaveNotificationTestCase(IntegrationTestCase):
             leave_approver=leave_approver,
             reports_to=self.manager if reports_to else None,
         )
+        assign_empty_holiday_list(employee)
         frappe.set_user(actor or requester)
 
         leave = frappe.get_doc(
