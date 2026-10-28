@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onScopeDispose, ref, shallowRef, watch } from "vue";
 import { Button, MultiSelect, Select, TextInput } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import {
   Filter,
   FilterLinkValue,
@@ -21,6 +22,7 @@ import {
   parseAllocationTypes,
   resolveAllocationTypes,
 } from "@/pages/allocations/shared/filterParams";
+import { ALLOCATION_TYPE_HELP } from "@/pages/allocations/shared/help";
 import { ROLE_ACCESS, useSession } from "@/session";
 import {
   BUSINESS_UNIT_FIELD,
@@ -233,35 +235,37 @@ function clearAll() {
         placeholder="Duration"
         aria-label="Duration"
       />
-      <MultiSelect
-        v-if="showFilters"
-        v-model="allocationTypes"
-        class="w-fit max-w-42"
-        :open="allocationTypeOpen"
-        :options="allocationTypeOptions"
-        hide-search
-        placeholder="Allocation type"
-        aria-label="Allocation type"
-        @update:open="setAllocationTypeOpen"
-      >
-        <template #footer="{ clear }">
-          <div
-            class="flex items-center justify-end gap-2 border-t border-outline-gray-1 px-2 py-1.5"
-          >
-            <Button
-              variant="ghost"
-              size="sm"
-              label="Clear"
-              @click="
-                () => {
-                  clear();
-                  allocationTypeOpen = false;
-                }
-              "
-            />
-          </div>
-        </template>
-      </MultiSelect>
+      <div v-if="showFilters" class="flex items-center gap-1.5">
+        <MultiSelect
+          v-model="allocationTypes"
+          class="w-fit max-w-42"
+          :open="allocationTypeOpen"
+          :options="allocationTypeOptions"
+          hide-search
+          placeholder="Allocation type"
+          aria-label="Allocation type"
+          @update:open="setAllocationTypeOpen"
+        >
+          <template #footer="{ clear }">
+            <div
+              class="flex items-center justify-end gap-2 border-t border-outline-gray-1 px-2 py-1.5"
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                label="Clear"
+                @click="
+                  () => {
+                    clear();
+                    allocationTypeOpen = false;
+                  }
+                "
+              />
+            </div>
+          </template>
+        </MultiSelect>
+        <InfoHoverCard :help="ALLOCATION_TYPE_HELP.team" />
+      </div>
     </div>
     <div class="flex gap-2">
       <div class="flex items-center gap-1">

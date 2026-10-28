@@ -13,11 +13,13 @@ import {
   TextInput,
 } from "frappe-ui";
 import { DurationInput } from "@/components/DurationInput";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import {
   RECURRENCE_OPTIONS,
   scheduleRequestFromForm,
   type AllocationRecurrence,
 } from "./allocationForm";
+import { ALLOCATION_DIALOG_HELP } from "./help";
 import OverAllocationWarning from "./OverAllocationWarning.vue";
 import { useAllocationDialogs } from "./useAllocationDialogs";
 import { useAllocationForm } from "./useAllocationForm";
@@ -277,7 +279,10 @@ function avatarOf(option: unknown) {
             label="Include weekends"
             :disabled="!weekendEntriesAllowed || state.locks.isMetadataLocked"
           />
-          <Checkbox v-model="form.includeHolidays" label="Include holidays" />
+          <div class="flex min-w-0 items-center gap-1.5">
+            <Checkbox v-model="form.includeHolidays" label="Include holidays" />
+            <InfoHoverCard :help="ALLOCATION_DIALOG_HELP.includeHolidays" />
+          </div>
         </div>
       </div>
 
@@ -319,10 +324,14 @@ function avatarOf(option: unknown) {
             :error="state.errors.hoursPerDay"
           />
         </div>
-        <div v-if="showRepeat" class="flex-1 shrink-0">
+        <div v-if="showRepeat" class="flex flex-1 shrink-0 flex-col gap-1.5">
+          <div class="flex items-center gap-1.5">
+            <FormLabel id="repeat-for" label="Repeat for" required />
+            <InfoHoverCard :help="ALLOCATION_DIALOG_HELP.repeatFor" />
+          </div>
           <TextInput
+            id="repeat-for"
             v-model="repeatFor"
-            label="Repeat for"
             required
             type="number"
             size="md"
@@ -338,10 +347,14 @@ function avatarOf(option: unknown) {
             </template>
           </TextInput>
         </div>
-        <div class="flex-1 shrink-0">
+        <div class="flex flex-1 shrink-0 flex-col gap-1.5">
+          <div class="flex items-center gap-1.5">
+            <FormLabel id="total-hours" label="Total hours" />
+            <InfoHoverCard :help="ALLOCATION_DIALOG_HELP.totalHours" />
+          </div>
           <TextInput
+            id="total-hours"
             :model-value="state.totalHours"
-            label="Total hours"
             size="md"
             variant="outline"
             disabled

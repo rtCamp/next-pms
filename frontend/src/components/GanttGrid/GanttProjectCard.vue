@@ -10,6 +10,8 @@ const props = defineProps<{
   project: Omit<GanttProject, "allocations">;
   /** Shows the link to the project's page. */
   canOpen: boolean;
+  /** Tooltip on the remaining hours line. */
+  remainingHoursTooltip?: string;
 }>();
 
 const href = computed(() =>
@@ -56,7 +58,11 @@ const hasDetails = computed(() =>
         <GanttCardDetail v-if="dateRange" icon="lucide-calendar">
           {{ dateRange }}
         </GanttCardDetail>
-        <GanttCardDetail v-if="remaining" icon="lucide-clock">
+        <GanttCardDetail
+          v-if="remaining"
+          icon="lucide-clock"
+          :tooltip="remainingHoursTooltip"
+        >
           {{ remaining }}
         </GanttCardDetail>
         <GanttCardDetail v-if="project.projectManager" icon="lucide-user">

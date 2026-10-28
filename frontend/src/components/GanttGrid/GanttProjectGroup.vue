@@ -79,7 +79,11 @@ function addEmployee() {
       </template>
       <template v-if="subtitle" #subtitle>{{ subtitle }}</template>
       <template #card>
-        <GanttProjectCard :project="row" :can-open="canManage" />
+        <GanttProjectCard
+          :project="row"
+          :can-open="canManage"
+          :remaining-hours-tooltip="grid.remainingHoursTooltip.value"
+        />
       </template>
     </GanttRowHeader>
     <td
@@ -143,7 +147,12 @@ function addEmployee() {
             {{ employee.designation }}
           </template>
           <template #card>
-            <GanttEmployeeCard :employee="employee" :can-open="canManage" />
+            <GanttEmployeeCard
+              :employee="employee"
+              :can-open="canManage"
+              :rate-tooltip="grid.rateTooltip.value"
+              :capacity-tooltip="grid.capacityTooltip.value"
+            />
           </template>
         </GanttRowHeader>
       </template>

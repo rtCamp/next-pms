@@ -94,7 +94,7 @@ const history = computed(() => {
       <GanttCardDetail icon="lucide-calendar">
         {{ text.dateRange }}
       </GanttCardDetail>
-      <GanttCardDetail icon="lucide-clock">
+      <GanttCardDetail icon="lucide-clock" :tooltip="grid.hoursTooltip.value">
         {{ text.hoursPerDay }} ({{ text.totalHours }})
       </GanttCardDetail>
       <div class="flex items-center gap-2">

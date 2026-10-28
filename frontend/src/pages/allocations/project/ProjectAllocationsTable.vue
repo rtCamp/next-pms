@@ -2,6 +2,13 @@
 import { computed } from "vue";
 import { Spinner } from "frappe-ui";
 import { GanttGrid } from "@/components/GanttGrid";
+import {
+  ALLOCATIONS_GRID_HELP,
+  BOOKING_HOURS_TOOLTIP,
+  CAPACITY_TOOLTIP,
+  RATE_TOOLTIP,
+  REMAINING_HOURS_TOOLTIP,
+} from "@/pages/allocations/shared/help";
 import { useAllocationDialogs } from "@/pages/allocations/shared/useAllocationDialogs";
 import { ROLE_ACCESS, useSession } from "@/session";
 import ProjectAllocationsToolbar from "./ProjectAllocationsToolbar.vue";
@@ -39,6 +46,11 @@ const hasRows = computed(() => project.projects.length > 0);
           :week-count="project.query.weekCount"
           :projects="project.projects"
           row-header-label="Projects"
+          :row-header-help="ALLOCATIONS_GRID_HELP.project"
+          :rate-tooltip="RATE_TOOLTIP"
+          :capacity-tooltip="CAPACITY_TOOLTIP"
+          :remaining-hours-tooltip="REMAINING_HOURS_TOOLTIP"
+          :hours-tooltip="BOOKING_HOURS_TOOLTIP"
           :show-weekend="showWeekend"
           :has-role-access="canManageAllocations"
           :can-manage-ai-allocations="canManageAiAllocations"

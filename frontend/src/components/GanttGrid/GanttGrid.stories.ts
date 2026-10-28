@@ -4,9 +4,11 @@ import { UnsavedChangesDialog } from "@/components/UnsavedChangesDialog";
 import { provideUnsavedChanges } from "@/composables/useUnsavedChanges";
 import GanttGrid from "./GanttGrid.vue";
 import {
+  CARD_TOOLTIPS,
   EMPLOYEES,
   MANY_EMPLOYEES,
   PROJECTS,
+  ROW_HEADER_HELP,
   START_DATE,
 } from "./GanttGrid.fixtures";
 
@@ -37,6 +39,8 @@ const meta = {
     weekCount: 3,
     employees: EMPLOYEES,
     rowHeaderLabel: "Members",
+    rowHeaderHelp: ROW_HEADER_HELP,
+    ...CARD_TOOLTIPS,
     showWeekend: true,
     hasRoleAccess: true,
     canManageAiAllocations: true,

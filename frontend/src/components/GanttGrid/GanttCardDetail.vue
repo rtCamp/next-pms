@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { InfoHoverCard } from "@/components/InfoHoverCard";
+
 defineProps<{
   /** A `lucide-*` icon class. */
   icon: string;
+  /** Shown in a tooltip from an info icon after the text. */
+  tooltip?: string;
 }>();
 
 defineSlots<{ default: () => unknown }>();
@@ -15,5 +19,6 @@ defineSlots<{ default: () => unknown }>();
       aria-hidden="true"
     />
     <span class="truncate text-sm text-ink-gray-6"><slot /></span>
+    <InfoHoverCard v-if="tooltip" :tooltip="tooltip" />
   </div>
 </template>

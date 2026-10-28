@@ -71,7 +71,12 @@ function addProject() {
         {{ row.designation }}
       </template>
       <template #card>
-        <GanttEmployeeCard :employee="row" :can-open="canManage" />
+        <GanttEmployeeCard
+          :employee="row"
+          :can-open="canManage"
+          :rate-tooltip="grid.rateTooltip.value"
+          :capacity-tooltip="grid.capacityTooltip.value"
+        />
       </template>
     </GanttRowHeader>
     <td
