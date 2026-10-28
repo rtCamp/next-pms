@@ -1,0 +1,22 @@
+#stage { --ground:var(--color-surface-gray-2); --main:var(--color-ink-gray-8); --second:var(--color-ink-gray-8); --accent:#3B82F6; color:var(--second); font-family:var(--sans, system-ui, sans-serif) }
+.ground { position:absolute; inset:0; background:var(--ground) }
+.words { position:absolute; margin:0; display:flex; flex-direction:column; gap:24px } .words > * { margin:0 }
+.line { font-family:var(--display, var(--sans, system-ui, sans-serif)); font-size:84px; line-height:1.05; font-weight:700 } .sub { font-size:36px }
+.pms-cam { position:absolute; left:0; top:0; width:1920px; height:1080px; transform-origin:0 0 }
+.pms-win { position:absolute; left:240px; top:90px; width:1440px; height:900px; background:var(--color-surface-white); border-radius:12px; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,.06), 0 12px 40px rgba(0,0,0,.08); font-size:14px; color:var(--color-ink-gray-8) }
+.pms-abs { position:absolute }
+.pms-side { position:absolute; left:0; top:0; width:240px; height:900px; background:var(--color-surface-menu-bar); border-right:1px solid var(--color-outline-gray-1) }
+.pms-bar { position:absolute; height:10px; border-radius:5px; background:var(--color-surface-gray-3) }
+.pms-btn { position:absolute; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:0 12px; font-size:14px; font-weight:450; white-space:nowrap; box-sizing:border-box }
+.pms-btn-solid { background:var(--color-surface-gray-7); color:var(--color-ink-white) }
+.pms-btn-soft { background:var(--color-surface-gray-2); color:var(--color-ink-gray-8) }
+.pms-row { position:absolute; left:240px; right:0; height:44px; border-bottom:1px solid var(--color-outline-gray-1) }
+.pms-cell { position:absolute; width:56px; text-align:center; top:14px; font-size:13px; color:var(--color-ink-gray-5); font-variant-numeric:tabular-nums }
+.pms-input { position:absolute; height:32px; border:1px solid var(--color-outline-gray-2); border-radius:8px; background:var(--color-surface-white); box-sizing:border-box; padding:0 10px; display:flex; align-items:center; font-size:14px; color:var(--color-ink-gray-4); white-space:nowrap; overflow:hidden }
+.pms-input.on { color:var(--color-ink-gray-8) }
+.pms-label { position:absolute; font-size:14px; color:var(--color-ink-gray-5) } .pms-label b { color:var(--color-ink-red-3); font-weight:400 }
+.pms-dialog { position:absolute; width:512px; height:436px; background:var(--color-surface-modal); border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.18) }
+.pms-menu { position:absolute; background:var(--color-surface-modal); border-radius:10px; box-shadow:0 8px 28px rgba(0,0,0,.14); padding:4px; box-sizing:border-box; transform-origin:50% 0 }
+.pms-opt { height:28px; display:flex; align-items:center; padding:0 10px; border-radius:6px; font-size:14px; color:var(--color-ink-gray-8) }
+.pms-ring { position:absolute; border:3px solid var(--accent); border-radius:11px; pointer-events:none; box-sizing:border-box }
+.pms-pop { position:absolute; width:272px; height:184px; background:var(--color-surface-modal); border:1px solid var(--color-outline-gray-1); border-radius:12px; box-sizing:border-box; box-shadow:0 8px 28px rgba(0,0,0,.12); transform-origin:100% 0; font-size:14px; color:var(--color-ink-gray-8) }
