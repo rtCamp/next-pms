@@ -348,6 +348,23 @@ describe("scheduleRequestFromForm", () => {
     });
   });
 
+  it("keeps a tentative AI allocation tentative, though its form shows it confirmed", () => {
+    const { form, context } = formFromRequest(
+      "edit",
+      { ...segment, isAiCreated: true },
+      "CUST-1",
+      today,
+    );
+    expect(form.isTentative).toBe(false);
+    expect(
+      scheduleRequestFromForm(
+        form,
+        context,
+        allocationEditLocks("edit", context),
+      ).isTentative,
+    ).toBe(true);
+  });
+
   it("uses the allocation's own range and hours behind a locked segment", () => {
     expect(
       scheduleRequestFromForm(

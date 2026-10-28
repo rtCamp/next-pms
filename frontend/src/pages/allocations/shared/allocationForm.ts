@@ -47,6 +47,8 @@ export interface AllocationFormContext {
   recurrenceId?: string;
   isAiCreated: boolean;
   aiReason?: string;
+  /** The allocation's own status: an AI allocation's form shows it confirmed. */
+  isTentative?: boolean;
   override: AllocationOverrideEntry[];
   /** The allocation document's own range and hours, `YYYY-MM-DD`. */
   allocationStartDate?: string;
@@ -156,6 +158,7 @@ export function formFromRequest(
       recurrenceId: data.recurrenceId,
       isAiCreated: Boolean(data.isAiCreated),
       aiReason: data.aiReason,
+      isTentative: Boolean(data.tentative),
       override: (data.override ?? []) as AllocationOverrideEntry[],
       allocationStartDate: isoDate(data.allocationStartDate ?? data.startDate),
       allocationEndDate: isoDate(data.allocationEndDate ?? data.endDate),
@@ -390,7 +393,10 @@ export function scheduleRequestFromForm(
     includeWeekends: form.includeWeekends,
     includeHolidays: form.includeHolidays,
     isBillable: form.isBillable,
-    isTentative: form.isTentative,
+    // Edit schedule keeps an AI allocation's status; only approving confirms it.
+    isTentative: context.isAiCreated
+      ? Boolean(context.isTentative)
+      : form.isTentative,
     note: form.note,
     override: context.override,
     refreshTargets: formRefreshTargets(form, context),
