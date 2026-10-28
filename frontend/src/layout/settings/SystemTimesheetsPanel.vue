@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Checkbox, Select, TextInput } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { WEEK_DAY_OPTIONS } from "./constants";
+import { SETTINGS_HELP } from "./help";
 import SettingsLinkField from "./SettingsLinkField.vue";
 import SettingsMultiSelectField from "./SettingsMultiSelectField.vue";
 import { useSystemSettingsForm } from "./settingsForm";
@@ -25,7 +27,10 @@ const departments = table("allowed_departments", "department");
     <section>
       <h3 class="text-lg-semibold text-ink-gray-8">Time Entry Rules</h3>
       <div class="mt-5 flex max-w-sm flex-col gap-5">
-        <Checkbox v-model="backdated" label="Allow Backdated Entries" />
+        <div class="flex min-w-0 items-center gap-1.5">
+          <Checkbox v-model="backdated" label="Allow Backdated Entries" />
+          <InfoHoverCard :help="SETTINGS_HELP.backdatedEntries" />
+        </div>
         <template v-if="backdated">
           <TextInput
             v-model="employeeDays"
@@ -113,6 +118,7 @@ const departments = table("allowed_departments", "department");
           v-model="departments"
           label="Allowed Departments"
           doctype="Department"
+          :help="SETTINGS_HELP.allowedDepartments"
         />
       </div>
     </section>

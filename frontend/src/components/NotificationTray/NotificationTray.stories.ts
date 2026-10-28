@@ -3,7 +3,12 @@ import { Button } from "frappe-ui";
 import { useArgs } from "storybook/preview-api";
 import { fn } from "storybook/test";
 import NotificationTray from "./NotificationTray.vue";
-import { MANY_NOTIFICATIONS, NOTIFICATIONS } from "./NotificationTray.fixtures";
+import {
+  ITEM_TOOLTIP,
+  MANY_NOTIFICATIONS,
+  NOTIFICATIONS,
+  TRAY_HELP,
+} from "./NotificationTray.fixtures";
 
 const meta = {
   title: "Components/NotificationTray",
@@ -81,4 +86,9 @@ export const ManyNotifications: Story = {
 
 export const CollapsedSidebar: Story = {
   args: { open: true, offsetClass: "left-12" },
+};
+
+/** An info card after the title and a tooltip on each notification. */
+export const WithHelp: Story = {
+  args: { open: true, help: TRAY_HELP, itemTooltip: ITEM_TOOLTIP },
 };

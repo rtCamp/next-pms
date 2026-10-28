@@ -1,3 +1,5 @@
+import type { FieldHelp } from "@/components/InfoHoverCard";
+
 /** How a message segment is emphasised: `strong` is bold, `subject` is medium weight. */
 export type NotificationEmphasis = "strong" | "subject";
 
@@ -35,4 +37,8 @@ export interface NotificationTrayProps {
    * (e.g. `"left-12"` collapsed, `"left-60"` expanded). Default `"left-0"`.
    */
   offsetClass?: string;
+  /** Info card shown after the tray title. */
+  help?: FieldHelp;
+  /** Tooltip shown on each notification. */
+  itemTooltip?: string;
 }

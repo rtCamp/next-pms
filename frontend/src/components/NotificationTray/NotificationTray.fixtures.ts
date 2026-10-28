@@ -1,3 +1,4 @@
+import type { FieldHelp } from "@/components/InfoHoverCard";
 import type { NotificationEntry } from "./types";
 
 export const NOTIFICATIONS: NotificationEntry[] = [
@@ -73,3 +74,11 @@ export const MANY_NOTIFICATIONS: NotificationEntry[] = Array.from(
     read: false,
   }),
 );
+
+export const TRAY_HELP: FieldHelp = {
+  title: "Notifications",
+  summary: "Alerts you haven't read yet.",
+  details: ["Read alerts leave the tray."],
+};
+
+export const ITEM_TOOLTIP = "Marks it read and opens the page it's about.";

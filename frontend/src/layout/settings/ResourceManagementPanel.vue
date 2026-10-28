@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Button, Checkbox, Combobox, Select } from "frappe-ui";
+import { Button, Checkbox, Combobox, FormLabel, Select } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { useSession } from "@/session";
 import { WEEK_DAY_OPTIONS } from "./constants";
+import { SETTINGS_HELP } from "./help";
 import SettingsLinkField from "./SettingsLinkField.vue";
 import SettingsMultiSelectField from "./SettingsMultiSelectField.vue";
 import { useSystemSettingsForm } from "./settingsForm";
@@ -28,10 +30,15 @@ const currency = computed({
   <div class="pt-10">
     <section>
       <h3 class="text-lg-semibold text-ink-gray-8">Rate Display</h3>
-      <div class="mt-5 max-w-sm">
+      <div class="mt-5 max-w-sm space-y-1.5">
+        <div class="flex min-w-0 items-center gap-1.5">
+          <FormLabel id="default-currency" label="Default Currency" />
+          <InfoHoverCard :help="SETTINGS_HELP.defaultCurrency" />
+        </div>
         <Combobox
+          id="default-currency"
           v-model="currency"
-          label="Default Currency"
+          class="w-full"
           size="md"
           variant="outline"
           :options="currencyOptions"
@@ -55,10 +62,13 @@ const currency = computed({
     <section class="mt-10">
       <h3 class="text-lg-semibold text-ink-gray-8">Allocation Notifications</h3>
       <div class="mt-5 flex max-w-sm flex-col gap-5">
-        <Checkbox
-          v-model="sendReminder"
-          label="Send Missing Allocation Reminder"
-        />
+        <div class="flex min-w-0 items-center gap-1.5">
+          <Checkbox
+            v-model="sendReminder"
+            label="Send Missing Allocation Reminder"
+          />
+          <InfoHoverCard :help="SETTINGS_HELP.missingAllocationReminder" />
+        </div>
         <template v-if="sendReminder">
           <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- frappe-ui's Select renders a <label> from `label` -->
           <Select

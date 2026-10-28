@@ -10,6 +10,7 @@ import {
   DialogRoot,
   DialogTitle,
 } from "reka-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import NotificationItem from "./NotificationItem.vue";
 import type { NotificationEntry, NotificationTrayProps } from "./types";
 
@@ -61,9 +62,12 @@ const fade = {
           @open-auto-focus="focusPanel"
         >
           <div class="flex items-center justify-between gap-2 px-4 pb-2 pt-4">
-            <DialogTitle class="text-sm font-medium text-ink-gray-8">
-              Notifications
-            </DialogTitle>
+            <div class="flex min-w-0 items-center gap-1.5">
+              <DialogTitle class="text-sm font-medium text-ink-gray-8">
+                Notifications
+              </DialogTitle>
+              <InfoHoverCard v-if="help" :help="help" />
+            </div>
             <DialogDescription class="sr-only">
               Your unread notifications
             </DialogDescription>
@@ -103,10 +107,12 @@ const fade = {
               aria-label="Unread notifications"
             >
               <li v-for="notification in unread" :key="notification.id">
-                <NotificationItem
-                  :notification="notification"
-                  @select="emit('notificationClick', $event)"
-                />
+                <Tooltip :text="itemTooltip" :disabled="!itemTooltip">
+                  <NotificationItem
+                    :notification="notification"
+                    @select="emit('notificationClick', $event)"
+                  />
+                </Tooltip>
               </li>
             </ul>
           </ScrollArea>
