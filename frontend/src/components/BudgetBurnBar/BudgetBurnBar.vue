@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, normalizeClass, useAttrs } from "vue";
 import { cva } from "class-variance-authority";
 import { Tooltip } from "frappe-ui";
 import { ProgressBar } from "@/components/ProgressBar";
+import { cn } from "@/utils/cn";
 import { budgetBurnTier, scale } from "./utils";
 import type { BudgetBurnBarProps } from "./types";
+
+defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(defineProps<BudgetBurnBarProps>(), {
   secondaryValue: 0,
@@ -13,6 +16,13 @@ const props = withDefaults(defineProps<BudgetBurnBarProps>(), {
   size: "md",
   label: "Budget used",
 });
+
+const attrs = useAttrs();
+// A caller's width replaces the default full width.
+const rootAttrs = computed(() => ({
+  ...attrs,
+  class: cn("relative w-full", normalizeClass(attrs.class)),
+}));
 
 defineSlots<{
   /** Rich tooltip content for the `value` segment. */
@@ -64,7 +74,7 @@ const progressSecondary = computed(() =>
 </script>
 
 <template>
-  <div class="relative w-full" :data-tier="tier">
+  <div v-bind="rootAttrs" :data-tier="tier">
     <ProgressBar
       :value="value"
       :secondary-value="progressSecondary"

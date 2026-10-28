@@ -2,8 +2,10 @@
 import { computed, useTemplateRef } from "vue";
 import { Dropdown, Tooltip } from "frappe-ui";
 import { useSortable } from "@dnd-kit/vue/sortable";
+import { InfoHoverCard, type FieldHelp } from "@/components/InfoHoverCard";
 import type { SortOrder } from "@/components/SortSelector";
-import { CURRENCY_REQUIRED_TOOLTIP, PIN_LIMIT_TOOLTIP } from "./constants";
+import { PIN_LIMIT_TOOLTIP } from "./constants";
+import { CURRENCY_SORT_TOOLTIP, PROJECT_LIST_HELP } from "./help";
 import type { ProjectListColumn } from "./types";
 
 const props = defineProps<{
@@ -19,6 +21,11 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{ sort: []; togglePin: [] }>();
+
+const help = computed(
+  () =>
+    (PROJECT_LIST_HELP as Partial<Record<string, FieldHelp>>)[props.column.key],
+);
 
 const ariaSort = computed(() => {
   if (!props.column.sortField) return undefined;
@@ -61,7 +68,7 @@ function sort() {
   >
     <Tooltip
       v-if="column.sortField"
-      :text="CURRENCY_REQUIRED_TOOLTIP"
+      :text="CURRENCY_SORT_TOOLTIP"
       :disabled="!sortDisabled"
     >
       <!-- eslint-disable vue/no-restricted-v-bind -- stays hoverable so the tooltip says why -->
@@ -85,6 +92,7 @@ function sort() {
     <span v-else class="flex h-7 min-w-0 items-center text-sm">
       <span class="truncate">{{ column.label }}</span>
     </span>
+    <InfoHoverCard v-if="help" :help="help" />
     <Dropdown :options="pinOptions" side="bottom">
       <button
         type="button"
