@@ -186,6 +186,9 @@ export const MANAGER_WIDGET_HELP = {
   },
 } satisfies Record<string, FieldHelp>;
 
+export const LEAVE_APPROVAL_TOOLTIP =
+  "You're in Notify users on this leave. Only their reporting manager can approve or reject it.";
+
 const MANAGED_PROJECTS_WIKI = `${MANAGER_WIKI}#review-managed-projects-and-team-hours`;
 
 export const MANAGED_PROJECTS_HELP = {

@@ -18,8 +18,13 @@ export interface EmployeeOnLeave {
   can_approve?: boolean;
 }
 
+/** Only the employee's reporting manager can approve or reject. */
+export function canApprove(leave: EmployeeOnLeave): boolean {
+  return leave.can_approve !== false;
+}
+
 export function awaitsApproval(leave: EmployeeOnLeave): boolean {
-  return leave.status === "Open" && leave.can_approve !== false;
+  return leave.status === "Open" && canApprove(leave);
 }
 
 export function leaveDayType(leave: EmployeeOnLeave): string {
