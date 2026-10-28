@@ -1,4 +1,5 @@
 import path from "path";
+import { randomBytes } from "crypto";
 import { addEmployee } from "../utils/api/employeeRequests";
 import {
   cancelDocument,
@@ -186,12 +187,36 @@ const setProfile = async (employee, { designation, department, skills }) => {
 };
 
 /**
+ * A user to sign in as for a seeded employee: the roles given plus Employee, and a password
+ * made for this run (the stub keeps it, so a spec can log in). Returns { email, password }.
+ */
+const createLoginUser = async (employee, roles) => {
+  const email = `playwright-${getRandomString(8)}@example.com`;
+  const password = `Pw${randomBytes(12).toString("hex")}aZ9!`;
+  await createDocument("User", {
+    email,
+    first_name: SEEDED_EMPLOYEE.first_name,
+    last_name: employee.last_name,
+    send_welcome_email: 0,
+    new_password: password,
+    roles: [...roles, "Employee"].map((role) => ({ role })),
+  });
+  // No user permission: it would link to the employee and stop its deletion.
+  await updateDocument("Employee", employee.name, {
+    user_id: email,
+    create_user_permission: 0,
+  });
+  return { email, password };
+};
+
+/**
  * Creates the throwaway employees a case lists in `payloadCreateWeekEmployees`
- * ({ <name>: { managed, holidayList, weekendsOff, designation, department, skills } })
+ * ({ <name>: { managed, holidayList, weekendsOff, designation, department, skills, user } })
  * and records their ids on the stub.
  * They report to the manager unless `managed` is false (the manager stays their leave
  * approver either way); `holidayList` replaces the company's (created empty when missing),
  * and `weekendsOff` replaces it with one that has every Saturday and Sunday off.
+ * `user: { roles }` also creates a user to sign in as, kept in the stub as `user`.
  */
 const createEmployees = async (entry) => {
   entry.employees = {};
@@ -228,9 +253,13 @@ const createEmployees = async (entry) => {
         await ensureHolidayList(options.holidayList),
       );
     }
+    const user = options?.user
+      ? await createLoginUser(res.data, options.user.roles ?? [])
+      : undefined;
     entry.employees[name] = {
       id: res.data.name,
       name: `${SEEDED_EMPLOYEE.first_name} ${lastName}`,
+      ...(user && { user }),
     };
   }
 };
@@ -522,7 +551,7 @@ export const reseedAllocations = async (entry, employee) => {
 /**
  * Logs time for a case's employees in past weeks, and moves weeks on through
  * submission and approval, from these keys of its data:
- *   payloadCreateWeekEmployees  { <name>: { managed, holidayList, weekendsOff } } - employees to create besides the shared ones
+ *   payloadCreateWeekEmployees  { <name>: { managed, holidayList, weekendsOff, user } } - employees to create besides the shared ones
  *   payloadWeekendsOff          [<shared name>] - given Saturdays and Sundays off when their site has none
  *   payloadCreateWeekTime       [{ employee, project, subject, weeksAgo, days, hours, comment, role }]
  *                               `project` is the postfix of the payloadCreateProject it books against;

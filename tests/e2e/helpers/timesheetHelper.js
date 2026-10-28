@@ -26,6 +26,7 @@ import managerProjectTimesheetData from "../data/manager/projectTimesheet";
 import managerTeamTimesheetData from "../data/manager/teamTimesheet";
 import managerAllocationsData from "../data/manager/allocations";
 import managerProjectsData from "../data/manager/projects";
+import managerSettingsData from "../data/manager/settings";
 import managerDashboardData from "../data/manager/dashboard";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import {
@@ -48,7 +49,7 @@ import { filterApi, shareProjectWithUser } from "../utils/api/frappeRequests";
 import { deleteSalesOrdersOfProject } from "./billingHelper";
 import { deleteLeave } from "../utils/api/leaveRequests";
 import { getWeekRange } from "../utils/dateUtils";
-import { deleteEmployeeByName } from "./employeeHelper";
+import { deleteEmployeeByName, deleteSeededUsers } from "./employeeHelper";
 import {
   getDocList,
   cancelDocument,
@@ -1142,10 +1143,12 @@ export const readAndCleanAllOrphanData = async () => {
     ...managerAllocationsData,
     ...managerProjectsData,
     ...managerDashboardData,
+    ...managerSettingsData,
   };
 
   await deleteLeaveOfEmployee();
   await deleteEmployeeByName();
+  await deleteSeededUsers();
   await cleanUpProjects(mergedData);
 };
 /**

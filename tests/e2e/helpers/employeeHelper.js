@@ -464,6 +464,37 @@ export const deleteEmployeeByName = async () => {
 };
 // ------------------------------------------------------------------------------------------
 
+/**
+ * Deletes the users seeded to sign in as a throwaway employee. Run it after
+ * deleteEmployeeByName: an employee still points at its user.
+ */
+export const deleteSeededUsers = async () => {
+  const users = await getDocList(
+    "User",
+    [["name", "like", "playwright-%@example.com"]],
+    { fields: ["name"] },
+  );
+  for (const { name } of users) {
+    // The app creates a user's PMS settings on first use and HRMS a user permission
+    // with the employee; both link to the user.
+    for (const doctype of ["PMS User Setting", "User Permission"]) {
+      for (const doc of await getDocList(doctype, [["user", "=", name]], {
+        fields: ["name"],
+      })) {
+        await deleteDocument(doctype, doc.name);
+      }
+    }
+    const { deleted, reason } = await deleteWithLockRetry(
+      () => deleteDocument("User", name),
+      { label: `User ${name}` },
+    );
+    if (deleted) console.log(`🗑  Deleted user ${name}`);
+    else console.warn(`⚠️ User ${name} could not be deleted: ${reason}`);
+  }
+};
+
+// ------------------------------------------------------------------------------------------
+
 export const deleteAllocationsByEmployee = async (
   projectID,
   employeeID = employeeId,

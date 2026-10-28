@@ -13,27 +13,37 @@ const credentialsMap = {
   employee: { email: process.env.EMP_EMAIL, password: process.env.EMP_PASS },
   employee2: { email: process.env.EMP2_EMAIL, password: process.env.EMP2_PASS },
   employee3: { email: process.env.EMP3_EMAIL, password: process.env.EMP3_PASS },
-  manager: { email: process.env.REP_MAN_EMAIL, password: process.env.REP_MAN_PASS },
+  manager: {
+    email: process.env.REP_MAN_EMAIL,
+    password: process.env.REP_MAN_PASS,
+  },
   admin: { email: process.env.ADMIN_EMAIL, password: process.env.ADMIN_PASS },
 };
 
 /**
  * Stores the authentication state of a specified role for reuse in tests.
- * @param {string} role            Role key must exist in credentialsMap
+ * @param {string | {email: string, password: string}} role  Role key in credentialsMap, or the credentials of a seeded user (then `outFilePath` is required)
  * @param {boolean} [isApi=false]  If true, only API tokens are stored; otherwise includes CSRF cookie too
  * @param {string} [outFilePath]   Optional full path to write storageState JSON
  */
 export const storeStorageState = async (role, isApi = false, outFilePath) => {
   // Validate role
-  const creds = credentialsMap[role];
+  const creds = typeof role === "string" ? credentialsMap[role] : role;
   if (!creds) {
-    throw new Error(`Unknown role "${role}". Expected one of: ${Object.keys(credentialsMap).join(", ")}`);
+    throw new Error(
+      `Unknown role "${role}". Expected one of: ${Object.keys(credentialsMap).join(", ")}`,
+    );
+  }
+  if (typeof role !== "string" && !outFilePath) {
+    throw new Error("Credentials need an outFilePath to store their state in");
   }
   const { email, password } = creds;
 
   // Determine output path
   const defaultName = isApi ? `${role}-API.json` : `${role}.json`;
-  const storagePath = outFilePath ? outFilePath : path.resolve(__dirname, `../auth/${defaultName}`);
+  const storagePath = outFilePath
+    ? outFilePath
+    : path.resolve(__dirname, `../auth/${defaultName}`);
 
   // Ensure output directory exists
   const dir = path.dirname(storagePath);
@@ -47,7 +57,9 @@ export const storeStorageState = async (role, isApi = false, outFilePath) => {
   // Perform login via API
   const response = await loginIntoNextPMS(requestContext, email, password);
   if (!response.ok()) {
-    throw new Error(`Login failed for ${role}: ${response.status()} ${response.statusText()}`);
+    throw new Error(
+      `Login failed for ${role}: ${response.status()} ${response.statusText()}`,
+    );
   }
 
   if (isApi) {
