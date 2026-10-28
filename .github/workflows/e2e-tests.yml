@@ -31,6 +31,7 @@ jobs:
     env:
       TZ: Asia/Kolkata # the suite and the seeded site both assume IST
       CI: "true"
+      E2E_FRESH_SITE: "true" # new-site below, so nothing to sweep before seeding
 
     steps:
       - uses: actions/checkout@v7
