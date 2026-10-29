@@ -275,8 +275,8 @@ kit.scene('sort-list', {
     this.camera = new kit.Camera(this.cam);
     this.camera.set([
       { t: 0, cx: 960, cy: 540, z: 1.12, hold: 0.8, drift: [2, 0, 0.004] },
-      { t: 1.8, cx: 1310, cy: 395, z: 2.0, hold: 3.8, drift: [-3, 2, 0.002] },
-      { t: 6.6, cx: 1300, cy: 460, z: 1.6, drift: [1.5, 0, 0.003] },
+      { t: 1.8, cx: 1190, cy: 395, z: 2.0, hold: 3.8, drift: [-3, 2, 0.002] },
+      { t: 6.6, cx: 1070, cy: 460, z: 1.6, drift: [1.5, 0, 0.003] },
     ]);
     this.cur = kit.cursor();
     this.cam.appendChild(this.cur.el);

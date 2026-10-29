@@ -239,10 +239,10 @@ kit.scene('save-view', {
     this.spH = SELPOP.Status.opts.map((_, i) => q('sp-h' + i)); this.ppH = SELPOP.Phases.opts.map((_, i) => q('pp-h' + i));
     this.camera = new kit.Camera(this.cam);
     this.camera.set([
-      { t: 0, cx: 960, cy: 540, z: 1.12, hold: 0.8, drift: [2, 0, 0.004] },
-      { t: 1.7, cx: 880, cy: 350, z: 2.0, hold: 6.05, drift: [-2, 1, 0.003] },
-      { t: 8.4, cx: 960, cy: 335, z: 2.2, hold: 3.1, drift: [0, 1, 0.003] },
-      { t: 12.2, cx: 880, cy: 350, z: 2.0, drift: [-2, 0, 0.003] },
+      { t: 0, cx: 984, cy: 540, z: 1.12, hold: 0.8, drift: [2, 0, 0.004] },
+      { t: 1.7, cx: 880, cy: 365, z: 2.0, hold: 6.05, drift: [-2, 1, 0.003] },
+      { t: 8.4, cx: 960, cy: 345, z: 2.2, hold: 3.1, drift: [0, 1, 0.003] },
+      { t: 12.2, cx: 880, cy: 365, z: 2.0, drift: [-2, 0, 0.003] },
     ]);
     this.cur = kit.cursor();
     this.cam.appendChild(this.cur.el);

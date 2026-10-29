@@ -214,8 +214,8 @@ kit.scene('switch-view', {
     this.mh = VM_ROWS.map((r) => [r, q('m-h-' + r.k)]);
     this.camera = new kit.Camera(this.cam);
     this.camera.set([
-      { t: 0, cx: 960, cy: 540, z: 1.12, hold: 0.8, drift: [2, 0, 0.004] },
-      { t: 1.7, cx: 880, cy: 350, z: 2.0, drift: [-2, 1, 0.003] },
+      { t: 0, cx: 984, cy: 540, z: 1.12, hold: 0.8, drift: [2, 0, 0.004] },
+      { t: 1.7, cx: 880, cy: 365, z: 2.0, drift: [-2, 1, 0.003] },
     ]);
     this.cur = kit.cursor();
     this.cam.appendChild(this.cur.el);

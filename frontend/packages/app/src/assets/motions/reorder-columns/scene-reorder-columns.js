@@ -258,8 +258,7 @@ kit.scene('reorder-columns', {
     this.shc = kit.stage.querySelector('.pms-sh-changed');
     this.camera = new kit.Camera(this.cam);
     this.camera.set([
-      { t: 0, cx: 960, cy: 540, z: 1.12, hold: 0.8, drift: [2, 0, 0.004] },
-      { t: 1.8, cx: 1210, cy: 380, z: 2.0, hold: 5.35, drift: [-3, 2, 0.002] },
+      { t: 0, cx: 960, cy: 540, z: 1.12, hold: 0.8, drift: [2, 0, 0.004] },      { t: 1.8, cx: 1195, cy: 380, z: 2.0, hold: 5.35, drift: [-3, 2, 0.002] },
       { t: 8.15, cx: 840, cy: 380, z: 1.9, drift: [1.5, 0, 0.003] },
     ]);
     this.cur = kit.cursor();

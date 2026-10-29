@@ -153,9 +153,9 @@ kit.scene('add-time', {
     this.camera = new kit.Camera(this.cam);
     this.camera.set([
       { t: 0, cx: 960, cy: 540, z: 1.12, hold: 0.4 },
-      { t: 1.2, cx: 1250, cy: 360, z: 2.0, hold: 0.15 },
+      { t: 1.2, cx: 1200, cy: 360, z: 2.0, hold: 0.15 },
       { t: 1.9, cx: 960, cy: 440, z: 2.2, hold: 4.2, drift: [0, 0, 0.004] },
-      { t: 6.7, cx: 1200, cy: 330, z: 2.0, drift: [-3, 0, 0.006] },
+      { t: 6.7, cx: 1190, cy: 362, z: 2.0, drift: [-3, 0, 0.006] },
     ]);
     this.cur = kit.cursor();
     this.cam.appendChild(this.cur.el);

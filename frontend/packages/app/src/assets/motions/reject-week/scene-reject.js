@@ -159,11 +159,11 @@ kit.scene('reject', {
     const cam = this.cam = new kit.Camera(kit.stage.querySelector('.reject-cam'));
     cam.set([
       { t: 0, cx: 960, cy: 540, z: 1.1, hold: 1.0, drift: [2, 0, 0.006] },
-      { t: 2.2, cx: 1200, cy: 360, z: 2.0, hold: 1.85, drift: [1.5, 0, 0.004] },
-      { t: 5.05, cx: 1430, cy: 480, z: 2.2, hold: 0.55, drift: [0, 1.5, 0.003] },
-      { t: 6.5, cx: 1430, cy: 712, z: 2.0, hold: 1.6, drift: [0, -1.5, 0.003] },
+      { t: 2.2, cx: 1195, cy: 360, z: 2.0, hold: 1.85, drift: [1.5, 0, 0.004] },
+      { t: 5.05, cx: 1240, cy: 480, z: 2.2, hold: 0.55, drift: [0, 1.5, 0.003] },
+      { t: 6.5, cx: 1195, cy: 712, z: 2.0, hold: 1.6, drift: [0, -1.5, 0.003] },
       { t: 8.9, cx: 960, cy: 545, z: 2.1, hold: 3.6, drift: [1, 0, 0.003] },
-      { t: 13.6, cx: 1110, cy: 417, z: 1.65, drift: [1.5, 0, 0.004] },
+      { t: 13.6, cx: 1095, cy: 420, z: 1.65, drift: [0, 0, 0.004] },
     ]);
     const cur = this.cur = kit.cursor();
     kit.stage.querySelector('.reject-cam').appendChild(cur.el);
