@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { ProgressBar } from "@next-pms/design-system/components";
+import { InfoHoverCard, ProgressBar } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
@@ -9,6 +9,7 @@ import { ProgressBar } from "@next-pms/design-system/components";
 import { currencyFormat } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { useTracking } from "../context";
+import { TRACKING_HELP } from "../help";
 import { LegendItem } from "./legendItem";
 
 export function BudgetBurnCell() {
@@ -20,9 +21,12 @@ export function BudgetBurnCell() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
-      <span className="text-base text-ink-gray-8 font-medium">
-        Budget burn (to date)
-      </span>
+      <div className="flex min-w-0 items-center gap-1.5">
+        <span className="text-base text-ink-gray-8 font-medium">
+          Budget burn (to date)
+        </span>
+        <InfoHoverCard help={TRACKING_HELP.budgetBurn} />
+      </div>
       <ProgressBar
         value={actual}
         secondaryValue={actual + forecasted}
@@ -34,21 +38,25 @@ export function BudgetBurnCell() {
         <LegendItem
           className="bg-surface-green-5"
           label="Actual budget burn"
-          value={currencyFormat(currency).format(actual)}
+          value={budgetBurn ? currencyFormat(currency).format(actual) : "N/A"}
           labelClassName="text-ink-gray-6"
           valueClassName="shrink-0 font-medium"
         />
         <LegendItem
           className="bg-surface-green-3"
           label="Forecasted budget burn"
-          value={currencyFormat(currency).format(forecasted)}
+          value={
+            budgetBurn ? currencyFormat(currency).format(forecasted) : "N/A"
+          }
           labelClassName="text-ink-gray-6"
           valueClassName="shrink-0 font-medium"
         />
         <LegendItem
           className="bg-surface-gray-3"
           label="Total project budget"
-          value={currencyFormat(currency).format(totalBudget)}
+          value={
+            budgetBurn ? currencyFormat(currency).format(totalBudget) : "N/A"
+          }
           labelClassName="text-ink-gray-6"
           valueClassName="shrink-0 font-medium"
         />

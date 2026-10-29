@@ -65,7 +65,9 @@ export function UpcomingTimeOffProvider({ children }: PropsWithChildren) {
     const leaves = sortOpenLeavesFirst(data?.message ?? []);
     return {
       leaves,
-      pendingCount: leaves.filter((leave) => leave.status === "Open").length,
+      pendingCount: leaves.filter(
+        (leave) => leave.status === "Open" && leave.can_approve,
+      ).length,
       isLoading,
       approveLeave,
       rejectLeave,

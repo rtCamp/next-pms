@@ -7,6 +7,7 @@ import type { SelectOption } from "@rtcamp/frappe-ui-react";
  * Internal dependencies.
  */
 import { ROUTES } from "@/lib/constant";
+import { TEAM_TIMESHEETS_HELP } from "@/pages/dashboard/help";
 
 export const teamTimesheetUrlForEmployee = (employee: string) =>
   `${ROUTES["timesheet-team"]}?compositeFilters=${encodeURI(
@@ -39,7 +40,25 @@ export const TIMESHEET_COLUMNS = [
     width: "112px",
     align: "right",
   },
-  { key: "expected", label: "Expected h", width: "96px", align: "right" },
-  { key: "delta", label: "Delta", width: "72px", align: "right" },
-  { key: "status", label: "", width: "48px", align: "right" },
+  {
+    key: "expected",
+    label: "Expected h",
+    width: "96px",
+    align: "right",
+    help: TEAM_TIMESHEETS_HELP.expected,
+  },
+  {
+    key: "delta",
+    label: "Delta",
+    width: "72px",
+    align: "right",
+    help: TEAM_TIMESHEETS_HELP.delta,
+  },
+  {
+    key: "status",
+    label: "",
+    width: "48px",
+    align: "right",
+    help: TEAM_TIMESHEETS_HELP.status,
+  },
 ];

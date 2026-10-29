@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import { getTodayDate } from "@next-pms/design-system";
 import {
   DeleteActionDialog,
+  InfoHoverCard,
   LoadingOverlay,
   Spinner,
 } from "@next-pms/design-system/components";
@@ -118,6 +119,7 @@ function TaskList() {
                         : undefined
                     }
                     item={column}
+                    suffix={column.help && <InfoHoverCard help={column.help} />}
                   >
                     {sortField ? (
                       <button

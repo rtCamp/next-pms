@@ -17,6 +17,7 @@ import { Search } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
+import { MEMBER_REMOVE_TOOLTIP } from "../../help";
 import { useSidebar } from "../sidebarContext";
 
 export type AddMemberModalProps = {
@@ -116,9 +117,9 @@ export function AddMemberModal({
                   (role) => ROLE_TAG_LABEL[role] ?? role,
                 );
                 const removeDisabledReason = roleLabels.length
-                  ? `${roleLabels.join(" & ")} cannot be removed here`
+                  ? MEMBER_REMOVE_TOOLTIP.manager(roleLabels)
                   : billingTeamIds.includes(memberId)
-                    ? "Billing team members cannot be removed here"
+                    ? MEMBER_REMOVE_TOOLTIP.billingTeam
                     : undefined;
 
                 return (

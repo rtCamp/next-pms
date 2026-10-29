@@ -12,12 +12,23 @@ def enqueue_update_task_and_project(tasks: list[str], projects: list[str]) -> No
         return
 
     frappe.enqueue(
-        update_task_and_project,
+        run_costing_job,
         queue=get_costing_queue(),
         enqueue_after_commit=True,
         tasks=tasks,
         projects=projects,
     )
+
+
+def run_costing_job(tasks: list[str], projects: list[str]) -> None:
+    """Background-job entry point: run update_task_and_project in a fresh transaction.
+
+    MariaDB fixes a transaction's read snapshot at its first plain read. Rolling back the
+    read-only transaction left by job setup makes the row locks the job's first reads, so
+    after waiting on a lock the job sees what the job holding it committed.
+    """
+    frappe.db.rollback()
+    update_task_and_project(tasks=tasks, projects=projects)
 
 
 @error_logger
@@ -29,10 +40,24 @@ def update_task_and_project(tasks: list[str], projects: list[str]) -> None:
     """
     tasks = tasks or []
     projects = projects or []
+
+    lock_tasks_and_projects(tasks, projects)
+
     statuses = {task: get_task_status_from_remaining_logs(task) for task in tasks}
 
     update_tasks(tasks, statuses)
     update_projects(projects)
+
+
+def lock_tasks_and_projects(tasks: list[str], projects: list[str]) -> None:
+    """Row-lock the tasks, then the projects, each in name order, before anything else is read.
+
+    Concurrent jobs for the same rows then run one after another instead of failing with
+    TimestampMismatchError, and always in the same order so they cannot deadlock each other.
+    """
+    for doctype, names in (("Task", tasks), ("Project", projects)):
+        if names:
+            frappe.db.get_values(doctype, {"name": ["in", names]}, "name", order_by="name asc", for_update=True)
 
 
 def get_affected_tasks_and_projects(time_logs: list) -> tuple[list[str], list[str]]:
@@ -68,6 +93,9 @@ def update_tasks(tasks: list[str], statuses: dict[str, str | None]) -> None:
 
     Tasks that no longer exist are skipped: a deletion can reach here after the task itself
     was removed (deleting a project cascades to its tasks and timesheets).
+
+    Tasks synced from a GitHub issue keep their status: the GitHub connector sets it from the
+    issue state, and nothing re-syncs a task this job has reopened.
     """
     for task in tasks:
         if not frappe.db.exists("Task", task):
@@ -76,7 +104,7 @@ def update_tasks(tasks: list[str], statuses: dict[str, str | None]) -> None:
         task_doc = frappe.get_doc("Task", task)
 
         status = statuses.get(task)
-        if status:
+        if status and not task_doc.get("custom_github_issue_id"):
             task_doc.status = status
 
         task_doc.save(ignore_permissions=True)

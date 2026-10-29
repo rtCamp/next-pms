@@ -1,12 +1,13 @@
 /**
  * External dependencies.
  */
-import { Spinner } from "@next-pms/design-system/components";
+import { InfoHoverCard, Spinner } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
  */
 import { ActivityItem } from "./activityItem";
+import { ACTIVITY_HELP } from "./help";
 import { useActivity } from "./useActivity";
 
 interface ActivitySectionProps {
@@ -28,7 +29,10 @@ export function ActivitySection({
 
   return (
     <section>
-      <h3 className="mb-3 text-lg font-medium text-ink-gray-7">Activity</h3>
+      <div className="mb-3 flex min-w-0 items-center gap-1.5">
+        <h3 className="text-lg font-medium text-ink-gray-7">Activity</h3>
+        <InfoHoverCard help={ACTIVITY_HELP} />
+      </div>
       {isLoading ? (
         <Spinner />
       ) : error ? (

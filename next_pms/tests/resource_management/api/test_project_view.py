@@ -11,7 +11,7 @@ from next_pms.resource_management.api.project import (
 )
 from next_pms.resource_management.api.utils.helpers import resource_api_permissions_check
 from next_pms.resource_management.api.utils.query import get_remaining_allocation_hours_by_project
-from next_pms.tests.utils import assign_empty_holiday_list
+from next_pms.tests.utils import assign_empty_holiday_list, make_tech_stack
 
 WRITE_USER = "pv.write@example.com"
 READ_ONLY_USER = "pv.readonly@example.com"
@@ -109,6 +109,7 @@ class _ProjectViewBase(IntegrationTestCase):
                 "company": cls.company,
                 "customer": customer,
                 "custom_billing_type": billing_type,
+                "tech_stack": make_tech_stack(),
                 "status": status,
             }
         )

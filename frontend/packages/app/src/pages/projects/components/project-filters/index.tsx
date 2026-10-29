@@ -3,7 +3,10 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
-import { SortSelector } from "@next-pms/design-system/components";
+import {
+  InfoHoverCard,
+  SortSelector,
+} from "@next-pms/design-system/components";
 import {
   Button,
   ColumnSelector,
@@ -23,6 +26,7 @@ import { getDefaultCurrency, toSelectorColumns } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import { useProjectFilters } from "./useProjectFilters";
 import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../../constants";
+import { CURRENCY_HELP, CURRENCY_SORT_TOOLTIP } from "../../help";
 import {
   MAX_PINNED_COLUMNS,
   PROJECT_LIST_COLUMNS,
@@ -114,14 +118,17 @@ export function ProjectFilters() {
             onChange={(v) => setRagStatus(v as RagStatus[])}
           />
         </div>
-        <div className="w-28 shrink-0">
-          <Combobox
-            placeholder="Currency"
-            value={currency || null}
-            onChange={(v) => setCurrency(v || "")}
-            options={currencies}
-            clearable
-          />
+        <div className="flex shrink-0 items-center gap-1.5">
+          <div className="w-28">
+            <Combobox
+              placeholder="Currency"
+              value={currency || null}
+              onChange={(v) => setCurrency(v || "")}
+              options={currencies}
+              clearable
+            />
+          </div>
+          <InfoHoverCard help={CURRENCY_HELP} />
         </div>
         <div className="w-fit max-w-34 shrink-0">
           <Select
@@ -212,18 +219,14 @@ export function ProjectFilters() {
                 field: "burn_rate_per_week",
                 label: "Burn rate/week",
                 disabled: !currency,
-                tooltipText: !currency
-                  ? "Select a currency to enable this sort"
-                  : undefined,
+                tooltipText: !currency ? CURRENCY_SORT_TOOLTIP : undefined,
               },
               { field: "cost_burn_percent", label: "Cost burn" },
               {
                 field: "total_budget",
                 label: "Total budget",
                 disabled: !currency,
-                tooltipText: !currency
-                  ? "Select a currency to enable this sort"
-                  : undefined,
+                tooltipText: !currency ? CURRENCY_SORT_TOOLTIP : undefined,
               },
               { field: "profit_margin", label: "Profit margin" },
               { field: "expected_start_date", label: "Start date" },

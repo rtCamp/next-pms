@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import React, { type ComponentType } from "react";
+import { Tooltip } from "@rtcamp/frappe-ui-react";
 import {
   AtSign,
   Folder,
@@ -48,9 +49,11 @@ const NotificationIcon = ({
 
 const NotificationItem = ({
   notification,
+  tooltip,
   onSelect,
 }: {
   notification: NotificationEntry;
+  tooltip: string;
   onSelect?: (notification: NotificationEntry) => void;
 }) => {
   const { linkedDoctype, title, message, timeLabel, read, href } = notification;
@@ -71,49 +74,53 @@ const NotificationItem = ({
   };
 
   return (
-    <a
-      href={href}
-      tabIndex={0}
-      onClick={handleClick}
-      className="group flex cursor-pointer items-start gap-2.5 rounded-[10px] p-2.5 hover:bg-surface-gray-2"
-    >
-      <span
-        className={cn(
-          "mt-2.5 size-2 shrink-0 rounded-full",
-          read ? "bg-transparent" : "bg-surface-blue-5",
-        )}
-      />
-      <NotificationIcon linkedDoctype={linkedDoctype} title={title} />
-      <div className="flex min-w-0 flex-col gap-1">
-        <div className="flex items-baseline justify-between gap-2">
-          {title && (
-            <span className="truncate text-sm font-medium text-ink-gray-7">
-              {title}
-            </span>
+    <Tooltip text={tooltip}>
+      <a
+        href={href}
+        tabIndex={0}
+        onClick={handleClick}
+        className="group flex cursor-pointer items-start gap-2.5 rounded-[10px] p-2.5 hover:bg-surface-gray-2"
+      >
+        <span
+          className={cn(
+            "mt-2.5 size-2 shrink-0 rounded-full",
+            read ? "bg-transparent" : "bg-surface-blue-5",
           )}
-          <span className="shrink-0 text-xs text-ink-gray-5">{timeLabel}</span>
+        />
+        <NotificationIcon linkedDoctype={linkedDoctype} title={title} />
+        <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex items-baseline justify-between gap-2">
+            {title && (
+              <span className="truncate text-sm font-medium text-ink-gray-7">
+                {title}
+              </span>
+            )}
+            <span className="shrink-0 text-xs text-ink-gray-5">
+              {timeLabel}
+            </span>
+          </div>
+          <p className="text-[13px] leading-[1.5] text-ink-gray-6">
+            {message.map((segment, index) => {
+              if (segment.emphasis === "strong") {
+                return (
+                  <strong key={index} className="font-bold text-ink-gray-7">
+                    {segment.text}
+                  </strong>
+                );
+              }
+              if (segment.emphasis === "subject") {
+                return (
+                  <span key={index} className="font-medium text-ink-gray-7">
+                    {segment.text}
+                  </span>
+                );
+              }
+              return <span key={index}>{segment.text}</span>;
+            })}
+          </p>
         </div>
-        <p className="text-[13px] leading-[1.5] text-ink-gray-6">
-          {message.map((segment, index) => {
-            if (segment.emphasis === "strong") {
-              return (
-                <strong key={index} className="font-bold text-ink-gray-7">
-                  {segment.text}
-                </strong>
-              );
-            }
-            if (segment.emphasis === "subject") {
-              return (
-                <span key={index} className="font-medium text-ink-gray-7">
-                  {segment.text}
-                </span>
-              );
-            }
-            return <span key={index}>{segment.text}</span>;
-          })}
-        </p>
-      </div>
-    </a>
+      </a>
+    </Tooltip>
   );
 };
 

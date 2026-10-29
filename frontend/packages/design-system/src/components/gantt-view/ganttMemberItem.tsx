@@ -40,14 +40,23 @@ export function GanttMemberItem({
   style,
   contentHeight = CELL_HEIGHT,
 }: GanttMemberItemProps) {
-  const { members, expandedRows, toggleRow, headerWidth, hasRoleAccess } =
-    useGanttStore((s) => ({
-      members: s.members,
-      expandedRows: s.expandedRows,
-      headerWidth: s.headerWidth,
-      toggleRow: s.toggleRow,
-      hasRoleAccess: s.hasRoleAccess,
-    }));
+  const {
+    members,
+    expandedRows,
+    toggleRow,
+    headerWidth,
+    hasRoleAccess,
+    rateTooltip,
+    capacityTooltip,
+  } = useGanttStore((s) => ({
+    members: s.members,
+    expandedRows: s.expandedRows,
+    headerWidth: s.headerWidth,
+    toggleRow: s.toggleRow,
+    hasRoleAccess: s.hasRoleAccess,
+    rateTooltip: s.rateTooltip,
+    capacityTooltip: s.capacityTooltip,
+  }));
 
   const triggerId = useId();
   const hasMemberIndex = memberInd !== undefined;
@@ -179,6 +188,8 @@ export function GanttMemberItem({
               <GanttMemberHoverCard
                 member={member}
                 canOpenEmployee={hasRoleAccess}
+                rateTooltip={rateTooltip}
+                capacityTooltip={capacityTooltip}
               />
             </Popover.Popup>
           </Popover.Positioner>

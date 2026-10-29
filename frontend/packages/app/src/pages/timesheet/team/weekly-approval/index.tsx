@@ -25,7 +25,7 @@ const WeeklyApprovalContent = () => {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Backdrop className="dialog-backdrop fixed inset-0 bg-black-overlay-200 backdrop-filter backdrop-blur-md z-100" />
+        <Dialog.Backdrop className="dialog-backdrop fixed inset-0 bg-black-overlay-200 backdrop-filter backdrop-blur-md z-11" />
         {currentView === "approval" ? <ApprovalPopup /> : <RejectionPopup />}
       </Dialog.Portal>
     </Dialog.Root>

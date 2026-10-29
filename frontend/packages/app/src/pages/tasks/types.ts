@@ -1,8 +1,14 @@
+import type { FieldHelp } from "@next-pms/design-system/components";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 
 import { TASK_PRIORITIES, TASK_STATUSES } from "./constants";
 
-export type ListViewColumn = { key: string; label: string; width?: string };
+export type ListViewColumn = {
+  key: string;
+  label: string;
+  width?: string;
+  help?: FieldHelp;
+};
 
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 

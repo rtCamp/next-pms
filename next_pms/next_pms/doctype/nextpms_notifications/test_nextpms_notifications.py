@@ -4,6 +4,7 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
+from next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications import create_notification
 from next_pms.next_pms.patches.backfill_notification_title import NOTIFICATION_TITLES
 from next_pms.next_pms.patches.backfill_notification_title import execute as backfill_notification_title
 
@@ -143,6 +144,25 @@ class IntegrationTestNextPMSNotifications(IntegrationTestCase):
         frappe.set_user(SYSTEM_MANAGER_USER)
         frappe.delete_doc("NextPMS Notifications", doc.name)
         self.assertFalse(frappe.db.exists("NextPMS Notifications", doc.name))
+
+    # create_notification — the job runs as the triggering user, who is rarely the recipient.
+    def test_create_notification_delivers_to_another_user_from_a_restricted_session(self):
+        self._make_notification(PROJECTS_MANAGER_USER)
+        frappe.set_user(PROJECTS_MANAGER_USER)
+
+        create_notification(DELIVERY_MANAGER_USER, "Cross-user", "Cross-user", "User", DELIVERY_MANAGER_USER)
+
+        frappe.set_user("Administrator")
+        names = frappe.get_all(
+            "NextPMS Notifications", filters={"user": DELIVERY_MANAGER_USER, "title": "Cross-user"}, pluck="name"
+        )
+        for name in names:
+            self.addCleanup(frappe.delete_doc, "NextPMS Notifications", name, ignore_permissions=True, force=True)
+        self.assertEqual(len(names), 1)
+
+    def test_create_notification_failure_is_raised_not_swallowed(self):
+        with self.assertRaises(frappe.LinkValidationError):
+            create_notification("no-such-user@example.com", "Lost", "Lost", "User", SYSTEM_MANAGER_USER)
 
     # Row-level isolation — after_insert() scopes each notification to its
     # own recipient via a User Permission, regardless of doctype-level read access.

@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { mergeClassNames as cn } from "@next-pms/design-system";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { formatDateRange } from "@next-pms/design-system/date";
 import {
   Avatar,
@@ -34,6 +35,7 @@ import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
 import { useProjectLookup } from "@/hooks/useProjectLookup";
 import { ROUTES } from "@/lib/constant";
 import { isWeekendEntryAllowed, parseFrappeErrorMsg } from "@/lib/utils";
+import { ALLOCATION_DIALOG_HELP } from "@/pages/allocations/help";
 import { useEmployeeAvailability } from "@/pages/allocations/useEmployeeAvailability";
 import { isLeaveOwnedOverride } from "@/pages/allocations/utils";
 import {
@@ -780,13 +782,13 @@ function AddAllocationModal({
               {initialValues?.isAiCreated &&
                 initialValues.aiAllocationReason && (
                   <div
-                    className="mt-2 flex min-w-0 max-w-full items-center gap-1 text-ink-amber-4"
+                    className="mt-2 flex min-w-0 max-w-full items-start gap-1 text-ink-amber-4"
                     title={initialValues.aiAllocationReason}
                   >
                     <span className="shrink-0 text-sm font-medium">
                       Remark:
                     </span>
-                    <p className="min-w-0 truncate text-sm font-normal">
+                    <p className="min-w-0 whitespace-pre-line break-words text-sm font-normal">
                       {initialValues.aiAllocationReason}
                     </p>
                   </div>
@@ -906,15 +908,20 @@ function AddAllocationModal({
               <form.Field
                 name="includeHolidays"
                 children={(field) => (
-                  <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
-                    <Checkbox
-                      value={field.state.value}
-                      onChange={(checked) =>
-                        field.handleChange(Boolean(checked))
-                      }
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
+                      <Checkbox
+                        value={field.state.value}
+                        onChange={(checked) =>
+                          field.handleChange(Boolean(checked))
+                        }
+                      />
+                      Include holidays
+                    </label>
+                    <InfoHoverCard
+                      help={ALLOCATION_DIALOG_HELP.includeHolidays}
                     />
-                    Include holidays
-                  </label>
+                  </div>
                 )}
               />
             </div>
@@ -1025,9 +1032,12 @@ function AddAllocationModal({
                 name="repeatFor"
                 children={(field) => (
                   <div className="shrink-0 flex flex-1 flex-col gap-1.5">
-                    <FormLabel id="repeat-for" size="md" required>
-                      Repeat for
-                    </FormLabel>
+                    <div className="flex items-center gap-1.5">
+                      <FormLabel id="repeat-for" size="md" required>
+                        Repeat for
+                      </FormLabel>
+                      <InfoHoverCard help={ALLOCATION_DIALOG_HELP.repeatFor} />
+                    </div>
                     <div className="relative">
                       <TextInput
                         htmlId="repeat-for"
@@ -1070,9 +1080,12 @@ function AddAllocationModal({
             )}
 
             <div className="shrink-0 flex flex-1 flex-col gap-1.5">
-              <FormLabel id="total-hours" size="md">
-                Total hours
-              </FormLabel>
+              <div className="flex items-center gap-1.5">
+                <FormLabel id="total-hours" size="md">
+                  Total hours
+                </FormLabel>
+                <InfoHoverCard help={ALLOCATION_DIALOG_HELP.totalHours} />
+              </div>
               <TextInput
                 htmlId="total-hours"
                 disabled={true}

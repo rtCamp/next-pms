@@ -4,7 +4,6 @@
 from unittest.mock import patch
 
 import frappe
-from frappe.deferred_insert import save_to_db
 from frappe.tests import IntegrationTestCase
 
 from next_pms.install import create_default_risk_masters
@@ -49,6 +48,11 @@ class IntegrationTestRiskOwnerNotification(IntegrationTestCase):
         frappe.delete_doc("Project", cls.project.name, force=True, ignore_permissions=True)
         super().tearDownClass()
 
+    def setUp(self):
+        sendmail = patch(SENDMAIL)
+        self.sendmail = sendmail.start()
+        self.addCleanup(sendmail.stop)
+
     def tearDown(self):
         for name in frappe.get_all(
             "NextPMS Notifications",
@@ -83,22 +87,9 @@ class IntegrationTestRiskOwnerNotification(IntegrationTestCase):
             fields=["label", "linked_document", "url", "email_subject"],
         )
 
-    def _flush(self):
-        # Deferred inserts run under the flush caller; in production a scheduler job
-        # does this as Administrator, so reset the session before flushing.
-        frappe.set_user("Administrator")
-        save_to_db()
-
-    def _flush_capturing_mail(self):
-        """Flush the deferred queue, capturing the emails the inserts send."""
-        with patch(SENDMAIL) as sendmail:
-            self._flush()
-        return sendmail
-
     def test_assigning_owner_on_create_notifies_them(self):
         frappe.set_user(ACTOR_USER)
         risk = self._make_risk()
-        sendmail = self._flush_capturing_mail()
 
         notifications = self._owner_notifications(OWNER_USER)
         self.assertEqual(len(notifications), 1)
@@ -110,8 +101,8 @@ class IntegrationTestRiskOwnerNotification(IntegrationTestCase):
         self.assertIn("Third-party API outage", notifications[0].label)
         self.assertIn(self.project.project_name, notifications[0].label)
 
-        sendmail.assert_called_once()
-        kwargs = sendmail.call_args.kwargs
+        self.sendmail.assert_called_once()
+        kwargs = self.sendmail.call_args.kwargs
         self.assertEqual(kwargs["recipients"], [OWNER_USER])
         self.assertEqual(kwargs["reference_name"], risk.name)
         self.assertIn("Technical", kwargs["message"])
@@ -121,60 +112,51 @@ class IntegrationTestRiskOwnerNotification(IntegrationTestCase):
     def test_reassigning_owner_notifies_only_the_new_owner(self):
         frappe.set_user(ACTOR_USER)
         risk = self._make_risk()
-        self._flush()
+        self.sendmail.reset_mock()
         self.assertEqual(len(self._owner_notifications(OWNER_USER)), 1)
 
         doc = frappe.get_doc("Risk", risk.name)
         doc.risk_owner = REASSIGNED_USER
         doc.save(ignore_permissions=True)
-        sendmail = self._flush_capturing_mail()
 
         self.assertEqual(len(self._owner_notifications(REASSIGNED_USER)), 1)
         self.assertEqual(len(self._owner_notifications(OWNER_USER)), 1)
-        sendmail.assert_called_once()
+        self.sendmail.assert_called_once()
 
     def test_saving_without_owner_change_does_not_notify(self):
         frappe.set_user(ACTOR_USER)
         risk = self._make_risk()
-        self._flush()
+        self.sendmail.reset_mock()
 
         doc = frappe.get_doc("Risk", risk.name)
         doc.summary = "<p>Updated summary</p>"
         doc.save(ignore_permissions=True)
-        sendmail = self._flush_capturing_mail()
 
         self.assertEqual(len(self._owner_notifications(OWNER_USER)), 1)
-        sendmail.assert_not_called()
+        self.sendmail.assert_not_called()
 
     def test_self_assignment_does_not_notify(self):
         frappe.set_user(ACTOR_USER)
         self._make_risk(owner=ACTOR_USER)
-        sendmail = self._flush_capturing_mail()
 
         self.assertEqual(self._owner_notifications(ACTOR_USER), [])
-        sendmail.assert_not_called()
+        self.sendmail.assert_not_called()
 
     def test_email_and_notification_are_delivered_together(self):
         frappe.set_user(ACTOR_USER)
-        with patch(SENDMAIL) as sendmail:
-            risk = self._make_risk()
-            # Saving only queues the pair; neither channel has fired yet.
-            self.assertEqual(self._owner_notifications(OWNER_USER), [])
-            sendmail.assert_not_called()
-
-            self._flush()
+        risk = self._make_risk()
 
         self.assertEqual(len(self._owner_notifications(OWNER_USER)), 1)
-        sendmail.assert_called_once()
-        kwargs = sendmail.call_args.kwargs
+        self.sendmail.assert_called_once()
+        kwargs = self.sendmail.call_args.kwargs
         self.assertEqual(kwargs["recipients"], [OWNER_USER])
         self.assertEqual(kwargs["reference_doctype"], "Risk")
         self.assertEqual(kwargs["reference_name"], risk.name)
         self.assertTrue(kwargs["now"])
 
-    def test_saving_a_risk_does_not_send_mail(self):
-        # Patched globally, not just on the doctype: saving a Risk must not reach sendmail from
-        # anywhere. A site with no outgoing email account would otherwise fail the save outright.
+    def test_risk_saves_without_an_outgoing_email_account(self):
+        # Patched globally, not just on the doctype: a site with no outgoing email account must
+        # still be able to save a Risk.
         frappe.set_user(ACTOR_USER)
         with patch("frappe.sendmail", side_effect=frappe.OutgoingEmailError("no outgoing account")):
             risk = self._make_risk()
@@ -182,15 +164,14 @@ class IntegrationTestRiskOwnerNotification(IntegrationTestCase):
 
     def test_mail_failure_does_not_lose_the_notification(self):
         frappe.set_user(ACTOR_USER)
-        self._make_risk()
         with patch(SENDMAIL, side_effect=frappe.OutgoingEmailError("no outgoing account")):
-            self._flush()
+            self._make_risk()
 
         self.assertEqual(len(self._owner_notifications(OWNER_USER)), 1)
 
     def test_oversized_label_still_delivers_both_channels(self):
         # A maximum-length project name plus the summary overflows the Data column the label lives
-        # in; the insert is deferred, so an unhandled length error would drop both channels silently.
+        # in; an unhandled length error would fail the job and drop both channels.
         project_name = "L" * frappe.db.VARCHAR_LEN
         project = frappe.get_doc(
             {"doctype": "Project", "project_name": project_name, "custom_project_manager": OWNER_USER}
@@ -199,7 +180,6 @@ class IntegrationTestRiskOwnerNotification(IntegrationTestCase):
 
         frappe.set_user(ACTOR_USER)
         self._make_risk(project=project.name, summary=f"<p>{'S' * 200}</p>")
-        sendmail = self._flush_capturing_mail()
 
         notifications = self._owner_notifications(OWNER_USER)
         self.assertEqual(len(notifications), 1)
@@ -207,5 +187,5 @@ class IntegrationTestRiskOwnerNotification(IntegrationTestCase):
         # The subject is not a Data field, so the full project name survives.
         self.assertIn(project_name, notifications[0].email_subject)
 
-        sendmail.assert_called_once()
-        self.assertEqual(sendmail.call_args.kwargs["recipients"], [OWNER_USER])
+        self.sendmail.assert_called_once()
+        self.assertEqual(self.sendmail.call_args.kwargs["recipients"], [OWNER_USER])

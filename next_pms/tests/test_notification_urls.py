@@ -1,5 +1,4 @@
 import frappe
-from frappe.deferred_insert import save_to_db
 from frappe.tests import IntegrationTestCase
 
 from next_pms.install import create_default_growth_masters
@@ -87,7 +86,6 @@ class TestNotificationUrls(IntegrationTestCase):
 
         risk.append("risk_update_log", {"status": RISK_STATUS_MITIGATED})
         risk.save(ignore_permissions=True)
-        save_to_db()
 
         self.assertEqual(
             self._get_notification_urls("Risk update"),
@@ -120,7 +118,6 @@ class TestNotificationUrls(IntegrationTestCase):
 
         initiative.append("update_log", {"status": "In Progress"})
         initiative.save(ignore_permissions=True)
-        save_to_db()
 
         self.assertEqual(
             self._get_notification_urls("Growth initiative update"),
@@ -131,7 +128,6 @@ class TestNotificationUrls(IntegrationTestCase):
         project = frappe.get_doc("Project", self.project.name)
         project.custom_project_rag_status = "Red" if project.custom_project_rag_status != "Red" else "Green"
         project.save(ignore_permissions=True)
-        save_to_db()
 
         self.assertEqual(
             self._get_notification_urls("Project health update"),

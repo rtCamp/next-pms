@@ -17,10 +17,7 @@ const API_DATE_FORMAT = "yyyy-MM-dd";
 export const getDefaultKpiMonth = () =>
   format(startOfMonth(subMonths(new Date(), 1)), MONTH_VALUE_FORMAT);
 
-export function useLeadershipKpi(
-  key: keyof LeadershipKPIResponse["message"],
-  month: string,
-) {
+export function useLeadershipKpi(month: string) {
   const args = useMemo(() => {
     const monthDate = parse(month, MONTH_VALUE_FORMAT, new Date());
     const prevMonthDate = subMonths(monthDate, 1);
@@ -37,5 +34,5 @@ export function useLeadershipKpi(
     args,
   );
 
-  return { data: data?.message[key], isLoading, error };
+  return { data: data?.message, isLoading, error };
 }

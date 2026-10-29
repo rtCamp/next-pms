@@ -26,7 +26,7 @@ from next_pms.project_currency.billing_rate import (
     resolve_billing_rate,
 )
 from next_pms.resource_management.api.allocation import upsert_day_override
-from next_pms.tests.utils import assign_empty_holiday_list
+from next_pms.tests.utils import assign_empty_holiday_list, make_tech_stack
 
 # Unique marker so `search` scopes every call to this suite's fixtures only.
 FIXTURE_PREFIX = "CompSort"
@@ -889,6 +889,7 @@ class TestTrackingCurrentVsProjectedProfit(IntegrationTestCase):
                         "company": cls.company,
                         "customer": cls.customer,
                         "custom_billing_type": billing_type,
+                        "tech_stack": make_tech_stack(),
                     }
                 )
                 .insert(ignore_permissions=True)
@@ -1188,6 +1189,7 @@ class TestBudgetForecasted(IntegrationTestCase):
                     "customer": cls.customer,
                     "custom_billing_type": billing_type,
                     "custom_default_hourly_billing_rate": default_rate,
+                    "tech_stack": make_tech_stack(),
                 }
             )
             .insert(ignore_permissions=True)

@@ -19,6 +19,7 @@ import { getDefaultExpandedWeeks } from "@/lib/utils";
 import WeeklyApproval from "@/pages/timesheet/team/weekly-approval";
 import type { WeeklyApprovalTarget } from "@/pages/timesheet/team/weekly-approval/types";
 import { useProjectTimesheet } from "./context";
+import { PROJECT_TIMESHEET_HELP } from "./help";
 import { ProjectTimesheetWeek } from "./projectTimesheetWeek";
 import { SubHeader } from "./subHeader";
 
@@ -87,6 +88,8 @@ const ProjectTimesheetGrid = () => {
                           <HeaderRow
                             dates={week.dates}
                             showHeading={true}
+                            help={PROJECT_TIMESHEET_HELP.dayCells}
+                            totalHelp={PROJECT_TIMESHEET_HELP.total}
                             breadcrumbs={{
                               items: [
                                 { label: "Week", interactive: false },

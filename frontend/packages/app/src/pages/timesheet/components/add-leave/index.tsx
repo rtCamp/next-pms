@@ -1,6 +1,7 @@
 /**
  * External Dependencies
  */
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { getTodayDate } from "@next-pms/design-system/date";
 import {
   DatePicker,
@@ -25,6 +26,7 @@ import {
  * Internal Dependencies
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { PERSONAL_TIMESHEET_HELP } from "@/pages/timesheet/personal/help";
 import { useUser } from "@/providers/user";
 import { addLeaveFormSchema } from "./schema";
 import { type LeaveTimeProps, LEAVE_DURATION } from "./types";
@@ -291,14 +293,14 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                 children={(field) => {
                   return (
                     <div className="flex flex-col space-y-1.5">
-                      <FormLabel
-                        id="half-day-date"
-                        size="md"
-                        className="mb-1.5"
-                        required
-                      >
-                        Half Day Date
-                      </FormLabel>
+                      <div className="mb-1.5 flex min-w-0 items-center gap-1.5">
+                        <FormLabel id="half-day-date" size="md" required>
+                          Half Day Date
+                        </FormLabel>
+                        <InfoHoverCard
+                          help={PERSONAL_TIMESHEET_HELP.halfDayDate}
+                        />
+                      </div>
                       <DatePicker
                         onChange={(val) => field.handleChange(val as string)}
                         placeholder="Half day date"

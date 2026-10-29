@@ -3,6 +3,7 @@
  */
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import {
   Avatar,
   ListHeader,
@@ -20,6 +21,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { formatHours } from "@/lib/utils";
+import { MANAGER_WIDGET_HELP } from "@/pages/dashboard/help";
 import {
   LAST_WEEK_VALUE,
   PERIOD_OPTIONS,
@@ -89,7 +91,10 @@ export default function Timesheets() {
   return (
     <>
       <div className="flex items-center justify-between gap-4">
-        <h3 className="text-lg font-semibold text-ink-gray-8">Timesheets</h3>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <h3 className="text-lg font-semibold text-ink-gray-8">Timesheets</h3>
+          <InfoHoverCard help={MANAGER_WIDGET_HELP.timesheets} />
+        </div>
         <Select
           className="w-fit shrink-0 bg-surface-gray-2 text-ink-gray-7"
           options={PERIOD_OPTIONS}
@@ -116,7 +121,11 @@ export default function Timesheets() {
         >
           <ListHeader className="mb-0 gap-2 rounded-none border-b border-outline-gray-1 bg-transparent p-1">
             {TIMESHEET_COLUMNS.map((column) => (
-              <ListHeaderItem key={column.key} item={column}>
+              <ListHeaderItem
+                key={column.key}
+                item={column}
+                suffix={column.help && <InfoHoverCard help={column.help} />}
+              >
                 <span className="truncate text-sm text-ink-gray-5">
                   {column.label}
                 </span>

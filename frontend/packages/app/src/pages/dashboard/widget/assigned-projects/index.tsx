@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useMemo } from "react";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { useSavedState } from "@next-pms/hooks";
 import {
   ListHeader,
@@ -11,6 +12,7 @@ import {
   ListRows,
   ListView,
   MultiSelect,
+  Tooltip,
 } from "@rtcamp/frappe-ui-react";
 import type { MultiSelectOption } from "@rtcamp/frappe-ui-react";
 import { Folder } from "@rtcamp/frappe-ui-react/icons";
@@ -111,10 +113,16 @@ export default function AssignedProjects() {
         >
           <ListHeader className="mb-0 gap-2 rounded-none border-b border-outline-gray-1 bg-transparent p-1">
             {ASSIGNED_PROJECTS_COLUMNS.map((column) => (
-              <ListHeaderItem key={column.key} item={column}>
-                <span className="truncate text-sm text-ink-gray-5">
-                  {column.label}
-                </span>
+              <ListHeaderItem
+                key={column.key}
+                item={column}
+                suffix={column.help && <InfoHoverCard help={column.help} />}
+              >
+                <Tooltip text={column.tooltip} disabled={!column.tooltip}>
+                  <span className="truncate text-sm text-ink-gray-5">
+                    {column.label}
+                  </span>
+                </Tooltip>
               </ListHeaderItem>
             ))}
           </ListHeader>

@@ -176,6 +176,12 @@ export const hasTodoCustomFields = (): boolean => {
   return window.frappe?.boot?.has_todo_custom_fields ?? false;
 };
 
+export const getTodoStatusOptions = (): string[] => {
+  return (
+    window.frappe?.boot?.todo_status_options ?? ["Open", "Closed", "Cancelled"]
+  );
+};
+
 export const getDefaultCurrency = (): string => {
   return window.frappe?.boot?.sysdefaults?.currency ?? "INR";
 };

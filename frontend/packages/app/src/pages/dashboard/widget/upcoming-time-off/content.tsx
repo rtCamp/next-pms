@@ -3,12 +3,13 @@
  */
 import { useState } from "react";
 import { mergeClassNames } from "@next-pms/design-system";
-import { Avatar, Badge, Button } from "@rtcamp/frappe-ui-react";
+import { Avatar, Badge, Button, Tooltip } from "@rtcamp/frappe-ui-react";
 import { Check, Close } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
+import { LEAVE_APPROVAL_TOOLTIP } from "@/pages/dashboard/help";
 import { ApproveLeaveDialog } from "./approveLeaveDialog";
 import { useUpcomingTimeOff } from "./context";
 import { RejectLeaveDialog } from "./rejectLeaveDialog";
@@ -86,25 +87,30 @@ export function UpcomingTimeOffContent() {
                   label={leave.status}
                 />
                 {leave.status === "Open" && (
-                  <div className="flex gap-1.5">
-                    <Button
-                      variant="solid"
-                      theme="green"
-                      icon={() => (
-                        <Check size={16} className="text-ink-white" />
-                      )}
-                      onClick={() => setApprovingLeave(leave)}
-                      className="bg-surface-green-5"
-                    />
-                    <Button
-                      variant="solid"
-                      theme="red"
-                      icon={() => (
-                        <Close size={16} className="text-ink-white" />
-                      )}
-                      onClick={() => setRejectingLeave(leave)}
-                    />
-                  </div>
+                  <Tooltip
+                    text={LEAVE_APPROVAL_TOOLTIP}
+                    disabled={leave.can_approve}
+                  >
+                    <div className="flex gap-1.5">
+                      <Button
+                        variant="solid"
+                        theme="green"
+                        icon={() => <Check size={16} />}
+                        disabled={!leave.can_approve}
+                        onClick={() => setApprovingLeave(leave)}
+                        className={
+                          leave.can_approve ? "bg-surface-green-5" : undefined
+                        }
+                      />
+                      <Button
+                        variant="solid"
+                        theme="red"
+                        icon={() => <Close size={16} />}
+                        disabled={!leave.can_approve}
+                        onClick={() => setRejectingLeave(leave)}
+                      />
+                    </div>
+                  </Tooltip>
                 )}
               </div>
             </li>

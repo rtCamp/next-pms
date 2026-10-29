@@ -42,7 +42,7 @@ const RejectionPopup = () => {
   };
 
   return (
-    <Dialog.Popup className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-100 z-101 bg-surface-modal rounded-xl shadow-xl flex flex-col">
+    <Dialog.Popup className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-100 z-12 bg-surface-modal rounded-xl shadow-xl flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-6 pt-5">
         <h1 className="text-2xl font-semibold text-ink-gray-8">

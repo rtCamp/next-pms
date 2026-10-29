@@ -79,6 +79,7 @@ const needsTechStack = ({ custom_billing_type: billingType, tech_stack }) =>
 
 /**
  * Create a new Project entry.
+ * Billable projects require a Tech Stack, so default one unless the payload sets it.
  */
 export const createProject = async (payload) => {
   const rows = needsTechStack(payload) ? await getTechStackRows() : [];
