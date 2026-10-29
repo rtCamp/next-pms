@@ -287,13 +287,33 @@ const CALENDAR_DATE_TIP: HelpTip = {
 
 export const MANAGER_DASHBOARD_TIPS: HelpTip[] = [
   {
+    id: "approve-leave",
+    title: "Approve leave",
+    body: "Decide your direct reports' open requests in Upcoming time-offs.",
+    steps: ["Select ✓ on an open request.", "Select Approve leave."],
+    wiki: `${MANAGER_WIKI}#approve-a-leave-request`,
+    motion: () => import("@/assets/motions/approve-leave?motion"),
+  },
+  {
+    id: "reject-leave",
+    title: "Reject leave",
+    body: "Turn down an open request in Upcoming time-offs with a reason.",
+    steps: [
+      "Select ✕ on an open request.",
+      "Enter a Rejection reason.",
+      "Select Reject leave.",
+    ],
+    wiki: `${MANAGER_WIKI}#approve-a-leave-request`,
+    motion: () => import("@/assets/motions/reject-leave?motion"),
+  },
+  CALENDAR_DATE_TIP,
+  {
     id: "dashboard-scope",
     title: "What this dashboard covers",
     body: "Most cards show your direct reports and the projects you manage. At risk projects, Members without allocation and the Heatmap cover the whole organisation.",
     wiki: `${MANAGER_WIKI}#roles--permissions`,
   },
   HEATMAP_ROLES_TIP,
-  CALENDAR_DATE_TIP,
   {
     id: "member-timesheet",
     title: "Review a member's timesheet",
@@ -301,20 +321,13 @@ export const MANAGER_DASHBOARD_TIPS: HelpTip[] = [
     wiki: `${MANAGER_WIKI}#follow-up-on-notifications-and-reviews`,
     roles: ROLE_ACCESS.reviewTimesheets,
   },
-  {
-    id: "approve-leave",
-    title: "Approve or reject leave",
-    body: "Decide your direct reports' open requests in Upcoming time-offs.",
-    steps: [
-      "Select ✓ on an open request to approve it, or ✕ to reject it.",
-      "To reject, enter a Rejection reason.",
-      "Select Approve leave or Reject leave.",
-    ],
-    wiki: `${MANAGER_WIKI}#approve-a-leave-request`,
-  },
 ];
 
 export const LEADERSHIP_DASHBOARD_TIPS: HelpTip[] = [
+  {
+    ...CALENDAR_DATE_TIP,
+    wiki: `${LEADERSHIP_WIKI}#inspect-milestones-and-touchpoints-day-by-day`,
+  },
   {
     id: "two-dashboards",
     title: "Leadership and Manager dashboards",
@@ -325,9 +338,5 @@ export const LEADERSHIP_DASHBOARD_TIPS: HelpTip[] = [
   {
     ...HEATMAP_ROLES_TIP,
     wiki: `${LEADERSHIP_WIKI}#check-allocation-coverage-by-role`,
-  },
-  {
-    ...CALENDAR_DATE_TIP,
-    wiki: `${LEADERSHIP_WIKI}#inspect-milestones-and-touchpoints-day-by-day`,
   },
 ];

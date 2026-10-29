@@ -1,5 +1,5 @@
 const { seg, lerp, eo, ei, eio } = kit;
-// ==== Next PMS shell v1.7 ====
+// ==== Next PMS shell v1 ====
 // Measured from the running app at its 2023 px desktop width and drawn in a 1440x900 window.
 // Sidebar 240 wide, top bar 57 high, filter row at y 71. Right-anchored x = app x - 2023 + 1440.
 // Ghost shapes: text = 10 px pill r5 (secondary 8 px r4), icon = 14 px square r4, buttons keep their real box.
@@ -79,7 +79,7 @@ const SHELL = (() => {
   };
 })();
 // ==== end shell ====
-const T = { r1: 2.4, c1: 3.4, open: 3.45, r2: 7.15, c2: 7.55, r3: 8.45, c3: 9.35, close: 9.55, change: 11.0, r4: 11.2 };
+const T = { r1: 2.4, c1: 3.4, open: 3.45, r3: 7.0, c3: 7.9, close: 8.1, change: 9.55, r4: 9.75 };
 const COL = i => 885.5 + 64 * i;
 const G = (x, y, w, h, r) => {
   if (r == null && w === h && w <= 18) { const d = (w - 14) / 2; x += d; y += d; w = h = 14; r = 4; }
@@ -99,7 +99,7 @@ const TOT = 1338.5;
 const hours = (y) => { let s = ''; for (let i = 0; i < 7; i++) s += NUM(COL(i), y + 22, 32); return s + NUM(TOT, y + 22, 40); };
 const row = (y, nw, bw, icon) => G(290, y + 14, 16, 16) + G(314, y + 14, 16, 16, 8) + G(338, y + 14, nw, 16) + G(346 + nw, y + 12, bw, 20, 9999) + hours(y) + (icon ? G(1382, y + 8, 28, 28, 8) : '') + L(260, y + 44, 1154);
 const week = (y, w, cols) => { let s = G(272, y + 14, 16, 16) + G(296, y + 14, w, 16); if (cols) { for (let i = 0; i < 7; i++) s += NUM(COL(i), y + 22, 32); s += NUM(TOT, y + 22, 40); } return s + L(260, y + 44, 1154); };
-kit.scene('partial', {
+kit.scene('approve-week', {
   init(kit) {
     let p = '<div class="review-page" style="position:absolute;inset:0">' + SHELL('team');
     p += G(272, 119, 195, 15);
@@ -108,7 +108,7 @@ kit.scene('partial', {
     p += '<span class="review-pend" style="position:absolute;left:422px;top:171px;font-size:14px;line-height:16px;color:var(--color-ink-gray-5);white-space:nowrap">· 1 pending approval</span>';
     p += row(202, 84, 90, false);
     p += G(290, 261, 16, 16) + G(314, 261, 16, 16, 8) + hours(247) + L(260, 291, 1154);
-    p += '<div style="position:absolute;left:338px;top:259px;height:20px;display:flex;align-items:center;gap:8px"><span class="lm" style="font-size:14px;font-weight:500;line-height:16px">Julian Andrews</span><span style="position:relative;display:block;height:20px"><span class="badge review-b1" style="position:relative;background:var(--color-surface-amber-2);color:var(--color-ink-amber-4)">Approval pending</span><span class="badge review-b2" style="left:0;top:0;background:var(--color-surface-green-2);color:var(--color-ink-green-4);opacity:0">Partially approved</span></span></div>';
+    p += '<div style="position:absolute;left:338px;top:259px;height:20px;display:flex;align-items:center;gap:8px"><span class="lm" style="font-size:14px;font-weight:500;line-height:16px">Julian Andrews</span><span style="position:relative;display:block;height:20px"><span class="badge review-b1" style="position:relative;background:var(--color-surface-amber-2);color:var(--color-ink-amber-4)">Approval pending</span><span class="badge review-b2" style="left:0;top:0;background:var(--color-surface-green-2);color:var(--color-ink-green-4);opacity:0">Approved</span></span></div>';
     p += '<div class="btn review-st" style="left:1382px;top:255px;width:28px;background:var(--color-surface-gray-7);color:var(--color-ink-white)">' + CHECK + '</div><div class="btn review-st2" style="left:1382px;top:255px;width:28px;color:var(--color-ink-green-4);opacity:0">' + CIRC + '</div>';
     p += '<div class="ring review-r1" style="left:1375px;top:248px;width:42px;height:42px;border-radius:15px"></div><div class="ring review-r4" style="border-radius:9999px"></div>';
     p += row(292, 96, 66, true);
@@ -125,32 +125,29 @@ kit.scene('partial', {
       q += G(14, y + 59, 16, 16) + G(42, y + 59, tw[i], 16) + G(48 + tw[i], y + 59, 16, 16) + G(42, y + 79, pw[i], 14) + G(42, y + 105, dw[i], 21) + G(391, y + 52, 54, 30, 10) + L(0, y + 149, 480);
     });
     q += L(0, 822, 480) + G(14, 837, 81, 28, 8) + '<div class="btn review-ap" style="left:371px;top:837px;width:95px;background:var(--color-surface-green-5);color:var(--color-ink-white)">' + CIRC + '<span>Approve</span></div>';
-    q += '<div class="ring review-r2" style="left:445px;top:659px;width:28px;height:28px;border-radius:9px"></div>';
     q += '<div class="ring review-r3" style="left:364px;top:830px;width:109px;height:42px;border-radius:15px"></div></div>';
     kit.stage.append(kit.h('<div class="ground"><div class="review-cam" style="position:absolute;left:0;top:0;width:1920px;height:1080px"><div class="win">' + p + q + '</div></div></div>'));
     const e = this.el = {};
-    ['page', 'bk', 'pn', 'st', 'st2', 'b1', 'b2', 'pend', 'ap', 'r1', 'r2', 'r3', 'r4'].forEach(k => { e[k] = kit.stage.querySelector('.review-' + k); });
-    e.fri = kit.stage.querySelectorAll('.review-pn .cb')[4];
+    ['page', 'bk', 'pn', 'st', 'st2', 'b1', 'b2', 'pend', 'ap', 'r1', 'r3', 'r4'].forEach(k => { e[k] = kit.stage.querySelector('.review-' + k); });
     const wr = kit.stage.querySelector('.win').getBoundingClientRect(), k = wr.width / 1440, br = e.b2.getBoundingClientRect();
-    const b = k > 0 && br.width > 0 ? { x: (br.left - wr.left) / k, y: (br.top - wr.top) / k, w: br.width / k, h: br.height / k } : { x: 426, y: 259, w: 114, h: 20 };
+    const b = k > 0 && br.width > 0 ? { x: (br.left - wr.left) / k, y: (br.top - wr.top) / k, w: br.width / k, h: br.height / k } : { x: 426, y: 259, w: 116, h: 20 };
     Object.assign(e.r4.style, { left: (b.x - 7) + 'px', top: (b.y - 7) + 'px', width: (b.w + 14) + 'px', height: (b.h + 14) + 'px' });
     const cam = this.cam = new kit.Camera(kit.stage.querySelector('.review-cam'));
     cam.set([
       { t: 0, cx: 960, cy: 540, z: 1.1, hold: 1.0, drift: [2, 0, 0.006] },
       { t: 2.2, cx: 1195, cy: 360, z: 2.0, hold: 1.85, drift: [1.5, 0, 0.004] },
       { t: 5.05, cx: 1240, cy: 480, z: 2.2, hold: 0.55, drift: [0, 1.5, 0.003] },
-      { t: 6.5, cx: 1195, cy: 712, z: 2.0, hold: 3.3, drift: [0, -1.5, 0.003] },
-      { t: 10.8, cx: 1095, cy: 420, z: 1.65, drift: [0, 0, 0.004] },
+      { t: 6.5, cx: 1195, cy: 712, z: 2.0, hold: 1.85, drift: [0, -1.5, 0.003] },
+      { t: 9.35, cx: 1095, cy: 420, z: 1.65, drift: [0, 0, 0.004] },
     ]);
     const P = (x, y) => [x, y];
     const cur = this.cur = kit.cursor();
     kit.stage.querySelector('.review-cam').appendChild(cur.el);
     cur.keys = [
       { t: 0, at: P(1300, 560) }, { t: 2.3, at: P(1300, 560) }, { t: 3.0, at: P(1636, 359) },
-      { t: 6.6, at: P(1636, 359) }, { t: 7.3, at: P(1649, 773) }, { t: 8.25, at: P(1649, 773) },
-      { t: 8.95, at: P(1608.5, 951) }, { t: 9.85, at: P(1608.5, 951) }, { t: 10.65, at: P(1500, 600) },
+      { t: 6.8, at: P(1636, 359) }, { t: 7.5, at: P(1608.5, 951) }, { t: 8.4, at: P(1608.5, 951) }, { t: 9.2, at: P(1500, 600) },
     ];
-    cur.clicks = [T.c1, T.c2, T.c3];
+    cur.clicks = [T.c1, T.c3];
   },
   render(t) {
     this.cam.apply(t);
@@ -169,14 +166,9 @@ kit.scene('partial', {
     e.b1.style.opacity = done ? 0 : 1;
     e.b2.style.opacity = done ? 1 : 0;
     e.pend.style.opacity = done ? 0 : 1;
-    e.ap.style.background = mix('surface-green-5', 'green-700',eio(seg(t, 8.95, 9.1)));
+    e.ap.style.background = mix('surface-green-5', 'green-700',eio(seg(t, 7.5, 7.65)));
     e.ap.style.transform = 'scale(' + dip(t, T.c3) + ')';
     e.r1.style.opacity = fade(t, T.r1, T.c1);
-    const off = t >= T.c2, hv = eio(seg(t, 7.3, 7.45)) * (1 - eio(seg(t, 8.25, 8.4)));
-    e.fri.style.background = off ? 'var(--color-surface-white)' : 'var(--color-surface-gray-7)';
-    e.fri.style.border = off ? '1px solid ' + mix('outline-gray-4', 'outline-gray-5', hv) : 'none';
-    e.fri.firstChild.style.visibility = off ? 'hidden' : 'visible';
-    e.r2.style.opacity = fade(t, T.r2, T.c2);
     e.r3.style.opacity = fade(t, T.r3, T.c3);
     e.r4.style.opacity = eo(seg(t, T.r4, T.r4 + 0.25));
     this.cur.render(t);

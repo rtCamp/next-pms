@@ -1,1 +1,1 @@
-{"width":1920,"height":1080,"background":"#F4F4F5","fonts":{"sans":{"family":"Inter"}},"scenes":[{"id":"reject","name":"Reject a week","dur":16.4,"desc":"Open a submitted week from its status icon, click Reject, type a reason and confirm; the week shows Processing, then Rejected."}]}
+{"width":1920,"height":1080,"background":"#F4F4F5","fonts":{"sans":{"family":"Inter"}},"scenes":[{"id":"reject-week","name":"Reject a week","dur":16.4,"desc":"Open a submitted week from its status icon, click Reject, type a reason and confirm; the week shows Processing, then Rejected."}]}
