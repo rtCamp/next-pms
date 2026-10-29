@@ -49,12 +49,13 @@ export class GrowthPage {
   // Navigation
   // --------------------------------------
 
-  async goto(projectId) {
+  /** `canCreate: false` for a user who is not offered Create, so the list is what loads. */
+  async goto(projectId, { canCreate = true } = {}) {
     await gotoWithRetry(
       this.page,
       `/next-pms/projects/${projectId}?tab=growth`,
     );
-    await this.createButton.waitFor({
+    await (canCreate ? this.createButton : this.openHeading).waitFor({
       state: "visible",
       timeout: scaleTimeout(30000),
     });

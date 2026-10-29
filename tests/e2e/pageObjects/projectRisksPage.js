@@ -50,6 +50,14 @@ export class ProjectRisksPage extends GrowthPage {
   }
 
   /** A risk's row, found by its summary; its last button opens the row menu. */
+  /** The list row itself, so a row without a menu does not borrow the next row's. */
+  listRow(summary) {
+    return this.page
+      .getByText(summary, { exact: true })
+      .first()
+      .locator("xpath=ancestor::div[contains(@class,'border-b')][1]");
+  }
+
   riskRow(summary) {
     return this.page
       .getByText(summary, { exact: true })

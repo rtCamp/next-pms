@@ -18,6 +18,7 @@ import managerTeamTimesheetData from "../data/manager/teamTimesheet";
 import managerAllocationsData from "../data/manager/allocations";
 import managerProjectsData from "../data/manager/projects";
 import managerSettingsData from "../data/manager/settings";
+import managerAccessData from "../data/manager/access";
 import managerDashboardData from "../data/manager/dashboard";
 
 /**
@@ -287,6 +288,7 @@ export const populateJsonStubs = async (jsonDir, testCaseIDs) => {
     manager_allocations: managerAllocationsData,
     manager_projects: managerProjectsData,
     manager_settings: managerSettingsData,
+    manager_access: managerAccessData,
     manager_dashboard: managerDashboardData,
   };
 

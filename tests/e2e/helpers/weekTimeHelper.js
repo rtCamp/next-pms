@@ -186,21 +186,33 @@ const setProfile = async (employee, { designation, department, skills }) => {
   }
 };
 
+/** A user with `roles` and a password made for this run. Returns { email, password }. */
+const createUser = async (lastName, roles) => {
+  const email = `playwright-${getRandomString(8)}@example.com`;
+  const password = `Pw${randomBytes(12).toString("hex")}aZ9!`;
+  // A role a site lacks would refuse the whole user.
+  for (const role of roles) await ensureMaster("Role", "role_name", role);
+  await createDocument("User", {
+    email,
+    first_name: SEEDED_EMPLOYEE.first_name,
+    last_name: lastName,
+    send_welcome_email: 0,
+    user_type: "System User",
+    new_password: password,
+    roles: roles.map((role) => ({ role })),
+  });
+  return { email, password };
+};
+
 /**
  * A user to sign in as for a seeded employee: the roles given plus Employee, and a password
  * made for this run (the stub keeps it, so a spec can log in). Returns { email, password }.
  */
 const createLoginUser = async (employee, roles) => {
-  const email = `playwright-${getRandomString(8)}@example.com`;
-  const password = `Pw${randomBytes(12).toString("hex")}aZ9!`;
-  await createDocument("User", {
-    email,
-    first_name: SEEDED_EMPLOYEE.first_name,
-    last_name: employee.last_name,
-    send_welcome_email: 0,
-    new_password: password,
-    roles: [...roles, "Employee"].map((role) => ({ role })),
-  });
+  const { email, password } = await createUser(employee.last_name, [
+    ...roles,
+    "Employee",
+  ]);
   // No user permission: it would link to the employee and stop its deletion.
   await updateDocument("Employee", employee.name, {
     user_id: email,
@@ -261,6 +273,19 @@ const createEmployees = async (entry) => {
       name: `${SEEDED_EMPLOYEE.first_name} ${lastName}`,
       ...(user && { user }),
     };
+  }
+};
+
+/**
+ * Creates the users `payloadCreateUsers` ({ <name>: { roles } }) lists, with no Employee
+ * record behind them, and keeps their logins on the stub as `users`.
+ */
+const createBareUsers = async (entry) => {
+  entry.users = {};
+  for (const [name, { roles = [] }] of Object.entries(
+    entry.payloadCreateUsers ?? {},
+  )) {
+    entry.users[name] = await createUser(`${name}${getRandomString(5)}`, roles);
   }
 };
 
@@ -491,11 +516,15 @@ const createProjectDocs = async (entry, specs) => {
     key,
     project,
     linkedProject,
+    userOf,
     reuseBy,
     ...fields
   } of specs) {
     const data = {
       ...fields,
+      ...(userOf !== undefined
+        ? { user: entry.employees[userOf].user.email }
+        : {}),
       ...(project !== undefined
         ? { project: projectIdOf(entry, project) }
         : {}),
@@ -561,7 +590,8 @@ export const reseedAllocations = async (entry, employee) => {
  *   payloadLikeTasks            [{ employee, project, subject }] - the employee stars the task
  *   payloadWeekAllocations      [{ employee, project, weeksAgo, from, to, hours, ... }] - see bookAllocations
  *   payloadProjectTags          [{ project, tag }] - tags the case's projects
- *   payloadProjectDocs          [{ doctype, key, project, reuseBy, ...fields }] - see createProjectDocs
+ *   payloadProjectDocs          [{ doctype, key, project, userOf, reuseBy, ...fields }] - see createProjectDocs
+ *   payloadCreateUsers          { <name>: { roles } } - users with no Employee record; logins kept as `users`
  */
 export const createWeekTimeForTestCases = async (testCaseIDs, jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
@@ -577,6 +607,7 @@ export const createWeekTimeForTestCases = async (testCaseIDs, jsonDir) => {
   }
 
   await createEmployees(entry);
+  await createBareUsers(entry);
   await giveWeekendsOff(entry);
   await resolveWeeks(entry);
 

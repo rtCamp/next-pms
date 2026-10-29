@@ -86,3 +86,21 @@ export const storeStorageState = async (role, isApi = false, outFilePath) => {
   // Clean up request context
   await requestContext.dispose();
 };
+
+/**
+ * A browser context signed in as a seeded user, so the shared accounts' sessions stay
+ * untouched. Its session file is removed when the context closes.
+ * @param {import('@playwright/test').Browser} browser
+ * @param {{email: string, password: string}} user
+ * @param {string} name  Names the session file
+ */
+export const signedInContext = async (browser, user, name) => {
+  const file = path.resolve(__dirname, `../auth/${name}.json`);
+  await storeStorageState(user, false, file);
+  const context = await browser.newContext({
+    baseURL: process.env.BASE_URL,
+    storageState: file,
+  });
+  context.on("close", () => fs.promises.rm(file, { force: true }));
+  return context;
+};

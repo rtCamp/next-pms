@@ -475,10 +475,16 @@ export const deleteSeededUsers = async () => {
     { fields: ["name"] },
   );
   for (const { name } of users) {
-    // The app creates a user's PMS settings on first use and HRMS a user permission
-    // with the employee; both link to the user.
-    for (const doctype of ["PMS User Setting", "User Permission"]) {
-      for (const doc of await getDocList(doctype, [["user", "=", name]], {
+    // What links to the user: their PMS settings, user permissions (also made with each
+    // notification), notifications, and the risks and initiatives a case made them owner of.
+    for (const [doctype, field] of [
+      ["PMS User Setting", "user"],
+      ["User Permission", "user"],
+      ["NextPMS Notifications", "user"],
+      ["PMS Growth Initiative", "activity_owner"],
+      ["Risk", "risk_owner"],
+    ]) {
+      for (const doc of await getDocList(doctype, [[field, "=", name]], {
         fields: ["name"],
       })) {
         await deleteDocument(doctype, doc.name);
