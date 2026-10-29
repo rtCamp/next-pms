@@ -1,0 +1,27 @@
+{
+  "$comment": "help-motions project config. Paths are relative to the project root (the folder that holds .claude/). See the skill's references/new-project.md.",
+  "motionsDir": "src/help/motions",
+  "kit": "src/help/motion-player/kit.js",
+  "profile": ".claude/help-motions/PROFILE.md",
+  "shellFile": ".claude/help-motions/shell.js",
+  "stage": { "width": 1920, "height": 1080 },
+  "window": { "x": 240, "y": 90, "width": 1440, "height": 900 },
+  "shell": { "begin": "^// ==== .*shell", "end": "// ==== end shell ====" },
+  "fontCss": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap",
+  "browser": { "executablePath": null },
+  "app": {
+    "viewport": { "width": 1920, "height": 1080 },
+    "login": {
+      "type": "form",
+      "url": "/login",
+      "userSelector": "input[name=email]",
+      "passSelector": "input[type=password]",
+      "submitSelector": "button[type=submit]",
+      "userEnv": "MOTIONS_USER",
+      "passEnv": "MOTIONS_PASS"
+    },
+    "blockMethods": ["PUT", "PATCH", "DELETE"],
+    "blockUrls": [],
+    "allowUrls": []
+  }
+}
