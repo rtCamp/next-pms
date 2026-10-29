@@ -135,7 +135,7 @@ kit.scene('import-liked', {
     this.camera.set([
       { t: 0, cx: 960, cy: 540, z: 1.12, hold: 0.4 },
       { t: 1.3, cx: 720, cy: 360, z: 2.0, hold: 0.6, drift: [0, 0, 0.004] },
-      { t: 2.8, cx: 980, cy: 420, z: 1.45, drift: [0, 0, 0.004] },
+      { t: 2.8, cx: 980, cy: 465, z: 1.45, drift: [0, 0, 0.004] },
     ]);
     this.cur = kit.cursor();
     this.cam.appendChild(this.cur.el);

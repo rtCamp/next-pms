@@ -104,7 +104,7 @@ kit.scene('drag-to-allocate', {
     let grid = '<div class="pms-abs" style="left:240px;right:0;top:113px;height:1px;background:var(--color-outline-gray-1)"></div>' + box(257, 136, 72, 14, 5);
     for (let w = 0; w < 4; w++) {
       const x0 = 480 + 266 * w;
-      grid += '<div class="pms-abs" style="left:' + (x0 + 190) + 'px;top:114px;width:76px;height:786px;background:var(--color-surface-gray-1)"></div><div class="pms-abs" style="left:' + x0 + 'px;top:114px;width:1px;height:786px;background:var(--color-outline-gray-1)"></div>';
+      grid += '<div class="pms-abs" style="left:' + (x0 + 190) + 'px;top:144px;width:76px;height:756px;border-radius:8px 8px 0 0;background:var(--color-surface-gray-1)"></div><div class="pms-abs" style="left:' + x0 + 'px;top:114px;width:1px;height:786px;background:var(--color-outline-gray-1)"></div>';
       grid += '<div class="pms-abs" style="left:' + x0 + 'px;top:120px;width:266px;text-align:center;font-size:12px;color:var(--color-ink-gray-4)">' + WEEKS[w] + '</div>';
     }
     for (let d = 0; d < 28; d++) {
@@ -132,7 +132,7 @@ kit.scene('drag-to-allocate', {
       label(14, 269, 'Recurrence') + '<div class="pms-abs" style="left:14px;top:294px;width:484px;height:28px;border-radius:10px;background:var(--color-surface-gray-2)"><div class="pms-abs" style="left:1px;top:1px;width:240px;height:26px;border-radius:10px;background:var(--color-surface-white);box-shadow:0 1px 2px rgba(0,0,0,.1)"></div><div class="pms-abs" style="left:0;top:5px;width:242px;text-align:center">One time</div><div class="pms-abs" style="left:242px;top:5px;width:242px;text-align:center">Recurring</div></div>' +
       box(14, 342, 100, 10, 5) + box(14, 362, 14, 14, 4) + box(34, 364, 110, 10, 5) + box(14, 384, 14, 14, 4) + box(34, 386, 104, 10, 5) +
       label(14, 410, 'Start and end date', 1) + '<div class="pms-input on" style="left:14px;top:434px;width:484px"><span>Oct 26, 2026 - Oct 30, 2026</span><span style="margin-left:auto;color:var(--color-ink-gray-6);display:flex">' + ic(IC.cal) + '</span></div>' +
-      label(14, 478, 'Hours / day', 1) + '<div class="pms-abs" style="left:14px;top:502px;width:237px;height:32px;border-radius:8px;background:var(--color-surface-gray-2);overflow:hidden"><div class="pms-abs" style="left:0;top:0;height:32px;width:100%;background:var(--color-surface-gray-4);border-radius:8px"><span class="pms-abs" style="right:8px;top:10px;width:2px;height:12px;border-radius:2px;background:rgba(23,23,23,.12)"></span></div><span class="pms-abs" style="right:10px;top:7px;font-variant-numeric:tabular-nums">08:00</span></div>' +
+      label(14, 478, 'Hours / day', 1) + '<div class="pms-abs" style="left:14px;top:502px;width:237px;height:32px;border-radius:8px;background:var(--color-surface-white);box-shadow:0 0 0 1px var(--color-outline-gray-2);overflow:hidden"><div class="pms-abs" style="left:0;top:0;height:32px;width:100%;background:var(--color-surface-gray-3);border-radius:8px"><span class="pms-abs" style="right:8px;top:10px;width:2px;height:12px;border-radius:2px;background:color-mix(in srgb, var(--color-surface-gray-7) 9%, transparent)"></span></div><span class="pms-abs" style="right:10px;top:0;width:40px;height:32px;display:flex;align-items:center;justify-content:center;font-size:14px;font-variant-numeric:tabular-nums">08:00</span></div>' +
       label(261, 478, 'Total hours') + '<div class="pms-input on" style="left:261px;top:502px;width:237px"><span>40</span></div>' +
       '<div class="pms-abs" style="left:0;top:546px;width:512px;height:180px">' + box(14, 8, 14, 14, 4) + box(34, 10, 130, 10, 5) + box(14, 42, 40, 10, 5) + box(14, 61, 484, 61) + box(14, 144, 14, 14, 4) + box(34, 146, 110, 10, 5) + box(356, 137, 52, 28) + '<div class="pms-btn pms-btn-solid at-alloc" style="left:419px;top:137px;width:70px">Allocate</div></div>' +
       menu('at-pm', 191, PROJECTS.map((p) => '<div class="pms-opt">' + p + '</div>')) + '</div>';
@@ -147,10 +147,10 @@ kit.scene('drag-to-allocate', {
     this.camera = new kit.Camera(this.cam);
     this.camera.set([
       { t: 0, cx: 960, cy: 540, z: 1.12, hold: 0.6, drift: [2, 0, 0.004] },
-      { t: 1.6, cx: 1120, cy: 400, z: 1.55, hold: 3.4, drift: [1.5, 0, 0.003] },
+      { t: 1.6, cx: 1040, cy: 445, z: 1.55, hold: 3.4, drift: [1.5, 0, 0.003] },
       { t: 5.8, cx: 960, cy: 420, z: 1.9, hold: 3.8, drift: [0, 1.5, 0.003] },
-      { t: 10.4, cx: 960, cy: 720, z: 1.9, hold: 1.2 },
-      { t: 12.6, cx: 1120, cy: 400, z: 1.55, drift: [1.5, 0, 0.004] },
+      { t: 10.4, cx: 960, cy: 700, z: 1.9, hold: 1.2 },
+      { t: 12.6, cx: 1040, cy: 445, z: 1.55, drift: [1.5, 0, 0.004] },
     ]);
     this.cur = kit.cursor();
     this.cam.appendChild(this.cur.el);

@@ -95,7 +95,7 @@ kit.scene('resize-allocation', {
     grid += '<div class="pms-abs" style="left:240px;right:0;top:113px;height:1px;background:' + LINE + '"></div>' + box(257, 136, 72, 14, 5);
     for (let w = 0; w < 4; w++) {
       const x0 = 480 + 266 * w;
-      grid += '<div class="pms-abs" style="left:' + (x0 + 190) + 'px;top:114px;width:76px;height:786px;background:color-mix(in srgb, var(--color-surface-gray-3) 20%, transparent)"></div><div class="pms-abs" style="left:' + x0 + 'px;top:114px;width:1px;height:786px;background:' + LINE + '"></div>';
+      grid += '<div class="pms-abs" style="left:' + (x0 + 190) + 'px;top:144px;width:76px;height:756px;border-radius:8px 8px 0 0;background:color-mix(in srgb, var(--color-surface-gray-3) 20%, transparent)"></div><div class="pms-abs" style="left:' + x0 + 'px;top:114px;width:1px;height:786px;background:' + LINE + '"></div>';
       grid += '<div class="pms-abs" style="left:' + x0 + 'px;top:120px;width:266px;text-align:center;font-size:12px;color:var(--color-ink-gray-4)">' + WEEKS[w] + '</div>';
     }
     for (let d = 0; d < 28; d++) {
@@ -141,9 +141,9 @@ kit.scene('resize-allocation', {
     this.camera = new kit.Camera(this.cam);
     this.camera.set([
       { t: 0, cx: 960, cy: 540, z: 1.12, hold: 0.35 },
-      { t: 1.0, cx: 1110, cy: 330, z: 1.6, hold: 2.2 },
-      { t: 3.75, cx: 960, cy: 715, z: 1.9, hold: 1.05 },
-      { t: 5.4, cx: 1110, cy: 330, z: 1.6, drift: [-2, 0, 0.004] },
+      { t: 1.0, cx: 1070, cy: 430, z: 1.6, hold: 2.2 },
+      { t: 3.75, cx: 960, cy: 700, z: 1.9, hold: 1.05 },
+      { t: 5.4, cx: 1070, cy: 430, z: 1.6, drift: [-2, 0, 0.004] },
     ]);
     this.cur = kit.cursor();
     this.cam.appendChild(this.cur.el);

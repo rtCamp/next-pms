@@ -135,7 +135,7 @@ kit.scene('inline-time', {
     this.camera.set([
       { t: 0, cx: 960, cy: 540, z: 1.12, hold: 0.8 },
       { t: 2.0, cx: 1210, cy: 470, z: 2.1, hold: 8.2, drift: [0, 0, 0.003] },
-      { t: 11.0, cx: 1330, cy: 360, z: 1.9, drift: [-2, 0, 0.004] },
+      { t: 11.0, cx: 1170, cy: 375, z: 1.9, drift: [-2, 0, 0.004] },
     ]);
     this.cur = kit.cursor();
     this.cam.appendChild(this.cur.el);

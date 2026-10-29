@@ -85,7 +85,7 @@ const WEEKS = ['Oct 12 - 18', 'Oct 19 - 25', 'Oct 26 - Nov 1', 'Nov 2 - 8'];
 const CAL = [[27, 28, 29, 30, 1, 2, 3], [4, 5, 6, 7, 8, 9, 10], [11, 12, 13, 14, 15, 16, 17], [18, 19, 20, 21, 22, 23, 24], [25, 26, 27, 28, 29, 30, 31]];
 // Hours / day, Repeat for and Total hours split the row with gap-3: two columns of 236, or three of 153.3 once Recurring.
 const COL2 = 236, COL3 = 153.3;
-const RINGS = [[0.4, 1.2, 1289, 9, 144, 38], [1.55, 2.5, 473, 166, 494, 42], [2.5, 3.45, 473, 236, 494, 42], [3.45, 4.15, 473, 377, 494, 38], [4.15, 5.7, 473, 517, 494, 42], [5.7, 8.55, 473, 585, COL3 + 10, 42], [8.55, 9.2, 474 + COL3 + 12, 585, COL3 + 10, 42], [9.2, 9.65, 878, 766, 80, 38], [10.4, 12.6, 742, 244, 464, 44]];
+const RINGS = [[0.4, 1.2, 1289, 9, 144, 38], [1.55, 2.5, 473, 166, 494, 42], [2.5, 3.45, 473, 236, 494, 42], [3.45, 4.15, 473, 377, 494, 38], [4.15, 5.7, 473, 517, 494, 42], [5.7, 8.55, 473, 585, COL3 + 10, 42], [8.55, 9.2, 474 + COL3 + 12, 585, COL3 + 10, 42], [9.2, 9.65, 878, 766, 80, 38], [10.4, 12.6, 628, 244, 730, 44]];
 const ic = (p, sz) => '<svg width="' + (sz || 16) + '" height="' + (sz || 16) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none">' + p + '</svg>';
 const IC = {
   plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
@@ -105,16 +105,18 @@ const warp = (t) => { if (t <= 0) return t; for (let i = 1; i < WARP.length; i++
 kit.scene('add-allocation', {
   init(kit) {
     const side = SHELL('alloc-team', { 0: '<div class="pms-btn pms-btn-solid at-add" style="left:1294px;top:14px;width:134px">' + ic(IC.plus, 15) + 'Add allocation</div>' });
-    let grid = '';
+    // The timeline is scrolled 3 days (114 px) so it starts on today, Oct 15, and Nov 2 - 8 fits the window.
+    // It's clipped at the name column, x 480, and drawn in that clip's coordinates.
+    let grid = '', tl = '';
     grid += '<div class="pms-abs" style="left:240px;right:0;top:113px;height:1px;background:var(--color-outline-gray-1)"></div>' + box(257, 136, 72, 14, 5);
     for (let w = 0; w < 4; w++) {
-      const x0 = 480 + 266 * w;
-      grid += '<div class="pms-abs" style="left:' + (x0 + 190) + 'px;top:114px;width:76px;height:786px;background:var(--color-surface-gray-1)"></div><div class="pms-abs" style="left:' + x0 + 'px;top:114px;width:1px;height:786px;background:var(--color-outline-gray-1)"></div>';
-      grid += '<div class="pms-abs" style="left:' + x0 + 'px;top:120px;width:266px;text-align:center;font-size:12px;color:var(--color-ink-gray-4)">' + WEEKS[w] + '</div>';
+      const x0 = 266 * w - 114;
+      tl += '<div class="pms-abs" style="left:' + (x0 + 190) + 'px;top:144px;width:76px;height:756px;border-radius:8px 8px 0 0;background:var(--color-surface-gray-1)"></div><div class="pms-abs" style="left:' + x0 + 'px;top:114px;width:1px;height:786px;background:var(--color-outline-gray-1)"></div>';
+      tl += '<div class="pms-abs" style="left:' + x0 + 'px;top:120px;width:266px;text-align:center;font-size:12px;color:var(--color-ink-gray-4)">' + WEEKS[w] + '</div>';
     }
     for (let d = 0; d < 28; d++) {
       const n = d < 20 ? 12 + d : d - 19;
-      grid += '<div class="pms-abs" style="left:' + (480 + 38 * d) + 'px;top:150px;width:38px;text-align:center;font-size:13px;color:var(--color-ink-gray-4)">' + n + '</div>';
+      tl += '<div class="pms-abs" style="left:' + (38 * d - 114) + 'px;top:150px;width:38px;text-align:center;font-size:13px;color:var(--color-ink-gray-4)">' + n + '</div>';
     }
     grid += '<div class="pms-abs" style="left:240px;right:0;top:175px;height:1px;background:var(--color-outline-gray-1)"></div>';
     for (let i = 0; i < 4; i++) {
@@ -123,12 +125,13 @@ kit.scene('add-allocation', {
       grid += i === 1 ? '<div class="pms-abs" style="left:296px;top:' + (y + 11) + 'px;color:var(--color-ink-gray-4)">Julian Andrews</div>' + box(296, y + 34, 110, 9, 4) : box(296, y + 13, 96 + i * 13, 11, 5) + box(296, y + 34, 110, 9, 4);
       grid += box(272, y + 20, 16, 16, 8);
       for (let w = 0; w < 4; w++) {
-        const x = 480 + 266 * w + 2;
-        if (i === 1 && (w === 1 || w === 2)) {
-          grid += '<div class="pms-pill" style="left:' + x + 'px;top:' + (y + 14) + 'px;width:186px;background:var(--color-surface-amber-2);color:var(--color-ink-amber-4)">4h free<div class="pms-pill at-full' + w + '" style="left:0;top:0;width:0;background:var(--color-surface-green-2);color:var(--color-ink-green-4)">Full</div></div>';
-        } else grid += box(x, y + 14, 186, 32);
+        const x = 266 * w - 112;
+        if (i === 1 && w >= 1) {
+          tl += '<div class="pms-pill" style="left:' + x + 'px;top:' + (y + 14) + 'px;width:186px;background:var(--color-surface-amber-2);color:var(--color-ink-amber-4)">4h free<div class="pms-pill at-full' + w + '" style="left:0;top:0;width:0;background:var(--color-surface-green-2);color:var(--color-ink-green-4)">Full</div></div>';
+        } else tl += box(x, y + 14, 186, 32);
       }
     }
+    grid += '<div class="pms-abs" style="left:480px;top:0;right:0;bottom:0;overflow:hidden">' + tl + '</div>';
     const opts1 = PROJECTS.map((p) => '<div class="pms-opt">' + p + '</div>');
     const opts2 = PEOPLE.map((p) => '<div class="pms-opt"><span class="pms-av">' + p[0] + '</span>' + p[1] + '</div>');
     let cal = '<div class="pms-menu at-cal" style="left:14px;top:472px;width:240px;height:268px;padding:0"><div class="pms-abs" style="left:14px;top:13px;font-size:13px;font-weight:600">Oct 2026</div><div class="pms-abs" style="right:10px;top:10px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--color-ink-gray-6)">' + ic(IC.left, 14) + 'Today' + ic(IC.right, 14) + '</div>';
@@ -146,24 +149,24 @@ kit.scene('add-allocation', {
       label(14, 269, 'Recurrence') + '<div class="pms-abs" style="left:14px;top:294px;width:484px;height:28px;border-radius:10px;background:var(--color-surface-gray-2)"><div class="pms-abs at-knob" style="left:1px;top:1px;width:240px;height:26px;border-radius:10px;background:var(--color-surface-white);box-shadow:0 1px 2px rgba(0,0,0,.1)"></div><div class="pms-abs at-s1" style="left:0;top:5px;width:242px;text-align:center">One time</div><div class="pms-abs at-s2" style="left:242px;top:5px;width:242px;text-align:center">Recurring</div></div>' +
       box(14, 342, 100, 10, 5) + box(14, 362, 14, 14, 4) + box(34, 364, 110, 10, 5) + box(14, 384, 14, 14, 4) + box(34, 386, 104, 10, 5) +
       label(14, 410, 'Start and end date', 1) + '<div class="pms-input on" style="left:14px;top:434px;width:484px"><span class="at-dv">Oct 15, 2026 - Oct 15, 2026</span><span style="margin-left:auto;color:var(--color-ink-gray-6);display:flex">' + ic(IC.cal) + '</span></div>' +
-      label(14, 478, 'Hours / day', 1, 'at-hl') + '<div class="pms-abs at-hs" style="left:14px;top:502px;width:' + COL2 + 'px;height:32px;border-radius:8px;background:var(--color-surface-gray-2);overflow:hidden"><div class="pms-abs at-hf" style="left:0;top:0;height:32px;width:0;background:var(--color-surface-gray-3);border-radius:8px"><span class="pms-abs" style="right:8px;top:10px;width:2px;height:12px;border-radius:2px;background:color-mix(in srgb, var(--color-ink-gray-9) 12%, transparent)"></span></div><span class="pms-abs at-hv" style="right:10px;top:7px;font-variant-numeric:tabular-nums">00:00</span></div>' +
+      label(14, 478, 'Hours / day', 1, 'at-hl') + '<div class="pms-abs at-hs" style="left:14px;top:502px;width:' + COL2 + 'px;height:32px;border-radius:8px;background:var(--color-surface-white);box-shadow:0 0 0 1px var(--color-outline-gray-2);overflow:hidden"><div class="pms-abs at-hf" style="left:0;top:0;height:32px;width:0;background:var(--color-surface-gray-3);border-radius:8px"><span class="pms-abs" style="right:8px;top:10px;width:2px;height:12px;border-radius:2px;background:color-mix(in srgb, var(--color-surface-gray-7) 9%, transparent)"></span></div><span class="pms-abs at-hv" style="right:10px;top:0;width:40px;height:32px;display:flex;align-items:center;justify-content:center;font-size:14px;font-variant-numeric:tabular-nums">00:00</span></div>' +
       label(26 + COL3, 478, 'Repeat for', 1, 'at-rl') + '<div class="pms-input on at-rin" style="left:' + (26 + COL3) + 'px;top:502px;width:' + COL3 + 'px"><span class="at-rv">1</span><span class="at-rc" style="display:inline-block;width:2px;height:17px;background:var(--color-ink-gray-8);margin-left:-5px"></span><span class="at-ru" style="margin-left:auto;font-size:12px;color:var(--color-ink-gray-5)">week</span></div>' +
       label(26 + COL2, 478, 'Total hours', 0, 'at-tl') + '<div class="pms-input on at-tin" style="left:' + (26 + COL2) + 'px;top:502px;width:' + COL2 + 'px"><span class="at-tv">0</span></div>' +
-      '<div class="pms-abs at-warn" style="left:14px;top:546px;width:484px;height:0;border-radius:8px;background:var(--color-violet-50);overflow:hidden"><div class="pms-abs" style="left:10px;top:8px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--color-ink-gray-8);width:464px"><span style="color:var(--color-ink-violet-4);display:flex">' + ic(IC.warn, 15) + '</span><span>This allocation causes over-allocation on 5 days (+5h total)</span><span style="margin-left:auto;color:var(--color-ink-gray-7);display:flex">' + ic(IC.down, 15) + '</span></div></div>' +
+      '<div class="pms-abs at-warn" style="left:14px;top:546px;width:484px;height:0;border-radius:8px;background:var(--color-violet-50);overflow:hidden"><div class="pms-abs" style="left:10px;top:8px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--color-ink-gray-8);width:464px"><span style="color:var(--color-ink-violet-4);display:flex">' + ic(IC.warn, 15) + '</span><span>This allocation causes over-allocation on 10 days (+10h total)</span><span style="margin-left:auto;color:var(--color-ink-gray-7);display:flex">' + ic(IC.down, 15) + '</span></div></div>' +
       '<div class="pms-abs at-low" style="left:0;top:546px;width:512px;height:180px">' + box(14, 8, 14, 14, 4) + box(34, 10, 130, 10, 5) + box(14, 42, 40, 10, 5) + box(14, 61, 484, 61) + box(14, 144, 14, 14, 4) + box(34, 146, 110, 10, 5) + box(356, 137, 52, 28) + '<div class="pms-btn pms-btn-solid at-alloc" style="left:419px;top:137px;width:70px">Allocate</div></div>' +
       menu('at-em', 121, opts2) + menu('at-pm', 191, opts1) + cal + '</div>';
     kit.stage.append(kit.h('<div class="ground"><div class="pms-cam at-cam"><div class="pms-win">' + side + grid +
       dlg + '<div class="pms-ring at-ring"></div></div></div></div>'));
     const q = (c) => kit.stage.querySelector('.at-' + c);
-    for (const k of ['cam', 'ov', 'dlg', 'pm', 'em', 'pm-tint', 'em-tint', 'pv', 'pin', 'cv', 'ev', 'eav', 'ein', 'knob', 's1', 's2', 'cal', 'dv', 'hs', 'hf', 'hv', 'rl', 'rin', 'rv', 'rc', 'ru', 'tl', 'tin', 'tv', 'warn', 'low', 'add', 'alloc', 'ring', 'full1', 'full2', 'd15', 'd19', 'd20', 'd21', 'd22', 'd23']) this[k] = q(k);
+    for (const k of ['cam', 'ov', 'dlg', 'pm', 'em', 'pm-tint', 'em-tint', 'pv', 'pin', 'cv', 'ev', 'eav', 'ein', 'knob', 's1', 's2', 'cal', 'dv', 'hs', 'hf', 'hv', 'rl', 'rin', 'rv', 'rc', 'ru', 'tl', 'tin', 'tv', 'warn', 'low', 'add', 'alloc', 'ring', 'full1', 'full2', 'full3', 'd15', 'd19', 'd20', 'd21', 'd22', 'd23']) this[k] = q(k);
     this.camera = new kit.Camera(this.cam);
     this.camera.set([
       { t: 0, cx: 960, cy: 540, z: 1.12, hold: 0.4 },
-      { t: 1.0, cx: 1300, cy: 360, z: 2.0, hold: 0.2 },
+      { t: 1.0, cx: 1200, cy: 360, z: 2.0, hold: 0.2 },
       { t: 1.75, cx: 960, cy: 420, z: 1.9, hold: 2.25 },
       { t: 4.4, cx: 960, cy: 660, z: 1.9, hold: 3.95 },
-      { t: 8.75, cx: 960, cy: 720, z: 1.9, hold: 0.95 },
-      { t: 10.3, cx: 1060, cy: 330, z: 1.8, drift: [-3, 0, 0.005] },
+      { t: 8.75, cx: 960, cy: 700, z: 1.9, hold: 0.95 },
+      { t: 10.3, cx: 1067, cy: 400, z: 1.76, drift: [0, 0, 0.004] },
     ]);
     this.cur = kit.cursor();
     this.cam.appendChild(this.cur.el);
@@ -236,7 +239,7 @@ kit.scene('add-allocation', {
     this.rv.textContent = String(rep);
     this.ru.textContent = rep === 1 ? 'week' : 'weeks';
     this.rc.style.opacity = t > 8.85 && t < 9.3 && (t < 9.0 || Math.floor(t / 0.53) % 2 === 0) ? 1 : 0;
-    this.tv.textContent = String(Math.round(hrs * 5 * rep * 100) / 100);
+    this.tv.textContent = String(Math.round(hrs * 5 * (rep + 1) * 100) / 100);
     const wp = eio(seg(t, 6.95, 7.1)) * (1 - eio(seg(t, 8.25, 8.4)));
     this.warn.style.height = 32 * wp + 'px';
     this.low.style.transform = 'translateY(' + 48 * wp + 'px)';
@@ -246,9 +249,11 @@ kit.scene('add-allocation', {
     this.alloc.style.transform = 'scale(' + press(9.5) + ')';
     this.full1.style.width = eio(seg(t, 10.35, 10.75)) * 100 + '%';
     this.full2.style.width = eio(seg(t, 10.5, 10.9)) * 100 + '%';
+    this.full3.style.width = eio(seg(t, 10.65, 11.05)) * 100 + '%';
     // a fill at width 0 still shows its padding as a green sliver: hide it until it starts
     this.full1.style.visibility = t > 10.35 ? 'visible' : 'hidden';
     this.full2.style.visibility = t > 10.5 ? 'visible' : 'hidden';
+    this.full3.style.visibility = t > 10.65 ? 'visible' : 'hidden';
     let g = null;
     for (const x of RINGS) if (t >= x[0] && t < x[1]) g = x;
     const s = this.ring.style;

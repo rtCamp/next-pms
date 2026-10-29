@@ -138,10 +138,10 @@ kit.scene('approve-project', {
     const cam = this.cam = new kit.Camera(kit.stage.querySelector('.review-cam'));
     cam.set([
       { t: 0, cx: 960, cy: 540, z: 1.1, hold: 1.0, drift: [2, 0, 0.006] },
-      { t: 2.2, cx: 1200, cy: 405, z: 2.0, hold: 1.85, drift: [1.5, 0, 0.004] },
-      { t: 5.05, cx: 1430, cy: 480, z: 2.2, hold: 0.55, drift: [0, 1.5, 0.003] },
-      { t: 6.5, cx: 1430, cy: 712, z: 2.0, hold: 1.85, drift: [0, -1.5, 0.003] },
-      { t: 9.35, cx: 1134, cy: 462, z: 1.65, drift: [1.5, 0, 0.004] },
+      { t: 2.2, cx: 1195, cy: 405, z: 2.0, hold: 1.85, drift: [1.5, 0, 0.004] },
+      { t: 5.05, cx: 1240, cy: 480, z: 2.2, hold: 0.55, drift: [0, 1.5, 0.003] },
+      { t: 6.5, cx: 1195, cy: 712, z: 2.0, hold: 1.85, drift: [0, -1.5, 0.003] },
+      { t: 9.35, cx: 1095, cy: 462, z: 1.65, drift: [0, 0, 0.004] },
     ]);
     const P = (x, y) => [x, y];
     const cur = this.cur = kit.cursor();

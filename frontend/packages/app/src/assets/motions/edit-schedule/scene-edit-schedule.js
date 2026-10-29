@@ -112,7 +112,7 @@ kit.scene('edit-schedule', {
     let grid = '<div class="pms-abs" style="left:480px;right:0;top:236px;height:162px;background:' + mix('surface-gray-1', 'surface-white', 0.5) + '"></div><div class="pms-abs" style="left:240px;right:0;top:113px;height:1px;background:var(--color-outline-gray-1)"></div>' + box(257, 136, 72, 14, 5);
     for (let w = 0; w < 4; w++) {
       const x0 = 480 + 266 * w;
-      grid += '<div class="pms-abs" style="left:' + (x0 + 190) + 'px;top:114px;width:76px;height:786px;background:var(--color-surface-gray-1)"></div><div class="pms-abs" style="left:' + x0 + 'px;top:114px;width:1px;height:786px;background:var(--color-outline-gray-1)"></div>';
+      grid += '<div class="pms-abs" style="left:' + (x0 + 190) + 'px;top:144px;width:76px;height:756px;border-radius:8px 8px 0 0;background:var(--color-surface-gray-1)"></div><div class="pms-abs" style="left:' + x0 + 'px;top:114px;width:1px;height:786px;background:var(--color-outline-gray-1)"></div>';
       grid += '<div class="pms-abs" style="left:' + x0 + 'px;top:120px;width:266px;text-align:center;font-size:12px;color:var(--color-ink-gray-4)">' + WEEKS[w] + '</div>';
     }
     for (let d = 0; d < 28; d++) {
@@ -184,10 +184,10 @@ kit.scene('edit-schedule', {
     this.camera = new kit.Camera(this.cam);
     this.camera.set([
       { t: 0, cx: 960, cy: 540, z: 1.12, hold: 0.4 },
-      { t: 1.15, cx: 1110, cy: 380, z: 1.6, hold: 1.5, drift: [1.5, 0, 0.003] },
+      { t: 1.15, cx: 1070, cy: 430, z: 1.6, hold: 1.5, drift: [1.5, 0, 0.003] },
       { t: 3.3, cx: 960, cy: 520, z: 1.6, hold: 1.05 },
       { t: 5.0, cx: 960, cy: 540, z: 2.2, hold: 5.1, drift: [0, 0.8, 0.002] },
-      { t: 10.9, cx: 1000, cy: 340, z: 1.9, drift: [-1.5, 0, 0.003] },
+      { t: 10.9, cx: 1000, cy: 382, z: 1.9, drift: [-1.5, 0, 0.003] },
     ]);
     // cursor keys in scene px (window + 240, 90)
     const sc = (x, y) => [x + 240, y + 90];
