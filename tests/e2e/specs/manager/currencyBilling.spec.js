@@ -15,7 +15,8 @@ import {
 import { dayOfThisMonth } from "../../utils/dateUtils";
 import { findProjectId, loadTestCase } from "../../utils/testCase";
 
-const SORT_HINT = "Select a currency to enable this sort";
+const SORT_HINT =
+  "Select a Currency first. Amounts in different currencies can't be compared.";
 const LIST_COLUMNS = {
   budget: ["name", "burn_rate_per_week", "total_budget"],
   lifetime: [
@@ -446,14 +447,14 @@ test.describe("Manager: Currency & Billing", () => {
 
     await test.step("Fixed Cost: the value is the same either way", async () => {
       await tracking.goto(fixedId);
-      await expect(tracking.totalProjectValueLink).toContainText(
+      await expect(tracking.valueOf("Total project value")).toContainText(
         formatMoney(fixed.sales),
       );
       await tracking.showFinancials("Current");
       await expect(
         tracking.tab.getByText("Current profit", { exact: true }),
       ).toBeVisible();
-      await expect(tracking.totalProjectValueLink).toContainText(
+      await expect(tracking.valueOf("Total project value")).toContainText(
         formatMoney(fixed.sales),
       );
     });
@@ -466,7 +467,9 @@ test.describe("Manager: Currency & Billing", () => {
     const { projectId } = await loadTestCase(jsonDir, "TC201");
 
     await tracking.goto(projectId);
-    await expect(tracking.totalProjectValueLink).toContainText(formatMoney(0));
+    await expect(tracking.valueOf("Total project value")).toContainText(
+      formatMoney(0),
+    );
     await expect(tracking.valueOf("Projected profit margin")).toHaveText("N/A");
 
     await tracking.showFinancials("Current");
@@ -509,7 +512,7 @@ test.describe("Manager: Currency & Billing", () => {
         const symbol = SYMBOLS[currency];
         const values = [
           tracking.sidebarSection("Budget burn"),
-          tracking.totalProjectValueLink,
+          tracking.valueOf("Total project value"),
           tracking.valueOf("Projected profit"),
           ...figures.map(([label, card]) =>
             tracking.valueOf(label, tracking.card(card)),

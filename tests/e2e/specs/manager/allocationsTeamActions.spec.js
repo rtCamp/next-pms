@@ -102,11 +102,19 @@ test.describe("Manager: Allocations team actions", () => {
     // Monday to Friday of a week with no seeded leave: five days.
     await expect(al.totalHoursTextField).toHaveValue("10");
     // Weekends count once both are ticked, whether or not the site marks them as holidays.
-    await al.dialog.getByLabel("Include weekends").check({ force: true });
-    await al.dialog.getByLabel("Include holidays").check({ force: true });
+    await al.dialog
+      .getByRole("checkbox", { name: "Include weekends" })
+      .check({ force: true });
+    await al.dialog
+      .getByRole("checkbox", { name: "Include holidays" })
+      .check({ force: true });
     await expect(al.totalHoursTextField).toHaveValue("14");
-    await al.dialog.getByLabel("Include weekends").uncheck({ force: true });
-    await al.dialog.getByLabel("Include holidays").uncheck({ force: true });
+    await al.dialog
+      .getByRole("checkbox", { name: "Include weekends" })
+      .uncheck({ force: true });
+    await al.dialog
+      .getByRole("checkbox", { name: "Include holidays" })
+      .uncheck({ force: true });
     await expect(al.totalHoursTextField).toHaveValue("10");
 
     await al.dialog.getByRole("button", { name: "Cancel" }).click();

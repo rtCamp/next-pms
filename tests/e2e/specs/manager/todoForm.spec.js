@@ -22,6 +22,9 @@ import { scaleTimeout } from "../../utils/timeouts";
 const NO_CUSTOM_FIELDS =
   "Skipped: this site has no ToDo Title, Start and End custom fields, so the form has none of these.";
 
+// The form saves through these whitelisted methods, not /api/resource/ToDo.
+const TODO_API = "next_pms.next_projects.api.todo";
+
 const assigneeHref = (email) => `/desk/user/${encodeURIComponent(email)}`;
 
 test.describe("Manager: ToDo form", () => {
@@ -221,10 +224,8 @@ test.describe("Manager: ToDo form", () => {
     await todoPage.openNewTodo();
     await todoPage.fillTodo({ title: data.todo });
 
-    const createUrl = "**/api/resource/ToDo";
-    await page.route(createUrl, (route) =>
-      route.request().method() === "POST" ? route.abort() : route.continue(),
-    );
+    const createUrl = `**/api/method/${TODO_API}.create_project_todo`;
+    await page.route(createUrl, (route) => route.abort());
     await todoPage.createButton.click();
 
     await expect(todoPage.toast("Network Error")).toBeVisible();
@@ -241,8 +242,8 @@ test.describe("Manager: ToDo form", () => {
       timeout: scaleTimeout(15000),
     });
 
-    await page.route(`**/api/resource/ToDo/${seeded.name}`, (route) =>
-      route.request().method() === "PUT" ? route.abort() : route.continue(),
+    await page.route(`**/api/method/${TODO_API}.update_project_todo`, (route) =>
+      route.abort(),
     );
     await todoPage.doneButton(data.statusTodo).click();
 
