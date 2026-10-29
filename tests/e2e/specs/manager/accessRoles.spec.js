@@ -46,6 +46,9 @@ const NOT_FIELDS = new Set([
 ]);
 
 test.describe("Access & Roles", () => {
+  // Five of these started together and logged in several users on a loaded run: 90s was
+  // too tight, while each passes in under 50s when the server is quiet.
+  test.describe.configure({ timeout: scaleTimeout(60000) });
   let data;
   let projectId;
 

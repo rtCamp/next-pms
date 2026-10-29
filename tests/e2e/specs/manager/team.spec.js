@@ -88,6 +88,8 @@ test.describe("Manager: Team Tab", () => {
     jsonDir,
   }) => {
     allure.story("Team");
+    // Two member switches with slowMo:500 take about 80s of the 90s default.
+    test.setTimeout(180000);
     const stubPath = path.join(jsonDir, "TC45.json");
     const data = await readJSONFile(stubPath);
     const TC45data = data.TC45;

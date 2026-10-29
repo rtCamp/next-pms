@@ -17,7 +17,10 @@ test.describe("Manager: Projects list", () => {
     list = new ProjectsListPage(page);
   });
 
-  /** Of the three colour-coded projects, the ones listed. */
+  /**
+   * Of the three colour-coded projects, the ones listed. Other files move or add
+   * "E2E Prj ..." projects while these run, so a bare names() read can see them.
+   */
   const coloured = async () =>
     (await list.names()).filter((name) => [RED, AMBER, GREEN].includes(name));
 
@@ -70,9 +73,9 @@ test.describe("Manager: Projects list", () => {
     await list.open({ search: SEARCH });
     await list.choose(list.phaseSelect, "Development");
     await expect(page).toHaveURL(/phase=Development/);
-    await expect.poll(() => list.names()).toEqual([AMBER]);
+    await expect.poll(coloured).toEqual([AMBER]);
     await list.choose(list.phaseSelect, "Kick Off");
-    await expect.poll(() => list.names()).toEqual([RED]);
+    await expect.poll(coloured).toEqual([RED]);
   });
 
   test("TC304: The Status filter narrows the list", async ({ page }) => {
@@ -80,7 +83,7 @@ test.describe("Manager: Projects list", () => {
     await list.open({ search: SEARCH });
     await list.choose(list.statusSelect, "Completed");
     await expect(page).toHaveURL(/status=Completed/);
-    await expect.poll(() => list.names()).toEqual([GREEN]);
+    await expect.poll(coloured).toEqual([GREEN]);
 
     await list.open({ search: GREEN });
     await list.choose(list.statusSelect, "Open");
@@ -95,7 +98,7 @@ test.describe("Manager: Projects list", () => {
     allure.story("Projects");
     await list.open({ search: SEARCH });
     await list.addFilterCondition("Customer", "QA-USD");
-    await expect.poll(() => list.names()).toEqual([AMBER]);
+    await expect.poll(coloured).toEqual([AMBER]);
 
     // Not Equals keeps every other customer's project and drops the chosen one's.
     await list.open({ search: RED });
@@ -107,7 +110,7 @@ test.describe("Manager: Projects list", () => {
 
     await list.open({ search: SEARCH });
     await list.addFilterCondition("Project Manager", process.env.REP_MAN_NAME);
-    await expect.poll(() => list.names()).toEqual([RED]);
+    await expect.poll(coloured).toEqual([RED]);
   });
 
   test("TC306: The Filter button counts search, RAG, Phases, Status and panel conditions, and Clear all filters removes them", async ({
@@ -124,7 +127,7 @@ test.describe("Manager: Projects list", () => {
     await expect.poll(() => list.filterCount()).toBe(4);
     await list.addFilterCondition("Customer", "QA-INR");
     await expect.poll(() => list.filterCount()).toBe(5);
-    await expect.poll(() => list.names()).toEqual([RED]);
+    await expect.poll(coloured).toEqual([RED]);
 
     await list.clearAll();
     await expect.poll(() => list.filterCount()).toBe(0);

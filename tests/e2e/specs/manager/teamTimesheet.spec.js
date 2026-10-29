@@ -4,6 +4,7 @@ import path from "path";
 import { TeamTimesheetPage } from "../../pageObjects/teamTimesheetPage";
 import { dateInWeek, getFormattedDate, weekLabel } from "../../utils/dateUtils";
 import { readJSONFile } from "../../utils/fileUtils";
+import { scaleTimeout } from "../../utils/timeouts";
 
 // TC232 seeds the members every case below reads; see data/manager/teamTimesheet.js.
 const FIXTURE = "TC232";
@@ -315,7 +316,14 @@ test.describe("Manager: Team timesheet", () => {
       await expect(cells.nth(index)).toBeDisabled();
     }
     await cells.nth(0).click({ force: true });
-    await expect(team.addTimeDialog).toHaveCount(0);
+    // A late re-render can put another member's open cell under the pointer, so only
+    // a dialog for this member counts.
+    const opened = (await team.addTimeDialog.count())
+      ? await team.addTimeDialog
+          .getByPlaceholder("Select employee")
+          .inputValue()
+      : "";
+    expect(opened).not.toBe(member.TmApproved);
     // A week still to submit stays open for time.
     await expect(
       team.cells(team.memberRow(LAST, member.TmDraft)).nth(0),
@@ -376,6 +384,7 @@ test.describe("Manager: Team timesheet", () => {
     page,
   }) => {
     allure.story("Team Timesheet");
+    test.setTimeout(scaleTimeout(60000));
     const requests = [];
     page.on("request", (request) => {
       if (

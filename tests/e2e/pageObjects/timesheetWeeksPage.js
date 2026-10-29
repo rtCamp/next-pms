@@ -1,3 +1,4 @@
+import { expect } from "@playwright/test";
 import { gotoWithRetry } from "../utils/navigation";
 import { scaleTimeout } from "../utils/timeouts";
 import { TimesheetTabPage } from "./timesheetTabPage";
@@ -145,8 +146,11 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
     await popover.getByRole("button", { name: "Save entry" }).click();
     // Saving goes back to the day's list of entries, which stays open.
     await popover.getByRole("button", { name: "Add time" }).waitFor();
-    await this.page.keyboard.press("Escape");
-    await popover.waitFor({ state: "hidden", timeout: scaleTimeout(10000) });
+    // One Escape was ignored while the dialog was still settling, so press until it closes.
+    await expect(async () => {
+      if (await popover.isVisible()) await this.page.keyboard.press("Escape");
+      await expect(popover).toBeHidden({ timeout: 3000 });
+    }).toPass({ timeout: scaleTimeout(10000) });
   }
 
   /** Deletes the entry carrying `comment` in a task row's day cell. */

@@ -141,6 +141,8 @@ test.describe("Manager: Project reports and risks", () => {
     const summary = `E2E Prj new risk ${Date.now()}`;
     try {
       await risks.goto(project);
+      // The group counts read 0 until the list has loaded.
+      await expect(risks.listRow(OPEN_RISK)).toBeVisible();
       const open = await risks.groupCount("Open Risk");
       await risks.createButton.click();
       await risks.fillRisk({
@@ -165,6 +167,8 @@ test.describe("Manager: Project reports and risks", () => {
     const summary = `E2E Prj moving risk ${Date.now()}`;
     await withRisk(summary, {}, async () => {
       await risks.goto(project);
+      await expect(risks.listRow(OPEN_RISK)).toBeVisible();
+      await expect(risks.listRow(MITIGATED_RISK)).toBeVisible();
       const [open, mitigated] = [
         await risks.groupCount("Open Risk"),
         await risks.groupCount("Mitigated Risk"),

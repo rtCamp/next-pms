@@ -1,5 +1,6 @@
 import {
   createDocument,
+  deleteDocument,
   getDocList,
   getDocument,
   getDoctypeFields,
@@ -144,6 +145,20 @@ export const todosOfProject = (projectId) =>
     ["reference_type", "=", "Project"],
     ["reference_name", "=", projectId],
   ]);
+
+/** Removes what an earlier attempt left on the project, so a retry starts clean. */
+export const clearTodoData = async (projectId) => {
+  for (const doctype of [TIMELINE_ITEM, INITIATIVE]) {
+    for (const { name } of await getDocList(doctype, [
+      ["project", "=", projectId],
+    ])) {
+      await deleteDocument(doctype, name);
+    }
+  }
+  for (const { name } of await todosOfProject(projectId)) {
+    await deleteDocument(TODO, name);
+  }
+};
 
 export const linkedTodoNames = async (doctype, name) =>
   ((await getDocument(doctype, name))?.linked_todos ?? []).map(

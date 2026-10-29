@@ -8,6 +8,7 @@ import {
   TODO,
   findTodo,
   linkedTodoNames,
+  clearTodoData,
   seedInitiative,
   seedTimelineItem,
   seedTodo,
@@ -28,7 +29,10 @@ test.describe("Manager: Project ToDos", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
+    // Three ToDos created through the dialog, each action carrying the slowMo pause.
+    test.setTimeout(scaleTimeout(60000));
     const { data, projectId } = await loadTestCase(jsonDir, "TC142");
+    await clearTodoData(projectId);
     const milestone = await seedTimelineItem(
       projectId,
       "Milestone",

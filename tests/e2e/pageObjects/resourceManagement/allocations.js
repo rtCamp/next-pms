@@ -55,6 +55,22 @@ export class AllocationsPage extends TeamPage {
     await this.table.or(this.noData).waitFor({ timeout: scaleTimeout(40000) });
   }
 
+  /**
+   * Opens a tab and waits for a row. A filtered answer can still miss what was seeded a
+   * moment ago, and "No Data" counts as loaded, so reload a few times.
+   */
+  async gotoRow(view, params, name, attempts = 3) {
+    for (let attempt = 1; ; attempt++) {
+      await this.goto(view, params);
+      try {
+        await this.row(name).waitFor({ timeout: scaleTimeout(8000) });
+        return;
+      } catch (err) {
+        if (attempt >= attempts) throw err;
+      }
+    }
+  }
+
   /** Previous/Next are named after the duration: "Previous Week", "Next Quarter". */
   navButton(direction, unit) {
     return this.page.getByRole("button", {

@@ -59,8 +59,7 @@ test.describe("Employee: Allocations", () => {
 
   test("TC296: An employee sees the Project allocations grid read-only", async () => {
     allure.story("Allocations");
-    await al.goto("project", { search: "E2E Alloc" });
-    await expect.poll(() => al.rowNames()).toContain("E2E Alloc Alpha");
+    await al.gotoRow("project", { search: "E2E Alloc" }, "E2E Alloc Alpha");
     await expect(al.searchProjectFilter).toBeVisible();
     await expect(al.addAllocatioButtton).toHaveCount(0);
     await expect(al.filterButton).toHaveCount(0);

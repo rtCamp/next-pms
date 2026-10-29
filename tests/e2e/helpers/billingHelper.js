@@ -11,6 +11,7 @@ import {
 import { createTimesheet } from "../utils/api/timesheetRequests";
 import { getFormattedDate, lastWorkday } from "../utils/dateUtils";
 import { readJSONFile } from "../utils/fileUtils";
+import { scaleTimeout } from "../utils/timeouts";
 import { seedTask } from "./taskHelper";
 
 export const USD_CUSTOMER = "QA-USD";
@@ -84,6 +85,22 @@ export const createSalesOrder = async ({
 };
 
 /**
+ * A timesheet only queues the rebuild of its project's totals. Writing the project before
+ * that job has saved (a Sales Order does) puts the old totals back, so wait for the hours.
+ */
+const waitForCosting = async (projectId, hours) => {
+  const deadline = Date.now() + scaleTimeout(20000);
+  while (Date.now() < deadline) {
+    const project = await getDocument("Project", projectId);
+    if (Number(project?.actual_time) >= hours) return;
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  console.warn(
+    `⚠️ ${projectId}: totals did not catch up with ${hours}h logged`,
+  );
+};
+
+/**
  * Logs time against a new task of the project. A task in a billable project is
  * billable from the start, so a non-billable one is switched off afterwards.
  */
@@ -110,7 +127,8 @@ export const seedBillingTime = async (
 
 /**
  * Seeds what a project's money figures are built from, for the keys a test
- * case's data carries (`<postfix>` pairs a key with `payloadCreateProject<postfix>`):
+ * case's data carries (`<postfix>` pairs a key with `payloadCreateProject<postfix>`).
+ * The orders go first, so none lands on a project whose totals are still being rebuilt:
  *   payloadCreateSalesOrder<postfix>   { amount }
  *   payloadCreateBillingTime<postfix>  [{ subject, hours, billable }]
  */
@@ -121,20 +139,6 @@ export const createBillingDataForTestCases = async (testCaseIDs, jsonDir) => {
   if (!entry) return;
 
   let seeded = false;
-  for (const key of Object.keys(entry)) {
-    const postfix = key.match(/^payloadCreateBillingTime(\w*)$/)?.[1];
-    if (postfix === undefined) continue;
-    const projectId = entry[`payloadDeleteProject${postfix}`]?.projectId;
-    if (!projectId) {
-      console.warn(`⚠️ [${tcId}] ${key} has no project to book against`);
-      continue;
-    }
-    for (const time of entry[key]) {
-      await seedBillingTime(projectId, time);
-    }
-    seeded = true;
-  }
-
   for (const key of Object.keys(entry)) {
     const postfix = key.match(/^payloadCreateSalesOrder(\w*)$/)?.[1];
     if (postfix === undefined) continue;
@@ -152,6 +156,23 @@ export const createBillingDataForTestCases = async (testCaseIDs, jsonDir) => {
     });
     seeded = true;
   }
+  for (const key of Object.keys(entry)) {
+    const postfix = key.match(/^payloadCreateBillingTime(\w*)$/)?.[1];
+    if (postfix === undefined) continue;
+    const projectId = entry[`payloadDeleteProject${postfix}`]?.projectId;
+    if (!projectId) {
+      console.warn(`⚠️ [${tcId}] ${key} has no project to book against`);
+      continue;
+    }
+    let logged = 0;
+    for (const time of entry[key]) {
+      await seedBillingTime(projectId, time);
+      logged += time.hours;
+      await waitForCosting(projectId, logged);
+    }
+    seeded = true;
+  }
+
   if (seeded) console.log(`✅ CREATE BILLING DATA SUCCESS FOR: ${testCaseIDs}`);
 };
 

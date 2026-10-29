@@ -79,7 +79,7 @@ module.exports = defineConfig({
     video: "retain-on-failure",
 
     launchOptions: {
-      slowMo: 500, // Slow down tests by 500ms
+      slowMo: Number(process.env.SLOW_MO ?? 500), // ms between actions; SLOW_MO=0 for a fast run
     },
   },
 

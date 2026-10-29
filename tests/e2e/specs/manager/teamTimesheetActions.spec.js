@@ -11,6 +11,7 @@ import {
 } from "../../utils/api/apiClient";
 import { dateInWeek, getFormattedDate, weekLabel } from "../../utils/dateUtils";
 import { readJSONFile } from "../../utils/fileUtils";
+import { scaleTimeout } from "../../utils/timeouts";
 
 // TC232 seeds the members every case below acts on; see data/manager/teamTimesheet.js.
 const FIXTURE = "TC232";
@@ -122,7 +123,7 @@ test.describe("Manager: Team timesheet actions", () => {
 
   test("TC247: Save and add another keeps the member and date and clears the entry; Save and close closes the dialog", async () => {
     allure.story("Team Timesheet");
-    test.setTimeout(180000);
+    test.setTimeout(scaleTimeout(80000));
     const employee = data.employees.TmAddTime.id;
     const thursday = lastWeek("Thu");
     await clearDay(employee, thursday);
@@ -141,9 +142,11 @@ test.describe("Manager: Team timesheet actions", () => {
       await dialog
         .getByRole("button", { name: "Save and add another" })
         .click();
-      await expect(
-        team.toast("Time Entry submitted successfully"),
-      ).toBeVisible();
+      await expect(team.toast("Time Entry submitted successfully")).toBeVisible(
+        {
+          timeout: scaleTimeout(15000),
+        },
+      );
 
       // Still open on the same member and day, with the entry itself cleared.
       await expect(dialog).toBeVisible();
@@ -166,7 +169,7 @@ test.describe("Manager: Team timesheet actions", () => {
         .first()
         .fill("TC247 - second entry");
       await dialog.getByRole("button", { name: "Save and close" }).click();
-      await expect(dialog).toBeHidden();
+      await expect(dialog).toBeHidden({ timeout: scaleTimeout(15000) });
 
       await team.reload();
       await expect(
@@ -235,7 +238,7 @@ test.describe("Manager: Team timesheet actions", () => {
 
     await expect
       .poll(() => statusAfterReload(LAST, member.TmApprove), {
-        timeout: 60000,
+        timeout: scaleTimeout(40000),
         intervals: [3000],
       })
       .toBe("Approved");
@@ -259,7 +262,7 @@ test.describe("Manager: Team timesheet actions", () => {
 
     await expect
       .poll(() => statusAfterReload(LAST, member.TmOneDay), {
-        timeout: 60000,
+        timeout: scaleTimeout(40000),
         intervals: [3000],
       })
       .toBe("Partially approved");
@@ -314,7 +317,7 @@ test.describe("Manager: Team timesheet actions", () => {
     await expect(team.toast(QUEUED)).toBeVisible();
     await expect
       .poll(() => statusAfterReload(LAST, member.TmQueued), {
-        timeout: 60000,
+        timeout: scaleTimeout(40000),
         intervals: [3000],
       })
       .toBe("Approved");
@@ -350,7 +353,7 @@ test.describe("Manager: Team timesheet actions", () => {
     await expect(team.toast(QUEUED)).toBeVisible();
     await expect
       .poll(() => statusAfterReload(week, employeeName), {
-        timeout: 60000,
+        timeout: scaleTimeout(40000),
         intervals: [3000],
       })
       .toMatch(/rejected/i);
@@ -391,7 +394,7 @@ test.describe("Manager: Team timesheet actions", () => {
             await weeks.reload(LAST);
             return weeks.weekStatus(LAST);
           },
-          { timeout: 60000, intervals: [3000] },
+          { timeout: scaleTimeout(40000), intervals: [3000] },
         )
         .toBe("Approval pending");
 
@@ -400,7 +403,7 @@ test.describe("Manager: Team timesheet actions", () => {
       await expect(team.toast(QUEUED)).toBeVisible();
       await expect
         .poll(() => statusAfterReload(LAST, employeeName), {
-          timeout: 60000,
+          timeout: scaleTimeout(40000),
           intervals: [3000],
         })
         .toBe("Approved");
