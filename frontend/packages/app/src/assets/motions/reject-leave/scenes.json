@@ -1,0 +1,1 @@
+{"width":1920,"height":1080,"background":"#F4F4F5","fonts":{"sans":{"family":"Inter"}},"scenes":[{"id":"reject-leave","name":"Reject leave","dur":12.3,"desc":"Scroll the Manager dashboard to Upcoming time-offs, click the red cross on an Open request, type a Rejection reason and confirm with Reject leave. The request leaves the list and the pending count goes away."}]}

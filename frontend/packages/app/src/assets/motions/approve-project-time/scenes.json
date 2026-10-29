@@ -1,1 +1,1 @@
-{"width":1920,"height":1080,"background":"#F4F4F5","fonts":{"sans":{"family":"Inter"}},"scenes":[{"id":"approve-project","name":"Approve time on a project","dur":13,"desc":"Open a member's time on one project from its status icon, check the days, approve; the member shows Approved."}]}
+{"width":1920,"height":1080,"background":"#F4F4F5","fonts":{"sans":{"family":"Inter"}},"scenes":[{"id":"approve-project-time","name":"Approve time on a project","dur":13,"desc":"Open a member's time on one project from its status icon, check the days, approve; the member shows Approved."}]}

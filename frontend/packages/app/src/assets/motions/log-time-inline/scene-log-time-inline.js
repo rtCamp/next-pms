@@ -1,5 +1,5 @@
 const { seg, lerp, eo, ei, eio } = kit;
-// ==== Next PMS shell v1.7 ====
+// ==== Next PMS shell v1 ====
 // Measured from the running app at its 2023 px desktop width and drawn in a 1440x900 window.
 // Sidebar 240 wide, top bar 57 high, filter row at y 71. Right-anchored x = app x - 2023 + 1440.
 // Ghost shapes: text = 10 px pill r5 (secondary 8 px r4), icon = 14 px square r4, buttons keep their real box.
@@ -93,7 +93,7 @@ const RINGS = [[1.6, 3.1, 1014, 276, 64, 36], [3.2, 5.6, 807, 321, 264, 36], [5.
 const cell = (x, txt, cls, sty) => '<div class="pms-cell ' + (cls || '') + '" style="left:' + (x - 268) + 'px;' + (sty || '') + '">' + txt + '</div>';
 const bar = (x, y, w, h) => '<div class="pms-bar" style="left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + (h || 10) + 'px"></div>';
 const gb = (x, y, w, h) => '<div class="pms-abs" style="left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px;border-radius:8px;background:var(--color-surface-gray-3)"></div>';
-kit.scene('inline-time', {
+kit.scene('log-time-inline', {
   init(kit) {
     const side = SHELL('personal');
     let head = '<div class="pms-row" style="top:100px;height:40px">' + bar(32, 16, 130, 8);

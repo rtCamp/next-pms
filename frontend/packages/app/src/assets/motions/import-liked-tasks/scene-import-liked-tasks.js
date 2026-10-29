@@ -1,5 +1,5 @@
 const { seg, lerp, eo, ei, eio } = kit;
-// ==== Next PMS shell v1.7 ====
+// ==== Next PMS shell v1 ====
 // Measured from the running app at its 2023 px desktop width and drawn in a 1440x900 window.
 // Sidebar 240 wide, top bar 57 high, filter row at y 71. Right-anchored x = app x - 2023 + 1440.
 // Ghost shapes: text = 10 px pill r5 (secondary 8 px r4), icon = 14 px square r4, buttons keep their real box.
@@ -93,7 +93,7 @@ const STAR_ON = '<svg width="16" height="16" viewBox="0 0 16 16" style="flex:non
 const RINGS = [[0.9, 1.75, 285, 193, 26, 26, 11], [2.25, 5.2, 257, 224, 400, 228, 11]];
 const cell = (x, txt, cls, sty) => '<div class="pms-cell ' + (cls || '') + '" style="left:' + (x - 268) + 'px;' + (sty || '') + '">' + txt + '</div>';
 const bar = (x, y, w, h) => '<div class="pms-bar" style="left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + (h || 10) + 'px"></div>';
-kit.scene('import-liked', {
+kit.scene('import-liked-tasks', {
   init(kit) {
     const side = SHELL('personal');
     let skel = '';

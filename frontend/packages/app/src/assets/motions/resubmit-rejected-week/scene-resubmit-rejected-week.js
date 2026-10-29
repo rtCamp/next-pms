@@ -1,5 +1,5 @@
 const { seg, lerp, eo, ei, eio } = kit;
-// ==== Next PMS shell v1.7 ====
+// ==== Next PMS shell v1 ====
 // Measured from the running app at its 2023 px desktop width and drawn in a 1440x900 window.
 // Sidebar 240 wide, top bar 57 high, filter row at y 71. Right-anchored x = app x - 2023 + 1440.
 // Ghost shapes: text = 10 px pill r5 (secondary 8 px r4), icon = 14 px square r4, buttons keep their real box.
@@ -116,7 +116,7 @@ const note = (y, txt) => '<div class="pms-abs" style="left:8px;top:' + y + 'px;w
 const oneLine = (y, bg, txt) => bg + '<div class="pms-abs" style="left:95px;top:' + (y + 3) + 'px;width:169px;font-size:13px;line-height:15px;color:var(--color-ink-gray-6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + txt + '</div>';
 const addBtn = (y) => '<div class="pms-abs" style="left:8px;top:' + y + 'px;width:99px;height:28px;box-sizing:border-box;padding:0 8px;display:flex;align-items:center;gap:6px;font-size:14px;color:var(--color-ink-gray-7)">' + i16(PLUS) + 'Add time</div>';
 const XB = badge(8, 8, '06:00', '<span style="display:flex;color:var(--color-ink-red-4)">' + XCIRC.replace('width="16" height="16"', 'width="14" height="14"') + '</span>', 71);
-kit.scene('resubmit', {
+kit.scene('resubmit-rejected-week', {
   init(kit) {
     const side = SHELL('personal');
     let head = '<div class="pms-row" style="top:100px;height:40px">' + bar(32, 16, 130, 8);

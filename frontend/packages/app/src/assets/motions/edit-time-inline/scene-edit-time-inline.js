@@ -1,5 +1,5 @@
 const { seg, lerp, eo, ei, eio } = kit;
-// ==== Next PMS shell v1.7 ====
+// ==== Next PMS shell v1 ====
 // Measured from the running app at its 2023 px desktop width and drawn in a 1440x900 window.
 // Sidebar 240 wide, top bar 57 high, filter row at y 71. Right-anchored x = app x - 2023 + 1440.
 // Ghost shapes: text = 10 px pill r5 (secondary 8 px r4), icon = 14 px square r4, buttons keep their real box.

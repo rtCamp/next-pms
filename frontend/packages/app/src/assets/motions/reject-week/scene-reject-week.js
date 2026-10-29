@@ -1,5 +1,5 @@
 const { seg, lerp, eo, ei, eio } = kit;
-// ==== Next PMS shell v1.7 ====
+// ==== Next PMS shell v1 ====
 // Measured from the running app at its 2023 px desktop width and drawn in a 1440x900 window.
 // Sidebar 240 wide, top bar 57 high, filter row at y 71. Right-anchored x = app x - 2023 + 1440.
 // Ghost shapes: text = 10 px pill r5 (secondary 8 px r4), icon = 14 px square r4, buttons keep their real box.
@@ -105,7 +105,7 @@ const XCIRC = '<svg class="ic" viewBox="0 0 16 16"><path fill="currentColor" fil
 const XMARK = '<svg style="display:block;width:20px;height:20px" viewBox="0 0 16 16"><path fill="currentColor" d="M12.1494 3.14648C12.3446 2.95126 12.6612 2.95135 12.8564 3.14648C13.0517 3.34175 13.0517 3.65825 12.8564 3.85352L8.70898 8.00098L12.8574 12.1494C13.0526 12.3446 13.0526 12.6612 12.8574 12.8564C12.6622 13.0516 12.3456 13.0517 12.1504 12.8564L8.00195 8.70801L3.85352 12.8564C3.65825 13.0517 3.34175 13.0517 3.14648 12.8564C2.95135 12.6612 2.95126 12.3446 3.14648 12.1494L7.29492 8.00098L3.14746 3.85352C2.95228 3.65827 2.95228 3.34173 3.14746 3.14648C3.34271 2.95137 3.65927 2.95132 3.85449 3.14648L8.00195 7.29395L12.1494 3.14648Z"/></svg>';
 const SPIN = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>';
 const DX = 520, DY = 305.7;
-kit.scene('reject', {
+kit.scene('reject-week', {
   init(kit) {
     let p = '<div class="reject-page" style="position:absolute;inset:0">' + SHELL('team');
     p += G(272, 119, 195, 15);
