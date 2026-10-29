@@ -3,7 +3,8 @@ import { scaleTimeout } from "../../utils/timeouts";
 import { TeamPage } from "./team";
 
 const UNITS = { week: "Week", month: "Month", quarter: "Quarter" };
-// The avatar beside "Created on" / "Last edited on" is the popover's only tooltip trigger.
+// A tooltip trigger. The popover has another beside its hours line, the info icon, so
+// reach the avatar through the "Created on" / "Last edited on" row it sits in.
 const AVATAR = "[data-base-ui-tooltip-trigger]";
 
 /**
@@ -196,7 +197,13 @@ export class AllocationsPage extends TeamPage {
 
   /** The name in the tooltip of a popover's avatar: who last modified the allocation. */
   async modifierOf(popover) {
-    await popover.locator(AVATAR).first().hover();
+    await popover
+      .locator("div")
+      .filter({ hasText: /(Created|Last edited) on/ })
+      .last()
+      .locator(AVATAR)
+      .first()
+      .hover();
     // The tooltip floats like the popover but holds only the name.
     const tooltip = this.page
       .locator("[data-side]:visible")
