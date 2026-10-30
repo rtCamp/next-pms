@@ -15,6 +15,8 @@ import { mergeClassNames as cn } from "../../utils";
 import InfoHoverCard from "../info-hover-card";
 import type { FieldHelp } from "../info-hover-card/types";
 
+export { default as NotificationIcon } from "./doctypeIcon";
+
 export interface NotificationTrayProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;

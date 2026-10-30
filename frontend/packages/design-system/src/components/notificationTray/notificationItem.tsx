@@ -1,51 +1,15 @@
 /**
  * External dependencies.
  */
-import React, { type ComponentType } from "react";
+import React from "react";
 import { Tooltip } from "@rtcamp/frappe-ui-react";
-import {
-  AtSign,
-  Folder,
-  Fire,
-  File,
-  Time,
-  Check,
-} from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
+import NotificationIcon from "./doctypeIcon";
 import type { NotificationEntry } from "./types";
 import { mergeClassNames as cn } from "../../utils";
-
-const DOCTYPE_ICON_MAP: Record<string, ComponentType<{ size?: number }>> = {
-  Risk: Fire,
-  Timesheet: Time,
-  "Customer Feedback": File,
-  Project: Folder,
-  "Project Status Update": AtSign,
-  "Project RAG Status": AtSign,
-};
-
-const NotificationIcon = ({
-  linkedDoctype,
-  title,
-}: {
-  linkedDoctype: string;
-  title?: string;
-}) => {
-  const Icon = title?.toLowerCase().includes("mention")
-    ? AtSign
-    : (DOCTYPE_ICON_MAP[linkedDoctype] ?? Check);
-  return (
-    <div
-      aria-hidden="true"
-      className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-gray-2"
-    >
-      <Icon size={18} />
-    </div>
-  );
-};
 
 const NotificationItem = ({
   notification,
