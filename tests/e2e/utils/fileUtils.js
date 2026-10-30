@@ -7,6 +7,19 @@ import employeeTimesheetData from "../data/employee/timesheet.js";
 import managerTeamData from "../data/manager/team.js";
 import managerTaskData from "../data/manager/task.js";
 import managerProjectData from "../data/manager/project.js";
+import managerGrowthData from "../data/manager/growth.js";
+import managerNotesData from "../data/manager/notes.js";
+import managerTodoData from "../data/manager/todo.js";
+import managerTaskListData from "../data/manager/taskList.js";
+import managerCurrencyBillingData from "../data/manager/currencyBilling";
+import employeeTimesheetWeeksData from "../data/employee/timesheetWeeks";
+import managerProjectTimesheetData from "../data/manager/projectTimesheet";
+import managerTeamTimesheetData from "../data/manager/teamTimesheet";
+import managerAllocationsData from "../data/manager/allocations";
+import managerProjectsData from "../data/manager/projects";
+import managerSettingsData from "../data/manager/settings";
+import managerAccessData from "../data/manager/access";
+import managerDashboardData from "../data/manager/dashboard";
 
 /**
  * Creates a JSON file with initial data
@@ -264,6 +277,19 @@ export const populateJsonStubs = async (jsonDir, testCaseIDs) => {
     manager_team: managerTeamData,
     manager_task: managerTaskData,
     manager_project: managerProjectData,
+    manager_growth: managerGrowthData,
+    manager_notes: managerNotesData,
+    manager_todo: managerTodoData,
+    manager_taskList: managerTaskListData,
+    manager_currencyBilling: managerCurrencyBillingData,
+    employee_timesheetWeeks: employeeTimesheetWeeksData,
+    manager_projectTimesheet: managerProjectTimesheetData,
+    manager_teamTimesheet: managerTeamTimesheetData,
+    manager_allocations: managerAllocationsData,
+    manager_projects: managerProjectsData,
+    manager_settings: managerSettingsData,
+    manager_access: managerAccessData,
+    manager_dashboard: managerDashboardData,
   };
 
   for (const tcId of testCaseIDs) {

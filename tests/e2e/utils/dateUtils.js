@@ -185,3 +185,77 @@ export const getFormattedPastWorkday = (offset) => {
     day: dayOfWeek, // e.g., "Mon"
   };
 };
+
+/**
+ * `YYYY-MM-DD` of a day in the current month, which is what a date picker offers.
+ */
+export const dayOfThisMonth = (day) => {
+  const today = new Date();
+  return getFormattedDate(new Date(today.getFullYear(), today.getMonth(), day));
+};
+
+/** `YYYY-MM-DD` of today, or of the Friday before when today falls on a weekend. */
+export const lastWorkday = () => {
+  const date = new Date();
+  while (date.getDay() === 0 || date.getDay() === 6) {
+    date.setDate(date.getDate() - 1);
+  }
+  return getFormattedDate(date);
+};
+
+const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+/** The Monday of the week that started `weeksAgo` weeks before this one. */
+export const mondayWeeksAgo = (weeksAgo) => {
+  const date = new Date();
+  date.setDate(date.getDate() - ((date.getDay() + 6) % 7) - 7 * weeksAgo);
+  return date;
+};
+
+/** `YYYY-MM-DD` of a weekday ("Mon" to "Sun") in the week that started `weeksAgo` weeks ago. */
+export const dateInWeek = (weeksAgo, weekday = "Mon") => {
+  const date = mondayWeeksAgo(weeksAgo);
+  date.setDate(date.getDate() + WEEKDAYS.indexOf(weekday));
+  return getFormattedDate(date);
+};
+
+/** How the Timesheet tab labels a week: "This week", "Last week", then its dates, e.g. "Oct 5 - 11, 2026". */
+export const weekLabel = (weeksAgo) => {
+  if (weeksAgo === 0) return "This week";
+  if (weeksAgo === 1) return "Last week";
+  const start = mondayWeeksAgo(weeksAgo);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  const short = { month: "short", day: "numeric" };
+  // A week over New Year prints the year on both ends.
+  if (start.getFullYear() !== end.getFullYear()) {
+    const full = { ...short, year: "numeric" };
+    return `${start.toLocaleDateString("en-US", full)} - ${end.toLocaleDateString("en-US", full)}`;
+  }
+  const first = start.toLocaleDateString("en-US", short);
+  if (start.getMonth() === end.getMonth()) {
+    return `${first} - ${end.getDate()}, ${end.getFullYear()}`;
+  }
+  return `${first} - ${end.toLocaleDateString("en-US", short)}, ${end.getFullYear()}`;
+};
+
+/** `YYYY-MM-DD` of the next weekday after today. */
+export const nextWorkday = () => {
+  const date = new Date();
+  do {
+    date.setDate(date.getDate() + 1);
+  } while (date.getDay() === 0 || date.getDay() === 6);
+  return getFormattedDate(date);
+};
+
+/** How the Allocations grids head a week column: "Oct 19 - 25", "Oct 26 - Nov 1", no year. */
+export const allocationWeekLabel = (weeksAgo) => {
+  const start = mondayWeeksAgo(weeksAgo);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  const short = { month: "short", day: "numeric" };
+  const first = start.toLocaleDateString("en-US", short);
+  return start.getMonth() === end.getMonth()
+    ? `${first} - ${end.getDate()}`
+    : `${first} - ${end.toLocaleDateString("en-US", short)}`;
+};

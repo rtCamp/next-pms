@@ -8,6 +8,7 @@ import {
 } from "../../utils/dateUtils";
 import * as allure from "allure-js-commons";
 import { readJSONFile } from "../../utils/fileUtils";
+import { scaleTimeout } from "../../utils/timeouts";
 import { randomApprovalStatus } from "../../helpers/teamTabHelper";
 
 /** @type {TeamPage} */ let teamPage;
@@ -87,6 +88,8 @@ test.describe("Manager: Team Tab", () => {
     jsonDir,
   }) => {
     allure.story("Team");
+    // Two member switches with slowMo:500 take about 80s of the 90s default.
+    test.setTimeout(180000);
     const stubPath = path.join(jsonDir, "TC45.json");
     const data = await readJSONFile(stubPath);
     const TC45data = data.TC45;
@@ -437,9 +440,24 @@ test.describe("Manager: Team Tab2", () => {
     // now verifies the status the member's row shows matches the one seeded for
     // them. The missing filter is worth raising with @ayushnirwal.
     const expectedStatus = TC92data.payloadApprovalStatus.approvalStatus;
-    const status = await teamPage.getApprovalStatusFromRow(emp3Name);
-
-    expect(status, "The member's row shows an approval status").not.toBeNull();
+    // A rejection is saved by a background job; until it runs the row reads
+    // "Processing timesheet", which getApprovalStatusFromRow returns as null.
+    test.slow();
+    let status = null;
+    await expect
+      .poll(
+        async () => {
+          status = await teamPage.getApprovalStatusFromRow(emp3Name);
+          if (!status) await teamPage.goto();
+          return status;
+        },
+        {
+          message: "The member's row shows an approval status",
+          timeout: scaleTimeout(45000),
+          intervals: [2000, 3000, 5000],
+        },
+      )
+      .not.toBeNull();
 
     // Match case-insensitively: the seeded value is title-cased
     // ("Partially Rejected") but the row renders sentence case

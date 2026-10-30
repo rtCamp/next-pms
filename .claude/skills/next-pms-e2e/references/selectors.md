@@ -16,6 +16,7 @@ stale entry here is worse than no entry, because it invites confident guessing.
 - [The allocation dialog](#the-allocation-dialog)
 - [The date-range calendar](#the-date-range-calendar)
 - [Billable indicator](#billable-indicator)
+- [Timesheet tabs: Personal, Project, Team](#timesheet-tabs-personal-project-team)
 - [Backend rules that surface as UI failures](#backend-rules-that-surface-as-ui-failures)
 
 ## The shape of the change
@@ -372,6 +373,80 @@ return (await nonBillableDot.count()) === 0;   // billable
 
 The previous implementation counted svgs (`>= 3`) in cells that contain none, so
 it always returned `false` and four tests passed without testing anything.
+
+## Timesheet tabs: Personal, Project, Team
+
+The React build the branch ships (October 2026). All three tabs share
+`pageObjects/timesheetTabPage.js`; `timesheetWeeksPage.js`,
+`projectTimesheetPage.js` and `teamTimesheetPage.js` extend it.
+
+**Weeks.** Each week is a header **button** plus a **region** with the same
+accessible name, which holds the week's rows once the week is open
+(`aria-expanded`).
+
+- Labels: "This week", "Last week", then "Oct 5 - 11, 2026"; across months
+  "Sep 28 - Oct 4, 2026"; across New Year "Dec 28, 2026 - Jan 3, 2027"
+  (`weekLabel(weeksAgo)` builds them). The name continues with the status, days
+  and total, but an empty week has nothing after the label, so match
+  `^<label>(?: |$)`.
+- Personal tab: opens on 4 weeks. Team tab: lists 12 weeks, **opens only the
+  first four**, loads older weeks on scroll. To reach a given week, put a Date
+  range in the URL so it is the only week shown:
+  `compositeFilters=[{"id":"filter-1","field":"date","operator":"between","value":["<Mon>","<Sun>"],"fieldCategory":""}]`.
+  A Date range keeps whole weeks; Project/Task filters drop weeks with no
+  matching time.
+
+**Day cells.** Buttons with aria-label "Add time" whose text is `HH:MM` or `-`;
+select them by text (`/^(\d{2}:\d{2}|-)$/`), then `.nth(0..6)` for Mon..Sun. A
+locked day (an Approved week) is `disabled`.
+
+**Team tab member rows.**
+
+| What | Locator |
+|---|---|
+| Member row | button named `^\S+ <full name> ` (avatar initial or "Avatar", name, status, the seven days, total) |
+| Member's projects and tasks | region with the same name |
+| Project row in it | button named `^<project> Add time` |
+| Task or Time-off row | `div.border-b.transition-colors` filtered by its label text |
+| Review button | inside the member row, named by the week's status (Approval pending, Approved, Rejected, Partially ...); absent until the week is submitted |
+| Search | placeholder "Search members" (`?search=` in the URL); search does not drop empty weeks |
+| Approval status | combobox "Select options", six statuses (`?approval=approval-pending`) |
+| Reports to | combobox "Reports to" |
+
+Members load 20 at a time; the next page loads when the last member scrolls
+into view (`scrollToLastMember`; a big wheel jump skips the trigger).
+
+**Approval drawer** (dialog holding the Approve button):
+
+- Day headers are buttons "Mon, Oct 12 01:00", with "· First half off" (staging)
+  or "· Half day off" (CI) on a leave day; each holds a checkbox, and every
+  pending day starts ticked.
+- Approve and Reject at the bottom; both disabled for a decided or processing
+  week, so a reopened drawer is read-only.
+- Reject opens a dialog headed "Reason for timesheet rejection" with textbox
+  "Reason (required)" and button "Reject timesheet"; its errors stay inside that
+  dialog, while Approve's errors are toasts.
+- A rejected entry shows an alert "Rejection reason", its hours as rejected, and
+  a 00:00 day total.
+- An entry's pencil ("Edit time entry") shows only on hover; the editor's Save
+  is its first unnamed button.
+
+**Dialogs.** "Add time" and "Add time off" are named dialogs. Pickers are
+inputs by placeholder ("Select employee", "Select project", "Select task"),
+the date is a button named `YYYY-MM-DD`, the duration input has placeholder
+"00:00" and is capped at the hours left in the day (typing 10:00 gives 08:00,
+no message), the comment is a `contenteditable`. Buttons "Save and close" and
+"Save and add another". A backdated date shows its message **inside** the
+dialog: "Backdated time entries are not allowed. The earliest date you can log
+time for is ...".
+
+**Toasts** read "Time Entry submitted successfully", "Leave created
+successfully", and for a decision "Timesheet approval or rejection has been
+queued for processing...".
+
+**Access.** An employee opening `/next-pms/timesheet/team` lands on
+`/next-pms/not-found`: heading "404", "Sorry, we couldn't find the page you're
+looking for.", button "Return to Home".
 
 ## Backend rules that surface as UI failures
 

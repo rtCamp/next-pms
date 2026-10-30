@@ -581,7 +581,14 @@ export class TimesheetPage {
       state: "visible",
       timeout: scaleTimeout(15000),
     });
+    // The delete call took 20s on a loaded run, longer than the banner wait, and a
+    // retry then finds the entry already gone.
+    const deleted = this.page.waitForResponse(
+      (res) => res.url().includes("timesheet.api.timesheet.delete"),
+      { timeout: scaleTimeout(60000) },
+    );
     await deleteButton.click();
+    await deleted;
     //Assert : Banner to be displayed when a time entry is deleted
     await expect(this.successBanner).toBeVisible();
 
@@ -599,26 +606,35 @@ export class TimesheetPage {
   // --------------------------------------
 
   /**
-   * Imports liked tasks into the timesheet by clicking the import button.
+   * Imports liked tasks into the timesheet by clicking the import button. The app shows
+   * "Something went wrong" when one of its calls fails, so reload once before giving up.
    */
-  async importLikedTasks() {
+  async importLikedTasks(attempts = 2) {
     const button = this.page
       .getByRole("button", { name: "Import liked tasks to this week" })
       .first();
+    const failed = this.page.getByText("Something went wrong");
     const firstRow = this.latestTimesheetTaskRows.first();
 
-    await button
-      .waitFor({ state: "visible", timeout: scaleTimeout(30000) })
-      .catch(() => {});
+    for (let attempt = 1; ; attempt++) {
+      await button
+        .or(failed)
+        .waitFor({ state: "visible", timeout: scaleTimeout(30000) })
+        .catch(() => {});
 
-    // The control is gone once the week already holds the liked tasks, so an
-    // absent button is only fine when rows are actually there.
-    if (!(await button.isVisible().catch(() => false))) {
+      if (await button.isVisible().catch(() => false)) break;
+
+      // The control is gone once the week already holds the liked tasks, so an
+      // absent button is only fine when rows are actually there.
       if (await firstRow.isVisible().catch(() => false)) return;
 
-      throw new Error(
-        "Import liked tasks: no button and no task rows - nothing was imported.",
-      );
+      const crashed = await failed.isVisible().catch(() => false);
+      if (attempt >= attempts || !crashed) {
+        throw new Error(
+          "Import liked tasks: no button and no task rows - nothing was imported.",
+        );
+      }
+      await this.page.reload();
     }
 
     await button.click();

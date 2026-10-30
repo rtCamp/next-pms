@@ -243,6 +243,18 @@ export const createRevieweeForTestCases = async (testCaseIDs = [], jsonDir) => {
  *
  * Runs after createTaskForTestCases, which is what supplies the task id.
  */
+/** Approving a leave makes an Attendance that keeps pointing at it after a cancel, blocking its delete. */
+const deleteLeaveAttendance = async (leave) => {
+  for (const { name, docstatus } of await getDocList(
+    "Attendance",
+    [["leave_application", "=", leave]],
+    { fields: ["name", "docstatus"] },
+  )) {
+    if (docstatus === 1) await cancelDocument("Attendance", name);
+    await deleteDocument("Attendance", name);
+  }
+};
+
 /**
  * Writes TC53's expected team roster by asking who reports to the manager.
  *
@@ -381,6 +393,19 @@ export const deleteEmployeeByName = async () => {
     return;
   }
 
+  // Newer HRMS keeps a seeded employee's holiday list in a Holiday List Assignment.
+  const linked = [
+    ["Leave Application", "employee"],
+    ["Resource Allocation", "employee"],
+    ["Employee Skill Map", "employee"],
+  ];
+  if (
+    (await getDocList("DocType", [["name", "=", "Holiday List Assignment"]]))
+      .length
+  ) {
+    linked.push(["Holiday List Assignment", "assigned_to"]);
+  }
+
   const survivors = [];
   for (const emp of employees) {
     // Frappe refuses to delete an employee that any document still points at,
@@ -399,6 +424,20 @@ export const deleteEmployeeByName = async () => {
       await deleteWithLockRetry(() => deleteDocument("Timesheet", ts.name), {
         label: `Timesheet ${ts.name}`,
       });
+    }
+
+    // Leaves and holiday list assignments link to the employee too.
+    for (const [doctype, field] of linked) {
+      for (const doc of await getDocList(doctype, [[field, "=", emp.name]], {
+        fields: ["name", "docstatus"],
+      })) {
+        if (doc.docstatus === 1) await cancelDocument(doctype, doc.name);
+        if (doctype === "Leave Application")
+          await deleteLeaveAttendance(doc.name);
+        await deleteWithLockRetry(() => deleteDocument(doctype, doc.name), {
+          label: `${doctype} ${doc.name}`,
+        });
+      }
     }
 
     const { deleted, reason } = await deleteWithLockRetry(
@@ -423,6 +462,43 @@ export const deleteEmployeeByName = async () => {
     survivors.forEach((s) => console.warn(`   - ${s}`));
   }
 };
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Deletes the users seeded to sign in as a throwaway employee. Run it after
+ * deleteEmployeeByName: an employee still points at its user.
+ */
+export const deleteSeededUsers = async () => {
+  const users = await getDocList(
+    "User",
+    [["name", "like", "playwright-%@example.com"]],
+    { fields: ["name"] },
+  );
+  for (const { name } of users) {
+    // What links to the user: their PMS settings, user permissions (also made with each
+    // notification), notifications, and the risks and initiatives a case made them owner of.
+    for (const [doctype, field] of [
+      ["PMS User Setting", "user"],
+      ["User Permission", "user"],
+      ["NextPMS Notifications", "user"],
+      ["PMS Growth Initiative", "activity_owner"],
+      ["Risk", "risk_owner"],
+    ]) {
+      for (const doc of await getDocList(doctype, [[field, "=", name]], {
+        fields: ["name"],
+      })) {
+        await deleteDocument(doctype, doc.name);
+      }
+    }
+    const { deleted, reason } = await deleteWithLockRetry(
+      () => deleteDocument("User", name),
+      { label: `User ${name}` },
+    );
+    if (deleted) console.log(`🗑  Deleted user ${name}`);
+    else console.warn(`⚠️ User ${name} could not be deleted: ${reason}`);
+  }
+};
+
 // ------------------------------------------------------------------------------------------
 
 export const deleteAllocationsByEmployee = async (

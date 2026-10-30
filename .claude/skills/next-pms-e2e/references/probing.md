@@ -1,6 +1,6 @@
 # Probing the live app
 
-A full run costs ~5–7 minutes of seeding to tell you one selector was wrong.
+A full run costs ~10 minutes of seeding to tell you one selector was wrong.
 Probing costs about a second, and it answers questions a test run cannot: what
 the DOM actually contains, whether a field is disabled, whether a click produced
 a request.

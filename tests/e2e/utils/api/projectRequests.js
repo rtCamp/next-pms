@@ -5,6 +5,8 @@ import {
   fetchWithRetry,
   deleteWithLockRetry,
   deleteDocument,
+  createDocument,
+  getDocList,
 } from "./apiClient";
 import { deleteAllocationsByEmployee } from "../../helpers/employeeHelper";
 
@@ -51,17 +53,42 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
 
 // ------------------------------------------------------------------------------------------
 
+let techStackRows;
+
+// Newer builds require a Tech Stack on a new billable project; older ones have no Technology
+// doctype. Staging's Project meta leaves the field out, so look for the doctype instead.
+const getTechStackRows = async () => {
+  if (techStackRows) return techStackRows;
+  const [doctype] = await getDocList("DocType", [["name", "=", "Technology"]]);
+  if (!doctype) {
+    techStackRows = [];
+    return techStackRows;
+  }
+  const [technology] = await getDocList("Technology", [["disabled", "=", 0]], {
+    limit: 1,
+  });
+  const { name } =
+    technology ??
+    (await createDocument("Technology", { technology_name: "E2E Technology" }));
+  techStackRows = [{ technology: name }];
+  return techStackRows;
+};
+
+const needsTechStack = ({ custom_billing_type: billingType, tech_stack }) =>
+  !tech_stack && billingType !== undefined && billingType !== "Non-Billable";
+
 /**
  * Create a new Project entry.
  * Billable projects require a Tech Stack, so default one unless the payload sets it.
  */
 export const createProject = async (payload) => {
-  ////console.log("Payload received in create project is:", payload);
+  const rows = needsTechStack(payload) ? await getTechStackRows() : [];
+  const data = rows.length ? { ...payload, tech_stack: rows } : payload;
   const result = await apiRequest(
     "/api/resource/Project",
     {
       method: "POST",
-      data: { tech_stack: [{ technology: "Frappe" }], ...payload },
+      data,
     },
     "admin",
   );
@@ -132,14 +159,15 @@ export const deleteAllocation = async (allocationId) => {
  * Views are ordinary documents, so tests that need one as a precondition seed it
  * rather than depending on a view somebody created by hand on the environment.
  */
-export const createView = async (payload) => {
+export const createView = async ({ role = "admin", ...payload }) => {
+  // The creating role owns the view; a private view also names its user.
   return await apiRequest(
     "/api/resource/PMS View Setting",
     {
       method: "POST",
       data: payload,
     },
-    "admin",
+    role,
   );
 };
 // ------------------------------------------------------------------------------------------

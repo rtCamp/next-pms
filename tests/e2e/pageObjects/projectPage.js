@@ -49,6 +49,15 @@ export class ProjectPage {
 
     //Currency has its own combobox, outside the query-builder
     this.currencySearchBar = page.getByPlaceholder("Currency");
+    this.currencyClearButton = page.getByRole("button", {
+      name: "Clear selection",
+    });
+    this.currencyOption = (code) =>
+      page.getByRole("option", { name: code, exact: true });
+
+    this.projectsTable = page.getByRole("table", { name: "Projects" });
+    this.columnHeader = (label) =>
+      this.projectsTable.getByRole("columnheader").filter({ hasText: label });
 
     //Select filter option
     this.selectFilterOption = (filterOption) =>
@@ -318,7 +327,12 @@ export class ProjectPage {
   /**
    * Adds a single "<Field> Equals <Value>" condition to the filter panel.
    */
-  async addFilterCondition(fieldLabel, value, needsNewRow) {
+  async addFilterCondition(
+    fieldLabel,
+    value,
+    needsNewRow,
+    operator = "Equals",
+  ) {
     if (
       !(await this.filterFieldInput
         .first()
@@ -353,15 +367,17 @@ export class ProjectPage {
       .first()
       .click();
 
-    const operator = this.filterOperatorInput.last();
-    await operator.click();
+    const operatorInput = this.filterOperatorInput.last();
+    await operatorInput.click();
     await this.page
-      .getByRole("option", { name: exactly("Equals") })
+      .getByRole("option", { name: exactly(operator) })
       .first()
       .click();
 
     const valueInput = this.filterValueInput.last();
     await valueInput.click();
+    // Long option lists render only their first entries; typing narrows them.
+    await valueInput.fill(value).catch(() => {});
 
     // Wait for the list the new condition produces before anything reads the
     // rows. networkidle alone is not a barrier here: the refetch is debounced,
@@ -604,5 +620,80 @@ export class ProjectPage {
       .waitForLoadState("networkidle", { timeout: 5000 })
       .catch(() => {});
     await this.page.waitForTimeout(2500);
+  }
+
+  // --------------------------------------
+  // Currency and the money columns
+  // --------------------------------------
+
+  /**
+   * Opens the list with its state in the URL: `search` narrows it to a case's
+   * projects, `currency` picks what it converts to, `columns` shows the listed
+   * columns (by key) in that order.
+   */
+  async gotoList({ search, currency, columns } = {}) {
+    const params = new URLSearchParams({ view: "list" });
+    if (search) params.set("search", search);
+    if (currency) params.set("currency", currency);
+    if (columns) params.set("columnOrder", columns.join(","));
+    await gotoWithRetry(this.page, `/next-pms/projects?${params}`);
+    await this.projectsTable.waitFor({ timeout: scaleTimeout(30000) });
+  }
+
+  /** The list as the sidebar link opens it: no view, filter or currency in the URL. */
+  async openFirstLoad() {
+    await gotoWithRetry(this.page, "/next-pms/projects");
+    await this.projectsTable.waitFor({ timeout: scaleTimeout(30000) });
+  }
+
+  rowOf(projectName) {
+    return this.projectsTable.getByRole("row").filter({
+      has: this.page.getByRole("link", { name: projectName, exact: true }),
+    });
+  }
+
+  /** The cell of a project's row under a column header. */
+  async cell(projectName, columnLabel) {
+    const labels = await this.projectsTable
+      .getByRole("columnheader")
+      .allInnerTexts();
+    const index = labels.findIndex((label) => label.trim() === columnLabel);
+    if (index === -1) throw new Error(`No "${columnLabel}" column in the list`);
+    return this.rowOf(projectName).getByRole("cell").nth(index);
+  }
+
+  /** The names of the listed projects, top to bottom. */
+  async projectOrder() {
+    return (await this.projectListItems.allTextContents()).map((name) =>
+      name.trim(),
+    );
+  }
+
+  async chooseCurrency(code) {
+    await this.currencySearchBar.click();
+    await this.currencyOption(code).click();
+  }
+
+  async clearCurrency() {
+    await this.currencyClearButton.click();
+  }
+
+  async openSortMenu() {
+    await this.sortButton.click();
+    await this.sortPanel.waitFor({ timeout: scaleTimeout(10000) });
+  }
+
+  sortMenuOption(fieldLabel) {
+    return this.sortPanel.getByRole("button", {
+      name: fieldLabel,
+      exact: true,
+    });
+  }
+
+  /** Header clicks sort descending first, then flip the direction. */
+  async clickHeader(label) {
+    await this.columnHeader(label)
+      .getByRole("button", { name: label, exact: true })
+      .click();
   }
 }

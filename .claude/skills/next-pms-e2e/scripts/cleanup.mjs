@@ -56,13 +56,30 @@ if (!fs.existsSync(pwPath)) {
 const { request } = await import(pwPath);
 
 const authDir = path.join(repoRoot, "tests", "e2e", "auth");
+// Prefer a browser state: fetching /app below mints a CSRF token onto the session, which
+// the suite's CSRF-less writes on <role>-API.json cannot send (the suite now recovers from
+// it, but do not rely on that mid-run). Skip a state whose sid has expired: it answers 403
+// to everything and reads as "nothing found".
+const usable = (f) => {
+  try {
+    const sid = (JSON.parse(fs.readFileSync(path.join(authDir, f), "utf8")).cookies || []).find((c) => c.name === "sid");
+    return !!sid && (sid.expires === -1 || sid.expires == null || sid.expires * 1000 > Date.now());
+  } catch {
+    return false;
+  }
+};
+const files = fs.readdirSync(authDir).filter((f) => f.endsWith(".json") && usable(f));
 const stateFile =
-  [`${role}-API.json`, ...fs.readdirSync(authDir).filter((f) => f.startsWith(`${role}-w`))].find((f) =>
-    fs.existsSync(path.join(authDir, f))
-  ) || null;
+  files.find((f) => f.startsWith(`${role}-w`)) ||
+  files.find((f) => f === `${role}.json`) ||
+  files.find((f) => f === `${role}-API.json`) ||
+  null;
 if (!stateFile) {
-  console.error(`No auth state for role "${role}" in ${authDir}`);
+  console.error(`No usable session for role "${role}" in ${authDir} (all expired?). Run the suite once to mint one.`);
   process.exit(1);
+}
+if (stateFile.endsWith("-API.json")) {
+  console.error(`warning: using ${stateFile}; do not run this while a suite run is live.`);
 }
 
 const envPath = path.join(repoRoot, "tests", "e2e", ".env");
@@ -89,6 +106,10 @@ const getList = async (filters, fields) => {
   });
   const res = await ctx.get(`/api/method/frappe.client.get_list?${qs}`);
   const body = await res.json().catch(() => ({}));
+  if (res.status() !== 200) {
+    console.error(`${doctype} lookup answered ${res.status()}: the session is not valid, so nothing can be concluded.`);
+    process.exit(1);
+  }
   return { status: res.status(), rows: body.message || [] };
 };
 

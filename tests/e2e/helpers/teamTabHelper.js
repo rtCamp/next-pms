@@ -44,6 +44,15 @@ export const randomApprovalStatus = async (
       continue;
     }
 
+    // A retry keeps the earlier attempt's pick: its timesheet state persists, so a
+    // fresh pick could ask for Approval Pending on an already rejected week.
+    if (approvalOptions.includes(entry.payloadApprovalStatus.approvalStatus)) {
+      console.warn(
+        `Reusing Approval Status for ${tcId}: ${entry.payloadApprovalStatus.approvalStatus}`,
+      );
+      continue;
+    }
+
     // Select a random status
     const randomStatus = getRandomValue(approvalOptions);
     console.warn(
