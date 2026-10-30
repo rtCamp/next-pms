@@ -4,6 +4,7 @@
 import {
   BudgetBurnBar,
   type FieldHelp,
+  type HelpTip,
 } from "@next-pms/design-system/components";
 
 /**
@@ -171,3 +172,91 @@ export const KANBAN_CARD_TOOLTIP = {
   leadEngineer: "Lead engineer",
   billingType: "Billing type",
 };
+
+export const PROJECTS_TIPS: HelpTip[] = [
+  {
+    id: "switch-view",
+    title: "Switch views from the page title",
+    body: "Move between List view, Kanban view and your saved views. The filters you set carry over between List view and Kanban view.",
+    steps: [
+      "Select the view name next to Projects, such as List view.",
+      "Select Kanban view or one of your saved views.",
+    ],
+    wiki: "Projects#switch-between-list-and-kanban",
+    motion: () => import("@/assets/motions/switch-view?motion"),
+  },
+  {
+    id: "save-view",
+    title: "Save your filters and columns as a view",
+    body: "Keep a set of filters, sort and columns to come back to later. On a saved view, select Save changes and then Update to keep new changes.",
+    steps: [
+      "Set the filters, sort and columns you want.",
+      "Select Create view in the toolbar.",
+      "Enter a name and select Create.",
+    ],
+    wiki: "Saved-Views#create-a-saved-view",
+    motion: () => import("@/assets/motions/save-view?motion"),
+  },
+  {
+    id: "sort-list",
+    title: "Sort the list",
+    body: "Change the order of the projects in List view. Selecting a column name sorts by it too.",
+    steps: [
+      "Select Sort in the toolbar.",
+      "Select a field, such as Start date. Select it again to reverse the order.",
+    ],
+    wiki: "Projects#view-switcher-and-toolbar",
+    motion: () => import("@/assets/motions/sort-list?motion"),
+  },
+  {
+    id: "add-column",
+    title: "Add a column",
+    body: "Show a hidden column, such as Project type, at the end of the table.",
+    steps: [
+      "In List view, select Columns in the toolbar.",
+      "Select Add Column and pick a column from the list.",
+    ],
+    wiki: "Projects#customise-columns",
+    motion: () => import("@/assets/motions/add-column?motion"),
+  },
+  {
+    id: "remove-column",
+    title: "Remove a column",
+    body: "Hide a column you don't need. Reset to Default in Columns brings back the default columns.",
+    steps: [
+      "In List view, select Columns in the toolbar.",
+      "Select × next to the column.",
+    ],
+    wiki: "Projects#customise-columns",
+    motion: () => import("@/assets/motions/remove-column?motion"),
+  },
+  {
+    id: "reorder-columns",
+    title: "Move a column",
+    body: "Change the order of the columns in List view. You can also drag a column header sideways in the table.",
+    steps: [
+      "In List view, select Columns in the toolbar.",
+      "Drag a column by its handle to a new place in the list.",
+    ],
+    wiki: "Projects#customise-columns",
+    motion: () => import("@/assets/motions/reorder-columns?motion"),
+  },
+  {
+    id: "pin-column",
+    title: "Pin a column",
+    body: "Pinned columns stay at the left of the table as you scroll sideways. You can pin up to 3, also from the arrow beside a column name.",
+    steps: [
+      "In List view, select Columns in the toolbar.",
+      "Select the pin next to a column. Select it again to unpin it.",
+    ],
+    wiki: "Projects#customise-columns",
+    motion: () => import("@/assets/motions/pin-column?motion"),
+  },
+  {
+    id: "change-phase",
+    title: "Drag a card to change its phase",
+    body: "In Kanban view, drag a project's card to another phase column. The new phase is saved at once.",
+    wiki: "Projects#kanban-view",
+    motion: () => import("@/assets/motions/change-phase?motion"),
+  },
+];

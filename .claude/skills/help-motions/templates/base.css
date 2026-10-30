@@ -1,0 +1,4 @@
+/* Stage styles for one motion. Copy from a motion on the same page when one exists. */
+.ground { background: #F4F4F5; }
+.cam { will-change: transform; }
+.win { font-size: 14px; color: #171717; }
