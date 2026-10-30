@@ -12,7 +12,7 @@ export const NOTES_HELP = {
       "Anyone who can see notes can edit or delete any template, and the change shows on every project.",
       "Notes started from a template keep their text when the template changes or is deleted.",
     ],
-    wiki: "Project-Detail#behaviour--states-4",
+    wiki: "Project-Detail#behaviour--states-5",
   },
 } satisfies Record<string, FieldHelp>;
 

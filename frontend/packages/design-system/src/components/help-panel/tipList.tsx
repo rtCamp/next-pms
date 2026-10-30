@@ -2,13 +2,19 @@
  * External dependencies.
  */
 import { Accordion } from "@base-ui/react/accordion";
-import { Lightbulb, Play, SmallDown } from "@rtcamp/frappe-ui-react/icons";
+import {
+  ArrowUpRight,
+  Lightbulb,
+  Play,
+  SmallDown,
+} from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
 import TipMotion from "./tipMotion";
 import type { HelpTip } from "./types";
+import { WIKI_BASE } from "../info-hover-card/constants";
 
 type TipListProps = {
   label: string;
@@ -45,6 +51,16 @@ export default function TipList({ label, tips }: TipListProps) {
               )}
               {tip.motion && (
                 <TipMotion motion={tip.motion} title={tip.title} />
+              )}
+              {tip.wiki && (
+                <a
+                  href={`${WIKI_BASE}/${tip.wiki}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex w-fit items-center gap-1 text-sm text-ink-gray-7 underline underline-offset-2 hover:text-ink-gray-9"
+                >
+                  Learn more in the wiki <ArrowUpRight className="size-3.5" />
+                </a>
               )}
             </div>
           </Accordion.Panel>
