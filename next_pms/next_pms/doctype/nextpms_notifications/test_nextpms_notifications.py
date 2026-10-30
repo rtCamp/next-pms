@@ -4,7 +4,10 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications import create_notification
+from next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications import (
+    create_notification,
+    mark_as_viewed,
+)
 from next_pms.next_pms.patches.backfill_notification_title import NOTIFICATION_TITLES
 from next_pms.next_pms.patches.backfill_notification_title import execute as backfill_notification_title
 
@@ -219,6 +222,40 @@ class IntegrationTestNextPMSNotifications(IntegrationTestCase):
         reloaded = frappe.get_doc("NextPMS Notifications", doc.name)
         self.assertEqual(reloaded.title, "Edited by System Manager")
         self.assertEqual(reloaded.label, "Edited by System Manager")
+
+    # mark_as_viewed — a direct write scoped to the session user, not a doc.save().
+    def test_mark_as_viewed_marks_notification_whose_linked_document_is_gone(self):
+        doc = self._make_notification(PROJECTS_USER_USER)
+        frappe.db.set_value(
+            "NextPMS Notifications", doc.name, "linked_document", "deleted@example.com", update_modified=False
+        )
+        frappe.set_user(PROJECTS_USER_USER)
+
+        mark_as_viewed(doc.name)
+
+        self.assertEqual(frappe.db.get_value("NextPMS Notifications", doc.name, "viewed"), 1)
+
+    def test_mark_as_viewed_without_name_clears_beyond_the_tray_page(self):
+        for _ in range(25):
+            self._make_notification(PROJECTS_USER_USER)
+        frappe.set_user(PROJECTS_USER_USER)
+
+        mark_as_viewed()
+
+        self.assertEqual(
+            frappe.db.count("NextPMS Notifications", {"user": PROJECTS_USER_USER, "viewed": 0}),
+            0,
+        )
+
+    def test_mark_as_viewed_leaves_other_users_notifications_unread(self):
+        other_doc = self._make_notification(DELIVERY_USER_USER)
+        self._make_notification(PROJECTS_USER_USER)
+        frappe.set_user(PROJECTS_USER_USER)
+
+        for name in (other_doc.name, None):
+            with self.subTest(name=name):
+                mark_as_viewed(name)
+                self.assertEqual(frappe.db.get_value("NextPMS Notifications", other_doc.name, "viewed"), 0)
 
     # Title is mandatory — every notification created from now on carries one.
     def test_title_is_mandatory(self):
