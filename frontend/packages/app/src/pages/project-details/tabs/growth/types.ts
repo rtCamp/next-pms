@@ -1,3 +1,4 @@
+import type { FieldHelp } from "@next-pms/design-system/components";
 import type { UserDetails } from "@/pages/project-details/types";
 
 export type ClientPriority = "" | "Low" | "Medium" | "High";
@@ -7,6 +8,7 @@ export interface GrowthListColumn {
   label: string;
   width: string;
   flex: number;
+  help?: FieldHelp;
 }
 
 export interface ApiGrowthInitiativeItem {

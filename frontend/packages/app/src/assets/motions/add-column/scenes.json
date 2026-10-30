@@ -1,0 +1,1 @@
+{"width":1920,"height":1080,"background":"#F4F4F5","fonts":{"sans":{"family":"Inter"}},"scenes":[{"id":"add-column","name":"Add a column","dur":12.1,"desc":"In the List view, open the Columns panel, click Add Column and pick Project type from its list. Close the panel and scroll the table to its right end. Project type is now the last column."}]}

@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import type { FieldHelp } from "@next-pms/design-system/components";
+import type { FieldHelp, HelpTip } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
@@ -58,3 +58,43 @@ export const DECIDED_ENTRY_TOOLTIP =
 
 export const EDIT_ENTRY_TOOLTIP =
   "Correct the duration or comment before you decide.";
+
+export const REVIEW_WEEK_STEPS = [
+  "Select the status icon at the end of the member's row. Weeks that are Not submitted don't have one.",
+  "Untick any day you want to leave out of the decision.",
+  "Select Approve, or select Reject and give a reason.",
+];
+
+export const TEAM_TIMESHEET_TIPS: HelpTip[] = [
+  {
+    id: "approve-week",
+    title: "Approve a week",
+    body: "Approve a member's submitted week. Every day still waiting for a decision starts ticked.",
+    steps: [
+      "Select the status icon at the end of the member's row. Weeks that are Not submitted don't have one.",
+      "Select Approve.",
+    ],
+    wiki: "Team-Timesheet#approve-a-week",
+    motion: () => import("@/assets/motions/approve-week?motion"),
+  },
+  {
+    id: "approve-part-of-week",
+    title: "Approve part of a week",
+    body: "Only the ticked days are approved or rejected, so you can approve part of a week and reject the rest afterwards.",
+    steps: REVIEW_WEEK_STEPS,
+    wiki: "Team-Timesheet#approve-a-week",
+    motion: () => import("@/assets/motions/approve-part-of-week?motion"),
+  },
+  {
+    id: "reject-week",
+    title: "Reject a week",
+    body: "Send a submitted week back to the member with a reason, so they can fix it and resubmit.",
+    steps: [
+      "Select the status icon at the end of the member's row.",
+      "Select Reject.",
+      "Enter the reason and select Reject timesheet.",
+    ],
+    wiki: "Team-Timesheet#approve-a-week",
+    motion: () => import("@/assets/motions/reject-week?motion"),
+  },
+];

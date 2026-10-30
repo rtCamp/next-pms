@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useMemo } from "react";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { Button, Select } from "@rtcamp/frappe-ui-react";
 
 /**
@@ -9,6 +10,7 @@ import { Button, Select } from "@rtcamp/frappe-ui-react";
  */
 import { DEFAULT_GROWTH_FILTERS } from "../constants";
 import { useGrowth } from "../context";
+import { GROWTH_HELP } from "../help";
 import { OwnerCombobox } from "./ownerCombobox";
 import { SortButton } from "./sortButton";
 
@@ -46,12 +48,15 @@ export function GrowthToolbar() {
           value={filters.activityOwner}
           onChange={(activityOwner) => setFilters({ activityOwner })}
         />
-        <OwnerCombobox
-          placeholder="Ideation owner"
-          owners={ideationOwners}
-          value={filters.ideationOwner}
-          onChange={(ideationOwner) => setFilters({ ideationOwner })}
-        />
+        <div className="flex items-center gap-1.5">
+          <OwnerCombobox
+            placeholder="Ideation owner"
+            owners={ideationOwners}
+            value={filters.ideationOwner}
+            onChange={(ideationOwner) => setFilters({ ideationOwner })}
+          />
+          <InfoHoverCard help={GROWTH_HELP.owners} />
+        </div>
         <Select
           size="sm"
           placeholder="Status"

@@ -63,7 +63,8 @@ repos:
                 .*node_modules.*|
                 .*boilerplate.*|
                 next_pms/templates/includes/.*|
-                next_pms/public/js/lib/.*
+                next_pms/public/js/lib/.*|
+                frontend/packages/app/src/assets/motions/.*/.*
             )$
 
 
