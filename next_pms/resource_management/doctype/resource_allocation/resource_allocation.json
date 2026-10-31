@@ -44,14 +44,16 @@
    "in_list_view": 1,
    "label": "Employee",
    "options": "Employee",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "project",
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
    "label": "Project",
-   "options": "Project"
+   "options": "Project",
+   "search_index": 1
   },
   {
    "fetch_from": "project.customer",
@@ -97,7 +99,8 @@
    "fieldname": "allocation_end_date",
    "fieldtype": "Date",
    "label": "Allocation End Date",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "status",
@@ -217,7 +220,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-30 13:50:38.935009",
+ "modified": "2026-10-29 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "Resource Allocation",
