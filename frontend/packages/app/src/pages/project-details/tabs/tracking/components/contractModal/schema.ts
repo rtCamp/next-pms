@@ -23,7 +23,7 @@ export const addContractSchema = z
   .superRefine((value, ctx) => {
     if (value.startDate && value.endDate && value.startDate > value.endDate) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["endDate"],
         message: "End date must be on or after start date.",
       });

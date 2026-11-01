@@ -10,11 +10,11 @@ const expectedTimeSchema = z
 
 export const addTaskFormSchema = z.object({
   subject: z
-    .string({ required_error: "Please add a subject." })
+    .string({ error: "Please add a subject." })
     .trim()
     .min(1, { message: "Please add a subject." }),
   project: z
-    .string({ required_error: "Please select a project." })
+    .string({ error: "Please select a project." })
     .trim()
     .min(1, { message: "Please select a project." }),
   projectLabel: z.string().optional().default(""),
@@ -25,7 +25,7 @@ export const addTaskFormSchema = z.object({
     .default(""),
   exp_end_date: z.string().trim().optional().default(""),
   description: z
-    .string({ required_error: "Please enter description." })
+    .string({ error: "Please enter description." })
     .trim()
     .min(4, { message: "Please enter valid description." }),
 });
