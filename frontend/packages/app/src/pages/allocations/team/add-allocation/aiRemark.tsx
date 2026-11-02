@@ -20,7 +20,16 @@ export function AiRemark({ remark }: AiRemarkProps) {
       return;
     }
 
-    setIsOverflowing(element.scrollHeight > element.clientHeight);
+    const updateOverflow = () => {
+      setIsOverflowing(element.scrollHeight > element.clientHeight);
+    };
+
+    updateOverflow();
+
+    const observer = new ResizeObserver(updateOverflow);
+    observer.observe(element);
+
+    return () => observer.disconnect();
   }, [remark, expanded]);
 
   return (
