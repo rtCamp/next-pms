@@ -373,7 +373,7 @@ const Sidebar = () => {
           <Button
             variant="ghost"
             className={cn(
-              "w-full justify-start py-1 px-4 text-ink-gray-6",
+              "w-full justify-start py-1 px-4 text-ink-gray-6 max-sm:px-2",
               isSidebarCollapsed && "px-2",
               isHelpOpen &&
                 "bg-surface-selected shadow-sm hover:bg-surface-selected",
@@ -390,7 +390,9 @@ const Sidebar = () => {
             )}
           >
             {!isSidebarCollapsed && (
-              <span className="flex-1 truncate text-sm">Help</span>
+              <span className="flex-1 truncate text-sm max-sm:hidden">
+                Help
+              </span>
             )}
           </Button>
         </div>
@@ -408,7 +410,10 @@ const Sidebar = () => {
         pageTips={tipsForPath(pathname, search)}
         generalTips={GENERAL_TIPS}
         roles={roles}
-        className={isSidebarCollapsed ? "left-12" : "left-60"}
+        className={cn(
+          "max-w-[calc(100vw-4rem)]",
+          isSidebarCollapsed ? "left-12" : "left-60 max-sm:left-12",
+        )}
       />
 
       {hasNotificationAccess && (
