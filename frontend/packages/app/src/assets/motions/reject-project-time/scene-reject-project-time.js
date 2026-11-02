@@ -116,14 +116,14 @@ kit.scene('reject-project-time', {
     p += project(202, '<span class="lm" style="position:absolute;left:338px;top:216px;font-size:14px;font-weight:500;line-height:16px">Website Redesign</span>');
     p += row(247, 84, 90, false);
     p += G(314, 306, 16, 16) + G(338, 306, 16, 16, 8) + hours(292) + L(260, 336, 1154);
-    p += '<div style="position:absolute;left:362px;top:304px;height:20px;display:flex;align-items:center;gap:8px"><span class="lm" style="font-size:14px;font-weight:500;line-height:16px">Julian Andrews</span><span style="position:relative;display:block;height:20px">' +
+    p += '<div style="position:absolute;left:362px;top:304px;height:20px;display:flex;align-items:center;gap:8px"><span class="lm" style="font-size:14px;font-weight:500;line-height:16px">Julian Andrews</span><span style="position:relative;display:flex;height:20px">' +
       '<span class="badge reject-b1" style="position:relative;background:var(--color-surface-amber-2);color:var(--color-ink-amber-4)">Approval pending</span>' +
       '<span class="badge reject-b2" style="left:0;top:0;background:var(--color-surface-amber-2);color:var(--color-ink-amber-4);opacity:0">Processing timesheet</span>' +
-      '<span class="badge reject-b3" style="left:0;top:0;background:var(--color-surface-red-2);color:var(--color-ink-red-4);opacity:0">Rejected</span></span></div>';
+      '<span class="badge reject-b3" style="left:0;top:0;background:var(--color-surface-red-2);color:var(--color-ink-red-4);opacity:0">Rejected<span class="ring reject-r4" style="inset:-7px;border-radius:9999px"></span></span></span></div>';
     p += '<div class="btn reject-st" style="left:1382px;top:300px;width:28px;background:var(--color-surface-gray-7);color:var(--color-ink-white)">' + CHECK + '</div>' +
       '<div class="btn reject-st2" style="left:1382px;top:300px;width:28px;color:var(--color-ink-amber-4);opacity:0"><span class="reject-spin" style="display:block">' + SPIN + '</span></div>' +
       '<div class="btn reject-st3" style="left:1382px;top:300px;width:28px;color:var(--color-ink-red-4);opacity:0">' + XCIRC + '</div>';
-    p += '<div class="ring reject-r1" style="left:1375px;top:293px;width:42px;height:42px;border-radius:15px"></div><div class="ring reject-r4" style="border-radius:9999px"></div>';
+    p += '<div class="ring reject-r1" style="left:1375px;top:293px;width:42px;height:42px;border-radius:15px"></div>';
     p += row(337, 96, 66, true) + project(382, G(338, 396, 150, 16));
     [[427, 124], [472, 132], [517, 120], [562, 126]].forEach(([y, w]) => { p += week(y, w, false); });
     p += '</div><div class="reject-bk" style="position:absolute;inset:0;background:rgba(0,0,0,.27);opacity:0"></div>';
@@ -157,9 +157,6 @@ kit.scene('reject-project-time', {
     kit.stage.append(kit.h('<div class="ground"><div class="reject-cam" style="position:absolute;left:0;top:0;width:1920px;height:1080px"><div class="win">' + p + q + d + '</div></div></div>'));
     const e = this.el = {};
     ['page', 'bk', 'pn', 'dl', 'st', 'st2', 'st3', 'spin', 'b1', 'b2', 'b3', 'rj', 'ta', 'ph', 'tv', 'caret', 'sb', 'r1', 'rR', 'rT', 'rB', 'r4'].forEach(k => { e[k] = kit.stage.querySelector('.reject-' + k); });
-    const wr = kit.stage.querySelector('.win').getBoundingClientRect(), k = wr.width / 1440, br = e.b3.getBoundingClientRect();
-    const b = k > 0 && br.width > 0 ? { x: (br.left - wr.left) / k, y: (br.top - wr.top) / k, w: br.width / k, h: br.height / k } : { x: 470, y: 304, w: 66, h: 20 };
-    Object.assign(e.r4.style, { left: (b.x - 7) + 'px', top: (b.y - 7) + 'px', width: (b.w + 14) + 'px', height: (b.h + 14) + 'px' });
     const cam = this.cam = new kit.Camera(kit.stage.querySelector('.reject-cam'));
     cam.set([
       { t: 0, cx: 960, cy: 540, z: 1.1, hold: 1.0, drift: [2, 0, 0.006] },

@@ -108,9 +108,9 @@ kit.scene('approve-week', {
     p += '<span class="review-pend" style="position:absolute;left:422px;top:171px;font-size:14px;line-height:16px;color:var(--color-ink-gray-5);white-space:nowrap">· 1 pending approval</span>';
     p += row(202, 84, 90, false);
     p += G(290, 261, 16, 16) + G(314, 261, 16, 16, 8) + hours(247) + L(260, 291, 1154);
-    p += '<div style="position:absolute;left:338px;top:259px;height:20px;display:flex;align-items:center;gap:8px"><span class="lm" style="font-size:14px;font-weight:500;line-height:16px">Julian Andrews</span><span style="position:relative;display:block;height:20px"><span class="badge review-b1" style="position:relative;background:var(--color-surface-amber-2);color:var(--color-ink-amber-4)">Approval pending</span><span class="badge review-b2" style="left:0;top:0;background:var(--color-surface-green-2);color:var(--color-ink-green-4);opacity:0">Approved</span></span></div>';
+    p += '<div style="position:absolute;left:338px;top:259px;height:20px;display:flex;align-items:center;gap:8px"><span class="lm" style="font-size:14px;font-weight:500;line-height:16px">Julian Andrews</span><span style="position:relative;display:flex;height:20px"><span class="badge review-b1" style="position:relative;background:var(--color-surface-amber-2);color:var(--color-ink-amber-4)">Approval pending</span><span class="badge review-b2" style="left:0;top:0;background:var(--color-surface-green-2);color:var(--color-ink-green-4);opacity:0">Approved<span class="ring review-r4" style="inset:-7px;border-radius:9999px"></span></span></span></div>';
     p += '<div class="btn review-st" style="left:1382px;top:255px;width:28px;background:var(--color-surface-gray-7);color:var(--color-ink-white)">' + CHECK + '</div><div class="btn review-st2" style="left:1382px;top:255px;width:28px;color:var(--color-ink-green-4);opacity:0">' + CIRC + '</div>';
-    p += '<div class="ring review-r1" style="left:1375px;top:248px;width:42px;height:42px;border-radius:15px"></div><div class="ring review-r4" style="border-radius:9999px"></div>';
+    p += '<div class="ring review-r1" style="left:1375px;top:248px;width:42px;height:42px;border-radius:15px"></div>';
     p += row(292, 96, 66, true);
     [[337, 128], [382, 124], [427, 132], [472, 120], [517, 126], [562, 118]].forEach(([y, w]) => { p += week(y, w, false); });
     p += '</div><div class="review-bk" style="position:absolute;inset:0;background:rgba(0,0,0,.27);opacity:0"></div>';
@@ -129,9 +129,6 @@ kit.scene('approve-week', {
     kit.stage.append(kit.h('<div class="ground"><div class="review-cam" style="position:absolute;left:0;top:0;width:1920px;height:1080px"><div class="win">' + p + q + '</div></div></div>'));
     const e = this.el = {};
     ['page', 'bk', 'pn', 'st', 'st2', 'b1', 'b2', 'pend', 'ap', 'r1', 'r3', 'r4'].forEach(k => { e[k] = kit.stage.querySelector('.review-' + k); });
-    const wr = kit.stage.querySelector('.win').getBoundingClientRect(), k = wr.width / 1440, br = e.b2.getBoundingClientRect();
-    const b = k > 0 && br.width > 0 ? { x: (br.left - wr.left) / k, y: (br.top - wr.top) / k, w: br.width / k, h: br.height / k } : { x: 426, y: 259, w: 116, h: 20 };
-    Object.assign(e.r4.style, { left: (b.x - 7) + 'px', top: (b.y - 7) + 'px', width: (b.w + 14) + 'px', height: (b.h + 14) + 'px' });
     const cam = this.cam = new kit.Camera(kit.stage.querySelector('.review-cam'));
     cam.set([
       { t: 0, cx: 960, cy: 540, z: 1.1, hold: 1.0, drift: [2, 0, 0.006] },

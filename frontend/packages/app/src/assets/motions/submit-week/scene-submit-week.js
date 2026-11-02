@@ -104,7 +104,7 @@ kit.scene('submit-week', {
     let week = '<div class="pms-row" style="top:140px">' + gh(33, 14, 14, 14, 4) +
       '<div class="pms-abs" style="left:56px;top:12px;height:20px;display:flex;align-items:center;gap:8px;white-space:nowrap">' +
       '<span style="font-size:14px;font-weight:500;line-height:16px;color:var(--color-ink-gray-5)">Oct 12 - 18, 2026</span>' +
-      '<span style="position:relative;display:block;height:20px;width:max-content">' + pill('b1', 'surface-gray-2', 'ink-gray-6', 'Not submitted') + pill('b2', 'surface-amber-2', 'ink-amber-4', 'Approval pending', true) + '</span></div>';
+      '<span style="position:relative;display:block;height:20px;width:max-content">' + pill('b1', 'surface-gray-2', 'ink-gray-6', 'Not submitted') + pill('b2', 'surface-amber-2', 'ink-amber-4', 'Approval pending<span class="pms-ring sw-r2" style="inset:-5px;border-radius:9999px;opacity:0"></span>', true) + '</span></div>';
     DATES.forEach((d, i) => { week += cell(COLS[i], d); });
     week += cell(1366, 'Total') +
       '<div class="pms-abs sw-st" style="left:1156px;top:8px;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--color-surface-gray-7);color:var(--color-ink-white)">' + SEND + '</div>' +
@@ -148,15 +148,10 @@ kit.scene('submit-week', {
       '<div style="width:24px;height:24px;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-ink-white)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></div></div>';
     kit.stage.append(kit.h('<div class="ground"><div class="pms-cam sw-cam"><div class="pms-win">' + side + head + week + all + proj + task +
       '<div class="pms-abs" style="left:0;right:0;top:0;height:900px">' + skel + '</div>' + dlg + toast +
-      '<div class="pms-ring sw-r1" style="left:1391px;top:143px;width:38px;height:38px;border-radius:11px;opacity:0"></div>' +
-      '<div class="pms-ring sw-r2" style="border-radius:9999px;opacity:0"></div></div></div></div>'));
+      '<div class="pms-ring sw-r1" style="left:1391px;top:143px;width:38px;height:38px;border-radius:11px;opacity:0"></div></div></div></div>'));
     const q = (c) => kit.stage.querySelector('.sw-' + c);
     for (const k of ['cam', 'ov', 'dlg', 'sb', 'st', 'st2', 'b1', 'b2', 'toast', 'r1', 'r2', 'rS']) this[k] = q(k);
     this.taskVals = [...kit.stage.querySelectorAll('.sw-vt')];
-    // Result ring around the "Approval pending" badge, measured from the laid-out badge.
-    const wr = kit.stage.querySelector('.pms-win').getBoundingClientRect(), k = wr.width / 1440, br = this.b2.getBoundingClientRect();
-    const b = k > 0 && br.width > 0 ? { x: (br.left - wr.left) / k, y: (br.top - wr.top) / k, w: br.width / k, h: br.height / k } : { x: 400, y: 152, w: 106, h: 20 };
-    Object.assign(this.r2.style, { left: (b.x - 5) + 'px', top: (b.y - 5) + 'px', width: (b.w + 10) + 'px', height: (b.h + 10) + 'px' });
     this.camera = new kit.Camera(this.cam);
     this.camera.set([
       { t: 0, cx: 960, cy: 540, z: 1.12, hold: 0.6, drift: [2, 0, 0.004] },

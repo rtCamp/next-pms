@@ -109,7 +109,7 @@ const abs = (x, y, sty, inner, cls) => '<div class="pms-abs ' + (cls || '') + '"
 const chip = (svg, txt) => '<div style="display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 6px;border-radius:10px;background:var(--color-surface-gray-2);color:var(--color-ink-gray-6);font-size:12px;font-weight:420;white-space:nowrap">' + svg + txt + '</div>';
 const CAL12 = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="2" width="9" height="8.5" rx="1.5"/><path d="M4 1v2M8 1v2M1.5 5h9"/></svg>';
 const CLK12 = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 11A5 5 0 1 0 6 1a5 5 0 0 0 0 10"/><path d="M6 3v3l2 1"/></svg>';
-const TICK = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--color-ink-white)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:0;top:0"><path d="M3.2 7.3l2.6 2.6 5-5.4"/></svg>';
+const TICK = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--color-ink-white)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:-1px;top:-1px"><path d="M3.4 7.2l2.4 2.4 4.8-5.2"/></svg>';
 const cbx = (x, y, cls) => '<div class="pms-abs ' + cls + '" style="left:' + x + 'px;top:' + y + 'px;width:14px;height:14px;box-sizing:border-box;border:1px solid var(--color-outline-gray-4);border-radius:3px;background:var(--color-surface-white)">' + TICK + '</div>';
 const DX = 464, DY = 120;
 const D = (x, y) => [240 + DX + x, 90 + DY + y];
