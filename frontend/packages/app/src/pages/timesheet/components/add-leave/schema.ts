@@ -5,29 +5,29 @@ export const addLeaveFormSchema = z
   .object({
     fromDate: z
       .string({
-        required_error: "Please select from date.",
+        error: "Please select from date.",
       })
       .trim()
       .min(1, { message: "Please select from date." }),
     toDate: z
       .string({
-        required_error: "Please select to date.",
+        error: "Please select to date.",
       })
       .trim()
       .min(1, { message: "Please select to date." }),
     leaveDuration: z.enum(LEAVE_DURATION, {
-      required_error: "Please select leave duration.",
+      error: "Please select leave duration.",
     }),
     halfDayDate: z.string().trim(),
     leaveType: z
       .string({
-        required_error: "Please select leave type.",
+        error: "Please select leave type.",
       })
       .trim()
       .min(1, { message: "Please select leave type." }),
     reason: z
       .string({
-        required_error: "Please enter a reason.",
+        error: "Please enter a reason.",
       })
       .trim()
       .min(1, { message: "Please enter a reason." }),
@@ -39,7 +39,7 @@ export const addLeaveFormSchema = z
 
     if (!value.halfDayDate) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["halfDayDate"],
         message: "Please select half day date.",
       });
@@ -51,7 +51,7 @@ export const addLeaveFormSchema = z
       value.halfDayDate > value.toDate
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["halfDayDate"],
         message: "Half day date must be between from date and to date.",
       });

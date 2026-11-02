@@ -6,14 +6,14 @@ import { z } from "zod";
 export const timeFormatRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 const descriptionSchema = z
   .string({
-    required_error: "Please enter description.",
+    error: "Please enter description.",
   })
   .trim()
   .min(1, { message: "Please enter description." });
 
 const leaveReasonSchema = z
   .string({
-    required_error: "Please enter a valid reason.",
+    error: "Please enter a valid reason.",
   })
   .trim()
   .min(1, { message: "Please enter a valid reason." });
@@ -23,7 +23,7 @@ export const hourSchema = z.preprocess(
     const processedValue = timeStringToFloat(String(val));
     if (isNaN(processedValue)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["hours"],
         message: "Invalid hour format. Please enter time as HH:MM or a number.",
       });
@@ -34,10 +34,10 @@ export const hourSchema = z.preprocess(
   z
     .union([
       z.string({
-        invalid_type_error: "Please enter a valid number for hours.",
+        error: "Please enter a valid number for hours.",
       }),
       z.number({
-        invalid_type_error: "Please enter a valid number for hours.",
+        error: "Please enter a valid number for hours.",
       }),
     ])
     .refine((val) => /^\d+(\.\d{1,3})?$/.test(val.toString()), {
@@ -49,28 +49,28 @@ export const TimesheetSchema = z
   .object({
     task: z
       .string({
-        required_error: "Please select a task.",
+        error: "Please select a task.",
       })
       .trim()
       .min(1, { message: "Please select a task." }),
     description: descriptionSchema,
     hours: hourSchema,
     date: z.string({
-      required_error: "Please enter date.",
+      error: "Please enter date.",
     }),
     employee: z.string({}),
   })
   .superRefine((v, ctx) => {
     if (v.hours == 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["hours"],
         message: "Hour should be greater than 0",
       });
     }
     if (Number(v.hours) > 24) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["hours"],
         message: "Hour should be less than 24",
       });
@@ -80,20 +80,20 @@ export const TimesheetSchema = z
 export const TimesheetApprovalSchema = z.object({
   start_date: z
     .string({
-      required_error: "Please select a start date.",
+      error: "Please select a start date.",
     })
     .min(1, { message: "Please select a start date." }),
   end_date: z
     .string({
-      required_error: "Please select a end date.",
+      error: "Please select a end date.",
     })
     .min(1, { message: "Please select a end date." }),
   notes: z.string({}).optional(),
   approver: z.string({
-    required_error: "Please select a approver from the list.",
+    error: "Please select a approver from the list.",
   }),
   employee: z.string({
-    required_error: "Please select a employee.",
+    error: "Please select a employee.",
   }),
 });
 
@@ -103,7 +103,7 @@ export const TimesheetRejectionSchema = z.object({
   }),
   note: descriptionSchema,
   employee: z.string({
-    required_error: "Please select a employee.",
+    error: "Please select a employee.",
   }),
 });
 
@@ -128,14 +128,14 @@ export const TimesheetSingleRowSchema = z
   .superRefine((v, ctx) => {
     if (v.hours == 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["hours"],
         message: "Hour should be greater than 0",
       });
     }
     if (Number(v.hours) > 24) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["hours"],
         message: "Hour should be less than 24",
       });
@@ -194,20 +194,20 @@ export const timeStringToFloat = (value: string) => {
 export const LeaveSchema = z.object({
   employee: z
     .string({
-      required_error: "Please select a employee.",
+      error: "Please select a employee.",
     })
     .trim()
     .min(1, { message: "Please select a employee." }),
   description: leaveReasonSchema,
   from_date: z
     .string({
-      required_error: "Please enter date.",
+      error: "Please enter date.",
     })
     .trim()
     .min(1, { message: "Please enter a date." }),
   to_date: z
     .string({
-      required_error: "Please enter date.",
+      error: "Please enter date.",
     })
     .trim()
     .min(1, { message: "Please enter a date." }),
@@ -223,14 +223,14 @@ export const EditTimesheetSchema = z
   .object({
     task: z
       .string({
-        required_error: "Please select a task.",
+        error: "Please select a task.",
       })
       .trim()
       .min(1, { message: "Please select a task." }),
     description: descriptionSchema,
     hours: hourSchema,
     date: z.string({
-      required_error: "Please enter date.",
+      error: "Please enter date.",
     }),
     employee: z.string({}),
     is_billable: z.boolean().default(false),
@@ -238,14 +238,14 @@ export const EditTimesheetSchema = z
   .superRefine((v, ctx) => {
     if (v.hours == 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["hours"],
         message: "Hour should be greater than 0",
       });
     }
     if (Number(v.hours) > 24) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["hours"],
         message: "Hour should be less than 24",
       });

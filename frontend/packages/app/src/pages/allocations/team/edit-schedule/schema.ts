@@ -8,7 +8,7 @@ export const editScheduleFormSchema = z.object({
     input: z.object({
       value: z
         .number({
-          required_error: "Please enter hours.",
+          error: "Please enter hours.",
         })
         .min(0, { message: "Must be greater than or equal to 0." }),
       mode: z.enum(["hoursPerDay", "totalHours"]),
