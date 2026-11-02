@@ -140,10 +140,9 @@ kit.scene('drag-to-allocate', {
     const hover = '<div class="pms-abs at-hov" style="left:' + PX + 'px;top:' + PY + 'px;width:36px;height:32px;border-radius:8px;background:var(--color-surface-gray-3);color:var(--color-ink-gray-8);display:flex;align-items:center;justify-content:center">' + ic(IC.plus) + '</div>';
     const draft = '<div class="pms-pill at-draft" style="left:' + PX + 'px;top:' + PY + 'px;width:34px;padding-right:10px;gap:6px;background:var(--color-surface-gray-2);color:var(--color-ink-gray-5);box-shadow:0 0 0 2px var(--color-outline-gray-3)"><span style="min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis">Add allocation</span><span class="at-dh" style="flex:none">8h</span></div>';
     const end = '<div class="pms-abs at-end" style="left:' + (PX + 2) + 'px;top:' + (PY + 36) + 'px;height:28px;display:flex;align-items:center;gap:4px;font-size:13px;font-weight:500;color:var(--color-ink-gray-6);white-space:nowrap"><span style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:var(--color-ink-gray-8)">' + ic(IC.x) + '</span><span class="at-ed">Oct 26</span></div>';
-    const tip = '<div class="pms-tip at-tip" style="left:' + (PX + 17) + 'px;top:' + (PY - 26) + 'px">Click to add allocation<span class="pms-abs" style="left:50%;bottom:-3px;width:7px;height:7px;margin-left:-3.5px;background:var(--color-surface-gray-7);transform:rotate(45deg)"></span></div>';
-    kit.stage.append(kit.h('<div class="ground"><div class="pms-cam at-cam"><div class="pms-win">' + side + grid + wash + hover + draft + end + tip + dlg + '<div class="pms-ring at-ring"></div></div></div></div>'));
+    kit.stage.append(kit.h('<div class="ground"><div class="pms-cam at-cam"><div class="pms-win">' + side + grid + wash + hover + draft + end + dlg + '<div class="pms-ring at-ring"></div></div></div></div>'));
     const q = (c) => kit.stage.querySelector('.at-' + c);
-    for (const k of ['wash', 'hov', 'draft', 'dh', 'end', 'ed', 'tip', 'newb', 'cam', 'ov', 'dlg', 'pm', 'pm-tint', 'pv', 'pin', 'cv', 'alloc', 'ring']) this[k] = q(k);
+    for (const k of ['wash', 'hov', 'draft', 'dh', 'end', 'ed', 'newb', 'cam', 'ov', 'dlg', 'pm', 'pm-tint', 'pv', 'pin', 'cv', 'alloc', 'ring']) this[k] = q(k);
     this.camera = new kit.Camera(this.cam);
     this.camera.set([
       { t: 0, cx: 960, cy: 540, z: 1.12, hold: 0.6, drift: [2, 0, 0.004] },
@@ -172,11 +171,10 @@ kit.scene('drag-to-allocate', {
     const n = Math.min(4, Math.max(0, Math.floor((19 + dx) / 38))) + 1;
     const w = t >= T.release ? 38 * n - 4 : 34 + dx;
     this.hov.style.opacity = pressed ? 0 : eo(seg(t, T.arrive, T.arrive + 0.1));
-    for (const el of [this.draft, this.end, this.tip]) el.style.visibility = pressed && !gone ? 'visible' : 'hidden';
+    for (const el of [this.draft, this.end]) el.style.visibility = pressed && !gone ? 'visible' : 'hidden';
     this.draft.style.width = w + 'px';
     this.dh.textContent = n * 8 + 'h';
     this.ed.textContent = 'Oct ' + (25 + n);
-    this.tip.style.transform = 'translateX(' + (w / 2 - 17) + 'px) translateX(-50%)';
     this.wash.style.opacity = eo(seg(t, T.d0, T.d0 + 0.15)) * (1 - seg(t, T.close, T.close + 0.15));
     const open = eo(seg(t, T.open, T.open + 0.15)) * (1 - ei(seg(t, T.close, T.close + 0.15)));
     this.ov.style.opacity = open;

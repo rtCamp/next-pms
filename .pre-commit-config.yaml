@@ -64,7 +64,8 @@ repos:
                 .*boilerplate.*|
                 next_pms/templates/includes/.*|
                 next_pms/public/js/lib/.*|
-                frontend/packages/app/src/assets/motions/.*/.*
+                frontend/packages/app/src/assets/motions/.*/.*|
+                \.claude/help-motions/shell\.js
             )$
 
 

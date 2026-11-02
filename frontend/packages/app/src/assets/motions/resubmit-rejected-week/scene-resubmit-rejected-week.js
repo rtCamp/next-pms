@@ -126,7 +126,7 @@ kit.scene('resubmit-rejected-week', {
       '<div class="pms-abs" style="left:56px;top:12px;height:20px;display:flex;align-items:center;gap:8px;white-space:nowrap">' +
       '<span style="font-size:14px;font-weight:500;line-height:16px;color:var(--color-ink-gray-5)">Oct 12 - 18, 2026</span>' +
       '<span style="position:relative;display:block;height:20px;width:max-content"><span class="rs-b1" style="display:block;height:20px;padding:0 6px;border-radius:9999px;background:var(--color-surface-red-2);color:var(--color-ink-red-4);font-size:12px;font-weight:420;line-height:20px;white-space:nowrap">Partially rejected</span>' +
-      '<span class="rs-b2" style="position:absolute;left:0;top:0;display:block;height:20px;padding:0 6px;border-radius:9999px;background:var(--color-surface-amber-2);color:var(--color-ink-amber-4);font-size:12px;font-weight:420;line-height:20px;opacity:0;white-space:nowrap">Approval pending</span></span></div>';
+      '<span class="rs-b2" style="position:absolute;left:0;top:0;display:block;height:20px;padding:0 6px;border-radius:9999px;background:var(--color-surface-amber-2);color:var(--color-ink-amber-4);font-size:12px;font-weight:420;line-height:20px;opacity:0;white-space:nowrap">Approval pending<span class="pms-ring rs-r2" style="inset:-5px;border-radius:9999px;opacity:0"></span></span></span></div>';
     DATES.forEach((d, i) => { week += cell(COLS[i], d); });
     week += cell(1366, 'Total') +
       '<div class="pms-abs rs-st" style="left:1156px;top:8px;width:28px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--color-ink-red-4)">' + XCIRC + '</div>' +
@@ -194,16 +194,11 @@ kit.scene('resubmit-rejected-week', {
     kit.stage.append(kit.h('<div class="ground"><div class="pms-cam rs-cam"><div class="pms-win">' + side + head + week + all + proj + task +
       '<div class="pms-abs" style="left:0;right:0;top:0;height:900px">' + skel + '</div>' + pop + dlg + toastBox('rs-toast1', 'Time Entry submitted successfully') + toastBox('rs-toast', 'Timesheet submitted for approval successfully') +
       '<div class="pms-ring rs-r1" style="left:1391px;top:143px;width:38px;height:38px;border-radius:7px;opacity:0"></div>' +
-      '<div class="pms-ring rs-ring" style="opacity:0"></div>' +
-      '<div class="pms-ring rs-r2" style="border-radius:9999px;opacity:0"></div></div></div></div>'));
+      '<div class="pms-ring rs-ring" style="opacity:0"></div></div></div></div>'));
     const q = (c) => kit.stage.querySelector('.rs-' + c);
     for (const k of ['cam', 'ov', 'dlg', 'ta', 'ph2', 'tv', 'caret2', 'sb', 'st', 'st2', 'b1', 'b2', 'toast', 'toast1', 'r1', 'r2', 'rN', 'rS', 'pop', 'sA', 'sB', 'sC', 'fill', 'dv', 'left', 'ph', 'cv', 'caret', 'hint', 'save', 'hbg', 'ring']) this[k] = q(k);
     this.weds = ['weda', 'wedp', 'wedt'].map(q);
     this.tots = ['tota', 'totp', 'tott'].map(q);
-    // Result ring around the "Approval pending" badge, measured from the laid-out badge.
-    const wr = kit.stage.querySelector('.pms-win').getBoundingClientRect(), k = wr.width / 1440, br = this.b2.getBoundingClientRect();
-    const b = k > 0 && br.width > 0 ? { x: (br.left - wr.left) / k, y: (br.top - wr.top) / k, w: br.width / k, h: br.height / k } : { x: 400, y: 152, w: 106, h: 20 };
-    Object.assign(this.r2.style, { left: (b.x - 5) + 'px', top: (b.y - 5) + 'px', width: (b.w + 10) + 'px', height: (b.h + 10) + 'px' });
     this.camera = new kit.Camera(this.cam);
     this.camera.set([
       { t: 0, cx: 960, cy: 540, z: 1.12, hold: 0.6, drift: [2, 0, 0.004] },

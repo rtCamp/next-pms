@@ -154,7 +154,7 @@ kit.scene('edit-schedule-project', {
       '<div class="pms-abs" style="left:14px;top:18px;font-size:16px;font-weight:500;color:var(--color-ink-gray-7)">Edit allocation</div><div class="pms-abs" style="right:22px;top:20px;color:var(--color-ink-gray-9)">' + ic(IC.x) + '</div>' +
       lab10(14, 61, 56) + box(14, 83, 484, 32) + lab10(14, 132, 64) + box(14, 153, 484, 32) + lab10(14, 202, 70) + box(14, 223, 484, 32) + lab10(14, 272, 76) + box(14, 294, 484, 28, 10) + box(14, 342, 100, 10, 5) +
       box(14, 362, 14, 14, 4) + lab10(34, 364, 110) + box(14, 384, 14, 14, 4) + lab10(34, 386, 104) +
-      label(14, 410, 'Start and end date', 1) + '<div class="pms-abs at-esb" style="right:14px;top:410px;font-size:14px;color:var(--color-ink-gray-5);white-space:nowrap">Edit Schedule</div>' +
+      label(14, 410, 'Start and end date', 1) + '<div class="pms-abs at-esb" style="z-index:1;right:14px;top:410px;font-size:14px;color:var(--color-ink-gray-5);white-space:nowrap">Edit Schedule<div class="pms-ring at-esr" style="inset:-5px;opacity:0"></div></div>' +
       '<div class="pms-input on" style="left:14px;top:434px;width:484px;height:28px">Oct 19, 2026 - Oct 23, 2026<span style="margin-left:auto;color:var(--color-ink-gray-6);display:flex">' + ic(IC.cal) + '</span></div>' +
       lab10(14, 481, 76) + box(14, 502, 237, 32) + lab10(261, 481, 72) + box(261, 502, 237, 32) +
       box(14, 554, 14, 14, 4) + lab10(34, 556, 130) + lab10(14, 588, 40) + box(14, 607, 484, 61) + box(24, 690, 14, 14, 4) + lab10(44, 692, 110) + box(300, 683, 70, 28) + box(378, 683, 110, 28) + '</div>';
@@ -178,12 +178,9 @@ kit.scene('edit-schedule-project', {
       '<div class="pms-abs at-foot" style="left:0;top:296px;width:360px;height:28px">' + box(168, 0, 62, 28) + '<div class="pms-btn pms-btn-solid at-sc" style="left:238px;top:0;width:108px">Save changes</div></div></div>';
     kit.stage.append(kit.h('<div class="ground"><div class="pms-cam at-cam"><div class="pms-win">' + side + grid + bar + card + dlg + es + '<div class="pms-ring at-ring"></div></div></div></div>'));
     const q = (c) => kit.stage.querySelector('.at-' + c);
-    for (const k of ['cam', 'bar', 'g1', 'g2', 'seg1', 'seg2', 'sum1', 'sum2', 'card', 'pen', 'dov', 'dlg', 'esb', 'es', 'rng', 'hs', 'hf', 'hv', 'tin', 'tv', 'tab', 'foot', 'sc', 'ring']) this[k] = q(k);
+    for (const k of ['cam', 'bar', 'g1', 'g2', 'seg1', 'seg2', 'sum1', 'sum2', 'card', 'pen', 'dov', 'dlg', 'esb', 'esr', 'es', 'rng', 'hs', 'hf', 'hv', 'tin', 'tv', 'tab', 'foot', 'sc', 'ring']) this[k] = q(k);
     this.chip = CHIPS.map((_, i) => [q('chip' + i), q('cd' + i), q('cn' + i)]);
     this.tabKey = '';
-    // the Edit Schedule ring follows the text's real box
-    const wr = kit.stage.querySelector('.pms-win').getBoundingClientRect(), k = wr.width / 1440, br = this.esb.getBoundingClientRect();
-    this.esbBox = k > 0 && br.width > 0 ? [(br.left - wr.left) / k, (br.top - wr.top) / k, br.width / k, br.height / k] : [DLG_L + 407, DLG_TOP + 410, 91, 17];
     this.camera = new kit.Camera(this.cam);
     this.camera.set([
       { t: 0, cx: 960, cy: 540, z: 1.12, hold: 0.4 },
@@ -283,7 +280,6 @@ kit.scene('edit-schedule-project', {
     const RINGS = [
       rr(0.9, 1.85, BAR_L, BAR_Y, barW(5), 32),
       rr(2.05, 2.75, 976, 404, 16, 16),
-      rr(3.45, 4.4, ...this.esbBox),
       rr(5.1, T.thu + 0.05, ES_L + 152, esTop(1) + 79, 42, 47),
       rr(T.thu + 0.35, T.fri + 0.05, ES_L + 198, esTop(3) + 79, 42, 47),
       rr(7.4, T.slide + 0.6, ES_L + 14, esTop(2) + 172, 162, 28),
@@ -297,6 +293,7 @@ kit.scene('edit-schedule-project', {
       s.left = g[2] + 'px'; s.top = g[3] + 'px'; s.width = g[4] + 'px'; s.height = g[5] + 'px';
       s.opacity = Math.min(eo(seg(t, g[0], g[0] + 0.25)), 1 - seg(t, g[1] - 0.15, g[1]));
     } else s.opacity = 0;
+    this.esr.style.opacity = Math.min(eo(seg(t, 3.45, 3.7)), 1 - seg(t, 4.25, 4.4));
     this.cur.render(t);
     this.cur.el.style.transform += ' scale(' + (1.1 / z).toFixed(4) + ')';
   },

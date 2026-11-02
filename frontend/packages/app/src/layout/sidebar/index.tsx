@@ -378,6 +378,7 @@ const Sidebar = () => {
               isHelpOpen &&
                 "bg-surface-selected shadow-sm hover:bg-surface-selected",
             )}
+            aria-label="Help"
             onClick={() => setIsHelpOpen((prev) => !prev)}
             iconLeft={() => (
               <Tooltip
