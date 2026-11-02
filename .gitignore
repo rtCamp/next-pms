@@ -63,3 +63,7 @@ tsconfig.tsbuildinfo
 /.agents
 
 CLAUDE.local.md
+
+# Help motion output and each developer's site URL
+.motion-out/
+.claude/help-motions/config.local.json

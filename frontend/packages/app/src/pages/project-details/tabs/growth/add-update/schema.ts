@@ -16,7 +16,7 @@ export const buildAddUpdateSchema = (
       billable_outcome: billableOutcomeSchema,
       note: z
         .string({
-          required_error: "Note is required.",
+          error: "Note is required.",
         })
         .refine((value) => stripTags(value).trim().length > 0, {
           message: "Note is required.",

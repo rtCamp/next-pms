@@ -1,0 +1,31 @@
+#stage { --ground:var(--color-surface-gray-2); --main:var(--color-ink-gray-8); --second:var(--color-ink-gray-8); --accent:#3B82F6; color:var(--second); font-family:var(--sans, system-ui, sans-serif) }
+.ground { position:absolute; inset:0; background:var(--ground) }
+.words { position:absolute; margin:0; display:flex; flex-direction:column; gap:24px } .words > * { margin:0 }
+.line { font-family:var(--display, var(--sans, system-ui, sans-serif)); font-size:84px; line-height:1.05; font-weight:700 } .sub { font-size:36px }
+.pms-cam { position:absolute; left:0; top:0; width:1920px; height:1080px; transform-origin:0 0 }
+.pms-win { position:absolute; left:240px; top:90px; width:1440px; height:900px; background:var(--color-surface-white); border-radius:12px; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,.06), 0 12px 40px rgba(0,0,0,.08); font-size:14px; color:var(--color-ink-gray-8) }
+.pms-abs { position:absolute }
+.pms-ghost { position:absolute; background:var(--color-surface-gray-3); border-radius:8px }
+.pms-btn { position:absolute; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:0 12px; font-size:14px; font-weight:450; white-space:nowrap; box-sizing:border-box; gap:6px }
+.pms-btn-solid { background:var(--color-surface-gray-7); color:var(--color-ink-white) }
+.pms-input { position:absolute; height:32px; border:1px solid var(--color-outline-gray-2); border-radius:8px; background:var(--color-surface-white); box-sizing:border-box; padding:0 10px; display:flex; align-items:center; font-size:14px; color:var(--color-ink-gray-4); white-space:nowrap; overflow:hidden; gap:6px }
+.pms-input.on { color:var(--color-ink-gray-8) }
+.pms-label { position:absolute; font-size:14px; color:var(--color-ink-gray-5) } .pms-label b { color:var(--color-ink-red-3); font-weight:400 }
+.pms-dialog { position:absolute; width:512px; background:var(--color-surface-modal); border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.18) }
+.pms-menu { position:absolute; background:var(--color-surface-modal); border-radius:10px; box-shadow:0 8px 28px rgba(0,0,0,.14); padding:4px; box-sizing:border-box; transform-origin:50% 0 }
+.pms-opt { height:28px; display:flex; align-items:center; gap:8px; padding:0 10px; border-radius:6px; font-size:14px; color:var(--color-ink-gray-8) }
+.pms-av { width:16px; height:16px; border-radius:50%; background:var(--color-surface-gray-2); color:var(--color-ink-gray-5); font-size:11px; font-weight:500; display:flex; align-items:center; justify-content:center; flex:none }
+.pms-pill { position:absolute; height:32px; border-radius:9px; font-size:13px; font-weight:500; display:flex; align-items:center; padding-left:10px; box-sizing:border-box; overflow:hidden; white-space:nowrap }
+.pms-ring { position:absolute; border:3px solid var(--accent); border-radius:11px; pointer-events:none; box-sizing:border-box }
+.pms-tip { position:absolute; height:22px; padding:4px 8px; box-sizing:border-box; border-radius:8px; background:var(--color-surface-gray-7); color:var(--color-ink-white); font-size:12px; line-height:14px; white-space:nowrap }
+/* Projects Kanban kit */
+.pms-card { position:absolute; width:284px; height:171px; border-radius:20px }
+.pms-card-bg { position:absolute; inset:0; background:var(--color-surface-white); border:1px solid var(--color-outline-gray-1); border-radius:20px; box-sizing:border-box; box-shadow:0 1px 2px rgba(0,0,0,.1) }
+.pms-card-hd { position:absolute; left:1px; top:1px; width:282px; height:41px; border-bottom:1px solid var(--color-outline-gray-1); box-sizing:border-box }
+.pms-card-tt { position:absolute; left:39px; top:13px; width:230px; line-height:16px; font-size:14px; font-weight:500; color:var(--color-ink-gray-7); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.pms-card-row { position:absolute; left:17px; height:16px; display:flex; align-items:center; gap:8px; font-size:14px; font-weight:420; line-height:16px; color:var(--color-ink-gray-6); white-space:nowrap }
+.pms-col-tt { position:absolute; top:119px; line-height:16px; font-size:14px; font-weight:420; color:var(--color-ink-gray-7); white-space:nowrap }
+/* Projects List view kit */
+.pms-th { position:absolute; top:127px; line-height:15px; font-size:13px; font-weight:420; color:var(--color-ink-gray-5); white-space:nowrap }
+.pms-td { position:absolute; height:16px; display:flex; align-items:center; gap:6px; font-size:14px; font-weight:420; line-height:16px; color:var(--color-ink-gray-6); white-space:nowrap }
+.pms-hair { position:absolute; height:1px; background:var(--color-outline-gray-1) }

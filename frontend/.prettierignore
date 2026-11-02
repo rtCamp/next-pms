@@ -1,0 +1,2 @@
+# Help motions are generated never reformat them.
+packages/app/src/assets/motions/*/

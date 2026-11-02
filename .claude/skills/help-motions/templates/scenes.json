@@ -1,0 +1,9 @@
+{
+  "width": 1920,
+  "height": 1080,
+  "background": "#F4F4F5",
+  "fonts": { "sans": { "family": "Inter" } },
+  "scenes": [
+    { "id": "demo", "name": "Demo", "dur": 5.5, "desc": "One sentence saying what happens. It doubles as the alt text." }
+  ]
+}

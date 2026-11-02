@@ -92,7 +92,7 @@ export function ColumnHeader({
           : undefined
       }
       className={cn(
-        "flex min-w-0 items-center gap-1 text-sm text-ink-gray-5",
+        "group flex min-w-0 items-center gap-1 text-sm text-ink-gray-5",
         isDragging && "opacity-50",
       )}
     >
@@ -140,7 +140,7 @@ export function ColumnHeader({
         <button
           type="button"
           aria-label={`${column.label} column options`}
-          className="shrink-0 rounded-sm p-0.5"
+          className="shrink-0 rounded-sm p-0.5 transition-opacity md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100 data-popup-open:opacity-100"
         >
           <SmallDown className="size-3.5 text-ink-gray-6" />
         </button>

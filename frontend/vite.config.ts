@@ -7,6 +7,11 @@ import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
 import svgr from "vite-plugin-svgr";
 
+/**
+ * Internal dependencies.
+ */
+import motionPlugin from "./tools/vite-plugin-motion";
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, "../../", "");
   let proxyConfig = {};
@@ -26,6 +31,7 @@ export default defineConfig(({ mode }) => {
     envDir: resolve(__dirname),
     root: resolve(__dirname, "./packages/app"),
     plugins: [
+      motionPlugin(),
       react(),
       tailwindcss(),
       svgr({

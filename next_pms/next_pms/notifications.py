@@ -87,6 +87,120 @@ def get_reviewer(employee):
     return reports_to, frappe.db.get_value("Employee", reports_to, "user_id")
 
 
+NOTIFICATION_TRAY_ROLES = [
+    "Delivery Manager",
+    "Delivery User",
+    "Projects Manager",
+    "Projects User",
+    "System Manager",
+]
+
+MANAGER_DASHBOARD_ROLES = [
+    "Projects Manager",
+    "Projects User",
+    "Delivery Manager",
+    "Timesheet Manager",
+    "System Manager",
+]
+
+MANAGER_DASHBOARD_URL = "/next-pms/dashboard/manager"
+
+
+def leave_application_after_insert(doc, method=None):
+    """Notify the approvers of a leave request that is awaiting a decision."""
+    if doc.docstatus != 0 or doc.status != "Open":
+        return
+
+    from_date = formatdate(getdate(doc.from_date), "dd/mm/yyyy")
+    to_date = formatdate(getdate(doc.to_date), "dd/mm/yyyy")
+    label = _("{0} requested leave from {1} to {2}").format(doc.employee_name or doc.employee, from_date, to_date)
+
+    recipients, dashboard_users = _leave_notification_recipients(doc)
+    for user in sorted(recipients):
+        url = MANAGER_DASHBOARD_URL if user in dashboard_users else None
+        frappe.get_doc(
+            {
+                "doctype": "NextPMS Notifications",
+                "user": user,
+                "title": _("Leave request"),
+                "label": truncate(label, frappe.db.VARCHAR_LEN),
+                "linked_doctype": "Leave Application",
+                "linked_document": doc.name,
+                "url": url,
+            }
+        ).insert(ignore_permissions=True)
+        frappe.publish_realtime(event="notification", user=user, after_commit=True)
+
+
+def _leave_notification_recipients(doc):
+    """Users to notify about a leave request, and which of them can see it on the manager dashboard.
+
+    Returns ``(recipients, dashboard_users)``. The actor and duplicates are dropped: the leave
+    approver, the employee's reporting manager and the notify users can all be the same person.
+    The dashboard lists a leave only for the reporting manager and the notify users, so a
+    designated approver outside both is sent to Desk instead.
+    """
+    _, reports_to_user = get_reviewer(doc.employee)
+    dashboard_users = {reports_to_user}
+    if frappe.get_meta("Leave Application").has_field("custom_notify_users"):
+        dashboard_users.update(row.user for row in doc.get("custom_notify_users") or [])
+
+    users = dashboard_users | {doc.leave_approver}
+    users.discard(None)
+    users.discard(frappe.session.user)
+    if not users:
+        return set(), set()
+
+    enabled_users = frappe.get_all(
+        "User",
+        filters={"name": ["in", list(users)], "enabled": 1},
+        pluck="name",
+    )
+    recipients = {user for user in enabled_users if _has_any_role(user, NOTIFICATION_TRAY_ROLES)}
+    dashboard_users = {user for user in recipients & dashboard_users if _has_any_role(user, MANAGER_DASHBOARD_ROLES)}
+    return recipients, dashboard_users
+
+
+def _has_any_role(user, roles):
+    return bool(set(frappe.get_roles(user)) & set(roles))
+
+
+def leave_application_resolved(doc, method=None):
+    """Retire the notification for a leave request once it is no longer awaiting a decision.
+
+    Runs wherever the request is actioned, so the tray stops offering it regardless of
+    whether that happened in the widget, in the Desk form or in a workflow transition.
+    """
+    if doc.status == "Open":
+        return
+    _retire_leave_notifications(doc)
+
+
+def leave_application_deleted(doc, method=None):
+    """Retire the notification for a leave request that was withdrawn before a decision."""
+    _retire_leave_notifications(doc)
+
+
+def _retire_leave_notifications(doc):
+    rows = frappe.get_all(
+        "NextPMS Notifications",
+        filters={
+            "linked_doctype": "Leave Application",
+            "linked_document": doc.name,
+            "viewed": 0,
+        },
+        fields=["name", "user"],
+    )
+    if not rows:
+        return
+
+    for row in rows:
+        frappe.db.set_value("NextPMS Notifications", row.name, "viewed", 1, update_modified=False)
+
+    for user in sorted({row.user for row in rows}):
+        frappe.publish_realtime(event="notification", user=user, after_commit=True)
+
+
 def risk_on_update(doc, method=None):
     """Notify followers of a Risk when its status changes."""
     if not doc.status:

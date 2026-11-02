@@ -2,7 +2,10 @@
  * External dependencies.
  */
 import { useState } from "react";
-import { DeleteActionDialog } from "@next-pms/design-system/components";
+import {
+  DeleteActionDialog,
+  InfoHoverCard,
+} from "@next-pms/design-system/components";
 import { Button, StaticTextEditor } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 
@@ -14,6 +17,7 @@ import { FileCard } from "@/pages/project-details/components/fileCard";
 import type { FileAttachment } from "@/pages/project-details/types";
 import { useUser } from "@/providers/user";
 import { AddUpdateModal } from "../add-update";
+import { RISKS_HELP } from "../help";
 import type { EnrichedRiskUpdateEntry, RiskDetail } from "../types";
 import { UpdateEntry } from "./updateEntry";
 
@@ -136,7 +140,10 @@ export function RiskDetailContent({
         {/* Updates */}
         <section>
           <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg font-medium text-ink-gray-7">Updates</h3>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <h3 className="text-lg font-medium text-ink-gray-7">Updates</h3>
+              <InfoHoverCard help={RISKS_HELP.updates} />
+            </div>
             {canEditRisk && (
               <Button
                 type="button"
@@ -154,6 +161,7 @@ export function RiskDetailContent({
                 <UpdateEntry
                   key={entry.name}
                   entry={entry}
+                  showActions={canEditRisk}
                   canEdit={canManageEntry(entry)}
                   onEdit={() => setEditEntry(entry)}
                   onDelete={() => setDeleteEntry(entry)}

@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import type { FieldHelp } from "@next-pms/design-system/components";
+import type { FieldHelp, HelpTip } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
@@ -36,3 +36,29 @@ export const PROJECT_TIMESHEET_HELP = {
     wiki: ROLLUP_WIKI,
   },
 } satisfies Record<string, FieldHelp>;
+
+export const PROJECT_TIMESHEET_TIPS: HelpTip[] = [
+  {
+    id: "approve-project-time",
+    title: "Approve time on a project",
+    body: "Approve only the time a member logged on this project. Their other projects that week stay as they are.",
+    steps: [
+      "Select the status icon at the end of the member's row, under the project.",
+      "Select Approve.",
+    ],
+    wiki: ROLLUP_WIKI,
+    motion: () => import("@/assets/motions/approve-project-time?motion"),
+  },
+  {
+    id: "reject-project-time",
+    title: "Reject time on a project",
+    body: "Send a member's time on this project back with a reason. Their other projects that week stay as they are.",
+    steps: [
+      "Select the status icon at the end of the member's row, under the project.",
+      "Select Reject.",
+      "Enter the reason and select Reject timesheet.",
+    ],
+    wiki: ROLLUP_WIKI,
+    motion: () => import("@/assets/motions/reject-project-time?motion"),
+  },
+];

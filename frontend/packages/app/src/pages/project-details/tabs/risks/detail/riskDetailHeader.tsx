@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useSearchParams } from "react-router";
-import { Avatar } from "@rtcamp/frappe-ui-react";
+import { Avatar, Tooltip } from "@rtcamp/frappe-ui-react";
 import { Button } from "@rtcamp/frappe-ui-react";
 import { ArrowLeft } from "@rtcamp/frappe-ui-react/icons";
 
@@ -13,6 +13,7 @@ import { FollowersBadge } from "@/pages/project-details/components/followersBadg
 import type { Follower } from "@/pages/project-details/types";
 import { useUser } from "@/providers/user";
 import { RISK_DETAIL_PARAM } from "../constants";
+import { OWNER_TOOLTIP, RISK_OWNER_TOOLTIP } from "../help";
 import { RiskLevelBadge } from "../riskLevelBadge";
 import { RiskRowActions } from "../riskRowActions";
 import { RiskStatusBadge } from "../riskStatusBadge";
@@ -65,35 +66,35 @@ export function RiskDetailHeader({
         <RiskLevelBadge level={risk.risk_level} />
 
         {risk.risk_owner && (
-          <div
-            className="flex items-center gap-1 bg-surface-gray-2 rounded-full px-2 py-1"
-            title="Risk owner"
-          >
-            <Avatar
-              size="xs"
-              shape="circle"
-              image={risk.risk_owner_details?.user_image ?? undefined}
-              label={risk.risk_owner_details?.full_name ?? risk.risk_owner}
-            />
-            <span>{risk.risk_owner_details?.full_name ?? risk.risk_owner}</span>
-            <span className="text-ink-gray-5">- Risk owner</span>
-          </div>
+          <Tooltip text={RISK_OWNER_TOOLTIP}>
+            <div className="flex items-center gap-1 bg-surface-gray-2 rounded-full px-2 py-1">
+              <Avatar
+                size="xs"
+                shape="circle"
+                image={risk.risk_owner_details?.user_image ?? undefined}
+                label={risk.risk_owner_details?.full_name ?? risk.risk_owner}
+              />
+              <span>
+                {risk.risk_owner_details?.full_name ?? risk.risk_owner}
+              </span>
+              <span className="text-ink-gray-5">- Risk owner</span>
+            </div>
+          </Tooltip>
         )}
 
         {risk.owner && (
-          <div
-            className="flex items-center gap-1 bg-surface-gray-2 rounded-full px-2 py-1"
-            title="Owner"
-          >
-            <Avatar
-              size="xs"
-              shape="circle"
-              image={risk.owner_details?.user_image ?? undefined}
-              label={risk.owner_details?.full_name ?? risk.owner}
-            />
-            <span>{risk.owner_details?.full_name ?? risk.owner}</span>
-            <span className="text-ink-gray-5">- Owner</span>
-          </div>
+          <Tooltip text={OWNER_TOOLTIP}>
+            <div className="flex items-center gap-1 bg-surface-gray-2 rounded-full px-2 py-1">
+              <Avatar
+                size="xs"
+                shape="circle"
+                image={risk.owner_details?.user_image ?? undefined}
+                label={risk.owner_details?.full_name ?? risk.owner}
+              />
+              <span>{risk.owner_details?.full_name ?? risk.owner}</span>
+              <span className="text-ink-gray-5">- Owner</span>
+            </div>
+          </Tooltip>
         )}
 
         <RiskStatusBadge

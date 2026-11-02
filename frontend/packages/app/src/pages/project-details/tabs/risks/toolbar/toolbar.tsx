@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useMemo } from "react";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { Filter, Select, type FilterField } from "@rtcamp/frappe-ui-react";
 
 /**
@@ -11,6 +12,7 @@ import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { RISK_STATUSES } from "../constants";
 import type { RiskStatus } from "../constants";
 import { useRisks } from "../context";
+import { RISKS_HELP } from "../help";
 import { SortButton } from "./sortButton";
 
 const USER_LINK_OPERATORS = [
@@ -92,16 +94,19 @@ export function RisksToolbar() {
           onChange={(e) => setFilters({ riskOwner: e.target.value as string })}
           options={riskOwnerOptions}
         />
-        <Select
-          size="sm"
-          placeholder="Owner"
-          placeholderClassName="text-ink-gray-7"
-          className="w-36 text-ink-gray-7"
-          matchTriggerWidth
-          value={filters.owner}
-          onChange={(e) => setFilters({ owner: e.target.value as string })}
-          options={ownerOptions}
-        />
+        <div className="flex items-center gap-1.5">
+          <Select
+            size="sm"
+            placeholder="Owner"
+            placeholderClassName="text-ink-gray-7"
+            className="w-36 text-ink-gray-7"
+            matchTriggerWidth
+            value={filters.owner}
+            onChange={(e) => setFilters({ owner: e.target.value as string })}
+            options={ownerOptions}
+          />
+          <InfoHoverCard help={RISKS_HELP.owners} />
+        </div>
         <Select
           size="sm"
           placeholder="Status"

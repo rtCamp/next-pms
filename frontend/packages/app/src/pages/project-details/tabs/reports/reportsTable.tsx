@@ -9,6 +9,7 @@ import {
   ListRows,
   ListView,
   Spinner,
+  Tooltip,
 } from "@rtcamp/frappe-ui-react";
 import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 import { format, parseISO } from "date-fns";
@@ -18,6 +19,7 @@ import { format, parseISO } from "date-fns";
  */
 import { mergeClassNames } from "@/lib/utils";
 import { REPORT_COLUMNS } from "./constants";
+import { RESYNC_TOOLTIP } from "./help";
 import { useProjectDetail } from "../../context";
 import type { ProjectReportRow } from "../../types";
 
@@ -100,7 +102,9 @@ export function ReportsTable({ reports }: ReportsTableProps) {
           Project Reports
         </h2>
         {reports.length > 0 && (
-          <Button variant="subtle" label="Resync" onClick={() => mutate()} />
+          <Tooltip text={RESYNC_TOOLTIP}>
+            <Button variant="subtle" label="Resync" onClick={() => mutate()} />
+          </Tooltip>
         )}
       </div>
 

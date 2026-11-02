@@ -3,7 +3,7 @@
  */
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Spinner } from "@next-pms/design-system/components";
+import { InfoHoverCard, Spinner } from "@next-pms/design-system/components";
 import { stripTags } from "@next-pms/design-system/utils";
 import {
   Button,
@@ -26,6 +26,7 @@ import {
 import { ROUTES } from "@/lib/constant";
 import { mergeClassNames as cn, parseFrappeErrorMsg } from "@/lib/utils";
 import { TEMPLATE_DOCTYPE, TEMPLATE_PARAM } from "./constants";
+import { NOTES_HELP } from "./help";
 
 type TemplateDialogProps = {
   open: boolean;
@@ -160,7 +161,10 @@ export function TemplateDialog({
           }}
         />
         <div className="relative flex flex-col gap-2">
-          <span className="text-base text-ink-gray-5 mx-3">Templates</span>
+          <div className="mx-3 flex min-w-0 items-center gap-1.5">
+            <span className="text-base text-ink-gray-5">Templates</span>
+            <InfoHoverCard help={NOTES_HELP.templates} />
+          </div>
           {!isLoading && options.length === 0 ? (
             <div className="py-10 h-80 max-h-80 flex items-center justify-center">
               <span className="text-center text-base text-ink-gray-4">
