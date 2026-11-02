@@ -560,25 +560,6 @@ export class ProjectPage {
     await expect(this.projectRow(payload.project_name)).toHaveCount(1);
   }
   /**
-   * Check if the column header is visible. If not visible, it will include the column header.
-   */
-  async isColumnHeaderVisible(headerName) {
-    const headerLocator = this.projectTableHeader(headerName);
-
-    // Only asserts on the rendered layout. A column the list offers but does
-    // not show is added with ColumnSettings.ensureColumnVisible first.
-    await expect(headerLocator).toBeVisible();
-  }
-  /**
-   * Verifies that all specified column headers are visible.
-   * @param {string[]} columns - Array of column names to check.
-   */
-  async verifyColumnHeaders(columns) {
-    for (const column of columns) {
-      await this.isColumnHeaderVisible(column);
-    }
-  }
-  /**
    * Get the list of project names currently displayed in the retainer public view.
    */
   async getProjectListInRetainerView() {

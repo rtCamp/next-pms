@@ -26,7 +26,9 @@ module.exports = defineConfig({
   /* CI runs against a freshly built site, so give assertions and tests more
      room than the defaults. Both scale together: a longer expect timeout inside
      an unchanged test budget just converts assertion failures into timeouts. */
-  timeout: 30000 * TIMEOUT_FACTOR,
+  // 40s a test, not 30: several waits inside a test (a page load, a not-found redirect) are
+  // scaled to 120s on CI, which a 90s test could never reach.
+  timeout: 40000 * TIMEOUT_FACTOR,
   expect: { timeout: 5000 * TIMEOUT_FACTOR },
 
   /* Directory with specs */

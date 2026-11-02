@@ -2,6 +2,7 @@ const { test, expect } = require("../../playwright.fixture.cjs");
 import * as allure from "allure-js-commons";
 import {
   TASK,
+  clearProjectTasks,
   dueDateText,
   findTask,
   likedBy,
@@ -12,6 +13,12 @@ import { TaskPage } from "../../pageObjects/taskPage";
 import { getDocList, getDocument } from "../../utils/api/apiClient";
 import { dayOfThisMonth } from "../../utils/dateUtils";
 import { loadTestCase } from "../../utils/testCase";
+
+// A case that seeds its own task keeps it; the rest start from an empty project.
+const load = (jsonDir, tc) =>
+  loadTestCase(jsonDir, tc, (projectId, data) =>
+    data.payloadCreateTask ? undefined : clearProjectTasks(projectId),
+  );
 
 const STATUSES = [
   "Open",
@@ -52,7 +59,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC168");
+    const { data, projectId } = await load(jsonDir, "TC168");
     const projectName = data.payloadCreateProject.project_name;
 
     // One task per status; the last has no due date.
@@ -99,7 +106,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC169");
+    const { data, projectId } = await load(jsonDir, "TC169");
     await seedTasks(
       projectId,
       Array.from(
@@ -130,7 +137,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC170");
+    const { data, projectId } = await load(jsonDir, "TC170");
     const task = await seedTask(projectId, data.task);
     await seedTask(projectId, data.decoy);
 
@@ -151,7 +158,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC171");
+    const { data, projectId } = await load(jsonDir, "TC171");
     const projectName = data.payloadCreateProject.project_name;
     const [other] = await getDocList(
       "Project",
@@ -179,7 +186,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC172");
+    const { data, projectId } = await load(jsonDir, "TC172");
     const subjectOf = (status) => `${data.task} ${status}`;
     for (const status of [
       "Working",
@@ -211,7 +218,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC173");
+    const { data, projectId } = await load(jsonDir, "TC173");
     const subjectOf = (priority) => `${data.task} ${priority}`;
     for (const priority of PRIORITIES) {
       await seedTask(projectId, subjectOf(priority), { priority });
@@ -243,7 +250,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC174");
+    const { data, projectId } = await load(jsonDir, "TC174");
     for (const day of [8, 15, 22]) {
       await seedTask(projectId, `${data.task} due ${day}`, {
         exp_end_date: dayOfThisMonth(day),
@@ -266,7 +273,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC175");
+    const { data, projectId } = await load(jsonDir, "TC175");
     const projectName = data.payloadCreateProject.project_name;
     const [other] = await getDocList(
       "Project",
@@ -315,7 +322,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC176");
+    const { data, projectId } = await load(jsonDir, "TC176");
     const subjectOf = (letter) => `${data.task} ${letter}`;
     // Created B, C, A: the newest is listed first.
     for (const letter of ["B", "C", "A"]) {
@@ -346,7 +353,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC177");
+    const { data, projectId } = await load(jsonDir, "TC177");
     const subjectOf = (letter) => `${data.task} ${letter}`;
     for (const letter of ["B", "C", "A"]) {
       await seedTask(projectId, subjectOf(letter));
@@ -379,7 +386,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC178");
+    const { data, projectId } = await load(jsonDir, "TC178");
     await seedTask(projectId, data.task);
 
     await openProjectList(data, projectId);
@@ -411,7 +418,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC179");
+    const { data, projectId } = await load(jsonDir, "TC179");
     const projectName = data.payloadCreateProject.project_name;
     const alpha = `${data.task} alpha`;
     const beta = `${data.task} beta`;
@@ -493,7 +500,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC181");
+    const { data, projectId } = await load(jsonDir, "TC181");
     const projectName = data.payloadCreateProject.project_name;
     await seedTask(projectId, "TC181 Task that is already there");
 
@@ -538,7 +545,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC182");
+    const { data, projectId } = await load(jsonDir, "TC182");
     const projectName = data.payloadCreateProject.project_name;
 
     await openProjectList(data, projectId);
@@ -567,7 +574,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC184");
+    const { data, projectId } = await load(jsonDir, "TC184");
     const task = await seedTask(projectId, data.task);
     const me = process.env.REP_MAN_EMAIL;
     const star = taskPage.starButton(data.task);
@@ -592,7 +599,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC185");
+    const { data, projectId } = await load(jsonDir, "TC185");
     const projectName = data.payloadCreateProject.project_name;
     await seedTask(projectId, data.task, {
       priority: "High",
@@ -619,7 +626,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC186");
+    const { data, projectId } = await load(jsonDir, "TC186");
     const projectName = data.payloadCreateProject.project_name;
     const task = await seedTask(projectId, data.task, {
       priority: "Low",
@@ -663,7 +670,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC187");
+    const { data, projectId } = await load(jsonDir, "TC187");
     await seedTask(projectId, data.task);
 
     await openProjectList(data, projectId);
@@ -689,7 +696,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC188");
+    const { data, projectId } = await load(jsonDir, "TC188");
     await seedTask(projectId, data.othersTask);
     await seedTask(projectId, data.ownTask, {}, "manager");
 
@@ -709,7 +716,7 @@ test.describe("Manager: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC190");
+    const { data, projectId } = await load(jsonDir, "TC190");
     const task = data.payloadCreateTask.subject;
     const names = [
       (await getDocument("Employee", process.env.EMP_ID)).employee_name,

@@ -1,9 +1,16 @@
 const { test, expect } = require("../../playwright.fixture.cjs");
 import * as allure from "allure-js-commons";
-import { seedTask } from "../../helpers/taskHelper";
+import { clearProjectTasksAndTime, seedTask } from "../../helpers/taskHelper";
 import { TaskPage } from "../../pageObjects/taskPage";
 import { getDocument } from "../../utils/api/apiClient";
 import { loadTestCase } from "../../utils/testCase";
+
+// A case that seeds its own task keeps it; the rest start from an empty project. Time is
+// cleared too, as an earlier attempt's logged time keeps its task from being deleted.
+const load = (jsonDir, tc) =>
+  loadTestCase(jsonDir, tc, (projectId, data) =>
+    data.payloadCreateTask ? undefined : clearProjectTasksAndTime(projectId),
+  );
 
 test.describe("Employee: Task list", () => {
   /** @type {TaskPage} */ let taskPage;
@@ -24,7 +31,7 @@ test.describe("Employee: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC183");
+    const { data, projectId } = await load(jsonDir, "TC183");
     const projectName = data.payloadCreateProject.project_name;
     await seedTask(projectId, data.task);
 
@@ -56,7 +63,7 @@ test.describe("Employee: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC189");
+    const { data, projectId } = await load(jsonDir, "TC189");
     const projectName = data.payloadCreateProject.project_name;
     await seedTask(projectId, data.othersTask);
 
@@ -86,7 +93,7 @@ test.describe("Employee: Task list", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC191");
+    const { data, projectId } = await load(jsonDir, "TC191");
     const task = data.payloadCreateTask.subject;
     const noTimeTask = `${task} without time`;
     const colleague = (await getDocument("Employee", process.env.EMP3_ID))

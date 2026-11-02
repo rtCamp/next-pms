@@ -327,13 +327,6 @@ export class TeamPage extends TimelinePage {
   }
 
   /**
-   * Clicks on the Combine Week Hours checkbox in header.
-   */
-  async clickCombineWeekHoursCheckbox() {
-    await this.combineWeekHoursCheckbox.click();
-  }
-
-  /**
    * Clicks the view Previous Week button in header.
    */
   async clickPreviousWeekButton() {

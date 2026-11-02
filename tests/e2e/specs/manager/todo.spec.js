@@ -18,6 +18,8 @@ import { getDocList, getDocument } from "../../utils/api/apiClient";
 import { loadTestCase } from "../../utils/testCase";
 import { scaleTimeout } from "../../utils/timeouts";
 
+const load = (jsonDir, tc) => loadTestCase(jsonDir, tc, clearTodoData);
+
 test.describe("Manager: Project ToDos", () => {
   /** @type {TodoPage} */ let todoPage;
 
@@ -31,8 +33,7 @@ test.describe("Manager: Project ToDos", () => {
     allure.story("ToDo");
     // Three ToDos created through the dialog, each action carrying the slowMo pause.
     test.setTimeout(scaleTimeout(60000));
-    const { data, projectId } = await loadTestCase(jsonDir, "TC142");
-    await clearTodoData(projectId);
+    const { data, projectId } = await load(jsonDir, "TC142");
     const milestone = await seedTimelineItem(
       projectId,
       "Milestone",
@@ -82,7 +83,7 @@ test.describe("Manager: Project ToDos", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC143");
+    const { data, projectId } = await load(jsonDir, "TC143");
     const todo = await seedTodo(projectId, data.todo);
 
     await todoPage.gotoTodos(projectId);
@@ -108,7 +109,7 @@ test.describe("Manager: Project ToDos", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC144");
+    const { data, projectId } = await load(jsonDir, "TC144");
     const todo = await seedTodo(projectId, data.todo);
     const milestone = await seedTimelineItem(
       projectId,
@@ -140,7 +141,7 @@ test.describe("Manager: Project ToDos", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC145");
+    const { data, projectId } = await load(jsonDir, "TC145");
     const milestone = await seedTimelineItem(
       projectId,
       "Milestone",
@@ -193,7 +194,7 @@ test.describe("Manager: Project ToDos", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC146");
+    const { data, projectId } = await load(jsonDir, "TC146");
     await seedTimelineItem(
       projectId,
       "Milestone",
@@ -239,7 +240,7 @@ test.describe("Manager: Project ToDos", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC147");
+    const { data, projectId } = await load(jsonDir, "TC147");
     const todos = await seedTodos(projectId, data.todos);
     const touchpointTodo = await seedTodo(projectId, data.touchpointTodo);
     const milestone = await seedTimelineItem(
@@ -333,7 +334,7 @@ test.describe("Manager: Project ToDos", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC148");
+    const { data, projectId } = await load(jsonDir, "TC148");
     const initiative = await seedInitiative(projectId, data.initiative);
     const growthPage = new GrowthPage(page);
 
@@ -367,7 +368,7 @@ test.describe("Manager: Project ToDos", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC149");
+    const { data, projectId } = await load(jsonDir, "TC149");
 
     await todoPage.gotoTodos(projectId);
     await expect(todoPage.emptyMessage).toBeVisible();

@@ -207,11 +207,20 @@ export const deleteDocument = async (doctype, name, role = "admin") => {
  * A GET, unlike filterApi()'s reportview POST, and it returns plain objects
  * rather than positional value arrays - so callers read `row.name` instead of
  * guessing which column they flattened.
+ *
+ * A failed request gives [] and a warning. Pass `strict` where [] means "absent" and the
+ * answer is acted on or cached, so a transient error throws instead of reading as "none".
  */
 export const getDocList = async (
   doctype,
   filters = [],
-  { fields = ["name"], limit = 500, role = "admin", orderBy } = {},
+  {
+    fields = ["name"],
+    limit = 500,
+    role = "admin",
+    orderBy,
+    strict = false,
+  } = {},
 ) => {
   const qs = new URLSearchParams({
     doctype,
@@ -232,9 +241,9 @@ export const getDocList = async (
       { method: "GET" },
     );
     if (!res.ok()) {
-      console.warn(
-        `⚠️ Could not list ${doctype}: ${res.status()} ${res.statusText()}`,
-      );
+      const reason = `${res.status()} ${res.statusText()}`;
+      if (strict) throw new Error(`Could not list ${doctype}: ${reason}`);
+      console.warn(`⚠️ Could not list ${doctype}: ${reason}`);
       return [];
     }
     return (await res.json())?.message ?? [];
@@ -380,6 +389,8 @@ export const updateDocument = async (doctype, name, data, role = "admin") => {
 
 /**
  * Creates a document and returns the created doc (including its `creation`).
+ * MariaDB rolls the whole request back on a deadlock, so nothing was created and a
+ * create that hit one is safe to send again.
  */
 export const createDocument = async (doctype, data, role = "admin") => {
   const requestContext = await request.newContext({
@@ -387,22 +398,31 @@ export const createDocument = async (doctype, data, role = "admin") => {
     storageState: loadAuthState(role),
   });
   try {
-    const res = await fetchWithRetry(
-      requestContext,
-      `/api/resource/${encodeURIComponent(doctype)}`,
-      {
-        method: "POST",
-        timeout: 120000,
-        headers: { "Content-Type": "application/json" },
-        data,
-      },
-    );
-    if (!res.ok()) {
+    for (let attempt = 1; ; attempt++) {
+      const res = await fetchWithRetry(
+        requestContext,
+        `/api/resource/${encodeURIComponent(doctype)}`,
+        {
+          method: "POST",
+          timeout: 120000,
+          headers: { "Content-Type": "application/json" },
+          data,
+        },
+      );
+      if (res.ok()) return (await res.json())?.data;
+
+      const detail = await failureDetail(res);
+      if (attempt < 3 && /QueryDeadlockError|\(1213,/.test(detail)) {
+        console.warn(
+          `🔒 Deadlock creating ${doctype} (attempt ${attempt}/3). Retrying…`,
+        );
+        await sleep(1000 * attempt);
+        continue;
+      }
       throw new Error(
-        `Could not create ${doctype}: ${res.status()} ${res.statusText()}${await failureDetail(res)}`,
+        `Could not create ${doctype}: ${res.status()} ${res.statusText()}${detail}`,
       );
     }
-    return (await res.json())?.data;
   } finally {
     await requestContext.dispose();
   }

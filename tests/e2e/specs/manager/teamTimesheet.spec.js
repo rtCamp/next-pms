@@ -97,7 +97,7 @@ test.describe("Manager: Team timesheet", () => {
           await team.scrollGrid();
           return team.weekHeader(weekLabel(14)).count();
         },
-        { timeout: 60000, intervals: [1500] },
+        { timeout: scaleTimeout(30000), intervals: [1500] },
       )
       .toBe(1);
     expect(await team.weekHeaders.count()).toBeGreaterThan(12);
@@ -115,7 +115,7 @@ test.describe("Manager: Team timesheet", () => {
           await team.scrollToLastMember("This week", SEARCH);
           return rows.count();
         },
-        { timeout: 60000, intervals: [1500] },
+        { timeout: scaleTimeout(30000), intervals: [1500] },
       )
       .toBeGreaterThan(20);
   });

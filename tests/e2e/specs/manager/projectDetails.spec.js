@@ -13,6 +13,7 @@ import {
   updateDocument,
 } from "../../utils/api/apiClient";
 import { readJSONFile } from "../../utils/fileUtils";
+import { scaleTimeout } from "../../utils/timeouts";
 
 // TC299 seeds the "E2E Prj Detail" project these cases open; see data/manager/projects.js.
 const DETAIL = "E2E Prj Detail";
@@ -129,7 +130,9 @@ test.describe("Manager: Project details", () => {
       await expect(page.getByText("Overview updated").first()).toBeVisible();
 
       await page.reload();
-      await expect(page.getByText("E2E Prj summary edited")).toBeVisible();
+      await expect(page.getByText("E2E Prj summary edited")).toBeVisible({
+        timeout: scaleTimeout(15000),
+      });
       const saved = await getDocument("Project", project);
       expect(saved.priority).toBe("High");
       expect(saved.custom_executive_summary).toContain(
@@ -170,7 +173,7 @@ test.describe("Manager: Project details", () => {
     allure.story("Projects");
     await details.goto(project);
     const popup = page
-      .waitForEvent("popup", { timeout: 5000 })
+      .waitForEvent("popup", { timeout: scaleTimeout(5000) })
       .catch(() => null);
     await details.openInDesk.click();
     const opened = (await popup) ?? page;

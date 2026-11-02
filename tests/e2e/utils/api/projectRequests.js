@@ -59,13 +59,16 @@ let techStackRows;
 // doctype. Staging's Project meta leaves the field out, so look for the doctype instead.
 const getTechStackRows = async () => {
   if (techStackRows) return techStackRows;
-  const [doctype] = await getDocList("DocType", [["name", "=", "Technology"]]);
+  const [doctype] = await getDocList("DocType", [["name", "=", "Technology"]], {
+    strict: true,
+  });
   if (!doctype) {
     techStackRows = [];
     return techStackRows;
   }
   const [technology] = await getDocList("Technology", [["disabled", "=", 0]], {
     limit: 1,
+    strict: true,
   });
   const { name } =
     technology ??

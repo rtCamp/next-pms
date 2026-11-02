@@ -10,6 +10,7 @@ import {
   updateDocument,
 } from "../../utils/api/apiClient";
 import { readJSONFile } from "../../utils/fileUtils";
+import { scaleTimeout } from "../../utils/timeouts";
 
 // TC299 seeds "E2E Prj Detail" with a Done report, an open High risk and a mitigated
 // Low one; see data/manager/projects.js. Cases that change a risk make their own.
@@ -101,7 +102,7 @@ test.describe("Manager: Project reports and risks", () => {
     allure.story("Projects");
     await risks.goto(project, { tab: "reports" });
     const popup = page
-      .waitForEvent("popup", { timeout: 10000 })
+      .waitForEvent("popup", { timeout: scaleTimeout(10000) })
       .catch(() => null);
     await page
       .getByRole("button", { name: "View Report" })
@@ -326,18 +327,34 @@ test.describe("Manager: Project reports and risks", () => {
     page,
   }) => {
     allure.story("Projects");
-    // Following records nothing unless the user has document follow notifications on.
-    await updateDocument("User", process.env.REP_MAN_EMAIL, {
-      document_follow_notify: 1,
-    });
-    await risks.goto(project, { risk: docs.openRisk });
-    await risks.openRiskMenu("Technical Risk");
-    await page.getByRole("menuitem", { name: "Follow", exact: true }).click();
-    await expect(page.getByText("Following document").first()).toBeVisible();
-    await page.reload();
-    await risks.openRiskMenu("Technical Risk");
-    await page.getByRole("menuitem", { name: "Unfollow", exact: true }).click();
-    await expect(page.getByText("Unfollowed document").first()).toBeVisible();
+    // Following records nothing unless the user has document follow notifications on. It
+    // stays on: TC128 follows as the same user in parallel and needs it on too.
+    const user = process.env.REP_MAN_EMAIL;
+    // A failed attempt can leave the risk followed, so the retry would find only Unfollow.
+    const unfollow = async () => {
+      for (const { name } of await getDocList("Document Follow", [
+        ["ref_docname", "=", docs.openRisk],
+        ["user", "=", user],
+      ])) {
+        await deleteDocument("Document Follow", name);
+      }
+    };
+    await unfollow();
+    await updateDocument("User", user, { document_follow_notify: 1 });
+    try {
+      await risks.goto(project, { risk: docs.openRisk });
+      await risks.openRiskMenu("Technical Risk");
+      await page.getByRole("menuitem", { name: "Follow", exact: true }).click();
+      await expect(page.getByText("Following document").first()).toBeVisible();
+      await page.reload();
+      await risks.openRiskMenu("Technical Risk");
+      await page
+        .getByRole("menuitem", { name: "Unfollow", exact: true })
+        .click();
+      await expect(page.getByText("Unfollowed document").first()).toBeVisible();
+    } finally {
+      await unfollow();
+    }
   });
 
   test("TC354: Files added to a risk's Additional documents are listed and open", async ({

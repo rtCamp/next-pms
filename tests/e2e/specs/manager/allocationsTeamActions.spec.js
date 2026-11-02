@@ -46,6 +46,16 @@ test.describe("Manager: Allocations team actions", () => {
 
   const toast = (text) => al.page.getByText(text).first();
 
+  /** Puts DelOnly's allocation back when an earlier attempt or case left it deleted. */
+  const ensureDelOnly = async () => {
+    const owned = await getDocList(
+      "Resource Allocation",
+      [["employee", "=", data.employees.DelOnly.id]],
+      { strict: true },
+    );
+    if (!owned.length) await reseedAllocations(data, "DelOnly");
+  };
+
   test("TC276: A recurring allocation books the same days in each repeated week", async () => {
     allure.story("Allocations");
     test.setTimeout(180000);
@@ -196,42 +206,44 @@ test.describe("Manager: Allocations team actions", () => {
     allure.story("Allocations");
     test.setTimeout(180000);
     await reseedAllocations(data, "EMP2");
-    await al.goto("team", { search: EMP2 });
+    try {
+      await al.goto("team", { search: EMP2 });
 
-    /** Opens Edit Schedule on the first allocation of the weekly series. */
-    const editSchedule = async (hours, mode) => {
-      await al.expandRow(EMP2);
-      await al.seriesBar(ALPHA).first().click();
-      await al.floating
-        .getByRole("button", { name: "Edit allocation" })
-        .click();
-      await al.dialog.getByRole("button", { name: "Edit Schedule" }).click();
-      await al.selectScheduleDays();
-      await al.scheduleDialog.locator("#edit-hours-per-day").fill(hours);
-      await al.scheduleDialog.locator("#edit-hours-per-day").blur();
-      if (mode) {
-        await al.scheduleDialog.locator("#apply-edits-to").click();
-        await al.page.getByRole("option", { name: mode }).click();
-      }
-      await al.scheduleDialog
-        .getByRole("button", { name: "Save changes" })
-        .click();
-      await expect(toast("Schedule updated.")).toBeVisible();
-      await al.page.reload();
-      await al.table.waitFor();
-      await al.expandRow(EMP2);
-      return al.seriesBar(ALPHA).allInnerTexts();
-    };
+      /** Opens Edit Schedule on the first allocation of the weekly series. */
+      const editSchedule = async (hours, mode) => {
+        await al.expandRow(EMP2);
+        await al.seriesBar(ALPHA).first().click();
+        await al.floating
+          .getByRole("button", { name: "Edit allocation" })
+          .click();
+        await al.dialog.getByRole("button", { name: "Edit Schedule" }).click();
+        await al.selectScheduleDays();
+        await al.scheduleDialog.locator("#edit-hours-per-day").fill(hours);
+        await al.scheduleDialog.locator("#edit-hours-per-day").blur();
+        if (mode) {
+          await al.scheduleDialog.locator("#apply-edits-to").click();
+          await al.page.getByRole("option", { name: mode }).click();
+        }
+        await al.scheduleDialog
+          .getByRole("button", { name: "Save changes" })
+          .click();
+        await expect(toast("Schedule updated.")).toBeVisible();
+        await al.page.reload();
+        await al.table.waitFor();
+        await al.expandRow(EMP2);
+        return al.seriesBar(ALPHA).allInnerTexts();
+      };
 
-    const one = await editSchedule("03:00");
-    expect(one[0]).toMatch(/^3h\/day/);
-    expect(one[1]).toMatch(/^2h\/day/);
+      const one = await editSchedule("03:00");
+      expect(one[0]).toMatch(/^3h\/day/);
+      expect(one[1]).toMatch(/^2h\/day/);
 
-    const all = await editSchedule("04:00", "This and future");
-    expect(all[0]).toMatch(/^4h\/day/);
-    expect(all[1]).toMatch(/^4h\/day/);
-
-    await reseedAllocations(data, "EMP2");
+      const all = await editSchedule("04:00", "This and future");
+      expect(all[0]).toMatch(/^4h\/day/);
+      expect(all[1]).toMatch(/^4h\/day/);
+    } finally {
+      await reseedAllocations(data, "EMP2");
+    }
   });
 
   test("TC297: The avatar tooltip shows who last modified the allocation", async () => {
@@ -289,9 +301,10 @@ test.describe("Manager: Allocations team actions", () => {
 
   test("TC284: Cancel on the Delete Allocation confirmation keeps the allocation", async () => {
     allure.story("Allocations");
-    await al.goto("team", { search: member.AlDelete });
+    await ensureDelOnly();
+    await al.goto("team", { search: member.DelOnly });
     await (
-      await al.openChip(member.AlDelete)
+      await al.openChip(member.DelOnly)
     )
       .getByRole("button", { name: "Delete allocation" })
       .click();
@@ -302,37 +315,36 @@ test.describe("Manager: Allocations team actions", () => {
     await al.deleteDialog.getByRole("button", { name: "Cancel" }).click();
     await expect(al.deleteDialog).toBeHidden();
 
-    expect(await al.chipTextAfterReload(member.AlDelete)).toContain(
+    expect(await al.chipTextAfterReload(member.DelOnly)).toContain(
       "8h/day (8 hours)",
     );
   });
 
   test("TC285: Deleting an allocation removes it and gives the member's hours back", async () => {
     allure.story("Allocations");
-    const owned = await getDocList("Resource Allocation", [
-      ["employee", "=", data.employees.AlDelete.id],
-    ]);
-    if (!owned.length) await reseedAllocations(data, "AlDelete");
+    await ensureDelOnly();
+    try {
+      await al.goto("team", { search: member.DelOnly });
+      await expect(al.chips(member.DelOnly)).toHaveText(["Full"]);
+      await (
+        await al.openChip(member.DelOnly)
+      )
+        .getByRole("button", { name: "Delete allocation" })
+        .click();
+      await al.deleteDialog
+        .getByRole("button", { name: "Delete", exact: true })
+        .click();
+      await expect(
+        toast("The allocation has been deleted successfully"),
+      ).toBeVisible();
 
-    await al.goto("team", { search: member.AlDelete });
-    await expect(al.chips(member.AlDelete)).toHaveText(["Full"]);
-    await (
-      await al.openChip(member.AlDelete)
-    )
-      .getByRole("button", { name: "Delete allocation" })
-      .click();
-    await al.deleteDialog
-      .getByRole("button", { name: "Delete", exact: true })
-      .click();
-    await expect(
-      toast("The allocation has been deleted successfully"),
-    ).toBeVisible();
-
-    await al.page.reload();
-    await al.table.waitFor();
-    await expect(al.chips(member.AlDelete)).toHaveCount(0);
-    await expect(al.row(member.AlDelete)).not.toContainText("Full");
-    await reseedAllocations(data, "AlDelete");
+      await al.page.reload();
+      await al.table.waitFor();
+      await expect(al.chips(member.DelOnly)).toHaveCount(0);
+      await expect(al.row(member.DelOnly)).not.toContainText("Full");
+    } finally {
+      await reseedAllocations(data, "DelOnly");
+    }
   });
 
   test("TC286: Leaving Allocations with an unsaved change asks to save or discard it", async ({

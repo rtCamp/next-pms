@@ -183,19 +183,6 @@ export class ProjectPage extends TimelinePage {
   }
 
   /**
-   * Click on the clipboard icon on hover
-   */
-  async clickClipboardIcon(projectName, date, day) {
-    // The redesigned allocation popover exposes only "Edit allocation" and
-    // "Delete allocation" - there is no copy/duplicate control anywhere in the
-    // grid, so this workflow has no counterpart to drive yet.
-    throw new Error(
-      "clickClipboardIcon: the allocation grid no longer exposes a copy/clipboard control " +
-        '(the chip popover offers only "Edit allocation" and "Delete allocation").',
-    );
-  }
-
-  /**
    * Click on the edit icon on hover
    */
   async clickEditIcon(projectName, date, day) {
@@ -412,28 +399,6 @@ export class ProjectPage extends TimelinePage {
    * Select view as either planned or Actual vs Planned based on the parameter
    * @param {string} view - "planned" or "actual_vs_planned"
    */
-
-  async chooseSheetView(view) {
-    const currentView = await this.sheetViewFilterText.textContent();
-
-    if (currentView.trim() !== view) {
-      // Open the dropdown
-      await this.sheetViewFilter.click();
-
-      // Click the correct option based on the view passed
-      if (view === "Planned") {
-        await this.page
-          .getByRole("option", { name: "Planned", exact: true })
-          .click();
-      } else if (view === "Actual vs Planned") {
-        await this.page
-          .getByRole("option", { name: "Actual vs Planned" })
-          .click();
-      } else {
-        throw new Error(`Unknown sheet view: ${view}`);
-      }
-    }
-  }
   /**
    * Expands a project row to reveal the employees allocated to it. The row's
    * name opens project details; the separate Expand control reveals the list.

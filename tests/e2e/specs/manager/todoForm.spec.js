@@ -13,11 +13,14 @@ import {
   seedTimelineItem,
   seedTodo,
   todosOfProject,
+  clearTodoData,
 } from "../../helpers/todoHelper";
 import { TodoPage } from "../../pageObjects/todoPage";
 import { getDocList, getDocument } from "../../utils/api/apiClient";
 import { loadTestCase } from "../../utils/testCase";
 import { scaleTimeout } from "../../utils/timeouts";
+
+const load = (jsonDir, tc) => loadTestCase(jsonDir, tc, clearTodoData);
 
 const NO_CUSTOM_FIELDS =
   "Skipped: this site has no ToDo Title, Start and End custom fields, so the form has none of these.";
@@ -40,7 +43,7 @@ test.describe("Manager: ToDo form", () => {
   }) => {
     allure.story("ToDo");
     const { hasCustomFields } = await getTodoMeta();
-    const { data, projectId } = await loadTestCase(jsonDir, "TC151");
+    const { data, projectId } = await load(jsonDir, "TC151");
 
     await todoPage.gotoTodos(projectId);
     await todoPage.openNewTodo();
@@ -68,7 +71,7 @@ test.describe("Manager: ToDo form", () => {
     allure.story("ToDo");
     const { hasCustomFields } = await getTodoMeta();
     test.skip(!hasCustomFields, NO_CUSTOM_FIELDS);
-    const { data, projectId } = await loadTestCase(jsonDir, "TC152");
+    const { data, projectId } = await load(jsonDir, "TC152");
 
     await todoPage.gotoTodos(projectId);
     await todoPage.openNewTodo();
@@ -106,7 +109,7 @@ test.describe("Manager: ToDo form", () => {
     allure.story("ToDo");
     const { hasCustomFields } = await getTodoMeta();
     test.skip(!hasCustomFields, NO_CUSTOM_FIELDS);
-    const { data, projectId } = await loadTestCase(jsonDir, "TC153");
+    const { data, projectId } = await load(jsonDir, "TC153");
 
     await todoPage.gotoTodos(projectId);
     await todoPage.openNewTodo();
@@ -162,7 +165,7 @@ test.describe("Manager: ToDo form", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC154");
+    const { data, projectId } = await load(jsonDir, "TC154");
 
     await todoPage.gotoTodos(projectId);
     await todoPage.openNewTodo();
@@ -184,7 +187,7 @@ test.describe("Manager: ToDo form", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC155");
+    const { data, projectId } = await load(jsonDir, "TC155");
     // Backlog and In Progress only where the site accepts them (rtCamp/next-pms#2278).
     const statuses = await extraStatuses();
 
@@ -217,7 +220,7 @@ test.describe("Manager: ToDo form", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC156");
+    const { data, projectId } = await load(jsonDir, "TC156");
     const seeded = await seedTodo(projectId, data.statusTodo);
 
     await todoPage.gotoTodos(projectId);
@@ -259,7 +262,7 @@ test.describe("Manager: ToDo form", () => {
     allure.story("ToDo");
     const { hasCustomFields } = await getTodoMeta();
     test.skip(!hasCustomFields, NO_CUSTOM_FIELDS);
-    const { data, projectId } = await loadTestCase(jsonDir, "TC157");
+    const { data, projectId } = await load(jsonDir, "TC157");
     const assignee = process.env.EMP_EMAIL;
     const todo = await seedTodo(projectId, data.todo, {
       description: data.description,
@@ -313,7 +316,7 @@ test.describe("Manager: ToDo form", () => {
   }) => {
     allure.story("ToDo");
     const { hasCustomFields } = await getTodoMeta();
-    const { data, projectId } = await loadTestCase(jsonDir, "TC158");
+    const { data, projectId } = await load(jsonDir, "TC158");
     const assignee = process.env.EMP_EMAIL;
     const todo = await seedTodo(projectId, data.todo);
 
@@ -343,7 +346,7 @@ test.describe("Manager: ToDo form", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC159");
+    const { data, projectId } = await load(jsonDir, "TC159");
     const todo = await seedTodo(projectId, data.todo);
     const milestone = await seedTimelineItem(
       projectId,
@@ -384,7 +387,7 @@ test.describe("Manager: ToDo form", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC160");
+    const { data, projectId } = await load(jsonDir, "TC160");
     const todo = await seedTodo(projectId, data.todo);
     const first = await seedTimelineItem(
       projectId,

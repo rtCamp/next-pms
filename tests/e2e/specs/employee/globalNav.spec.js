@@ -1,9 +1,14 @@
 const { test, expect } = require("../../playwright.fixture.cjs");
 import * as allure from "allure-js-commons";
-import path from "path";
+import { signedInAsRole } from "../../helpers/storageStateHelper";
 import { NavigationPage } from "../../pageObjects/navigationPage";
 
-const EMPLOYEE_TARGETS = ["Timesheet - Personal", "Allocations - Team", "Allocations - project", "Tasks"];
+const EMPLOYEE_TARGETS = [
+  "Timesheet - Personal",
+  "Allocations - Team",
+  "Allocations - project",
+  "Tasks",
+];
 
 const sorted = (list) => [...list].sort();
 
@@ -21,9 +26,14 @@ test.describe("Employee: Global search", () => {
     allure.story("Global & Navigation");
     await nav.openSearch();
     await expect(nav.searchResults).toHaveCount(EMPLOYEE_TARGETS.length);
-    expect(sorted(await nav.searchResults.allInnerTexts())).toEqual(sorted(EMPLOYEE_TARGETS));
+    expect(sorted(await nav.searchResults.allInnerTexts())).toEqual(
+      sorted(EMPLOYEE_TARGETS),
+    );
 
-    expect(sorted(await nav.searchFor("Allocations"))).toEqual(["Allocations - Team", "Allocations - project"]);
+    expect(sorted(await nav.searchFor("Allocations"))).toEqual([
+      "Allocations - Team",
+      "Allocations - project",
+    ]);
     await nav.searchFor("zzz-no-such-page");
     await expect(nav.noSearchResults).toBeVisible();
 
@@ -43,26 +53,43 @@ test.describe("Employee: Global search", () => {
   }) => {
     allure.story("Global & Navigation");
     await nav.openSearch();
-    for (const query of ["Dashboard", "Projects", "Timesheet - Team", "Timesheet - Projects"]) {
+    for (const query of [
+      "Dashboard",
+      "Projects",
+      "Timesheet - Team",
+      "Timesheet - Projects",
+    ]) {
       await nav.searchFor(query);
       await expect(nav.noSearchResults, query).toBeVisible();
     }
-    expect(sorted(await nav.searchFor("Timesheet"))).toEqual(["Timesheet - Personal"]);
+    expect(sorted(await nav.searchFor("Timesheet"))).toEqual([
+      "Timesheet - Personal",
+    ]);
 
     // The manager holds Projects Manager and Timesheet Manager.
-    const context = await browser.newContext({
-      baseURL: process.env.BASE_URL,
-      storageState: path.resolve(__dirname, "../../auth/manager.json"),
-    });
+    const context = await signedInAsRole(browser, "manager");
     try {
       const manager = new NavigationPage(await context.newPage());
       await manager.goto("/timesheet");
       await manager.openSearch();
       const found = async (query) => sorted(await manager.searchFor(query));
-      expect(await found("Dashboard")).toEqual(["Dashboard - Leadership", "Dashboard - Manager"]);
-      expect(await found("Timesheet")).toEqual(["Timesheet - Personal", "Timesheet - Projects", "Timesheet - Team"]);
-      expect(await found("Projects")).toEqual(["Projects", "Timesheet - Projects"]);
-      expect(await found("Allocations")).toEqual(["Allocations - Team", "Allocations - project"]);
+      expect(await found("Dashboard")).toEqual([
+        "Dashboard - Leadership",
+        "Dashboard - Manager",
+      ]);
+      expect(await found("Timesheet")).toEqual([
+        "Timesheet - Personal",
+        "Timesheet - Projects",
+        "Timesheet - Team",
+      ]);
+      expect(await found("Projects")).toEqual([
+        "Projects",
+        "Timesheet - Projects",
+      ]);
+      expect(await found("Allocations")).toEqual([
+        "Allocations - Team",
+        "Allocations - project",
+      ]);
     } finally {
       await context.close();
     }

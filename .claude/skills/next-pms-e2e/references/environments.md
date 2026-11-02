@@ -21,7 +21,7 @@ passes on staging and fails in CI, find the row before touching the test.
 | Tests | your working tree | the PR's commit | your working tree |
 | Data | years of shared, real-shaped data | empty, then `ci/seed.py` | same as CI |
 | HRMS | deployed version | v16.16.0 | same as CI |
-| Retries / workers | 0 / CPU count | 2 / 7, `maxFailures: 5` | as CI, unless `E2E_ARGS` passes `--workers` |
+| Retries / workers | 0 / CPU count | 2 / 7, `maxFailures: 0` (`playwright.ci.config.js`) | as CI, unless `E2E_ARGS` passes `--workers` |
 | Timeout factor | 2 | 3 | 3 |
 
 The replay is local-only (`.local-ci/` is excluded from git). Run it from a

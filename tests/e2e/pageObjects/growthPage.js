@@ -213,17 +213,11 @@ export class GrowthPage {
   async deleteFromList(activity) {
     await this.openRowMenu(activity);
     await this.page.getByRole("menuitem", { name: "Delete" }).click();
-    const confirm = this.page
+    // The confirmation opens once the initiative has loaded; clicking waits for it.
+    await this.page
       .getByRole("dialog")
-      .getByRole("button", { name: /^(Delete|Confirm|Yes)/ });
-    if (
-      await confirm
-        .first()
-        .isVisible({ timeout: 3000 })
-        .catch(() => false)
-    ) {
-      await confirm.first().click();
-    }
+      .getByRole("button", { name: "Delete", exact: true })
+      .click();
   }
 
   section(name) {

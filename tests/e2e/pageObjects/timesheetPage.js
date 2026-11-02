@@ -19,6 +19,16 @@ export function removeHtmlTags(input) {
   return input;
 }
 
+/**
+ * Matches a cell showing exactly this duration, as "1:00" or "01:00". Unlike a plain
+ * substring check, "1:00" does not match "11:00".
+ * @param {string} duration  "h:mm"
+ */
+export function durationPattern(duration) {
+  const [hours, minutes] = duration.split(":");
+  return new RegExp(`(^|\\D)0?${Number(hours)}:${minutes}(\\D|$)`);
+}
+
 export class TimesheetPage {
   /**
    * Initializes the TeamPage object.
@@ -177,10 +187,30 @@ export class TimesheetPage {
       await this.addTimeModal.locator("[contenteditable]").first().fill(desc);
     }
     // the cell popover saves with "Save entry", the header modal with "Save and close"
-    await this.addTimeModal
-      .getByRole("button", { name: /^(Save entry|Save and close)$/ })
-      .first()
-      .click();
+    await this.saveEntry(
+      this.addTimeModal
+        .getByRole("button", { name: /^(Save entry|Save and close)$/ })
+        .first(),
+    );
+  }
+
+  /**
+   * Clicks a Save button and waits for the save call to answer. The week is read again
+   * from the server, so reloading before it lands drops the entry or shows the old week.
+   */
+  async saveEntry(button) {
+    const saved = this.page.waitForResponse(
+      (res) =>
+        /timesheet\.api\.timesheet\.(save|bulk_update_timesheet_detail)/.test(
+          res.url(),
+        ) && res.request().method() === "POST",
+      { timeout: scaleTimeout(30000) },
+    );
+    await button.click();
+    const res = await saved;
+    if (!res.ok()) {
+      throw new Error(`Saving the time entry failed with ${res.status()}`);
+    }
   }
 
   /**
@@ -498,9 +528,9 @@ export class TimesheetPage {
     if (desc) {
       await this.editTimeModal.locator("[contenteditable]").last().fill(desc);
     }
-    await this.editTimeModal
-      .getByRole("button", { name: "Save entry" })
-      .click();
+    await this.saveEntry(
+      this.editTimeModal.getByRole("button", { name: "Save entry" }),
+    );
   }
 
   /**
@@ -528,10 +558,9 @@ export class TimesheetPage {
     await this.page.waitForTimeout(500);
 
     await this.editTimeModal.locator("[contenteditable]").first().fill(newDesc);
-    await this.editTimeModal
-      .getByRole("button", { name: "Save entry" })
-      .click();
-    await this.page.waitForLoadState("networkidle");
+    await this.saveEntry(
+      this.editTimeModal.getByRole("button", { name: "Save entry" }),
+    );
   }
 
   /**

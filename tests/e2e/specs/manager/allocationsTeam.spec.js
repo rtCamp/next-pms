@@ -129,9 +129,9 @@ test.describe("Manager: Allocations team", () => {
   test("TC271: Each allocation type keeps only the members with matching allocations", async () => {
     allure.story("Allocations");
     for (const [type, expected] of [
-      ["Confirmed only", ["AlDelete", "AlDev", "AlDrag"]],
+      ["Confirmed only", ["AlDev", "AlDrag"]],
       ["Tentative only", ["AlQa"]],
-      ["Billable only", ["AlDelete", "AlDev", "AlDrag"]],
+      ["Billable only", ["AlDev", "AlDrag"]],
       ["Non-billable only", ["AlQa"]],
     ]) {
       await al.goto("team", { search: SEARCH });

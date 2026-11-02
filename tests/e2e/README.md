@@ -164,8 +164,7 @@ project-root/
 ## Skipped Tests & Reasons
 
 - Frequently performed and automatable tests for employees and managers have been automated for each tab.
-- Some filter-related tests in the Task and Team tabs have been skipped due to buggy behavior.
-- TC49 has been marked as fixme due to unexpected behavior, it needs to be checked and fixed.
+- A few tests are skipped with a comment saying why (waiting on an app fix, or a site setting); tests for removed features were retired.
 
 ## Test Workflow
 
@@ -173,7 +172,7 @@ When a test run is initiated, the following workflow is executed:
 
 ### 1. Pre-Test Phase (Global Setup)
 - **Test Discovery**: The `list-tests.js` script scans all spec files to identify active tests and extract test case IDs (TC numbers)
-- **Authentication State Generation**: Creates API authentication states for all user roles (employee, employee2, employee3, manager, admin) and stores them in the `auth/` directory
+- **Authentication State Generation**: Creates API and browser authentication states for all user roles (employee, employee2, employee3, manager, admin), one role at a time with 3 tries, and stores them in the `auth/` directory
 - **Test Data Preparation**: 
   - Creates JSON stub files for each discovered test case ID in `data/json-files/`
   - Populates these files with test-specific data using helper functions
@@ -213,7 +212,7 @@ This workflow ensures isolated test execution with proper data management and cl
 
 - Test data is stored in `data/` which mirrors the `specs/`.
 - Required data is stored in .js files, during run time json files for each test case ID is created from which data is read and written back to it.
-- All the data is created in the global setup and deleted in the global teardown to avoid deadlocks and race conditions. Only for TC92 we create/manipulate data in the beforeAll hook to avoid flakiness.
+- All the data is created in the global setup and deleted in the global teardown to avoid deadlocks and race conditions.
 
 ## Reporting
 

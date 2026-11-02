@@ -291,6 +291,45 @@ export const deleteTimeEntries = async (testCaseIDs = [], jsonDir) => {
 // ------------------------------------------------------------------------------------------
 
 /**
+ * Puts a case's time back as global setup left it: removes the entries the test adds or
+ * edits (the `payloadFilterTimeEntry*` blocks match them), then books
+ * `payloadCreateTimesheet` again if the case seeds one and a failed attempt consumed it.
+ * A retry would otherwise add to the first attempt's entries. Returns true when it
+ * changed anything.
+ */
+export const resetTimeEntries = async (entry, actor = "employee") => {
+  let changed = false;
+  for (const [key, filter] of Object.entries(entry)) {
+    if (!key.startsWith("payloadFilterTimeEntry")) continue;
+    // A bounded loop: a delete that fails must not spin forever.
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const { parent, name } = await filterTimesheetEntry(filter);
+      if (!name) break;
+      await deleteTimesheet({ parent, name }, actor);
+      changed = true;
+    }
+  }
+
+  const seeded = entry.payloadCreateTimesheet;
+  if (seeded) {
+    const { name } = await filterTimesheetEntry({
+      subject: entry.payloadCreateTask.subject,
+      description: seeded.description,
+      project_name: entry.payloadCreateProject.project_name,
+      from_time: seeded.date,
+      employee: seeded.employee,
+      max_week: "1",
+    });
+    if (!name) {
+      await createTimesheet(seeded);
+      changed = true;
+    }
+  }
+  return changed;
+};
+// ------------------------------------------------------------------------------------------
+
+/**
  * Filters timesheet entries and returns the metadata of the matching time entry.
  *
  * Optional params: start_date, max_week.

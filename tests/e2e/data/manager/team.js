@@ -1,4 +1,4 @@
-import { getWeekRange, getFormattedDate } from "../../utils/dateUtils";
+import { getFormattedDate } from "../../utils/dateUtils";
 
 module.exports = {
   TC38: {},
@@ -328,9 +328,6 @@ module.exports = {
       max_week: "1",
     },
   },
-  TC61: {
-    weeklyTime: "0 / 40",
-  },
   TC68: {
     payloadCreateProject: {
       project_name: "TC68 Project",
@@ -422,11 +419,6 @@ module.exports = {
     },
   },
   TC92: {
-    cell: {
-      rowName: "TC92 Billable Task 01",
-      col: "Fri",
-    },
-
     payloadCreateProject: {
       project_name: "TC92 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
@@ -442,33 +434,28 @@ module.exports = {
     payloadDeleteProject: {
       projectId: "filled-automatically-from-createProjects",
     },
-    payloadCreateTask: {
+    // One member per status, decided by global setup, so the test has nothing to pick or
+    // change and a retry finds both as they were. Neither reports to the manager: the
+    // test finds them by search.
+    payloadCreateWeekEmployees: {
+      ApStPending: { managed: false, weekendsOff: true },
+      ApStRejected: { managed: false, weekendsOff: true },
+    },
+    // Monday of this week, which is never ahead of today.
+    payloadCreateWeekTime: ["ApStPending", "ApStRejected"].map((employee) => ({
+      employee,
+      project: "",
       subject: "TC92 Billable Task 01",
-      project: "filled-automatically-from-createProjects",
-      description: "Task 01 for TC92 created through automation",
-      custom_is_billable: 1,
-    },
-    payloadDeleteTask: {
-      taskID: "filled-automatically-from-createTasks",
-    },
-
-    payloadCreateTimesheet: {
-      task: "filled-automatically-from-createTasks",
-      description: "<p>TC92 - Task added via automation.</p>",
-      hours: "1",
-    },
-    payloadFilterTimeEntry: {
-      subject: "TC92 Billable Task 01",
-      description: "TC92 - Task added via automation.",
-      project_name: "TC92 Project",
-      max_week: "1",
-    },
-    payloadApprovalStatus: {
-      empId: process.env.EMP3_ID,
-      managerID: process.env.REP_MAN_ID,
-      employeeAPI: "employee3",
-      approvalStatus: "automatically-filled-from-randomApprovalStatus",
-    },
+      comment: "TC92 - Task added via automation.",
+      weeksAgo: 0,
+      days: ["Mon"],
+      hours: 1,
+      role: "admin",
+    })),
+    payloadWeekStatus: [
+      { employee: "ApStPending", weeksAgo: 0, status: "pending" },
+      { employee: "ApStRejected", weeksAgo: 0, status: "rejected" },
+    ],
   },
   TC93: {
     projectSharedWithEmps: [process.env.EMP3_NAME, process.env.EMP_NAME],
@@ -541,20 +528,6 @@ module.exports = {
         notifyValue: 1,
       },
     ],
-  },
-  TC94: {
-    employeeName: process.env.EMP3_NAME,
-    payloadCreateUserGroup: {
-      user_group_members: [
-        {
-          user: "filled-automatically-from-createUserGroupForEmployee",
-        },
-      ],
-      __newname: "filled-automatically-from-createUserGroupForEmployee",
-    },
-    payloadDeleteUserGroup: {
-      name: "filled-automatically-from-createUserGroupForEmployee",
-    },
   },
   TC95: {
     payloadCreateProject: {
@@ -753,46 +726,6 @@ module.exports = {
     ],
     payloadDeleteProject: {
       projectId: "filled-automatically-from-createProjects",
-    },
-  },
-  TC108: {
-    payloadCreateProject: {
-      project_name: "TC108 Project",
-      company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Acme Corporation",
-      custom_billing_type: "Fixed Cost",
-      custom_currency: "INR",
-      project_type: "Fixed Cost",
-      business_unit: "Jupitor",
-      estimated_cost: 360000,
-      custom_default_hourly_billing_rate: 0,
-      custom_project_budget_hours: [],
-    },
-    employee: process.env.EMP3_NAME,
-    // The allocation dialog only lists a project's assigned team members, which
-    // the backend resolves from DocShare, so without this share no employee can
-    // be selected ("This project doesn't have any assigned team members").
-    payloadShareProject: [
-      {
-        doctype: "Project",
-        name: "filled-automatically-from-createProjects",
-        user: process.env.EMP3_EMAIL,
-        readValue: 1,
-        writeValue: 0,
-        submitValue: 0,
-        shareValue: 0,
-        notifyValue: 0,
-      },
-    ],
-    payloadDeleteProject: {
-      projectId: "filled-automatically-from-createProjects",
-    },
-    infoPayloadCreateAllocation: {
-      employee: process.env.EMP3_NAME,
-      project_name: "TC108 Project",
-      customer: "Acme Corporation",
-      start_date: getWeekRange().monday,
-      end_date: getWeekRange().friday,
     },
   },
   TC109: {

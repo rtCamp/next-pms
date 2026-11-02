@@ -8,17 +8,16 @@ export const getWeekdayName = (date) => {
 // ------------------------------------------------------------------------------------------
 
 /**
- * Gets the Date object for a given weekday.
+ * Gets the Date object for a given weekday of this week. The app's weeks run Monday to
+ * Sunday, so on a Sunday "Fri" is the Friday before, not the one coming.
  */
 export const getDateForWeekday = (weekday) => {
-  const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const today = new Date();
-  const currentDayIndex = today.getDay();
-  const targetDayIndex = weekdays.indexOf(weekday);
-  const diff = targetDayIndex - currentDayIndex;
+  const sinceMonday = (today.getDay() + 6) % 7;
   const targetDate = new Date();
 
-  targetDate.setDate(today.getDate() + diff);
+  targetDate.setDate(today.getDate() - sinceMonday + weekdays.indexOf(weekday));
 
   return targetDate;
 };

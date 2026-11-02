@@ -4,6 +4,7 @@ import { ProjectPage } from "../../pageObjects/projectPage";
 import { ColumnSettings } from "../../pageObjects/columnSettings";
 import { readJSONFile } from "../../utils/fileUtils";
 import * as allure from "allure-js-commons";
+import { scaleTimeout } from "../../utils/timeouts";
 
 test.describe("Project Tab", () => {
   /** @type {ProjectPage} */ let projectPage;
@@ -127,24 +128,6 @@ test.describe("Project Tab", () => {
       TC105data.payloadDeleteView.view_name,
       TC105data.payloadDeleteView.notification,
     );
-  });
-  test.skip("TC31: The information table columns should be customizable using the ‘Columns’ button at the top.", async () => {
-    allure.story("Project");
-
-    //Add columns and verify if they are visible as column headers
-    const columnsToCheck = [
-      "Project Name",
-      "Project Type",
-      "Status",
-      "Business Unit",
-      "Billing Type",
-      "Currency",
-    ];
-
-    await projectPage.verifyColumnHeaders(columnsToCheck);
-    for (const column of columnsToCheck) {
-      await projectPage.isColumnHeaderVisible(column);
-    }
   });
 
   test("TC32: Validate the project data sorting functionality.", async () => {
@@ -322,87 +305,12 @@ test.describe("Project Tab: Single Filters", () => {
         TC112data.payloadCreateProject.project_type,
       ),
       "Multiple Filters : project matching both conditions is displayed",
-    ).toBeVisible({ timeout: 30000 });
+    ).toBeVisible({ timeout: scaleTimeout(30000) });
 
     await expect(
       projectPage.projectRow(TC112data.payloadCreateProject2.project_name),
       "Multiple Filters : project of another type is filtered out",
     ).toHaveCount(0);
-  });
-
-  // Status is not filterable any more. The Projects filter panel offers
-  // Project, Project Manager, Business Unit, Project Type, Billing type,
-  // Industry, Customer, Engineering Manager, Account Manager, Host and Tags -
-  // no Status - and Status is not a column either, so its value cannot be read
-  // per row. Status is only reachable through the ?status= URL parameter that
-  // goto() already uses. Skipped rather than deleted pending a call from
-  // @ayushnirwal on whether status filtering was dropped deliberately.
-  test.skip("TC114: Verify Status Filter", async ({ jsonDir }) => {
-    allure.story("Project");
-
-    // Load test data
-    const data = await projectPage.loadTestData(jsonDir, "TC114.json");
-    const TC114data = data.TC114;
-
-    // Verify column headers if they are visible, if not visible, include them
-    const columnsToCheck = ["Project Name", "Status"];
-
-    await projectPage.verifyColumnHeaders(columnsToCheck);
-    for (const column of columnsToCheck) {
-      await projectPage.isColumnHeaderVisible(column);
-    }
-    ///////////1:  Apply single filter for Status and verify results///////////
-    const projectListBeforeFilter = await projectPage.getProjectList();
-    await projectPage.applyFilters({
-      status: TC114data.createProject3Info.status,
-    });
-
-    const projectListAfterFilter = await projectPage.getProjectList();
-
-    expect(projectListAfterFilter).not.toEqual(projectListBeforeFilter);
-
-    const projectName = TC114data.createProject3Info.project_name;
-    const status = TC114data.createProject3Info.status;
-
-    await expect(
-      projectPage.statusCell(projectName, status),
-      "Single Status Filter : Correct",
-    ).toBeVisible();
-
-    await projectPage.clearFilters(["status"]);
-
-    ///////////2:Apply multiple filters for Status and verify results///////////
-    await projectPage.applyFilters({
-      status: [
-        TC114data.createProject3Info.status,
-        TC114data.createProject4Info.status,
-      ],
-    });
-    const projectListAfterMultipleFilters = await projectPage.getProjectList();
-    console.log(
-      "Project Names After applying multiple status filters:",
-      projectListAfterMultipleFilters.projectNames,
-    );
-    expect(projectListAfterMultipleFilters.projectNames).toContain(
-      TC114data.createProject3Info.project_name,
-    );
-    expect(projectListAfterMultipleFilters.projectNames).toContain(
-      TC114data.createProject4Info.project_name,
-    );
-    await expect(
-      projectPage.statusCell(
-        TC114data.createProject3Info.project_name,
-        TC114data.createProject3Info.status,
-      ),
-      "Multiple Status Filter1 : Correct",
-    ).toBeVisible();
-    await expect(
-      projectPage.statusCell(
-        TC114data.createProject4Info.project_name,
-        TC114data.createProject4Info.status,
-      ),
-      "Multiple Status Filter2 : Correct",
-    ).toBeVisible();
   });
 
   test("TC115: Verify Business Unit Filter", async ({ jsonDir }) => {
@@ -482,50 +390,4 @@ test.describe("Project Tab: Single Filters", () => {
     // Same as TC115: the panel is AND-only, so two billing types at once match
     // nothing. Multi-field filtering is covered by TC113.
   });
-  /*
-  test.only("TC117: Verify Currency Filter", async ({ jsonDir }) => {
-    allure.story("Project");
-
-    // Load test data
-    const data = await projectPage.loadTestData(jsonDir, "TC117.json");
-    const TC117data = data.TC117;
-    // Verify column headers if they are visible, if not visible, include them
-    const columnsToCheck = ["Project Name", "Currency"];
-    await projectPage.verifyColumnHeaders(columnsToCheck);
-    for (const column of columnsToCheck) {
-      await projectPage.isColumnHeaderVisible(column);
-    }
-
-    ///////////1:  Apply single filter for Currency and verify results///////////
-    const projectListBeforeFilter = await projectPage.getProjectList();
-    await projectPage.applyFilters({ currency: TC117data.createProject3Info.custom_currency });
-    const projectListAfterFilter = await projectPage.getProjectList();
-    expect(projectListAfterFilter).not.toEqual(projectListBeforeFilter);
-    const projectName = TC117data.createProject3Info.project_name;
-    const currency = TC117data.createProject3Info.custom_currency;
-    await projectPage.currencyCell(projectName, currency).waitFor({ state: "visible" });
-    await expect(projectPage.currencyCell(projectName, currency), "Single Currency Filter : Correct").toBeVisible();
-    await projectPage.clearFilters(["currency"]);
-
-    ///////////2:Apply multiple filters for Currency and verify results///////////
-    await projectPage.applyFilters({
-      currency: [TC117data.createProject3Info.custom_currency, TC117data.createProject4Info.currency],
-    });
-    const projectListAfterMultipleFilters = await projectPage.getProjectList();
-    console.log(
-      "Project Names After applying multiple currency filters:",
-      projectListAfterMultipleFilters.projectNames
-    );
-    expect(projectListAfterMultipleFilters.projectNames).toContain(TC117data.createProject3Info.project_name);
-    expect(projectListAfterMultipleFilters.projectNames).toContain(TC117data.createProject4Info.project_name);
-    await expect(
-      projectPage.currencyCell(TC117data.createProject3Info.project_name, TC117data.createProject3Info.custom_currency),
-      "Multiple Currency Filter1 : Correct"
-    ).toBeVisible();
-    await expect(
-      projectPage.currencyCell(TC117data.createProject4Info.project_name, TC117data.createProject4Info.currency),
-      "Multiple Currency Filter2 : Correct"
-    ).toBeVisible();
-  });
-  */
 });

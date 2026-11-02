@@ -6,6 +6,7 @@ import { getDocList } from "../../utils/api/apiClient";
 import { weekLabel } from "../../utils/dateUtils";
 import { readJSONFile } from "../../utils/fileUtils";
 import { findProjectId } from "../../utils/testCase";
+import { scaleTimeout } from "../../utils/timeouts";
 
 // TC222 seeds the weeks every case below reads; see data/manager/projectTimesheet.js.
 const FIXTURE = "TC222";
@@ -118,7 +119,7 @@ test.describe("Manager: Project timesheet", () => {
           await page.mouse.wheel(0, 20000);
           return projects.weekHeader(weekLabel(14)).count();
         },
-        { timeout: 60000, intervals: [1500] },
+        { timeout: scaleTimeout(30000), intervals: [1500] },
       )
       .toBe(1);
     expect(await projects.weekHeaders.count()).toBeGreaterThan(loaded);

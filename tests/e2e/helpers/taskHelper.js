@@ -1,8 +1,11 @@
 import {
+  cancelDocument,
   createDocument,
+  deleteDocument,
   getDocList,
   getDocument,
 } from "../utils/api/apiClient";
+import { clearDocs } from "../utils/testCase";
 
 export const TASK = "Task";
 
@@ -21,6 +24,26 @@ export const seedTask = (projectId, subject, fields = {}, role = "admin") =>
     },
     role,
   );
+
+/**
+ * Removes the tasks an earlier attempt left on the project. A task that has time logged
+ * cannot be deleted and stays.
+ */
+export const clearProjectTasks = (projectId) =>
+  clearDocs(TASK, [["project", "=", projectId]]);
+
+/** Removes the project's time entries first, so its tasks can be deleted too. */
+export const clearProjectTasksAndTime = async (projectId) => {
+  for (const { name, docstatus } of await getDocList(
+    "Timesheet",
+    [["parent_project", "=", projectId]],
+    { fields: ["name", "docstatus"], strict: true },
+  )) {
+    if (docstatus === 1) await cancelDocument("Timesheet", name);
+    await deleteDocument("Timesheet", name);
+  }
+  await clearProjectTasks(projectId);
+};
 
 // One at a time: the list shows the newest task first, so the order they are
 // created in is the order they appear in.

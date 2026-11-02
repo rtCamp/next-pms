@@ -149,7 +149,7 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
     // One Escape was ignored while the dialog was still settling, so press until it closes.
     await expect(async () => {
       if (await popover.isVisible()) await this.page.keyboard.press("Escape");
-      await expect(popover).toBeHidden({ timeout: 3000 });
+      await expect(popover).toBeHidden({ timeout: scaleTimeout(3000) });
     }).toPass({ timeout: scaleTimeout(10000) });
   }
 

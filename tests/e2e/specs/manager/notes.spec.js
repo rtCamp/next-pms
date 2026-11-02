@@ -7,13 +7,24 @@ import {
   getDocList,
   updateDocument,
 } from "../../utils/api/apiClient";
-import { loadTestCase, notificationsFor } from "../../utils/testCase";
+import {
+  clearDocs,
+  loadTestCase,
+  notificationsFor,
+} from "../../utils/testCase";
 import { scaleTimeout } from "../../utils/timeouts";
 
 const NOTE = "Project Status Update";
 const TEMPLATE = "Project Status Update Template";
 const SUBSCRIPTION = "PMS Project Update Subscription";
 const ACCOUNT_MANAGER_FIELD = "custom_account_manager_";
+
+const load = (jsonDir, tc) =>
+  loadTestCase(jsonDir, tc, async (projectId) => {
+    for (const doctype of [NOTE, SUBSCRIPTION]) {
+      await clearDocs(doctype, [["project", "=", projectId]]);
+    }
+  });
 
 test.describe("Manager: Project Notes", () => {
   /** @type {NotesPage} */ let notesPage;
@@ -57,7 +68,7 @@ test.describe("Manager: Project Notes", () => {
     jsonDir,
   }) => {
     allure.story("Notes");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC133");
+    const { data, projectId } = await load(jsonDir, "TC133");
 
     await notesPage.goto(projectId);
     await notesPage.createNote({ title: data.title, body: data.body });
@@ -79,7 +90,7 @@ test.describe("Manager: Project Notes", () => {
     jsonDir,
   }) => {
     allure.story("Notes");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC134");
+    const { data, projectId } = await load(jsonDir, "TC134");
     const { name } = await seedNote(projectId, data);
 
     await notesPage.goto(projectId);
@@ -103,7 +114,7 @@ test.describe("Manager: Project Notes", () => {
     jsonDir,
   }) => {
     allure.story("Notes");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC135");
+    const { data, projectId } = await load(jsonDir, "TC135");
     const readTemplate = async () =>
       (
         await getDocList(TEMPLATE, [["name", "=", data.templateTitle]], {
@@ -141,7 +152,7 @@ test.describe("Manager: Project Notes", () => {
     jsonDir,
   }) => {
     allure.story("Notes");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC141");
+    const { data, projectId } = await load(jsonDir, "TC141");
 
     // Templates are not tied to a project, so clear any leftover first.
     await deleteDocument(TEMPLATE, data.templateName);
@@ -182,7 +193,7 @@ test.describe("Manager: Project Notes", () => {
     jsonDir,
   }) => {
     allure.story("Notes");
-    const { projectId } = await loadTestCase(jsonDir, "TC136");
+    const { projectId } = await load(jsonDir, "TC136");
     const user = process.env.REP_MAN_EMAIL;
 
     await notesPage.goto(projectId);
@@ -210,7 +221,7 @@ test.describe("Manager: Project Notes", () => {
   }) => {
     allure.story("Notes");
     test.setTimeout(scaleTimeout(240000));
-    const { data, projectId } = await loadTestCase(jsonDir, "TC137");
+    const { data, projectId } = await load(jsonDir, "TC137");
     const subscriber = process.env.EMP_EMAIL;
     const accountManager = process.env.EMP2_EMAIL;
     await createDocument(SUBSCRIPTION, {
@@ -244,7 +255,7 @@ test.describe("Manager: Project Notes", () => {
   }) => {
     allure.story("Notes");
     test.setTimeout(scaleTimeout(360000));
-    const { data, projectId } = await loadTestCase(jsonDir, "TC138");
+    const { data, projectId } = await load(jsonDir, "TC138");
     const author = process.env.REP_MAN_EMAIL;
     const subscriber = process.env.EMP_EMAIL;
     const accountManager = process.env.EMP2_EMAIL;
@@ -293,7 +304,7 @@ test.describe("Manager: Project Notes", () => {
     jsonDir,
   }) => {
     allure.story("Notes");
-    const { projectId } = await loadTestCase(jsonDir, "TC139");
+    const { projectId } = await load(jsonDir, "TC139");
     // Site customization: staging has the field, ci/seed.py adds it on the CI site.
     await updateDocument("Project", projectId, {
       [ACCOUNT_MANAGER_FIELD]: process.env.REP_MAN_EMAIL,
@@ -313,7 +324,7 @@ test.describe("Manager: Project Notes", () => {
     jsonDir,
   }) => {
     allure.story("Notes");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC140");
+    const { data, projectId } = await load(jsonDir, "TC140");
     const { name } = await seedNote(projectId, data);
     const mentioned = process.env.EMP_EMAIL;
     const mentions = () =>

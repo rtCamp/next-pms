@@ -41,16 +41,19 @@ happens on every run regardless of `--grep`, so a single-test run still costs
 ~20 minutes end to end in October 2026). Budget for it; don't assume you broke
 something because a run is slow.
 
-**2. Auth state is cached.** `playwright.fixture.cjs` builds
-`auth/<role>-w<workerIndex>.json` when the file is absent or its `sid` has
-expired (`hasUsableSession`), but it cannot tell a session the server has since
-rejected. If failures are broad and uniform (every role lands on the login page),
-delete `tests/e2e/auth/*-w*.json` and re-run before debugging anything else, after
+**2. Auth state is cached.** `globalSetup` writes one `auth/<role>.json` per role
+(one role at a time, 3 tries), and `playwright.fixture.cjs` rebuilds it when it is
+absent or its `sid` has expired (`hasUsableSession`). Files are written aside and
+renamed, so a reader never sees half of one. A test that needs a second role signs
+in with `signedInAsRole`, which uses a throwaway `auth/<role>-own-<pid>-<ts>.json`.
+None of this can tell a session the server has since rejected. If failures are
+broad and uniform (every role lands on the login page), delete
+`tests/e2e/auth/*.json` and re-run before debugging anything else, after
 checking the site itself is up (`traps.md`, `SessionStopped`).
 
 **3. `slowMo: 500` vs. a scaled timeout.** `playwright.config.js` sets
-`launchOptions.slowMo = 500` and multiplies the 30s test and 5s expect budgets by
-`TEST_TIMEOUT_FACTOR` (2 locally, 3 on CI). Every action still carries a
+`launchOptions.slowMo = Number(process.env.SLOW_MO ?? 500)` (CI keeps the default: the older specs race without the pause, so do not set `SLOW_MO=0` until their waits are fixed) and multiplies the 40s test and 5s expect budgets by
+`TEST_TIMEOUT_FACTOR` (2 locally, 3 on CI). With the default, every action carries a
 half-second tax, so a flow with ~20 actions is at 10s before any network. Adding
 `waitForTimeout` padding to a page object can push a passing test over the edge,
 and tests that pass solo fail under parallel load. Prefer real waits (`waitFor`,
@@ -224,10 +227,10 @@ zsh, `npm run e2e:tests -- --grep "A|B"` loses the quotes and the shell splits o
 npx playwright test --config=tests/e2e/playwright.config.js --workers=1 --grep 'TC102:'
 ```
 
-Use `--workers=1` when tests contend for shared records. The employee timesheet
-specs share one employee and one week, so TC12/TC96 pass serially and race in
-parallel. Locally `workers` defaults to CPU count; CI uses 7 with `maxFailures: 5`,
-so a CI run can stop early and under-report.
+Use `--workers=1` when tests contend for shared records. Locally `workers`
+defaults to CPU count. The E2E Tests gate runs `playwright.ci.config.js`: 7 workers,
+2 retries and `maxFailures: 0`, so it runs everything. Only a run on plain
+`playwright.config.js` with `CI` set keeps `maxFailures: 5` and can stop early.
 
 Before reporting a group done, also run it the way CI does. Some machines keep a
 local replay of the E2E workflow in `.local-ci/` (excluded from git; see its
@@ -304,10 +307,10 @@ Read the failure mode, not just the message:
 
 | Symptom | Usual cause |
 |---|---|
-| Broad, uniform failures across roles | stale `auth/*-w*.json` (see Orient #2) |
-| `TimedOut` at exactly 30s, no location | a hung `waitFor`/`waitForResponse`, or `fill()` on a **disabled** field |
+| Broad, uniform failures across roles | stale `auth/<role>.json` (see Orient #2) |
+| `TimedOut` at exactly the test timeout (80s locally, 120s on CI), no location | a hung `waitFor`/`waitForResponse`, or `fill()` on a **disabled** field |
 | `waitForResponse` never resolves | the request errored, or never fired; a `status() === 200` predicate ignores the 4xx/5xx that actually arrived |
-| Element "not enabled" retried for 30s | the field is computed/disabled now — check before filling |
+| Element "not enabled" retried until the timeout | the field is computed/disabled now — check before filling |
 | 403 on an API call | often real app/env breakage, not test rot — verify the role's permissions before editing the test |
 | Passes on staging, fails on CI only | a site difference, not flakiness — `references/environments.md` |
 | "Partially approved" where a whole week was approved | the employee has no weekend days off, so the week counts 7 working days (`references/seeding.md`) |
@@ -369,7 +372,7 @@ The suite makes it easy to believe work landed when it didn't.
   untouched. `git diff --stat <file>` is the authority; a heredoc edit that
   reported success but never wrote cost a full verification cycle in one session.
 - **Don't extrapolate from isolated passes.** Tests verified one at a time drift
-  from a full-suite result — contention and the 30s ceiling take some back. A
+  from a full-suite result — contention and the test-timeout ceiling take some back. A
   cumulative tally was 3 tests optimistic when finally measured. If you quote a
   number, say which run produced it.
 - **Separate "test is wrong" from "app changed" from "data is missing".** Only the

@@ -76,9 +76,19 @@ const globalSetup = async () => {
   // storm times out the authState fixture and kills the run.
   const roles = ["employee", "employee2", "employee3", "manager", "admin"];
   await Promise.all(roles.map((role) => storeStorageState(role, true)));
-  await Promise.all(
-    roles.map((role) => storeStorageState(role, false).catch(() => {})),
-  );
+  // One at a time, as each launches a browser. A role whose state cannot be built here is
+  // built by the worker that needs it, so say so instead of leaving the file silently missing.
+  for (const role of roles) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        await storeStorageState(role, false);
+        break;
+      } catch (err) {
+        console.warn(`⚠️ Session for ${role}, try ${attempt}: ${err.message}`);
+        await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
+      }
+    }
+  }
 
   // 2) Create and populate JSON stubs for each TC ID
   console.log("📁 Creating JSON stubs for each TC ID...");

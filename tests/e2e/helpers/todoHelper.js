@@ -56,6 +56,8 @@ export const getTodoMeta = () => {
       fields.find((field) => field.fieldname === "status")?.options ?? ""
     ).split("\n"),
   }));
+  // A failed fetch must not stay cached, or every later seed in the worker rejects.
+  todoMeta.catch(() => (todoMeta = undefined));
   return todoMeta;
 };
 

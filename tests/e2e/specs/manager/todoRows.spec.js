@@ -11,10 +11,13 @@ import {
   seedTimelineItem,
   seedTodo,
   seedTodos,
+  clearTodoData,
 } from "../../helpers/todoHelper";
 import { TodoPage } from "../../pageObjects/todoPage";
 import { getDocList, getDocument } from "../../utils/api/apiClient";
 import { loadTestCase } from "../../utils/testCase";
+
+const load = (jsonDir, tc) => loadTestCase(jsonDir, tc, clearTodoData);
 
 test.describe("Manager: ToDo rows", () => {
   /** @type {TodoPage} */ let todoPage;
@@ -27,7 +30,7 @@ test.describe("Manager: ToDo rows", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC150");
+    const { data, projectId } = await load(jsonDir, "TC150");
     const [other] = await getDocList(
       "Project",
       [["project_name", "=", data.payloadCreateProject2.project_name]],
@@ -49,7 +52,7 @@ test.describe("Manager: ToDo rows", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC161");
+    const { data, projectId } = await load(jsonDir, "TC161");
     // Backlog and In Progress only where the site accepts them (rtCamp/next-pms#2278).
     const cases = [];
     for (const status of await extraStatuses()) {
@@ -78,7 +81,7 @@ test.describe("Manager: ToDo rows", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC162");
+    const { data, projectId } = await load(jsonDir, "TC162");
     const milestoneTodo = await seedTodo(projectId, data.milestoneTodo);
     const touchpointTodo = await seedTodo(projectId, data.touchpointTodo);
     const initiativeTodo = await seedTodo(projectId, data.initiativeTodo);
@@ -122,7 +125,7 @@ test.describe("Manager: ToDo rows", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC163");
+    const { data, projectId } = await load(jsonDir, "TC163");
     const linked = await seedTodo(projectId, data.linkedTodo);
     await seedTodo(projectId, data.unlinkedTodo);
     await seedTimelineItem(projectId, "Milestone", data.milestone, [linked]);
@@ -143,7 +146,7 @@ test.describe("Manager: ToDo rows", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC164");
+    const { data, projectId } = await load(jsonDir, "TC164");
     const todo = await seedTodo(projectId, data.todo);
     const milestone = await seedTimelineItem(
       projectId,
@@ -186,7 +189,7 @@ test.describe("Manager: ToDo rows", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC165");
+    const { data, projectId } = await load(jsonDir, "TC165");
     const [doomed, kept] = await seedTodos(projectId, data.todos);
     const milestone = await seedTimelineItem(
       projectId,
@@ -219,7 +222,7 @@ test.describe("Manager: ToDo rows", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC166");
+    const { data, projectId } = await load(jsonDir, "TC166");
     const first = await seedTodo(projectId, data.todo);
     const milestone = await seedTimelineItem(
       projectId,
@@ -258,7 +261,7 @@ test.describe("Manager: ToDo rows", () => {
     jsonDir,
   }) => {
     allure.story("ToDo");
-    const { data, projectId } = await loadTestCase(jsonDir, "TC167");
+    const { data, projectId } = await load(jsonDir, "TC167");
     const days = milestoneAndTouchpointDays();
     await seedTimelineItem(
       projectId,

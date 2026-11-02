@@ -53,7 +53,9 @@ module.exports = {
         skills: ["E2E Manual"],
       }),
       AlIdle: member(),
-      AlDelete: member(),
+      // Named apart from the Al* members: the cases that delete its allocation must not
+      // change what the read-only searches for "Playwright- Al" list.
+      DelOnly: member(),
       AlDrag: member(),
     },
     payloadWeekAllocations: [
@@ -73,7 +75,7 @@ module.exports = {
         tentative: true,
       },
       {
-        employee: "AlDelete",
+        employee: "DelOnly",
         project: "",
         weeksAgo: -2,
         from: "Wed",

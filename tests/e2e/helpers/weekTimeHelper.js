@@ -24,6 +24,7 @@ import {
 } from "../utils/dateUtils";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import { getRandomString } from "../utils/stringUtils";
+import { scaleTimeout } from "../utils/timeouts";
 import { seedTask } from "./taskHelper";
 
 const WORKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
@@ -92,8 +93,11 @@ let assignmentsExist;
  */
 const assignHolidayList = async (id, holidayList) => {
   assignmentsExist ??=
-    (await getDocList("DocType", [["name", "=", "Holiday List Assignment"]]))
-      .length > 0;
+    (
+      await getDocList("DocType", [["name", "=", "Holiday List Assignment"]], {
+        strict: true,
+      })
+    ).length > 0;
   if (assignmentsExist) {
     const { from_date } = await getDocument("Holiday List", holidayList);
     await createDocument("Holiday List Assignment", {
@@ -304,7 +308,11 @@ const weeksPastBackdateLimit = async (employee) => {
   const boundary = res?.message?.members?.find(
     (member) => member.employee === employee.id,
   )?.backdate_restricted_before;
-  if (!boundary) return null;
+  if (!boundary) {
+    throw new Error(
+      `${employee.name} has no backdate limit on the Team tab; "pastBackdateLimit" needs one`,
+    );
+  }
   const monday = mondayWeeksAgo(0);
   monday.setHours(0, 0, 0, 0);
   const limit = new Date(`${boundary}T00:00:00`);
@@ -685,7 +693,8 @@ export const weekStatuses = async (entry, employee, weeksAgo) =>
 
 // Approval is queued, so the status lands a moment after the call returns.
 const waitForStatus = async (employee, dates, status) => {
-  for (let attempt = 0; attempt < 20; attempt++) {
+  const deadline = Date.now() + scaleTimeout(30000);
+  while (Date.now() < deadline) {
     const rows = await getDocList(
       "Timesheet",
       [
@@ -699,5 +708,5 @@ const waitForStatus = async (employee, dates, status) => {
     }
     await new Promise((resolve) => setTimeout(resolve, 1500));
   }
-  console.warn(`⚠️ ${employee}'s time never reached "${status}"`);
+  throw new Error(`${employee}'s time never reached "${status}" while seeding`);
 };

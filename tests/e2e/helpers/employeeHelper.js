@@ -400,8 +400,11 @@ export const deleteEmployeeByName = async () => {
     ["Employee Skill Map", "employee"],
   ];
   if (
-    (await getDocList("DocType", [["name", "=", "Holiday List Assignment"]]))
-      .length
+    (
+      await getDocList("DocType", [["name", "=", "Holiday List Assignment"]], {
+        strict: true,
+      })
+    ).length
   ) {
     linked.push(["Holiday List Assignment", "assigned_to"]);
   }

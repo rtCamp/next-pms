@@ -1,6 +1,7 @@
 const { test, expect } = require("../../playwright.fixture.cjs");
 import * as allure from "allure-js-commons";
 import path from "path";
+import { signedInAsRole } from "../../helpers/storageStateHelper";
 import { reseedWeek, weekStatuses } from "../../helpers/weekTimeHelper";
 import { TeamTimesheetPage } from "../../pageObjects/teamTimesheetPage";
 import { TimesheetWeeksPage } from "../../pageObjects/timesheetWeeksPage";
@@ -80,10 +81,7 @@ test.describe("Manager: Team timesheet actions", () => {
 
   /** A browser of the employee EMP, next to the manager's. */
   const employeePage = async (browser) => {
-    const context = await browser.newContext({
-      baseURL: process.env.BASE_URL,
-      storageState: path.resolve(__dirname, "../../auth/employee.json"),
-    });
+    const context = await signedInAsRole(browser, "employee");
     return { context, page: await context.newPage() };
   };
 

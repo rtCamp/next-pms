@@ -95,8 +95,8 @@ const waitForCosting = async (projectId, hours) => {
     if (Number(project?.actual_time) >= hours) return;
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
-  console.warn(
-    `⚠️ ${projectId}: totals did not catch up with ${hours}h logged`,
+  throw new Error(
+    `${projectId}: totals did not catch up with ${hours}h logged while seeding`,
   );
 };
 

@@ -3,6 +3,7 @@ import path from "path";
 import { request, chromium } from "@playwright/test";
 import config from "../playwright.config";
 import { loginIntoNextPMS } from "../utils/api/authRequestForStorage";
+import { scaleTimeout } from "../utils/timeouts";
 import fs from "fs";
 
 // Base URL from Playwright config
@@ -51,40 +52,45 @@ export const storeStorageState = async (role, isApi = false, outFilePath) => {
     fs.mkdirSync(dir, { recursive: true });
   }
 
-  // Create API request context
   const requestContext = await request.newContext({ baseURL });
+  // Written aside and renamed, so a worker reading the file never sees half of it.
+  const tmpPath = `${storagePath}.${process.pid}.tmp`;
+  let browser;
+  try {
+    // Perform login via API
+    const response = await loginIntoNextPMS(requestContext, email, password);
+    if (!response.ok()) {
+      throw new Error(
+        `Login failed for ${role}: ${response.status()} ${response.statusText()}`,
+      );
+    }
 
-  // Perform login via API
-  const response = await loginIntoNextPMS(requestContext, email, password);
-  if (!response.ok()) {
-    throw new Error(
-      `Login failed for ${role}: ${response.status()} ${response.statusText()}`,
-    );
+    if (isApi) {
+      // Store API-only context
+      await requestContext.storageState({ path: tmpPath });
+    } else {
+      // Fetch cookies from API context
+      const { cookies } = await requestContext.storageState();
+
+      // Launch browser to capture CSRF token
+      browser = await chromium.launch();
+      const context = await browser.newContext({ baseURL });
+
+      // Seed context with API session cookies
+      await context.addCookies(cookies);
+      const page = await context.newPage();
+      await page.goto(baseURL, { timeout: scaleTimeout(30000) });
+
+      // Save combined state (session + CSRF)
+      await context.storageState({ path: tmpPath });
+    }
+    fs.renameSync(tmpPath, storagePath);
+  } finally {
+    // A failed attempt must not leave a browser running or a stray temp file.
+    await browser?.close();
+    await requestContext.dispose();
+    fs.rmSync(tmpPath, { force: true });
   }
-
-  if (isApi) {
-    // Store API-only context
-    await requestContext.storageState({ path: storagePath });
-  } else {
-    // Fetch cookies from API context
-    const { cookies } = await requestContext.storageState();
-
-    // Launch browser to capture CSRF token
-    const browser = await chromium.launch();
-    const context = await browser.newContext({ baseURL });
-
-    // Seed context with API session cookies
-    await context.addCookies(cookies);
-    const page = await context.newPage();
-    await page.goto(baseURL);
-
-    // Save combined state (session + CSRF)
-    await context.storageState({ path: storagePath });
-    await browser.close();
-  }
-
-  // Clean up request context
-  await requestContext.dispose();
 };
 
 /**
@@ -104,3 +110,16 @@ export const signedInContext = async (browser, user, name) => {
   context.on("close", () => fs.promises.rm(file, { force: true }));
   return context;
 };
+
+/**
+ * A browser context signed in as a shared role, from a session of its own, so it never
+ * depends on the role's shared file having been written yet.
+ * @param {import('@playwright/test').Browser} browser
+ * @param {string} role  Key in credentialsMap
+ */
+export const signedInAsRole = (browser, role) =>
+  signedInContext(
+    browser,
+    credentialsMap[role],
+    `${role}-own-${process.pid}-${Date.now()}`,
+  );

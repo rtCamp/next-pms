@@ -11,6 +11,7 @@ import { createTimesheet } from "../../utils/api/timesheetRequests";
 import { dateInWeek, weekLabel } from "../../utils/dateUtils";
 import { readJSONFile } from "../../utils/fileUtils";
 import { findProjectId } from "../../utils/testCase";
+import { scaleTimeout } from "../../utils/timeouts";
 
 // "Sep 28": how the dialog prints a day.
 const shortDate = (iso) =>
@@ -30,6 +31,8 @@ test.describe("Employee: Submit a week for approval", () => {
     jsonDir,
   }) => {
     allure.story("Timesheet");
+    // Five seeded days, a slow submit and a status poll need more than the default.
+    test.setTimeout(scaleTimeout(80000));
     const data = (await readJSONFile(path.join(jsonDir, "TC220.json")))[
       "TC220"
     ];
@@ -83,8 +86,18 @@ test.describe("Employee: Submit a week for approval", () => {
         name: "Send to (required)",
       });
       await expect(sendTo).toHaveValue(process.env.REP_MAN_NAME);
+      // The call can take over ten seconds on a busy site; the dialog closes after it.
+      const submitted = weeks.page.waitForResponse(
+        (res) =>
+          res.url().includes("timesheet.submit_for_approval") &&
+          res.request().method() === "POST",
+        { timeout: scaleTimeout(45000) },
+      );
       await weeks.submitDialog.getByRole("button", { name: "Submit" }).click();
-      await expect(weeks.submitDialog).toBeHidden();
+      await submitted;
+      await expect(weeks.submitDialog).toBeHidden({
+        timeout: scaleTimeout(15000),
+      });
 
       // Waiting for approval: nothing left to submit. The status is read from a fresh
       // load, as the grid only follows the server through a realtime event.
@@ -94,7 +107,7 @@ test.describe("Employee: Submit a week for approval", () => {
             await weeks.reload(label);
             return weeks.weekStatus(label);
           },
-          { timeout: 60000, intervals: [3000] },
+          { timeout: scaleTimeout(60000), intervals: [3000] },
         )
         .toBe("Approval pending");
       await expect(weeks.submitButton(label)).toHaveCount(0);

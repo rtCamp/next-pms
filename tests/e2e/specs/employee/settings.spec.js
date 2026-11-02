@@ -1,6 +1,6 @@
 const { test, expect } = require("../../playwright.fixture.cjs");
 import * as allure from "allure-js-commons";
-import path from "path";
+import { signedInAsRole } from "../../helpers/storageStateHelper";
 import { SettingsPage } from "../../pageObjects/settingsPage";
 import { getDocument } from "../../utils/api/apiClient";
 
@@ -52,10 +52,7 @@ test.describe("Employee: Settings", () => {
     await only(settings.page);
 
     // The manager has Projects Manager and Timesheet Manager, which are not system roles.
-    const context = await browser.newContext({
-      baseURL: process.env.BASE_URL,
-      storageState: path.resolve(__dirname, "../../auth/manager.json"),
-    });
+    const context = await signedInAsRole(browser, "manager");
     try {
       const page = await context.newPage();
       await new SettingsPage(page).goto();

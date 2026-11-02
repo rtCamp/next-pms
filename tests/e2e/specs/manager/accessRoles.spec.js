@@ -271,7 +271,7 @@ test.describe("Access & Roles", () => {
     browser,
   }) => {
     allure.story("Access & Roles");
-    test.setTimeout(180000);
+    test.setTimeout(scaleTimeout(120000));
     const member = data.employees.AcMember;
     await signedInAs(
       browser,
@@ -298,7 +298,7 @@ test.describe("Access & Roles", () => {
                 statuses.every((status) => status === "Approved")
               );
             },
-            { timeout: 90000, intervals: [3000] },
+            { timeout: scaleTimeout(90000), intervals: [3000] },
           )
           .toBe(true);
       },
@@ -397,6 +397,7 @@ test.describe("Access & Roles", () => {
     browser,
   }) => {
     allure.story("Access & Roles");
+    test.setTimeout(scaleTimeout(120000));
     const stamp = Date.now();
     const mine = persona("AcProjUser").email;
     const docs = [

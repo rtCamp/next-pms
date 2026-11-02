@@ -52,8 +52,10 @@ which writes `tests/e2e/results.json` on its own — just run the test command a
 then `results.py` with no arguments.
 
 **A CI run reports fewer failures than exist.**
-`maxFailures: 5` on CI stops the run early.
-→ Read CI counts as a floor, not a total.
+A run on plain `playwright.config.js` with `CI` set has `maxFailures: 5` and stops
+early. The E2E Tests gate uses `playwright.ci.config.js` (`maxFailures: 0`) and runs
+everything.
+→ Read counts from a `maxFailures: 5` run as a floor, not a total.
 
 **Passes on staging, fails on CI every time.**
 Not flakiness: the two sites differ in holidays, required fields, custom fields,
@@ -75,7 +77,7 @@ during a run, rerun.
 
 ## Timeouts and hangs
 
-**`TimedOut` at exactly 30s with no error location.**
+**`TimedOut` at exactly the test timeout with no error location.**
 Something is waiting forever. Three usual candidates, in order of likelihood:
 
 1. `fill()` on a **disabled** input. Playwright waits for "visible, enabled and
@@ -92,7 +94,7 @@ Something is waiting forever. Three usual candidates, in order of likelihood:
 happened, `*.network` shows whether the request fired. See `probing.md`.
 
 **Adding waits to a page object broke a previously passing test.**
-`slowMo: 500` plus the default 30s timeout leaves less headroom than it looks.
+`slowMo: 500` plus the default test timeout (40s × the factor) leaves less headroom than it looks.
 Three combobox picks with `waitForTimeout(1000)` + `waitForTimeout(500)` each cost
 ~4.5s of pure sleep; measured, the same flow completes in ~4.7s total using real
 waits, versus ~15s with padding.
@@ -347,8 +349,8 @@ for it.
 clear the dependants first (cancel a submitted timesheet with `cancelDocument()`,
 then delete it, then the employee) and report what survived.
 
-**Tests land on the Sign In page and time out after 30s.**
-The stored `sid` in `auth/<role>-w<N>.json` carries an `expires` about 12 hours out.
+**Tests land on the Sign In page and time out.**
+The stored `sid` in `auth/<role>.json` carries an `expires` about 12 hours out.
 Playwright *drops an expired cookie while restoring a storageState*, so the context
 keeps the session cookies (`user_id`, `full_name`, `system_user`, `user_lang`) and
 loses only `sid`. The first navigation goes out as Guest, the SPA redirects to
@@ -392,7 +394,7 @@ call whose payload looks correct at the call site.
 
 **A cumulative tally drifts from reality.**
 Counting per-test passes across many filtered runs overstated the total by 3,
-because contention and the 30s ceiling take some back in a full run.
+because contention and the test-timeout ceiling take some back in a full run.
 → Quote numbers from a single full-suite run, and say which run they came from.
 
 **A green test that tests nothing.**
@@ -400,9 +402,9 @@ See `isTimeEntryBillable` in `selectors.md`.
 → When a helper returns a boolean, exercise both branches before trusting it.
 
 **Skipped tests in a run's summary.**
-`test.skip` cases with a comment above them saying why (TC94: the User group
-filter was removed; TC114: saving filters to a view was removed; TC192, TC127:
-waiting on app fixes). They are not failures.
+`test.skip` cases with a comment above them saying why (TC192, TC127: waiting on
+app fixes; TC59, TC137, TC138, TC131: see their comments). Tests for removed
+features were retired, not skipped. They are not failures.
 → Quote the reason from the comment. In the coverage sheet a skipped case is
 Deferred and keeps its TC number.
 
