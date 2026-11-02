@@ -220,10 +220,11 @@ export class GrowthPage {
       .click();
   }
 
+  /** The detail section under a heading. The heading may sit in a row with an info icon. */
   section(name) {
-    return this.page
-      .getByRole("heading", { name, exact: true })
-      .locator("xpath=../..");
+    return this.page.locator("section").filter({
+      has: this.page.getByRole("heading", { name, exact: true }),
+    });
   }
 
   /** Takes {path} for a file on disk, or {name, mimeType, content} for a generated one. */

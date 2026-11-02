@@ -41,7 +41,9 @@ module.exports = {
         role: "admin",
       },
     ],
-    payloadWeekStatus: [{ employee: "AcMember", weeksAgo: 1, status: "pending" }],
+    payloadWeekStatus: [
+      { employee: "AcMember", weeksAgo: 1, status: "pending" },
+    ],
     // Unread, for the Projects Manager persona's tray.
     payloadProjectDocs: [1, 2, 3].map((n) => ({
       doctype: "NextPMS Notifications",

@@ -52,9 +52,9 @@ export class TodoPage {
     });
     this.fieldError = (text) => this.form.getByText(text, { exact: true });
 
-    this.actionItems = page
-      .getByRole("heading", { name: "Action items" })
-      .locator("xpath=ancestor::section[1]");
+    this.actionItems = page.locator("section").filter({
+      has: page.getByRole("heading", { name: "Action items" }),
+    });
     this.addActionItemButton = this.actionItems.getByRole("button", {
       name: "Add ToDo",
     });

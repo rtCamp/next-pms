@@ -113,10 +113,9 @@ test.describe("Global & Navigation: notifications and sign-out", () => {
           .toBe(1);
       }
 
+      // The tray fetches unread notifications only, so after a reload it holds none of them.
       await page.reload();
       await nav.openTray();
-      // The placeholder shows until the list has loaded; the three read ones then stay hidden.
-      await expect(nav.tray.getByText("No notifications yet.")).toHaveCount(0);
       await expect(nav.trayItems).toHaveCount(0);
     });
   });

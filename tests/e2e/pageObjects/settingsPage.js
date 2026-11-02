@@ -60,7 +60,10 @@ export class SettingsPage {
 
   async openTab(sectionLabel, name) {
     await this.tab(sectionLabel, name).click();
-    await expect(this.tab(sectionLabel, name)).toHaveAttribute("aria-current", "page");
+    await expect(this.tab(sectionLabel, name)).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   }
 
   async save() {

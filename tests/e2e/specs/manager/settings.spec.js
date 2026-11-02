@@ -5,7 +5,12 @@ import path from "path";
 import { storeStorageState } from "../../helpers/storageStateHelper";
 import { SettingsPage } from "../../pageObjects/settingsPage";
 import { TimesheetWeeksPage } from "../../pageObjects/timesheetWeeksPage";
-import { createDocument, getDocList, getDocument, updateDocument } from "../../utils/api/apiClient";
+import {
+  createDocument,
+  getDocList,
+  getDocument,
+  updateDocument,
+} from "../../utils/api/apiClient";
 import { readJSONFile } from "../../utils/fileUtils";
 
 // TC382 (data/manager/settings.js) seeds an employee with System Manager to sign in as, so
@@ -24,14 +29,17 @@ const APP_DEFAULT_WEEKS = 4;
 
 const systemDoc = () => getDocument(SYSTEM_DOC, SYSTEM_DOC);
 const setSystem = (values) => updateDocument(SYSTEM_DOC, SYSTEM_DOC, values);
-const systemWeeks = async () => (await systemDoc()).auto_expand_weeks_by_default || APP_DEFAULT_WEEKS;
+const systemWeeks = async () =>
+  (await systemDoc()).auto_expand_weeks_by_default || APP_DEFAULT_WEEKS;
 /** A personal number of weeks that differs from the system's. */
 const otherWeeks = (system) => (system === 2 ? 3 : 2);
 
 const personalDoc = (email) => getDocument("PMS User Setting", email);
 /** The user's personal settings as a case needs them; the app creates the document on first use. */
 const setPersonal = async (email, values) => {
-  const [existing] = await getDocList("PMS User Setting", [["name", "=", email]]);
+  const [existing] = await getDocList("PMS User Setting", [
+    ["name", "=", email],
+  ]);
   if (existing) await updateDocument("PMS User Setting", email, values);
   else await createDocument("PMS User Setting", { user: email, ...values });
 };
@@ -130,7 +138,8 @@ test.describe("Settings: personal and system configuration", () => {
     });
 
     const weeks = new TimesheetWeeksPage(page);
-    const expanded = () => weeks.weekHeaders.and(page.locator('[aria-expanded="true"]')).count();
+    const expanded = () =>
+      weeks.weekHeaders.and(page.locator('[aria-expanded="true"]')).count();
     await weeks.goto();
     await expect.poll(expanded).toBe(own);
 
@@ -180,13 +189,18 @@ test.describe("Settings: personal and system configuration", () => {
       "Allow backdated time entry for days limit - Manager",
       "Backdated Entry Limit - Exempted Roles",
     ]);
-    await reveals("Send Reminder On Approval Request", ["Approval Request Reminder Template"]);
+    await reveals("Send Reminder On Approval Request", [
+      "Approval Request Reminder Template",
+    ]);
 
     // Allowed Departments serves both the daily and the weekly reminder.
     await settings.checkbox("Send Daily Reminder").setChecked(false);
     await settings.checkbox("Send Weekly Approval Reminder").setChecked(false);
     await expect(settings.label("Allowed Departments")).toHaveCount(0);
-    await reveals("Send Daily Reminder", ["Daily Reminder Template", "Allowed Departments"]);
+    await reveals("Send Daily Reminder", [
+      "Daily Reminder Template",
+      "Allowed Departments",
+    ]);
     await settings.checkbox("Send Daily Reminder").setChecked(false);
     await reveals("Send Weekly Approval Reminder", [
       "Day To Send Weekly Reminder",
@@ -201,7 +215,9 @@ test.describe("Settings: personal and system configuration", () => {
     const changed = original === 7 ? 6 : 7;
     try {
       await openOn(SYSTEM, "Timesheets");
-      await settings.numberField("Auto Expand Weeks by Default").fill(String(changed));
+      await settings
+        .numberField("Auto Expand Weeks by Default")
+        .fill(String(changed));
       await settings.save();
       await expect(settings.toast(SAVED)).toBeVisible();
       expect((await systemDoc()).auto_expand_weeks_by_default).toBe(changed);
@@ -209,7 +225,9 @@ test.describe("Settings: personal and system configuration", () => {
       await page.reload();
       await settings.open();
       await settings.openTab(SYSTEM, "Timesheets");
-      await expect(settings.numberField("Auto Expand Weeks by Default")).toHaveValue(String(changed));
+      await expect(
+        settings.numberField("Auto Expand Weeks by Default"),
+      ).toHaveValue(String(changed));
     } finally {
       await setSystem({ auto_expand_weeks_by_default: original ?? 0 });
     }
