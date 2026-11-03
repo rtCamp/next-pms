@@ -246,6 +246,7 @@ doc_events = {
         "validate": "next_pms.project_currency.doc_events.task.validate",
     },
     "Leave Application": {
+        "before_validate": "next_pms.timesheet.doc_events.leave_application.before_validate",
         "after_insert": "next_pms.next_pms.notifications.leave_application_after_insert",
         "on_update": [
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
