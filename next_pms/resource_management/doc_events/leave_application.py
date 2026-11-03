@@ -45,9 +45,11 @@ def resync_allocations_for_range(employee: str, start_date, end_date) -> None:
     the manager to adjust again. The reset is scoped to the resynced range, so an override on an
     unrelated day elsewhere in the allocation is untouched.
 
-    Saved with `ignore_permissions` because the trigger is a leave approver, who is not
-    expected to hold write access on Resource Allocation. A failure on one allocation is
-    logged and skipped rather than raised, so a stale allocation can never block an approval.
+    Saved as Administrator, because the job inherits the session of whoever saved the leave: an
+    employee applying for leave, or an approver, neither of whom is expected to hold write access
+    on Resource Allocation. Run as them, `modified_by` would credit the allocation edit to a
+    person who never made it. A failure on one allocation is logged and skipped rather than
+    raised, so a stale allocation can never block an approval.
     """
     allocation_names = frappe.get_all(
         "Resource Allocation",
@@ -59,18 +61,23 @@ def resync_allocations_for_range(employee: str, start_date, end_date) -> None:
         pluck="name",
     )
 
-    for name in allocation_names:
-        try:
-            allocation = frappe.get_doc("Resource Allocation", name)
-            before = leave_sync.override_signature(allocation)
-            leave_sync.sync_leave_overrides(allocation, reset_manual_range=(start_date, end_date))
+    session_user = frappe.session.user
+    frappe.set_user("Administrator")
+    try:
+        for name in allocation_names:
+            try:
+                allocation = frappe.get_doc("Resource Allocation", name)
+                before = leave_sync.override_signature(allocation)
+                leave_sync.sync_leave_overrides(allocation, reset_manual_range=(start_date, end_date))
 
-            if leave_sync.override_signature(allocation) == before:
-                continue
+                if leave_sync.override_signature(allocation) == before:
+                    continue
 
-            allocation.save(ignore_permissions=True)
-        except Exception:
-            frappe.log_error(
-                title="Resource Allocation leave resync failed",
-                message=f"Allocation: {name}\n{frappe.get_traceback()}",
-            )
+                allocation.save(ignore_permissions=True)
+            except Exception:
+                frappe.log_error(
+                    title="Resource Allocation leave resync failed",
+                    message=f"Allocation: {name}\n{frappe.get_traceback()}",
+                )
+    finally:
+        frappe.set_user(session_user)
