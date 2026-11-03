@@ -62,7 +62,7 @@ def resync_allocations_for_range(employee: str, start_date, end_date) -> None:
     )
 
     session_user = frappe.session.user
-    frappe.set_user("Administrator")
+    frappe.set_user("Administrator")  # nosemgrep - system resync, session restored in finally
     try:
         for name in allocation_names:
             try:
@@ -80,4 +80,4 @@ def resync_allocations_for_range(employee: str, start_date, end_date) -> None:
                     message=f"Allocation: {name}\n{frappe.get_traceback()}",
                 )
     finally:
-        frappe.set_user(session_user)
+        frappe.set_user(session_user)  # nosemgrep - restores the original session
