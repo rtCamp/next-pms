@@ -19,6 +19,7 @@ from next_pms.tests.project_currency.overrides.fixtures import (
     insert_bare,
 )
 
+ACTIVITY = "Override Test Activity"
 DISABLED_ACTIVITY = "Override Test Disabled Activity"
 
 
@@ -35,6 +36,12 @@ class TestTimesheetOverride(OverrideTestCase):
         project = project or self.project
         task = task or self.make_task(project.name)
         return self.make_timesheet(project.name, task.name, rows, **fields)
+
+    def activity_type(self, name, disabled=0):
+        if not frappe.db.exists("Activity Type", name):
+            frappe.get_doc({"doctype": "Activity Type", "activity_type": name}).insert()
+        frappe.db.set_value("Activity Type", name, "disabled", disabled)
+        return name
 
     def promotion(self, promotion_date, revised_ctc, salary_currency="INR", new_currency=None):
         details = [{"property": "Salary Currency", "fieldname": "salary_currency", "new": new_currency}]
@@ -83,9 +90,7 @@ class TestTimesheetOverride(OverrideTestCase):
         self.assertTrue(any("Billing Hours are more than Actual Hours" in w for w in warnings))
 
     def test_disabled_activity_type_is_accepted(self):
-        if not frappe.db.exists("Activity Type", DISABLED_ACTIVITY):
-            frappe.get_doc({"doctype": "Activity Type", "activity_type": DISABLED_ACTIVITY}).insert()
-        frappe.db.set_value("Activity Type", DISABLED_ACTIVITY, "disabled", 1)
+        self.activity_type(DISABLED_ACTIVITY, disabled=1)
 
         timesheet = self.timesheet([{"hours": 1, "activity_type": DISABLED_ACTIVITY}])
 
@@ -215,7 +220,7 @@ class TestTimesheetOverride(OverrideTestCase):
 
     def test_non_billable_row_has_no_billing_even_with_activity_type(self):
         project = self.make_project(custom_billing_type="Time and Material", custom_default_hourly_billing_rate=25)
-        activity_type = frappe.get_all("Activity Type", filters={"disabled": 0}, pluck="name", limit=1)[0]
+        activity_type = self.activity_type(ACTIVITY)
 
         timesheet = self.timesheet([{"hours": 2, "is_billable": 0, "activity_type": activity_type}], project=project)
 
