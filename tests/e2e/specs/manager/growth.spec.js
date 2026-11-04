@@ -145,8 +145,11 @@ test.describe("Manager: Project Growth", () => {
     await expect(growthPage.field("Closed status")).toBeVisible();
     await growthPage.dialog.getByRole("button", { name: "Add update" }).click();
 
-    // Refused: the dialog stays open and the initiative is still open.
-    await expect(growthPage.dialog).toBeVisible();
+    // Refused by the form before anything is sent: the dialog stays open and
+    // says why, and the initiative is still open.
+    await expect(
+      growthPage.dialog.getByText("Please select a closed status."),
+    ).toBeVisible();
     expect(await read(name)).toMatchObject({
       status: "Ideation",
       is_closed: 0,

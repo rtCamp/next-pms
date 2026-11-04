@@ -122,6 +122,26 @@ test.describe("Access & Roles", () => {
     }
   };
 
+  /** The signed-in user reads nothing from the fields above permission level `maxLevel`. */
+  const expectHiddenAbove = async (context, maxLevel) => {
+    const meta = await apiRequest(
+      "/api/method/frappe.desk.form.load.getdoctype?doctype=Project",
+      { method: "GET" },
+      "admin",
+    );
+    const { fields } = (meta.docs ?? meta.message.docs).find(
+      (doc) => doc.name === "Project",
+    );
+    const hidden = fields.filter(
+      (field) => field.permlevel > maxLevel && !NOT_FIELDS.has(field.fieldtype),
+    );
+    expect(hidden.length).toBeGreaterThan(0);
+    const seen = await projectAs(context);
+    for (const { fieldname } of hidden) {
+      expect([null, undefined], fieldname).toContain(seen[fieldname]);
+    }
+  };
+
   /** The project document as the signed-in user may read it. */
   const projectAs = async (context) => {
     const res = await context.request.get(
@@ -224,6 +244,7 @@ test.describe("Access & Roles", () => {
         await reaches(nav, [...DASHBOARDS, ["/projects", "Projects"]]);
 
         await expectGuardedValues(context, 2);
+        await expectHiddenAbove(context, 2);
       },
     );
   });

@@ -65,10 +65,8 @@ test.describe("Manager: Project reports and risks", () => {
     await expect(
       page.getByText("Project Reports", { exact: true }),
     ).toBeVisible();
-    const table = page
-      .getByText("Date Range", { exact: true })
-      .locator("xpath=ancestor::*[.//text()[contains(.,'Done')]][1]");
-    await expect(table).toContainText("Done");
+    await expect(page.getByText("Date Range", { exact: true })).toBeVisible();
+    await expect(page.getByText("Done", { exact: true })).toBeVisible();
     await expect(page.getByText("No reports generated yet.")).toHaveCount(0);
   });
 
@@ -216,11 +214,9 @@ test.describe("Manager: Project reports and risks", () => {
 
     // Both seeded risks were created by the same user.
     await risks.goto(project);
-    await risks.filter("Owner").click();
-    await page.getByRole("option").nth(1).click();
-    await expect(
-      listed(OPEN_RISK).or(listed(MITIGATED_RISK)).first(),
-    ).toBeVisible();
+    await risks.pick(risks.filter("Owner"), process.env.REP_MAN_NAME);
+    await expect(listed(OPEN_RISK)).toBeVisible();
+    await expect(listed(MITIGATED_RISK)).toBeVisible();
 
     await risks.goto(project);
     await risks.sortButton.click();

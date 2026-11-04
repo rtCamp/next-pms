@@ -87,6 +87,7 @@ export class AllocationsPage extends TeamPage {
   /** Ticks options of a multi-select picker, searching for each one. */
   async pick(picker, values) {
     await picker.click();
+    await this.page.getByRole("option").first().waitFor();
     const search = this.page.getByPlaceholder("Search for...");
     for (const value of values) {
       // Designation and Department have a search box; Allocation type lists six options.
