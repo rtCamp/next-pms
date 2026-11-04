@@ -1,5 +1,5 @@
 import frappe
-from erpnext.projects.doctype.project.project import update_costing_and_billing, update_purchase_cost
+from erpnext.projects.doctype.project import project as erpnext_project
 from frappe.utils import flt, getdate
 
 from next_pms.tests.project_currency.overrides.fixtures import (
@@ -136,7 +136,12 @@ class TestProjectOverride(OverrideTestCase):
         self.assertEqual(flt(project.total_purchase_cost), 100 * USD_TO_INR)
 
     def test_purchase_invoice_submit_path_runs_our_purchase_costing(self):
-        """erpnext calls update_purchase_cost when a Purchase Invoice is submitted."""
+        """erpnext 16.52+ calls update_purchase_cost when a Purchase Invoice is submitted. Older
+        releases add the invoice lines to total_purchase_cost without calling the controller."""
+        update_purchase_cost = getattr(erpnext_project, "update_purchase_cost", None)
+        if not update_purchase_cost:
+            self.skipTest("erpnext < 16.52 has no update_purchase_cost")
+
         project = self.make_project()
         insert_bare(
             "Purchase Invoice", project=project.name, docstatus=1, currency="USD", net_total=100, posting_date=DATE
@@ -300,6 +305,6 @@ class TestProjectOverride(OverrideTestCase):
         task = self.make_task(project.name)
         self.make_timesheet(project.name, task.name, [{"hours": 3}])
 
-        update_costing_and_billing(project.name)
+        erpnext_project.update_costing_and_billing(project.name)
 
         self.assertEqual(flt(frappe.db.get_value("Project", project.name, "total_costing_amount")), 300.0)
