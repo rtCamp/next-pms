@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils import add_to_date, get_datetime, now_datetime
 
 from next_pms.install import create_default_risk_masters
 
@@ -106,6 +107,52 @@ class IntegrationTestRisk(IntegrationTestCase):
         self.assertEqual(risk.status, "Mitigated")
         self.assertEqual(risk.risk_level, "High")
         self.assertEqual(len(risk.risk_update_log), 2)
+
+    def test_mitigated_on_is_empty_for_open_risk(self):
+        risk = self._make_risk()
+        self.assertIsNone(risk.mitigated_on)
+
+    def test_risk_created_as_mitigated_uses_creation(self):
+        risk = self._make_risk(status="Mitigated")
+        self.assertEqual(str(risk.mitigated_on), str(risk.creation))
+
+    def test_mitigated_on_set_from_mitigating_update(self):
+        risk = self._make_risk()
+        mitigated_at = add_to_date(now_datetime(), days=-2)
+        risk.append("risk_update_log", {"status": "Mitigated", "updated_at": mitigated_at})
+        risk.save(ignore_permissions=True)
+        risk.reload()
+        self.assertEqual(get_datetime(risk.mitigated_on), get_datetime(mitigated_at))
+
+    def test_mitigated_on_kept_on_later_mitigated_updates(self):
+        risk = self._make_risk()
+        mitigated_at = add_to_date(now_datetime(), days=-2)
+        risk.append("risk_update_log", {"status": "Mitigated", "updated_at": mitigated_at})
+        risk.save(ignore_permissions=True)
+        risk.append("risk_update_log", {"status": "Mitigated", "note": "Still fine"})
+        risk.append("risk_update_log", {"note": "No status change"})
+        risk.save(ignore_permissions=True)
+        risk.reload()
+        self.assertEqual(get_datetime(risk.mitigated_on), get_datetime(mitigated_at))
+
+    def test_mitigated_on_cleared_when_reopened(self):
+        risk = self._make_risk()
+        risk.append("risk_update_log", {"status": "Mitigated"})
+        risk.save(ignore_permissions=True)
+        risk.append("risk_update_log", {"status": "In Progress"})
+        risk.save(ignore_permissions=True)
+        risk.reload()
+        self.assertIsNone(risk.mitigated_on)
+
+    def test_mitigated_on_resets_when_mitigated_again(self):
+        risk = self._make_risk()
+        risk.append("risk_update_log", {"status": "Mitigated", "updated_at": add_to_date(now_datetime(), days=-5)})
+        risk.append("risk_update_log", {"status": "Escalated", "updated_at": add_to_date(now_datetime(), days=-3)})
+        remitigated_at = add_to_date(now_datetime(), days=-1)
+        risk.append("risk_update_log", {"status": "Mitigated", "updated_at": remitigated_at})
+        risk.save(ignore_permissions=True)
+        risk.reload()
+        self.assertEqual(get_datetime(risk.mitigated_on), get_datetime(remitigated_at))
 
     def test_gated_roles_can_read_any_risk(self):
         risk = self._make_risk()

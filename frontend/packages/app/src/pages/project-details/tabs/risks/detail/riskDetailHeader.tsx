@@ -5,10 +5,12 @@ import { useSearchParams } from "react-router";
 import { Avatar, Tooltip } from "@rtcamp/frappe-ui-react";
 import { Button } from "@rtcamp/frappe-ui-react";
 import { ArrowLeft } from "@rtcamp/frappe-ui-react/icons";
+import { format, parseISO } from "date-fns";
 
 /**
  * Internal dependencies.
  */
+import { formatProjectDate } from "@/lib/utils";
 import { FollowersBadge } from "@/pages/project-details/components/followersBadge";
 import type { Follower } from "@/pages/project-details/types";
 import { useUser } from "@/providers/user";
@@ -46,6 +48,13 @@ export function RiskDetailHeader({
 
   const isFollowing = followers.some((f) => f.user === userId);
 
+  const dateChips = [
+    { label: "Created", value: risk.creation },
+    { label: "Mitigated", value: risk.mitigated_on },
+  ].filter((chip): chip is { label: string; value: string } =>
+    Boolean(chip.value),
+  );
+
   return (
     <div className="flex justify-between items-center flex-wrap mb-3.5">
       <div className="flex items-center gap-2">
@@ -62,7 +71,7 @@ export function RiskDetailHeader({
         </h2>
       </div>
 
-      <div className="flex items-center gap-1 text-sm text-ink-gray-7">
+      <div className="flex flex-wrap items-center gap-1 text-sm text-ink-gray-7">
         <RiskLevelBadge level={risk.risk_level} />
 
         {risk.risk_owner && (
@@ -101,6 +110,18 @@ export function RiskDetailHeader({
           status={risk.status}
           className="bg-surface-gray-2 rounded-full px-2 py-1"
         />
+
+        {dateChips.map(({ label, value }) => (
+          <Tooltip
+            key={label}
+            text={`${label} on ${format(parseISO(value), "MMM d, yyyy h:mm a")}`}
+          >
+            <div className="bg-surface-gray-2 rounded-full px-2 py-1">
+              <span className="text-ink-gray-5">{label}</span>{" "}
+              {formatProjectDate(value.slice(0, 10))}
+            </div>
+          </Tooltip>
+        ))}
 
         <FollowersBadge followers={followers} />
 

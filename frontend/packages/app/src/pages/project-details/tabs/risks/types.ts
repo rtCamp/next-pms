@@ -11,6 +11,8 @@ export interface ApiRiskItem {
   summary: string | null;
   owner: string;
   risk_owner: string | null;
+  creation: string;
+  mitigated_on: string | null;
 }
 
 export interface RiskItem extends ApiRiskItem {
@@ -46,6 +48,13 @@ export interface RiskDetail extends ApiRiskDetail {
 }
 
 // UI State
+
+export interface RiskListColumn {
+  key: string;
+  label: string;
+  width: string;
+  flex: number;
+}
 
 export interface RiskFilters {
   owner: string;
