@@ -1,6 +1,6 @@
 import { storeStorageState } from "../helpers/storageStateHelper";
 import { createJSONFile, populateJsonStubs } from "../utils/fileUtils";
-import { selectedTests } from "../utils/seedFilter";
+import { selectedTests, sharedFixtures } from "../utils/seedFilter";
 import path from "path";
 import fs from "fs";
 import { execSync } from "child_process";
@@ -57,12 +57,14 @@ const globalSetup = async () => {
 
   const tcPattern = /TC(\d+):/g;
   const tcSet = new Set();
-  selectedTests(tests).forEach(({ title }) => {
+  const picked = selectedTests(tests);
+  picked.forEach(({ title }) => {
     let match;
     while ((match = tcPattern.exec(title)) !== null) {
       tcSet.add(`TC${match[1]}`);
     }
   });
+  sharedFixtures(picked).forEach((id) => tcSet.add(id));
   const allTCIds = Array.from(tcSet);
   console.log(`📑 Extracted TC IDs: ${allTCIds.join(", ")}`);
 

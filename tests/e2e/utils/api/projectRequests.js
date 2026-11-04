@@ -77,6 +77,7 @@ const getTechStackRows = async () => {
   return techStackRows;
 };
 
+// A payload without a custom billing type gets the field's default, Non-Billable, which needs none.
 const needsTechStack = ({ custom_billing_type: billingType, tech_stack }) =>
   !tech_stack && billingType !== undefined && billingType !== "Non-Billable";
 

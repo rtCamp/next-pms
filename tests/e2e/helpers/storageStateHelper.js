@@ -9,6 +9,8 @@ import fs from "fs";
 // Base URL from Playwright config
 const baseURL = config.use?.baseURL;
 
+let sessionCount = 0;
+
 // Environment credentials
 const credentialsMap = {
   employee: { email: process.env.EMP_EMAIL, password: process.env.EMP_PASS },
@@ -98,10 +100,15 @@ export const storeStorageState = async (role, isApi = false, outFilePath) => {
  * untouched. Its session file is removed when the context closes.
  * @param {import('@playwright/test').Browser} browser
  * @param {{email: string, password: string}} user
- * @param {string} name  Names the session file
+ * @param {string} name  Prefix of the session file's name
  */
 export const signedInContext = async (browser, user, name) => {
-  const file = path.resolve(__dirname, `../auth/${name}.json`);
+  // One file per call: the same name is used by cases that run in parallel, and one case's
+  // cleanup would otherwise remove the file another has just written.
+  const file = path.resolve(
+    __dirname,
+    `../auth/${name}-${process.pid}-${Date.now()}-${sessionCount++}.json`,
+  );
   await storeStorageState(user, false, file);
   const context = await browser.newContext({
     baseURL: process.env.BASE_URL,
@@ -118,8 +125,4 @@ export const signedInContext = async (browser, user, name) => {
  * @param {string} role  Key in credentialsMap
  */
 export const signedInAsRole = (browser, role) =>
-  signedInContext(
-    browser,
-    credentialsMap[role],
-    `${role}-own-${process.pid}-${Date.now()}`,
-  );
+  signedInContext(browser, credentialsMap[role], `${role}-own`);

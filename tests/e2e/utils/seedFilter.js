@@ -1,3 +1,6 @@
+import fs from "fs";
+import path from "path";
+
 const VALUE_FLAGS = new Set([
   "-c",
   "--config",
@@ -55,4 +58,19 @@ export const selectedTests = (tests, argv = process.argv) => {
       (!grepMatcher || grepMatcher.test(`${file} ${title}`)),
   );
   return picked.length ? picked : tests;
+};
+
+/**
+ * The fixtures a group of specs share. A spec that reads another case's data names it in
+ * `const FIXTURE = "TC<n>"`, and that case may not be among the selected tests.
+ */
+export const sharedFixtures = (tests) => {
+  const ids = new Set();
+  for (const file of new Set(tests.map((test) => test.file))) {
+    const source = fs.readFileSync(path.resolve(__dirname, "..", file), "utf8");
+    for (const [, id] of source.matchAll(/\bFIXTURE\s*=\s*"(TC\d+)"/g)) {
+      ids.add(id);
+    }
+  }
+  return ids;
 };
