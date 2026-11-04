@@ -1,3 +1,4 @@
+import { GROWTH_HELP } from "./help";
 import type { GrowthFilters, GrowthListColumn } from "./types";
 
 export const GROWTH_DOCTYPE = "PMS Growth Initiative";
@@ -46,7 +47,13 @@ export const CLOSED_GROWTH_COLUMNS: GrowthListColumn[] = [
   CATEGORY_COLUMN,
   OWNER_COLUMN,
   LAST_UPDATED_COLUMN,
-  { key: "closed_status", label: "Closed Status", width: "120px", flex: 1 },
+  {
+    key: "closed_status",
+    label: "Closed Status",
+    width: "120px",
+    flex: 1,
+    help: GROWTH_HELP.closedStatus,
+  },
 ];
 
 export const GROWTH_STATUS_DOCTYPE = "PMS Growth Initiative Status";

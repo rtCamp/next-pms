@@ -1,0 +1,1 @@
+{"width":1920,"height":1080,"background":"#F4F4F5","fonts":{"sans":{"family":"Inter"}},"scenes":[{"id":"log-time-inline","name":"Log time inline","dur":13.5,"desc":"The cursor hovers an empty day on a task row; the popover opens, the duration is set to 8 hours, a comment is typed and saved; the day fills and the week turns green."}]}

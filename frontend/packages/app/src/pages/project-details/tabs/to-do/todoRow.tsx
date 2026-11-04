@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { mergeClassNames as cn } from "@next-pms/design-system";
 import { Avatar, Dropdown, Tooltip } from "@rtcamp/frappe-ui-react";
 import {
   Calendar,
@@ -19,6 +20,7 @@ import { format, parseISO } from "date-fns";
  */
 import { hasTodoCustomFields } from "@/lib/utils";
 import type { TodoPriority, TodoStatus } from "./create-todo/schema";
+import { STATUS_TOOLTIP, UNLINK_TOOLTIP } from "./help";
 import { LinkedChip } from "./linkedChip";
 import { useTodos } from "./provider/context";
 import type { Todo } from "./types";
@@ -142,7 +144,11 @@ export function TodoRow({
         </div>
       </div>
 
-      <Tooltip text={isClosed ? "Reopen" : "Mark as done"}>
+      <Tooltip
+        text={
+          isClosed ? STATUS_TOOLTIP.reopen : STATUS_TOOLTIP.close(todo.status)
+        }
+      >
         <button
           type="button"
           aria-label={isClosed ? "Reopen" : "Mark as done"}
@@ -162,18 +168,37 @@ export function TodoRow({
           icon: DotHorizontal,
           label: "ToDo actions",
         }}
+        renderMenuItem={(menuProps, { item }) => {
+          const isUnlinkLocked = item.key === "unlink" && !canUnlink;
+
+          return (
+            <Tooltip
+              text={todo.linked && UNLINK_TOOLTIP(todo.linked)}
+              disabled={!isUnlinkLocked}
+            >
+              <div
+                {...menuProps}
+                aria-disabled={isUnlinkLocked || undefined}
+                className={cn(
+                  menuProps.className,
+                  isUnlinkLocked && "cursor-not-allowed opacity-50",
+                )}
+              />
+            </Tooltip>
+          );
+        }}
         options={[
           {
             label: "Edit",
             key: "edit",
             onClick: () => openEdit(todo),
           },
-          ...(canUnlink && todo.linked
+          ...(todo.linked
             ? [
                 {
                   label: "Unlink",
                   key: "unlink",
-                  onClick: () => requestUnlink(todo),
+                  onClick: canUnlink ? () => requestUnlink(todo) : undefined,
                 },
               ]
             : []),

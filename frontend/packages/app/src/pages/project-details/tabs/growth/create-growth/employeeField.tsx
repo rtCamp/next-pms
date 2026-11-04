@@ -2,6 +2,10 @@
  * External dependencies.
  */
 import { useState } from "react";
+import {
+  InfoHoverCard,
+  type FieldHelp,
+} from "@next-pms/design-system/components";
 import { Combobox } from "@rtcamp/frappe-ui-react";
 
 /**
@@ -18,6 +22,7 @@ interface EmployeeFieldProps {
   enabled: boolean;
   value: string;
   onChange: (value: string) => void;
+  help?: FieldHelp;
 }
 
 export function EmployeeField({
@@ -26,6 +31,7 @@ export function EmployeeField({
   enabled,
   value,
   onChange,
+  help,
 }: EmployeeFieldProps) {
   const [search, setSearch] = useState("");
   const { options, isLoading } = useEmployeeLookup({
@@ -36,7 +42,10 @@ export function EmployeeField({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="block text-base text-ink-gray-5">{label}</label>
+      <div className="flex items-center gap-1.5">
+        <label className="block text-base text-ink-gray-5">{label}</label>
+        {help && <InfoHoverCard help={help} />}
+      </div>
       <Combobox
         inputClassName={cn("h-8", FORM_INPUT_CLASS)}
         loading={isLoading}

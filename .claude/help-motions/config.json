@@ -1,0 +1,33 @@
+{
+  "$comment": "help-motions config for Next PMS. Paths are relative to the app root (apps/next_pms). The skill lives in .claude/skills/help-motions. Each developer's site URL goes in config.local.json (git-ignored).",
+  "motionsDir": "frontend/packages/app/src/assets/motions",
+  "kit": "frontend/packages/design-system/src/components/motion-player/kit.ts",
+  "profile": ".claude/help-motions/PROFILE.md",
+  "shellFile": ".claude/help-motions/shell.js",
+  "stage": { "width": 1920, "height": 1080 },
+  "window": { "x": 240, "y": 90, "width": 1440, "height": 900 },
+  "shell": { "begin": "^// ==== Next PMS shell", "end": "// ==== end shell ====" },
+  "fontCss": "https://fonts.googleapis.com/css2?family=Inter:wght@400;420;450;500;600&display=swap",
+  "themeCss": "frappe-ui-react/packages/frappe-ui-react/src/theme.css",
+  "browser": { "executablePath": null, "channel": "chrome" },
+  "app": {
+    "viewport": { "width": 1440, "height": 900 },
+    "login": {
+      "type": "request",
+      "url": "/api/method/login",
+      "body": { "usr": "$USER", "pwd": "$PASS" },
+      "check": "/api/method/frappe.auth.get_logged_user",
+      "userEnv": "MOTIONS_USER",
+      "passEnv": "MOTIONS_PASS"
+    },
+    "blockMethods": ["PUT", "PATCH", "DELETE"],
+    "blockUrls": [
+      "/api/method/frappe\\.client\\.(insert|insert_many|save|set_value|delete|submit|cancel|rename_doc|bulk_update)",
+      "/api/method/frappe\\.desk\\.form\\.save",
+      "/api/method/frappe\\.desk\\.reportview\\.delete_items",
+      "/api/method/upload_file",
+      "/api/method/next_pms\\.[\\w.]*\\.(save|submit|approve|reject|delete|create|update|add|remove|set|bulk|cancel|resubmit|toggle|like|unlike|star|apply|import|log)[a-z_]*(\\?|$)"
+    ],
+    "allowUrls": ["/api/method/login"]
+  }
+}

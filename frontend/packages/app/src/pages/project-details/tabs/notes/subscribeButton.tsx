@@ -16,6 +16,7 @@ import {
  * Internal dependencies.
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { ACCOUNT_MANAGER_SUBSCRIBED_TOOLTIP, SUBSCRIBE_TOOLTIP } from "./help";
 import type { NoteSubscription } from "./types";
 import { useProjectDetail } from "../../context";
 
@@ -42,7 +43,7 @@ export function SubscribeButton() {
 
   if (isAccountManager) {
     return (
-      <Tooltip text="Account managers are notified of every note">
+      <Tooltip text={ACCOUNT_MANAGER_SUBSCRIBED_TOOLTIP}>
         <span>
           <Button
             size="sm"
@@ -74,13 +75,15 @@ export function SubscribeButton() {
   };
 
   return (
-    <Button
-      size="sm"
-      variant="subtle"
-      iconLeft={subscribed ? NotificationOff : NotificationBell}
-      label={subscribed ? "Unsubscribe" : "Subscribe"}
-      loading={isSaving}
-      onClick={toggle}
-    />
+    <Tooltip text={SUBSCRIBE_TOOLTIP}>
+      <Button
+        size="sm"
+        variant="subtle"
+        iconLeft={subscribed ? NotificationOff : NotificationBell}
+        label={subscribed ? "Unsubscribe" : "Subscribe"}
+        loading={isSaving}
+        onClick={toggle}
+      />
+    </Tooltip>
   );
 }

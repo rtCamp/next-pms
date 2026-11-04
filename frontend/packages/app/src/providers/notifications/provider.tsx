@@ -15,7 +15,7 @@ import { formatDistanceToNow, parseISO } from "date-fns";
 import {
   FrappeContext,
   useFrappeGetDocList,
-  useFrappeUpdateDoc,
+  useFrappePostCall,
 } from "frappe-react-sdk";
 
 /**
@@ -38,6 +38,8 @@ interface NotificationDoc {
 }
 
 const NOTIFICATION_DOCTYPE = "NextPMS Notifications";
+const MARK_AS_VIEWED_METHOD =
+  "next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications.mark_as_viewed";
 const NOTIFICATION_LIMIT = 20;
 
 export const NotificationsProvider: FC<PropsWithChildren> = ({ children }) => {
@@ -56,7 +58,12 @@ export const NotificationsProvider: FC<PropsWithChildren> = ({ children }) => {
         "url",
         "viewed",
       ],
-      filters: (userId ? [["user", "=", userId]] : []) as never,
+      filters: (userId
+        ? [
+            ["user", "=", userId],
+            ["viewed", "=", 0],
+          ]
+        : []) as never,
       orderBy: { field: "creation", order: "desc" },
       limit: NOTIFICATION_LIMIT,
     },
@@ -104,28 +111,27 @@ export const NotificationsProvider: FC<PropsWithChildren> = ({ children }) => {
     [data],
   );
 
-  const { updateDoc } = useFrappeUpdateDoc();
+  const { call: markViewed } = useFrappePostCall(MARK_AS_VIEWED_METHOD);
 
   const markAsViewed = useCallback(
     async (id: string) => {
       const doc = data?.find((row) => row.name === id);
       if (!doc || doc.viewed) return;
-      await updateDoc(NOTIFICATION_DOCTYPE, id, { viewed: 1 });
-      await mutate();
+      try {
+        await markViewed({ name: id });
+        await mutate();
+      } catch {
+        // a failed update must not block the navigation that follows
+      }
     },
-    [data, updateDoc, mutate],
+    [data, markViewed, mutate],
   );
 
   const markAllAsViewed = useCallback(async () => {
-    const unread = (data ?? []).filter((doc) => !doc.viewed);
-    if (!unread.length) return;
-    await Promise.all(
-      unread.map((doc) =>
-        updateDoc(NOTIFICATION_DOCTYPE, doc.name, { viewed: 1 }),
-      ),
-    );
+    if (!data?.length) return;
+    await markViewed({});
     await mutate();
-  }, [data, updateDoc, mutate]);
+  }, [data, markViewed, mutate]);
 
   const [isTrayOpen, setIsTrayOpen] = useState(false);
   const openTray = useCallback(() => setIsTrayOpen(true), []);

@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useContext, useEffect, useMemo } from "react";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { formatDateRange, getTodayDate } from "@next-pms/design-system/date";
 import {
   Button,
@@ -26,6 +27,7 @@ import {
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { getDurationPresets } from "./constants";
 import { Field } from "./field";
+import { REPORT_HELP } from "./help";
 import { ProjectBoardField } from "./projectBoardField";
 import { SlackChannelField } from "./slackChannelField";
 import { useProjectDetail } from "../../context";
@@ -159,9 +161,12 @@ export function ReportGenerationForm() {
         form.handleSubmit();
       }}
     >
-      <h2 className="text-xl font-semibold text-ink-gray-8">
-        Report Configuration
-      </h2>
+      <div className="flex min-w-0 items-center gap-1.5">
+        <h2 className="text-xl font-semibold text-ink-gray-8">
+          Report Configuration
+        </h2>
+        <InfoHoverCard help={REPORT_HELP} />
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         <form.Field

@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { Accordion } from "@base-ui/react/accordion";
+import { InfoHoverCard } from "@next-pms/design-system/components";
 import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -59,9 +60,10 @@ export function GrowthGroup({
               <div
                 key={col.key}
                 style={{ minWidth: col.width, flex: col.flex }}
-                className="truncate px-2 py-1.5"
+                className="flex min-w-0 items-center gap-1.5 px-2 py-1.5"
               >
-                {col.label}
+                <span className="truncate">{col.label}</span>
+                {col.help && <InfoHoverCard help={col.help} />}
               </div>
             ))}
             <div className="w-8 shrink-0" />

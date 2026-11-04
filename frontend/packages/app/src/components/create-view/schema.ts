@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const createViewFormSchema = z.object({
   name: z
-    .string({ required_error: "Enter View Name" })
+    .string({ error: "Enter View Name" })
     .trim()
     .min(1, { message: "Enter View Name" }),
   isPublic: z.boolean(),

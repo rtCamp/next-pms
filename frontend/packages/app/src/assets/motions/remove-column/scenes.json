@@ -1,0 +1,1 @@
+{"width":1920,"height":1080,"background":"#F4F4F5","fonts":{"sans":{"family":"Inter"}},"scenes":[{"id":"remove-column","name":"Remove a column","dur":9.1,"desc":"In the List view, open the Columns panel and click the x next to Profit margin. Close the panel. Profit margin is gone from the table and Start date has moved into its place."}]}

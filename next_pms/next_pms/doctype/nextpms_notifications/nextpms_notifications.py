@@ -91,6 +91,19 @@ def truncate(text: str | None, max_length: int) -> str | None:
     return f"{text[: max_length - 3].rstrip()}..."
 
 
+@frappe.whitelist(methods=["POST"])
+def mark_as_viewed(name: str | None = None):
+    """Mark the current user's unread notification `name`, or all of them when omitted, as viewed.
+
+    Done as a query rather than a document save so that it covers notifications beyond the tray's page size
+    and is not blocked by one whose linked document no longer exists.
+    """
+    filters = {"user": frappe.session.user, "viewed": 0}
+    if name:
+        filters["name"] = name
+    frappe.db.set_value("NextPMS Notifications", filters, "viewed", 1, update_modified=False)
+
+
 def create_notification(user, title, label, linked_doctype, linked_document, url=None, email=None):
     """Queue an in-app notification, optionally with an email delivered alongside it.
 

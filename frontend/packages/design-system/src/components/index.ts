@@ -85,6 +85,7 @@ export {
 } from "./info-hover-card/types";
 export { default as HelpPanel } from "./help-panel";
 export { type HelpPanelProps, type HelpTip } from "./help-panel/types";
+export { type MotionModule } from "./motion-player/kit";
 export { default as Separator } from "./separator";
 export {
   Table,
@@ -106,6 +107,7 @@ export { Comments, type CommentNode, type CommentsProps } from "./comments";
 export { default as GlobalSearch } from "./globalSearch";
 export {
   default as NotificationTray,
+  NotificationIcon,
   type NotificationTrayProps,
 } from "./notificationTray";
 export {

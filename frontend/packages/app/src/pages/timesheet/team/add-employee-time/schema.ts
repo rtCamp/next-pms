@@ -4,20 +4,20 @@ import { z } from "zod";
 export const addTimeFormSchema = z.object({
   employeeId: z
     .string({
-      required_error: "Please select an employee.",
+      error: "Please select an employee.",
     })
     .trim()
     .min(1, { message: "Please select an employee." }),
   project: z
     .string({
-      required_error: "Select Project",
+      error: "Select Project",
     })
     .trim()
     .min(1, { message: "Select Project" }),
   projectLabel: z.string().optional().default(""),
   task: z
     .string({
-      required_error: "Select Task",
+      error: "Select Task",
     })
     .trim()
     .min(1, { message: "Select Task" }),
@@ -25,19 +25,18 @@ export const addTimeFormSchema = z.object({
   taskStatus: z.string().optional().default(""),
   date: z
     .string({
-      required_error: "Select Date",
+      error: "Select Date",
     })
     .trim()
     .min(1, { message: "Select Date" }),
   duration: z
     .number({
-      required_error: "Select Duration",
-      invalid_type_error: "Select Duration",
+      error: "Select Duration",
     })
     .positive({ message: "Select Duration" }),
   comment: z
     .string({
-      required_error: "Please enter a comment.",
+      error: "Please enter a comment.",
     })
     .refine((value) => stripTags(value).trim().length > 0, {
       message: "Please enter a comment.",

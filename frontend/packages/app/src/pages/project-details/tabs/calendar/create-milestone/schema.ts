@@ -25,7 +25,7 @@ export const createMilestoneSchema = z
       value.startDate > value.completionDate
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["completionDate"],
         message: "Completion date must be on or after start date.",
       });
