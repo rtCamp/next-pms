@@ -440,29 +440,26 @@ CUSTOM_DOCPERMS: tuple[tuple[str, str, int, int, tuple[str, ...]], ...] = (
 def setup_custom_docperms() -> None:
     """Create the Project / Task / Timesheet role permissions previously shipped as the
     Custom DocPerm fixture. A rule is inserted only when no Custom DocPerm exists for its
-    doctype, role, permlevel and if_owner combination; existing rules are left untouched,
-    except rows copied from the standard permissions in this same run, which get the grants."""
+    doctype, role, permlevel and if_owner combination. Existing rules are left untouched,
+    except a row that is still an unchanged copy of the doctype's standard permission,
+    which gets the grants."""
     import frappe
     from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
-    from frappe.permissions import setup_custom_perms
+    from frappe.permissions import setup_custom_perms, std_rights
 
     existing_roles = set(frappe.get_all("Role", pluck="name"))
-    copied_doctypes = set()
     touched_doctypes = set()
 
     for doctype, role, permlevel, if_owner, ptypes in CUSTOM_DOCPERMS:
         if role not in existing_roles:
             continue
 
-        if setup_custom_perms(doctype):
-            copied_doctypes.add(doctype)
-
-        existing = frappe.db.get_value(
-            "Custom DocPerm", {"parent": doctype, "role": role, "permlevel": permlevel, "if_owner": if_owner}
-        )
+        setup_custom_perms(doctype)
+        rule = {"parent": doctype, "role": role, "permlevel": permlevel, "if_owner": if_owner}
+        existing = frappe.db.get_value("Custom DocPerm", rule, ["name", *std_rights], as_dict=True)
         if existing:
-            if doctype in copied_doctypes:
-                frappe.db.set_value("Custom DocPerm", existing, dict.fromkeys(ptypes, 1))
+            if is_standard_copy(existing, rule, std_rights):
+                frappe.db.set_value("Custom DocPerm", existing.name, dict.fromkeys(ptypes, 1))
                 touched_doctypes.add(doctype)
             continue
 
@@ -483,6 +480,14 @@ def setup_custom_docperms() -> None:
 
     for doctype in touched_doctypes:
         validate_permissions_for_doctype(doctype)
+
+
+def is_standard_copy(custom_perm, rule, std_rights) -> bool:
+    import frappe
+    from frappe.utils import cint
+
+    standard = frappe.db.get_value("DocPerm", rule, std_rights, as_dict=True)
+    return bool(standard) and all(cint(custom_perm[r]) == cint(standard[r]) for r in std_rights)
 
 
 def add_project_manager_perm():
