@@ -1,5 +1,4 @@
 import { request } from "@playwright/test";
-import { shareProjectWithUser } from "./frappeRequests";
 import {
   baseURL,
   loadAuthState,
@@ -76,31 +75,10 @@ export const deleteTask = async (taskID, role = "admin") => {
 };
 // ------------------------------------------------------------------------------------------
 
-const ROLE_EMAILS = {
-  employee: process.env.EMP_EMAIL,
-  employee2: process.env.EMP2_EMAIL,
-  employee3: process.env.EMP3_EMAIL,
-};
-
 /**
  * Like a Task.
  */
 export const likeTask = async (taskID, role = "manager") => {
-  // Frappe only lets a user like what they can read, and a task made by the
-  // manager is not readable by an employee until it is shared with them.
-  const user = ROLE_EMAILS[role];
-  if (user) {
-    await shareProjectWithUser({
-      doctype: "Task",
-      name: taskID,
-      user,
-      readValue: 1,
-      writeValue: 0,
-      submitValue: 0,
-      shareValue: 0,
-      notifyValue: 0,
-    });
-  }
   return await apiRequest(
     "/api/method/frappe.desk.like.toggle_like",
     {
