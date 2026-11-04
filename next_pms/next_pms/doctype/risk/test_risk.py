@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils import add_to_date, get_datetime, now_datetime
+from frappe.utils import add_to_date, get_datetime
 
 from next_pms.install import create_default_risk_masters
 
@@ -118,7 +118,7 @@ class IntegrationTestRisk(IntegrationTestCase):
 
     def test_mitigated_on_set_from_mitigating_update(self):
         risk = self._make_risk()
-        mitigated_at = add_to_date(now_datetime(), days=-2)
+        mitigated_at = add_to_date(risk.creation, hours=1)
         risk.append("risk_update_log", {"status": "Mitigated", "updated_at": mitigated_at})
         risk.save(ignore_permissions=True)
         risk.reload()
@@ -126,29 +126,50 @@ class IntegrationTestRisk(IntegrationTestCase):
 
     def test_mitigated_on_kept_on_later_mitigated_updates(self):
         risk = self._make_risk()
-        mitigated_at = add_to_date(now_datetime(), days=-2)
+        mitigated_at = add_to_date(risk.creation, hours=1)
         risk.append("risk_update_log", {"status": "Mitigated", "updated_at": mitigated_at})
         risk.save(ignore_permissions=True)
-        risk.append("risk_update_log", {"status": "Mitigated", "note": "Still fine"})
-        risk.append("risk_update_log", {"note": "No status change"})
+        risk.append(
+            "risk_update_log",
+            {"status": "Mitigated", "note": "Still fine", "updated_at": add_to_date(risk.creation, hours=2)},
+        )
+        risk.append("risk_update_log", {"note": "No status change", "updated_at": add_to_date(risk.creation, hours=3)})
+        risk.save(ignore_permissions=True)
+        risk.reload()
+        self.assertEqual(get_datetime(risk.mitigated_on), get_datetime(mitigated_at))
+
+    def test_mitigated_on_ignores_log_row_order(self):
+        risk = self._make_risk()
+        mitigated_at = add_to_date(risk.creation, hours=1)
+        risk.append("risk_update_log", {"status": "Mitigated", "updated_at": mitigated_at})
+        risk.save(ignore_permissions=True)
+
+        newest_first = [row.as_dict() for row in reversed(risk.risk_update_log)]
+        risk.set(
+            "risk_update_log",
+            [
+                *newest_first,
+                {"status": "Mitigated", "note": "Still fine", "updated_at": add_to_date(risk.creation, hours=2)},
+            ],
+        )
         risk.save(ignore_permissions=True)
         risk.reload()
         self.assertEqual(get_datetime(risk.mitigated_on), get_datetime(mitigated_at))
 
     def test_mitigated_on_cleared_when_reopened(self):
         risk = self._make_risk()
-        risk.append("risk_update_log", {"status": "Mitigated"})
+        risk.append("risk_update_log", {"status": "Mitigated", "updated_at": add_to_date(risk.creation, hours=1)})
         risk.save(ignore_permissions=True)
-        risk.append("risk_update_log", {"status": "In Progress"})
+        risk.append("risk_update_log", {"status": "In Progress", "updated_at": add_to_date(risk.creation, hours=2)})
         risk.save(ignore_permissions=True)
         risk.reload()
         self.assertIsNone(risk.mitigated_on)
 
     def test_mitigated_on_resets_when_mitigated_again(self):
         risk = self._make_risk()
-        risk.append("risk_update_log", {"status": "Mitigated", "updated_at": add_to_date(now_datetime(), days=-5)})
-        risk.append("risk_update_log", {"status": "Escalated", "updated_at": add_to_date(now_datetime(), days=-3)})
-        remitigated_at = add_to_date(now_datetime(), days=-1)
+        risk.append("risk_update_log", {"status": "Mitigated", "updated_at": add_to_date(risk.creation, hours=1)})
+        risk.append("risk_update_log", {"status": "Escalated", "updated_at": add_to_date(risk.creation, hours=2)})
+        remitigated_at = add_to_date(risk.creation, hours=3)
         risk.append("risk_update_log", {"status": "Mitigated", "updated_at": remitigated_at})
         risk.save(ignore_permissions=True)
         risk.reload()

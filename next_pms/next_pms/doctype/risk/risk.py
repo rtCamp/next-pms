@@ -1,8 +1,11 @@
 # Copyright (c) 2026, rtCamp and contributors
 # For license information, please see license.txt
 
+from datetime import datetime
+
 import frappe
 from frappe.model.document import Document
+from frappe.utils import get_datetime
 
 from next_pms.utils.permissions import has_owner_gated_permission
 from next_pms.utils.update_log import prevent_changing_others_update_rows, stamp_new_update_rows
@@ -66,7 +69,7 @@ def get_mitigated_on(status, update_log):
     if status != "Mitigated":
         return None
     mitigated_on = None
-    for row in reversed(update_log):
+    for row in sorted(update_log, key=lambda r: (get_datetime(r.updated_at) or datetime.min, r.idx or 0), reverse=True):
         if not row.status:
             continue
         if row.status != "Mitigated":
