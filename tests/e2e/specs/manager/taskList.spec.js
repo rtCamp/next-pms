@@ -11,7 +11,7 @@ import {
 } from "../../helpers/taskHelper";
 import { TaskPage } from "../../pageObjects/taskPage";
 import { getDocList, getDocument } from "../../utils/api/apiClient";
-import { dayOfThisMonth } from "../../utils/dateUtils";
+import { dayOfThisMonth, getYesterdayDate } from "../../utils/dateUtils";
 import { loadTestCase } from "../../utils/testCase";
 
 // A case that seeds its own task keeps it; the rest start from an empty project.
@@ -194,7 +194,11 @@ test.describe("Manager: Task list", () => {
       "Overdue",
       "Completed",
     ]) {
-      await seedTask(projectId, subjectOf(status), { status });
+      // A task with no past due date is stored as Working, whatever status was sent.
+      await seedTask(projectId, subjectOf(status), {
+        status,
+        ...(status === "Overdue" && { exp_end_date: getYesterdayDate() }),
+      });
     }
 
     await openProjectList(data, projectId);

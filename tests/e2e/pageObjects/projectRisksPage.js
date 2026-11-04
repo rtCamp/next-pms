@@ -82,9 +82,14 @@ export class ProjectRisksPage extends GrowthPage {
       .click();
   }
 
-  /** A toolbar filter is a combobox showing its label until something is chosen. */
+  /**
+   * A toolbar filter is a combobox showing its label until something is chosen. The label
+   * is matched whole: "Owner" as a substring would also match "Risk owner", which sits first.
+   */
   filter(label) {
-    return this.page.getByRole("combobox").filter({ hasText: label }).first();
+    return this.page
+      .getByRole("combobox")
+      .filter({ hasText: new RegExp(`^\\s*${label}\\s*$`) });
   }
 
   /** Level options read "High risk"; the rest are the value itself. */

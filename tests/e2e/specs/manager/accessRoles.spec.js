@@ -44,6 +44,13 @@ const NOT_FIELDS = new Set([
   "Heading",
   "Image",
 ]);
+const ZERO_WHEN_HIDDEN = new Set([
+  "Check",
+  "Int",
+  "Float",
+  "Currency",
+  "Percent",
+]);
 
 test.describe("Access & Roles", () => {
   // Five of these started together and logged in several users on a loaded run: 90s was
@@ -137,8 +144,12 @@ test.describe("Access & Roles", () => {
     );
     expect(hidden.length).toBeGreaterThan(0);
     const seen = await projectAs(context);
-    for (const { fieldname } of hidden) {
-      expect([null, undefined], fieldname).toContain(seen[fieldname]);
+    for (const { fieldname, fieldtype } of hidden) {
+      // A number or checkbox the user cannot read comes back as 0, not null.
+      const blank = ZERO_WHEN_HIDDEN.has(fieldtype)
+        ? [null, undefined, 0]
+        : [null, undefined];
+      expect(blank, fieldname).toContain(seen[fieldname]);
     }
   };
 

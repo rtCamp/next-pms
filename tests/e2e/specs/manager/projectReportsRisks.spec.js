@@ -212,11 +212,27 @@ test.describe("Manager: Project reports and risks", () => {
     await expect(listed(OPEN_RISK)).toBeVisible();
     await expect(listed(MITIGATED_RISK)).toHaveCount(0);
 
-    // Both seeded risks were created by the same user.
-    await risks.goto(project);
-    await risks.pick(risks.filter("Owner"), process.env.REP_MAN_NAME);
-    await expect(listed(OPEN_RISK)).toBeVisible();
-    await expect(listed(MITIGATED_RISK)).toBeVisible();
+    // The seeded risks are owned by the admin who created them; this one by the manager.
+    const own = await createDocument(
+      "Risk",
+      {
+        project,
+        risk_category: "Design",
+        risk_level: "Medium",
+        status: "To-do",
+        summary: "E2E Prj manager risk",
+      },
+      "manager",
+    );
+    try {
+      await risks.goto(project);
+      await risks.pick(risks.filter("Owner"), process.env.REP_MAN_NAME);
+      await expect(listed("E2E Prj manager risk")).toBeVisible();
+      await expect(listed(OPEN_RISK)).toHaveCount(0);
+      await expect(listed(MITIGATED_RISK)).toHaveCount(0);
+    } finally {
+      await deleteDocument("Risk", own.name);
+    }
 
     await risks.goto(project);
     await risks.sortButton.click();
