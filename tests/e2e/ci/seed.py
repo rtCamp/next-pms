@@ -32,7 +32,7 @@ PERSONAS = {
 REPORTEES = ("EMP", "EMP3")
 FILLERS = 12  # TC57 needs members outside the manager's team on the first 10-row page
 
-CUSTOMERS = {"Acme Corporation": "INR", "QA-INR": "INR", "QA: EUR": "EUR", "rtCamp": "INR"}
+CUSTOMERS = {"Acme Corporation": "INR", "QA-INR": "INR", "QA-USD": "USD", "QA: EUR": "EUR", "rtCamp": "INR"}
 PROJECT_TYPES = ("Fixed Cost", "Non Billable", "Retainer", "TnM")
 BUSINESS_UNITS = ("Polaris", "Jupiter", "NB")
 # directed pair -> rate; round numbers so cost assertions (toBeCloseTo 3 digits) are stable
@@ -182,6 +182,19 @@ def masters():
     for name in PROJECT_TYPES:
         if not frappe.db.exists("Project Type", name):
             frappe.get_doc({"doctype": "Project Type", "project_type": name}).insert()
+    # The Currency & Billing tests bill projects with a Sales Order, which needs a service Item.
+    if not frappe.db.exists("Item", "E2E Service"):
+        frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_code": "E2E Service",
+                "item_name": "E2E Service",
+                "item_group": "Services",
+                "stock_uom": "Nos",
+                "is_stock_item": 0,
+                "is_sales_item": 1,
+            }
+        ).insert()
     # The Add Leave dialog lists LWP types only.
     if not frappe.db.exists("Leave Type", "Unpaid Time Off"):
         frappe.get_doc({"doctype": "Leave Type", "leave_type_name": "Unpaid Time Off", "is_lwp": 1}).insert()
@@ -234,13 +247,35 @@ def business_unit_customization():
                 "fieldtype": "Link",
                 "options": "Business Unit",
             },
+            {
+                "fieldname": "custom_account_manager_",
+                "label": "Account Manager",
+                "fieldtype": "Link",
+                "options": "User",
+            },
+        ],
+        # Not shipped by next_pms; the ToDo form shows Title, Start and End only when all three exist.
+        "ToDo": [
+            {"fieldname": "custom_title", "label": "Title", "fieldtype": "Data"},
+            {"fieldname": "custom_from_time", "label": "From Time", "fieldtype": "Datetime"},
+            {"fieldname": "custom_to_time", "label": "To Time", "fieldtype": "Datetime"},
         ],
     }
     for doctype, items in fields.items():
         for df in items:
             if not frappe.db.exists("Custom Field", {"dt": doctype, "fieldname": df["fieldname"]}):
                 frappe.get_doc({"doctype": "Custom Field", "dt": doctype, **df}).insert()
+    todo_statuses()
     frappe.clear_cache()
+
+
+def todo_statuses():
+    # The ToDo form offers Backlog and In Progress, but a stock ToDo only accepts Open, Closed and Cancelled
+    # (rtCamp/next-pms#2278). Staging adds them; so does this site, so the status tests run here too.
+    from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+    if not frappe.db.exists("Property Setter", {"doc_type": "ToDo", "field_name": "status", "property": "options"}):
+        make_property_setter("ToDo", "status", "options", "Open\nBacklog\nIn Progress\nClosed\nCancelled", "Text")
 
 
 def permission_patches():

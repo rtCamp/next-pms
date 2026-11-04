@@ -21,6 +21,41 @@ export const loadAuthState = (role) => {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const CSRF_TOKEN = /csrf_token["']?\s*[:=]\s*["']([a-f0-9]{16,})["']/i;
+let csrfRecoveryLogged = false;
+
+/** Frappe's refusal of a write on a session that holds a CSRF token the request did not send. */
+const isCsrfRefusal = async (res) =>
+  res.status() === 400 &&
+  /CSRFTokenError/.test(await res.text().catch(() => ""));
+
+/**
+ * The `<role>-API.json` sessions carry no CSRF token, so the suite's writes send none and
+ * Frappe skips the check. Anything that loads the desk on such a session (a probe, a cleanup
+ * script, someone's browser) mints a token onto it server-side, and every later write is
+ * refused. Read the token from the desk page and send the same request with it.
+ */
+const retryWithCsrfToken = async (
+  requestContext,
+  endpoint,
+  fetchOptions,
+  refused,
+) => {
+  const html = await (await requestContext.fetch("/app")).text();
+  const token = html.match(CSRF_TOKEN)?.[1];
+  if (!token) return refused;
+  if (!csrfRecoveryLogged) {
+    csrfRecoveryLogged = true;
+    console.warn(
+      "⚠️ An API session was refused with CSRFTokenError (something loaded the app on it); sending its CSRF token instead.",
+    );
+  }
+  return requestContext.fetch(endpoint, {
+    ...fetchOptions,
+    headers: { ...fetchOptions?.headers, "X-Frappe-CSRF-Token": token },
+  });
+};
+
 /**
  * Wraps requestContext.fetch() with retry + exponential backoff on transport-level
  * network failures (connection drops, DNS failures, timeouts).
@@ -38,7 +73,10 @@ export const fetchWithRetry = async (
   let attempt = 0;
   for (;;) {
     try {
-      return await requestContext.fetch(endpoint, fetchOptions);
+      const res = await requestContext.fetch(endpoint, fetchOptions);
+      return (await isCsrfRefusal(res))
+        ? await retryWithCsrfToken(requestContext, endpoint, fetchOptions, res)
+        : res;
     } catch (err) {
       attempt += 1;
       if (attempt > retries) {
@@ -114,9 +152,9 @@ export const deleteWithLockRetry = async (
  * Deletes a document, returning { deleted, reason } rather than throwing, so
  * teardown can clear dependants and report what survived.
  *
- * Do NOT fetch a CSRF token here. The `<role>-API.json` states carry no
- * csrf_token, which is why Frappe skips CSRF for them; hitting `/app` mints one
- * onto the session and every later CSRF-less write on it fails.
+ * Do NOT fetch a CSRF token up front. The `<role>-API.json` states carry no
+ * csrf_token, which is why Frappe skips CSRF for them; fetchWithRetry only reads one
+ * after a CSRFTokenError, because hitting `/app` mints one onto the session.
  */
 export const deleteDocument = async (doctype, name, role = "admin") => {
   if (!name) return { deleted: false, reason: "no name given" };
@@ -169,11 +207,20 @@ export const deleteDocument = async (doctype, name, role = "admin") => {
  * A GET, unlike filterApi()'s reportview POST, and it returns plain objects
  * rather than positional value arrays - so callers read `row.name` instead of
  * guessing which column they flattened.
+ *
+ * A failed request gives [] and a warning. Pass `strict` where [] means "absent" and the
+ * answer is acted on or cached, so a transient error throws instead of reading as "none".
  */
 export const getDocList = async (
   doctype,
   filters = [],
-  { fields = ["name"], limit = 500, role = "admin", orderBy } = {},
+  {
+    fields = ["name"],
+    limit = 500,
+    role = "admin",
+    orderBy,
+    strict = false,
+  } = {},
 ) => {
   const qs = new URLSearchParams({
     doctype,
@@ -194,12 +241,66 @@ export const getDocList = async (
       { method: "GET" },
     );
     if (!res.ok()) {
-      console.warn(
-        `⚠️ Could not list ${doctype}: ${res.status()} ${res.statusText()}`,
-      );
+      const reason = `${res.status()} ${res.statusText()}`;
+      if (strict) throw new Error(`Could not list ${doctype}: ${reason}`);
+      console.warn(`⚠️ Could not list ${doctype}: ${reason}`);
       return [];
     }
     return (await res.json())?.message ?? [];
+  } finally {
+    await requestContext.dispose();
+  }
+};
+
+/**
+ * Reads one document with its child-table rows, or null when it does not exist.
+ */
+export const getDocument = async (doctype, name, role = "admin") => {
+  const requestContext = await request.newContext({
+    baseURL,
+    storageState: loadAuthState(role),
+  });
+  try {
+    const res = await fetchWithRetry(
+      requestContext,
+      `/api/resource/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}`,
+      { method: "GET" },
+    );
+    if (res.status() === 404) return null;
+    if (!res.ok()) {
+      throw new Error(
+        `Could not read ${doctype} ${name}: ${res.status()} ${res.statusText()}`,
+      );
+    }
+    return (await res.json())?.data;
+  } finally {
+    await requestContext.dispose();
+  }
+};
+
+/**
+ * The fields of a doctype as this site has them, with custom fields and
+ * property setters applied. Sites differ here: staging customizes ToDo, a
+ * freshly installed site does not.
+ */
+export const getDoctypeFields = async (doctype, role = "admin") => {
+  const requestContext = await request.newContext({
+    baseURL,
+    storageState: loadAuthState(role),
+  });
+  try {
+    const res = await fetchWithRetry(
+      requestContext,
+      `/api/method/frappe.desk.form.load.getdoctype?doctype=${encodeURIComponent(doctype)}`,
+      { method: "GET" },
+    );
+    if (!res.ok()) {
+      throw new Error(
+        `Could not read the fields of ${doctype}: ${res.status()} ${res.statusText()}`,
+      );
+    }
+    const docs = (await res.json())?.docs ?? [];
+    return docs.find((doc) => doc.name === doctype)?.fields ?? [];
   } finally {
     await requestContext.dispose();
   }
@@ -245,9 +346,21 @@ export const cancelDocument = async (doctype, name, role = "admin") => {
 // ------------------------------------------------------------------------------------------
 
 /**
- * Creates a document and returns the created doc (including its `creation`).
+ * What Frappe said about a failed request, for the error a caller throws. A bare
+ * "417 EXPECTATION FAILED" hides the validation message that explains it.
  */
-export const createDocument = async (doctype, data, role = "admin") => {
+const failureDetail = async (res) => {
+  const body = await res.text().catch(() => "");
+  const detail =
+    body.match(/"exception":"([^"]*)"/)?.[1] ??
+    body.match(/"message":"([^"]*)"/)?.[1] ??
+    "";
+  return detail ? ` - ${detail}` : "";
+};
+
+// ------------------------------------------------------------------------------------------
+
+export const updateDocument = async (doctype, name, data, role = "admin") => {
   const requestContext = await request.newContext({
     baseURL,
     storageState: loadAuthState(role),
@@ -255,9 +368,9 @@ export const createDocument = async (doctype, data, role = "admin") => {
   try {
     const res = await fetchWithRetry(
       requestContext,
-      `/api/resource/${encodeURIComponent(doctype)}`,
+      `/api/resource/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}`,
       {
-        method: "POST",
+        method: "PUT",
         timeout: 120000,
         headers: { "Content-Type": "application/json" },
         data,
@@ -265,10 +378,51 @@ export const createDocument = async (doctype, data, role = "admin") => {
     );
     if (!res.ok()) {
       throw new Error(
-        `Could not create ${doctype}: ${res.status()} ${res.statusText()}`,
+        `Could not update ${doctype} ${name}: ${res.status()} ${res.statusText()}${await failureDetail(res)}`,
       );
     }
     return (await res.json())?.data;
+  } finally {
+    await requestContext.dispose();
+  }
+};
+
+/**
+ * Creates a document and returns the created doc (including its `creation`).
+ * MariaDB rolls the whole request back on a deadlock, so nothing was created and a
+ * create that hit one is safe to send again.
+ */
+export const createDocument = async (doctype, data, role = "admin") => {
+  const requestContext = await request.newContext({
+    baseURL,
+    storageState: loadAuthState(role),
+  });
+  try {
+    for (let attempt = 1; ; attempt++) {
+      const res = await fetchWithRetry(
+        requestContext,
+        `/api/resource/${encodeURIComponent(doctype)}`,
+        {
+          method: "POST",
+          timeout: 120000,
+          headers: { "Content-Type": "application/json" },
+          data,
+        },
+      );
+      if (res.ok()) return (await res.json())?.data;
+
+      const detail = await failureDetail(res);
+      if (attempt < 3 && /QueryDeadlockError|\(1213,/.test(detail)) {
+        console.warn(
+          `🔒 Deadlock creating ${doctype} (attempt ${attempt}/3). Retrying…`,
+        );
+        await sleep(1000 * attempt);
+        continue;
+      }
+      throw new Error(
+        `Could not create ${doctype}: ${res.status()} ${res.statusText()}${detail}`,
+      );
+    }
   } finally {
     await requestContext.dispose();
   }

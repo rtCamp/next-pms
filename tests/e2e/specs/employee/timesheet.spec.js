@@ -1,6 +1,11 @@
 const { test, expect } = require("../../playwright.fixture.cjs");
 import path from "path";
-import { TimesheetPage, removeHtmlTags } from "../../pageObjects/timesheetPage";
+import { resetTimeEntries } from "../../helpers/timesheetHelper";
+import {
+  TimesheetPage,
+  durationPattern,
+  removeHtmlTags,
+} from "../../pageObjects/timesheetPage";
 import { TaskPage } from "../../pageObjects/taskPage";
 import * as allure from "allure-js-commons";
 import { readJSONFile } from "../../utils/fileUtils";
@@ -12,6 +17,10 @@ let timesheetPage;
 let taskPage;
 
 test.describe("Employee : Timesheet", () => {
+  // These write to one employee's week, and the server can answer a read with the week
+  // from before a parallel write, so they run one at a time.
+  test.describe.configure({ mode: "serial" });
+
   test.beforeEach(async ({ page }) => {
     // Instantiate page objects
     timesheetPage = new TimesheetPage(page);
@@ -38,6 +47,10 @@ test.describe("Employee : Timesheet", () => {
       taskInfo: { desc: newDesc, duration: newDuration },
     } = tcData;
 
+    // A retry starts from the entry as setup booked it, not the one an attempt edited.
+    if (await resetTimeEntries(tcData, "employee")) {
+      await timesheetPage.page.reload();
+    }
     await timesheetPage.updateTimeRow(cell, {
       desc: description,
       newDesc,
@@ -54,7 +67,7 @@ test.describe("Employee : Timesheet", () => {
     expect(
       cellText,
       `cell should show the edited duration ${newDuration}`,
-    ).toContain(newDuration);
+    ).toMatch(durationPattern(newDuration));
 
     // ...and the entry itself carries the new description, not the old one.
     const entries = await timesheetPage.getTimeEntriesInCell(cell);

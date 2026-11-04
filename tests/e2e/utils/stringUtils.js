@@ -18,3 +18,10 @@ export const getRandomValue = (array) => {
   const randomIndex = Math.floor(Math.random() * array.length);
   return array[randomIndex];
 };
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Escapes a string so it can be matched literally inside a RegExp
+ */
+export const escapeRegExp = (text) =>
+  text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

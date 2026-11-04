@@ -327,13 +327,6 @@ export class TeamPage extends TimelinePage {
   }
 
   /**
-   * Clicks on the Combine Week Hours checkbox in header.
-   */
-  async clickCombineWeekHoursCheckbox() {
-    await this.combineWeekHoursCheckbox.click();
-  }
-
-  /**
    * Clicks the view Previous Week button in header.
    */
   async clickPreviousWeekButton() {
@@ -366,7 +359,7 @@ export class TeamPage extends TimelinePage {
    * Per-field filter buttons were replaced by a query-builder
    * ("Where <Field> <Operator> <Value>"); conditions are ANDed.
    */
-  async addFilterCondition(fieldLabel, value, needsNewRow = false) {
+  async addFilterCondition(fieldLabel, value, needsNewRow = false, operator) {
     const fieldInput = this.page.getByPlaceholder("Field");
 
     if (
@@ -407,10 +400,16 @@ export class TeamPage extends TimelinePage {
 
     // Operator wording varies by field type ("Equals"/"Not Equals" for links,
     // "is"/"is not" for selects) - the affirmative option is always first.
-    const operator = this.page.getByPlaceholder("Operator").last();
-    await operator.click();
+    const operatorInput = this.page.getByPlaceholder("Operator").last();
+    await operatorInput.click();
     await this.page.waitForTimeout(600);
-    await this.page.getByRole("option").first().click();
+    await (
+      operator
+        ? this.page.getByRole("option", { name: exact(operator) })
+        : this.page.getByRole("option")
+    )
+      .first()
+      .click();
 
     const valueInput = this.page.getByPlaceholder("Value").last();
     await valueInput.click();

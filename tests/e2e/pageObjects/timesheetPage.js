@@ -19,6 +19,16 @@ export function removeHtmlTags(input) {
   return input;
 }
 
+/**
+ * Matches a cell showing exactly this duration, as "1:00" or "01:00". Unlike a plain
+ * substring check, "1:00" does not match "11:00".
+ * @param {string} duration  "h:mm"
+ */
+export function durationPattern(duration) {
+  const [hours, minutes] = duration.split(":");
+  return new RegExp(`(^|\\D)0?${Number(hours)}:${minutes}(\\D|$)`);
+}
+
 export class TimesheetPage {
   /**
    * Initializes the TeamPage object.
@@ -177,10 +187,30 @@ export class TimesheetPage {
       await this.addTimeModal.locator("[contenteditable]").first().fill(desc);
     }
     // the cell popover saves with "Save entry", the header modal with "Save and close"
-    await this.addTimeModal
-      .getByRole("button", { name: /^(Save entry|Save and close)$/ })
-      .first()
-      .click();
+    await this.saveEntry(
+      this.addTimeModal
+        .getByRole("button", { name: /^(Save entry|Save and close)$/ })
+        .first(),
+    );
+  }
+
+  /**
+   * Clicks a Save button and waits for the save call to answer. The week is read again
+   * from the server, so reloading before it lands drops the entry or shows the old week.
+   */
+  async saveEntry(button) {
+    const saved = this.page.waitForResponse(
+      (res) =>
+        /timesheet\.api\.timesheet\.(save|bulk_update_timesheet_detail)/.test(
+          res.url(),
+        ) && res.request().method() === "POST",
+      { timeout: scaleTimeout(30000) },
+    );
+    await button.click();
+    const res = await saved;
+    if (!res.ok()) {
+      throw new Error(`Saving the time entry failed with ${res.status()}`);
+    }
   }
 
   /**
@@ -498,9 +528,9 @@ export class TimesheetPage {
     if (desc) {
       await this.editTimeModal.locator("[contenteditable]").last().fill(desc);
     }
-    await this.editTimeModal
-      .getByRole("button", { name: "Save entry" })
-      .click();
+    await this.saveEntry(
+      this.editTimeModal.getByRole("button", { name: "Save entry" }),
+    );
   }
 
   /**
@@ -528,10 +558,9 @@ export class TimesheetPage {
     await this.page.waitForTimeout(500);
 
     await this.editTimeModal.locator("[contenteditable]").first().fill(newDesc);
-    await this.editTimeModal
-      .getByRole("button", { name: "Save entry" })
-      .click();
-    await this.page.waitForLoadState("networkidle");
+    await this.saveEntry(
+      this.editTimeModal.getByRole("button", { name: "Save entry" }),
+    );
   }
 
   /**
@@ -581,7 +610,14 @@ export class TimesheetPage {
       state: "visible",
       timeout: scaleTimeout(15000),
     });
+    // The delete call took 20s on a loaded run, longer than the banner wait, and a
+    // retry then finds the entry already gone.
+    const deleted = this.page.waitForResponse(
+      (res) => res.url().includes("timesheet.api.timesheet.delete"),
+      { timeout: scaleTimeout(60000) },
+    );
     await deleteButton.click();
+    await deleted;
     //Assert : Banner to be displayed when a time entry is deleted
     await expect(this.successBanner).toBeVisible();
 
@@ -599,26 +635,35 @@ export class TimesheetPage {
   // --------------------------------------
 
   /**
-   * Imports liked tasks into the timesheet by clicking the import button.
+   * Imports liked tasks into the timesheet by clicking the import button. The app shows
+   * "Something went wrong" when one of its calls fails, so reload once before giving up.
    */
-  async importLikedTasks() {
+  async importLikedTasks(attempts = 2) {
     const button = this.page
       .getByRole("button", { name: "Import liked tasks to this week" })
       .first();
+    const failed = this.page.getByText("Something went wrong");
     const firstRow = this.latestTimesheetTaskRows.first();
 
-    await button
-      .waitFor({ state: "visible", timeout: scaleTimeout(30000) })
-      .catch(() => {});
+    for (let attempt = 1; ; attempt++) {
+      await button
+        .or(failed)
+        .waitFor({ state: "visible", timeout: scaleTimeout(30000) })
+        .catch(() => {});
 
-    // The control is gone once the week already holds the liked tasks, so an
-    // absent button is only fine when rows are actually there.
-    if (!(await button.isVisible().catch(() => false))) {
+      if (await button.isVisible().catch(() => false)) break;
+
+      // The control is gone once the week already holds the liked tasks, so an
+      // absent button is only fine when rows are actually there.
       if (await firstRow.isVisible().catch(() => false)) return;
 
-      throw new Error(
-        "Import liked tasks: no button and no task rows - nothing was imported.",
-      );
+      const crashed = await failed.isVisible().catch(() => false);
+      if (attempt >= attempts || !crashed) {
+        throw new Error(
+          "Import liked tasks: no button and no task rows - nothing was imported.",
+        );
+      }
+      await this.page.reload();
     }
 
     await button.click();

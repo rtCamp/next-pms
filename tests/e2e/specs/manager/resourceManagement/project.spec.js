@@ -3,7 +3,6 @@ import path from "path";
 import { ProjectPage } from "../../../pageObjects/resourceManagement/project";
 import * as allure from "allure-js-commons";
 import { readJSONFile } from "../../../utils/fileUtils";
-import { getFormattedDate } from "../../../utils/dateUtils";
 /** @type {ProjectPage} */
 let projectPage;
 test.describe("Resource Management : Project Tab -> Filters", () => {
@@ -189,84 +188,6 @@ test.describe("Resource Management : Project Tab", () => {
   test.beforeEach(async ({ page }) => {
     projectPage = new ProjectPage(page);
     await projectPage.goto();
-  });
-  test.skip("TC74: Validate the type of sheet view from the top menu and select field", async ({
-    jsonDir,
-  }) => {
-    allure.story("Resource Management : Project Tab");
-
-    // Load test data from JSON stub file
-    const stubPath = path.join(jsonDir, "TC74.json");
-    const data = await readJSONFile(stubPath);
-    const TC74data = data.TC74;
-
-    // Clear any existing filters
-    await projectPage.clearFilters();
-
-    //Search the Project
-    await projectPage.searchBar.fill(
-      TC74data.payloadCreateProject.project_name,
-    );
-
-    //1.1 Planned view
-    await projectPage.chooseSheetView("Planned");
-    //Assertion :
-    await expect(
-      projectPage.projectNameWithDate(
-        TC74data.payloadCreateProject.project_name,
-        TC74data.payloadCreateAllocation.allocation_start_date,
-      ),
-      "Verify if the Planned hour = 1",
-    ).toHaveText(TC74data.payloadCreateAllocation.hours_allocated_per_day);
-
-    //1.2 Verify combined weekly hour for the Planned view
-    await projectPage.combineWeekHoursCheckbox.check();
-    const wednesdayDate = new Date(
-      TC74data.payloadCreateAllocation.allocation_start_date,
-    );
-    wednesdayDate.setDate(wednesdayDate.getDate() + 2); // Move to Wednesday
-    const formattedWednesday = getFormattedDate(wednesdayDate); // Format as YYYY-MM-DD
-    const expectedCombinedHours =
-      TC74data.payloadCreateAllocation.hours_allocated_per_day * 5;
-    await expect(
-      projectPage.projectNameWithDate(
-        TC74data.payloadCreateProject.project_name,
-        formattedWednesday,
-      ),
-      "combined weekly hour for the Planned view is correct",
-    ).toHaveText(expectedCombinedHours.toString());
-    await projectPage.combineWeekHoursCheckbox.uncheck();
-
-    //2.1 Apply "Actual vs Planned" view
-    await projectPage.chooseSheetView("Actual vs Planned");
-
-    //Assertion : Verify if the Actual vs Planned hours
-    const actual_vs_planned_hours =
-      TC74data.payloadCreateTimesheet.hours +
-      " / " +
-      TC74data.payloadCreateAllocation.hours_allocated_per_day;
-    await expect(
-      projectPage.projectNameWithDate(
-        TC74data.payloadCreateProject.project_name,
-        TC74data.payloadCreateAllocation.allocation_start_date,
-      ),
-      "Actual vs Planned hours is shown correctly",
-    ).toHaveText(actual_vs_planned_hours);
-
-    //2.2 Verify combined weekly hour for the Actual vs Planned view
-    await projectPage.combineWeekHoursCheckbox.check();
-    await expect(
-      projectPage.projectNameWithDate(
-        TC74data.payloadCreateProject.project_name,
-        formattedWednesday,
-      ),
-      "combined weekly hour for the Actual vs Planned view is correct",
-    ).toHaveText(
-      TC74data.payloadCreateTimesheet.hours +
-        " / " +
-        expectedCombinedHours.toString(),
-    );
-    await projectPage.combineWeekHoursCheckbox.uncheck();
   });
   // Scope changed: the grid renders a full quarter of week columns and steps by
   // quarter, so the one-week-at-a-time buttons this covered are gone and the

@@ -51,9 +51,6 @@ module.exports = {
       taskID: "filled-automatically-from-createTasks",
     },
   },
-  TC20: {
-    col: "Issue",
-  },
   TC22: {
     payloadCreateProject: {
       project_name: "TC22 Project",

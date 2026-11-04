@@ -57,8 +57,9 @@ if (!fs.existsSync(pwPath)) {
 }
 const { chromium } = await import(pwPath);
 
-// Session states are written by globalSetup / the worker fixture. Prefer a
-// browser state (-w<N>) since it carries what the UI needs; fall back to -API.
+// Session states are written by globalSetup / the worker fixture. Prefer a browser
+// state (-w<N>); <role>-API.json is the last resort, since loading the app on it mints
+// a CSRF token onto that session (the suite recovers, but not mid-run).
 const authDir = path.join(repoRoot, "tests", "e2e", "auth");
 // A stored `sid` carries an expiry (~12h). Chromium drops an expired cookie when
 // it restores the state, so the probe would silently land on /login with only the
@@ -77,7 +78,6 @@ const candidates = fs.existsSync(authDir)
   ? fs
       .readdirSync(authDir)
       .filter((f) => f.startsWith(`${role}-w`) && f.endsWith(".json"))
-      .concat(fs.existsSync(path.join(authDir, `${role}-API.json`)) ? [`${role}-API.json`] : [])
       .filter(usable)
       .sort(
         (a, b) =>
@@ -85,9 +85,13 @@ const candidates = fs.existsSync(authDir)
       )
   : [];
 
+if (!candidates.length && usable(`${role}-API.json`)) {
+  console.error(`warning: no browser session for ${role}; using ${role}-API.json. Do not probe while a suite run is live.`);
+  candidates.push(`${role}-API.json`);
+}
 if (!candidates.length) {
   console.error(
-    `No auth state for role "${role}" in ${authDir}.\n` +
+    `No usable session for role "${role}" in ${authDir}.\n` +
       `Run the suite once to mint sessions, or pass a role that has one: ` +
       `${fs.existsSync(authDir) ? fs.readdirSync(authDir).join(", ") : "(dir missing)"}`
   );

@@ -5,10 +5,12 @@ import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import {
   getDateForWeekday,
   getShortFormattedDate,
+  weekLabel,
 } from "../../utils/dateUtils";
 import * as allure from "allure-js-commons";
 import { readJSONFile } from "../../utils/fileUtils";
-import { randomApprovalStatus } from "../../helpers/teamTabHelper";
+import { scaleTimeout } from "../../utils/timeouts";
+import { TeamTimesheetPage } from "../../pageObjects/teamTimesheetPage";
 
 /** @type {TeamPage} */ let teamPage;
 /** @type {TimesheetPage} */ let timesheetPage;
@@ -16,7 +18,6 @@ import { randomApprovalStatus } from "../../helpers/teamTabHelper";
 // Load env variables
 const empName = process.env.EMP_NAME;
 const manName = process.env.REP_MAN_NAME;
-const emp3Name = process.env.EMP3_NAME;
 
 test.describe("Manager: Team Tab", () => {
   test.beforeEach(async ({ page }) => {
@@ -87,6 +88,8 @@ test.describe("Manager: Team Tab", () => {
     jsonDir,
   }) => {
     allure.story("Team");
+    // Two member switches with slowMo:500 take about 80s of the 90s default.
+    test.setTimeout(180000);
     const stubPath = path.join(jsonDir, "TC45.json");
     const data = await readJSONFile(stubPath);
     const TC45data = data.TC45;
@@ -265,26 +268,6 @@ test.describe("Manager: Team Tab", () => {
     }
   });
 
-  // The User Group filter was removed and has no counterpart to verify. The
-  // timesheet team panel offers Project, Task, Date, Member, Member Status and
-  // Business Unit; the allocations team panel offers Skill, Tag, Business Unit
-  // and Reporting Manager. Neither exposes user groups, and no user-group
-  // control exists anywhere on either page - "Toggle options" is the reporting
-  // manager selector. Skipped rather than deleted pending a call from
-  // @ayushnirwal on whether group-based filtering was dropped deliberately.
-  test.skip("TC94: User group Filter shows correct results", async ({
-    jsonDir,
-  }) => {
-    allure.story("Team");
-    const stubPath = path.join(jsonDir, "TC94.json");
-    const data = await readJSONFile(stubPath);
-    const TC94data = data.TC94;
-    await teamPage.checkUserGroup(TC94data.payloadCreateUserGroup.__newname);
-    await expect(
-      teamPage.employeeNameInTable(TC94data.employeeName),
-    ).toBeVisible();
-  });
-
   test("TC95: Verify multiple filters at a time", async ({ jsonDir }) => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC95.json");
@@ -357,7 +340,7 @@ test.describe("Manager: Team Tab", () => {
     expect(status).toMatch(/rejected/i);
   });
 
-  test("TC112: Verify no results when search does not return any results", async ({
+  test("TC406: Verify no results when search does not return any results", async ({
     page,
   }) => {
     allure.story("Team");
@@ -371,85 +354,45 @@ test.describe("Manager: Team Tab", () => {
       page.getByText("No timesheet for this week").first(),
     ).toBeVisible();
   });
-
-  // Skipped: the capability is gone. There is no "Save changes" control on the
-  // team tab any more - no save/update-view button exists at all, before or
-  // after applying a filter - so saveNewView() has nothing to click and the
-  // test hangs on it.
-  //
-  // The redesign also changed how filter state is carried: this asserts the URL
-  // contains `reports-to="EMP-`, but filters are now one JSON blob, e.g.
-  //   ?compositeFilters=[{"field":"employee","operator":"=","value":"EMP-00914",
-  //                       "fieldCategory":"Timesheet","displayLabel":"Renish Employee"}]
-  // so the final assertion could not pass either.
-  //
-  // Filters still persist - via the URL rather than by saving them onto a view.
-  // Rescoping this to assert that persistence would keep the intent, but it is
-  // a different mechanism, so skipped pending a call on whether saving filters
-  // to a view was dropped deliberately. The test-case sheet still describes the
-  // old behaviour.
-  test.skip("TC114: Save changes for team tab and validate if the same changes are displayed are not.", async ({
-    page,
-  }) => {
-    allure.story("Team");
-    test.setTimeout(60000);
-    await teamPage.saveNewView(manName);
-    await expect(page.getByText("View Updated", { exact: true })).toBeVisible();
-    await Promise.all([
-      page.waitForResponse(
-        (resp) =>
-          resp
-            .url()
-            .includes(
-              "/api/method/next_pms.timesheet.api.team.get_compact_view_data",
-            ) && resp.status() === 200,
-      ),
-      teamPage.goto(),
-    ]);
-    await expect(page.url()).toContain("reports-to=%22EMP-");
-  });
 });
 
 test.describe("Manager: Team Tab2", () => {
-  //API call in beforeALL to make sure the emp has correct approval status
-  test.beforeAll(async ({ jsonDir }) => {
-    await randomApprovalStatus(["TC92"], jsonDir);
-  });
-
-  test.beforeEach(async ({ page }) => {
-    teamPage = new TeamPage(page);
-    timesheetPage = new TimesheetPage(page);
-    await teamPage.goto();
-  });
-
   test("TC92: Approval Status filter shows correct results", async ({
+    page,
     jsonDir,
   }) => {
     allure.story("Team");
-    const stubPath = path.join(jsonDir, "TC92.json");
-    const data = await readJSONFile(stubPath);
-    const TC92data = data.TC92;
-    // Scope changed: approval status can no longer be filtered on. The team
-    // filter panel offers only Project, Task, Date, Member, Member Status and
-    // Business Unit ("Member Status" is employment state - Active / Inactive /
-    // Suspended / Left - not approval state), so checkApprovalStatus() has no
-    // control to drive. Approval status is still *displayed* per member, so this
-    // now verifies the status the member's row shows matches the one seeded for
-    // them. The missing filter is worth raising with @ayushnirwal.
-    const expectedStatus = TC92data.payloadApprovalStatus.approvalStatus;
-    const status = await teamPage.getApprovalStatusFromRow(emp3Name);
-
-    expect(status, "The member's row shows an approval status").not.toBeNull();
-
-    // Match case-insensitively: the seeded value is title-cased
-    // ("Partially Rejected") but the row renders sentence case
-    // ("Partially rejected").
-    if (expectedStatus === "Partially Rejected") {
-      expect(status).toMatch(/rejected/i);
-    } else {
-      expect(status).toMatch(
-        new RegExp(expectedStatus.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"),
-      );
+    // Scope changed: approval status can no longer be filtered on, so this verifies
+    // that each member's row shows the status global setup gave them.
+    // The missing filter is worth raising with @ayushnirwal.
+    test.slow();
+    const data = (await readJSONFile(path.join(jsonDir, "TC92.json"))).TC92;
+    const team = new TeamTimesheetPage(page);
+    const cases = [
+      { member: data.employees.ApStPending.name, status: /^approval pending/i },
+      // One day of the week is rejected, which the row may print as partial.
+      { member: data.employees.ApStRejected.name, status: /rejected/i },
+    ];
+    for (const { member, status } of cases) {
+      await test.step(`${member} shows ${status}`, async () => {
+        await team.goto({ search: member });
+        // A decision is saved by a queued job; until it runs the row reads
+        // "Processing timesheet" or an older status, so reload until it matches.
+        await expect
+          .poll(
+            async () => {
+              const text = await team.memberStatus(weekLabel(0), member);
+              if (!status.test(text ?? "")) await team.reload();
+              return text ?? "";
+            },
+            {
+              message: `${member}'s row shows its status`,
+              timeout: scaleTimeout(45000),
+              intervals: [2000, 3000, 5000],
+            },
+          )
+          .toMatch(status);
+      });
     }
   });
 });
