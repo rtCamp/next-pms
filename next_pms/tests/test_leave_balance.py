@@ -145,6 +145,24 @@ class TestLeaveBalanceBeforeApplication(IntegrationTestCase):
         # A new application sees both deductions
         self.assertEqual(self.stored_balance(self.file_leave(start=30).name), 6)
 
+    def test_draft_changed_and_submitted_in_one_request_recomputes(self):
+        # submit() sets docstatus = 1 before the hook runs; the saved state is still a draft
+        leave = self.file_leave()
+        leave.leave_type = SMALL_LEAVE
+        leave.status = "Approved"
+        leave.submit()
+        self.assertEqual(self.stored_balance(leave.name), 5)
+
+    def test_client_sent_value_does_not_overwrite_the_snapshot(self):
+        first = self.file_leave()
+        self.approve(self.file_leave(start=20))
+        # The Desk form recomputes the field on a half-day toggle and sends the new number
+        first.half_day = 1
+        first.half_day_date = first.from_date
+        first.leave_balance = 8
+        first.save(ignore_permissions=True)
+        self.assertEqual(self.stored_balance(first.name), 10)
+
     def test_new_application_inserted_submitted_stores_balance(self):
         leave = self.file_leave(days=2, status="Approved", docstatus=1)
         self.assertEqual(leave.docstatus, 1)
@@ -167,3 +185,89 @@ class TestLeaveBalanceBeforeApplication(IntegrationTestCase):
         self.assertEqual(self.stored_balance(leave.name), 0)
         # The save went through, so the client must not be shown the lookup's message
         self.assertFalse([m for m in frappe.get_message_log() if "lookup boom" in str(m.get("message"))])
+        # A stored 0 counts as missing: the next save while open fills it
+        leave.description = "edited while open"
+        leave.save(ignore_permissions=True)
+        self.assertEqual(self.stored_balance(leave.name), 10)
+
+    def test_zero_snapshot_is_not_filled_by_the_decision(self):
+        def fail_for_storing(*args, **kwargs):
+            if kwargs.get("for_consumption"):
+                return frappe._dict(leave_balance=10, leave_balance_for_consumption=10)
+            frappe.throw("lookup boom")
+
+        with patch(
+            "hrms.hr.doctype.leave_application.leave_application.get_leave_balance_on",
+            side_effect=fail_for_storing,
+        ):
+            leave = self.file_leave()
+        self.assertEqual(self.stored_balance(leave.name), 0)
+        # The approver's save and submit keep the snapshot as it was, even an empty one
+        self.approve(leave)
+        self.assertEqual(self.stored_balance(leave.name), 0)
+
+    def test_failed_recompute_after_a_change_does_not_keep_the_old_snapshot(self):
+        leave = self.file_leave()
+        self.assertEqual(self.stored_balance(leave.name), 10)
+
+        def fail_for_storing(*args, **kwargs):
+            if kwargs.get("for_consumption"):
+                return frappe._dict(leave_balance=5, leave_balance_for_consumption=5)
+            frappe.throw("lookup boom")
+
+        with patch(
+            "hrms.hr.doctype.leave_application.leave_application.get_leave_balance_on",
+            side_effect=fail_for_storing,
+        ):
+            leave.leave_type = SMALL_LEAVE
+            leave.save(ignore_permissions=True)
+        # 10 belonged to the old leave type; the next save fills the right value
+        self.assertEqual(self.stored_balance(leave.name), 0)
+        leave.description = "edited while open"
+        leave.save(ignore_permissions=True)
+        self.assertEqual(self.stored_balance(leave.name), 5)
+
+    def test_lookup_on_hrms_without_the_leave_application_argument(self):
+        # HRMS before v16.20: get_leave_balance_on has no leave_application parameter
+        def older_get_leave_balance_on(
+            employee,
+            leave_type,
+            date,
+            to_date=None,
+            consider_all_leaves_in_the_allocation_period=False,
+            for_consumption=False,
+            **newer_controller_kwargs,
+        ):
+            if for_consumption:
+                # The installed HRMS's own balance validation, which does pass leave_application
+                return frappe._dict(leave_balance=7, leave_balance_for_consumption=7)
+            if newer_controller_kwargs:
+                raise TypeError(f"unexpected keyword argument {next(iter(newer_controller_kwargs))!r}")
+            return 3 if leave_type == SMALL_LEAVE else 7
+
+        with patch(
+            "hrms.hr.doctype.leave_application.leave_application.get_leave_balance_on",
+            older_get_leave_balance_on,
+        ):
+            leave = self.file_leave()
+            self.assertEqual(self.stored_balance(leave.name), 7)
+            leave.leave_type = SMALL_LEAVE
+            leave.save(ignore_permissions=True)
+        self.assertEqual(self.stored_balance(leave.name), 3)
+
+    def test_patch_fills_only_open_drafts(self):
+        from next_pms.timesheet.patches.backfill_open_leave_balance import execute
+
+        open_draft = self.file_leave()
+        rejected_draft = self.file_leave(start=20)
+        rejected_draft.status = "Rejected"
+        rejected_draft.save(ignore_permissions=True)
+        unpaid = self.file_leave(start=30, leave_type=UNPAID_LEAVE)
+        for leave in (open_draft, rejected_draft, unpaid):
+            frappe.db.set_value("Leave Application", leave.name, "leave_balance", 0)
+
+        execute()
+
+        self.assertEqual(self.stored_balance(open_draft.name), 10)
+        self.assertEqual(self.stored_balance(rejected_draft.name), 0)
+        self.assertEqual(self.stored_balance(unpaid.name), 0)
