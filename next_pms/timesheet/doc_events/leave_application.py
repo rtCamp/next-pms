@@ -58,7 +58,7 @@ def set_leave_balance(doc):
 
     HRMS sets `leave_balance` only client-side (Desk form, mobile app), so API-created
     applications stayed at 0. Computed here with the Desk form's call for a new application or
-    a draft whose employee, leave type or dates changed; other saves keep the snapshot. A stored
+    a draft whose employee, leave type or dates changed; other saves leave it as sent. A stored
     0 is filled on the next save while the application is Open. A failed lookup is logged and
     never blocks the save.
     """
@@ -72,8 +72,8 @@ def set_leave_balance(doc):
     if not all(doc.get(field) for field in LEAVE_BALANCE_FIELDS):
         return
     if saved and not any(doc.has_value_changed(field) for field in LEAVE_BALANCE_FIELDS):
+        # Left as sent, like HRMS; a stored 0 is filled while the application is still Open
         if saved.leave_balance or doc.docstatus != 0 or doc.status != "Open":
-            doc.leave_balance = saved.leave_balance
             return
     if is_lwp(doc.leave_type):
         # No allocation; the Desk form shows 0 too

@@ -149,16 +149,6 @@ class TestLeaveBalanceBeforeApplication(IntegrationTestCase):
         leave.submit()
         self.assertEqual(self.stored_balance(leave.name), 5)
 
-    def test_client_sent_value_does_not_overwrite_the_snapshot(self):
-        first = self.file_leave()
-        self.approve(self.file_leave(start=20))
-        # The Desk form recomputes the field on a half-day toggle and sends the new number
-        first.half_day = 1
-        first.half_day_date = first.from_date
-        first.leave_balance = 8
-        first.save(ignore_permissions=True)
-        self.assertEqual(self.stored_balance(first.name), 10)
-
     def test_new_application_inserted_submitted_stores_balance(self):
         leave = self.file_leave(days=2, status="Approved", docstatus=1)
         self.assertEqual(leave.docstatus, 1)
