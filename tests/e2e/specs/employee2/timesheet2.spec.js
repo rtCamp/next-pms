@@ -1,6 +1,10 @@
 import path from "path";
 const { test, expect } = require("../../playwright.fixture.cjs");
-import { TimesheetPage } from "../../pageObjects/timesheetPage";
+import { resetTimeEntries } from "../../helpers/timesheetHelper";
+import {
+  TimesheetPage,
+  durationPattern,
+} from "../../pageObjects/timesheetPage";
 import { readJSONFile } from "../../utils/fileUtils";
 import * as allure from "allure-js-commons";
 
@@ -9,6 +13,10 @@ import * as allure from "allure-js-commons";
 let timesheetPage;
 
 test.describe("Employee 2 : Timesheet", () => {
+  // These write to one employee's week, and the server can answer a read with the week
+  // from before a parallel write, so they run one at a time.
+  test.describe.configure({ mode: "serial" });
+
   // Runs before each test
   test.beforeEach(async ({ page }) => {
     // Instantiate page objects
@@ -25,7 +33,9 @@ test.describe("Employee 2 : Timesheet", () => {
     const stubPath = path.join(jsonDir, "TC2.json");
     const data = await readJSONFile(stubPath);
     const TC2data = data.TC2;
-    // Add time entry using "Time" button
+    // A retry starts from the week as setup left it, not on top of the last attempt.
+    if (await resetTimeEntries(TC2data, "employee2")) await page.reload();
+    // Add time entry using "Time" button; it returns once the save has answered
     await timesheetPage.addTimeViaTimeButton(TC2data.taskInfo);
 
     // Reload page to ensure changes are reflected
@@ -33,7 +43,7 @@ test.describe("Employee 2 : Timesheet", () => {
 
     // Assertions
     const cellText = await timesheetPage.getCellText(TC2data.cell);
-    expect(cellText).toContain(TC2data.taskInfo.duration);
+    expect(cellText).toMatch(durationPattern(TC2data.taskInfo.duration));
   });
   test("TC3: Time should be added using the direct timesheet add buttons.", async ({
     page,
@@ -45,6 +55,7 @@ test.describe("Employee 2 : Timesheet", () => {
     const data = await readJSONFile(stubPath);
 
     const TC3data = data.TC3;
+    if (await resetTimeEntries(TC3data, "employee2")) await page.reload();
 
     // Import liked tasks
     await timesheetPage.importLikedTasks();
@@ -61,7 +72,7 @@ test.describe("Employee 2 : Timesheet", () => {
 
     // Assertions
     const cellText = await timesheetPage.getCellText(TC3data.cell);
-    expect(cellText).toContain(TC3data.taskInfo.duration);
+    expect(cellText).toMatch(durationPattern(TC3data.taskInfo.duration));
   });
 
   test("TC13: Verify an employee can apply for leave via Timesheet tab.   ", async ({

@@ -158,62 +158,6 @@ module.exports = {
       allocationId: "filled-automatically-from-createAllocation",
     },
   },
-  TC74: {
-    cell: {
-      rowName: "TC74 Project",
-      col: "Mon",
-    },
-    payloadCreateProject: {
-      project_name: "TC74 Project",
-      company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Acme Corporation",
-      billing_type: "Fixed Cost",
-      currency: "INR",
-      project_type: "Fixed Cost",
-      business_unit: "Jupitor",
-      estimated_cost: 235000,
-      custom_default_hourly_billing_rate: 300,
-      custom_project_budget_hours: [],
-    },
-    payloadDeleteProject: {
-      projectId: "filled-automatically-from-createProjects",
-    },
-    payloadCreateTask: {
-      subject: "TC74 Billable Task",
-      project: "filled-automatically-from-createProjects",
-      description: "Task for TC74 created through automation",
-      custom_is_billable: 1,
-    },
-    payloadDeleteTask: {
-      taskID: "filled-automatically-from-createTasks",
-    },
-    payloadCreateTimesheet: {
-      task: "filled-automatically-from-createTasks",
-      description: "<p>TC74 - Task added via automation.</p>",
-      hours: "2",
-    },
-    payloadFilterTimeEntry: {
-      subject: "TC74 Billable Task",
-      description: "TC74 - Task added via automation.",
-      project_name: "TC74 Project",
-      max_week: "1",
-    },
-    payloadCreateAllocation: {
-      allocation_end_date: getWeekRange().friday,
-      allocation_start_date: getWeekRange().monday,
-      customer: "Acme Corporation",
-      employee: process.env.EMP3_ID,
-      hours_allocated_per_day: "1",
-      is_billable: 1,
-      note: "",
-      project: "filled-automatically-from-createProjects",
-      total_allocated_hours: "01",
-      repeat_till_week_count: 0,
-    },
-    payloadDeleteAllocation: {
-      allocationId: "filled-automatically-from-createAllocation",
-    },
-  },
   TC76: {
     infoPayloadCreateProject: {
       project_name: "TC73 Project: Fixed Cost",
@@ -572,36 +516,6 @@ module.exports = {
       projectId: "filled-automatically-from-createProjects",
     },
   },
-  TC114: {
-    createProject3Info: {
-      project_name: "TC112 Project: Retainer",
-      company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "QA: EUR",
-      custom_currency: "EUR",
-      billing_type: "Retainer",
-      project_type: "Retainer",
-      status: "Completed",
-      custom_business_unit: "Polaris",
-      estimated_costing: 245000,
-      custom_billing_type: "Retainer",
-      custom_default_hourly_billing_rate: 0,
-      custom_project_budget_hours: [],
-    },
-
-    createProject4Info: {
-      project_name: "TC112 Project: Non-Billable",
-      company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Acme Corporation",
-      billing_type: "Non-Billable",
-      currency: "INR",
-      project_type: "Non Billable",
-      custom_business_unit: "Jupiter",
-      status: "Cancelled",
-      estimated_cost: 235000,
-      custom_billing_type: "Non-Billable",
-      custom_project_budget_hours: [],
-    },
-  },
   TC115: {
     // Points at TC112's two *Open* projects. Status is no longer filterable and
     // the list is scoped by ?status=Open, so the Completed / Cancelled TC112
@@ -638,36 +552,6 @@ module.exports = {
       custom_business_unit: "Jupiter",
       custom_billing_type: "Fixed Cost",
       billing_type: "Fixed Cost",
-    },
-  },
-  TC117: {
-    createProject3Info: {
-      project_name: "TC112 Project: Retainer",
-      company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "QA: EUR",
-      custom_currency: "EUR",
-      billing_type: "Retainer",
-      project_type: "Retainer",
-      status: "Completed",
-      custom_business_unit: "Polaris",
-      estimated_costing: 245000,
-      custom_billing_type: "Retainer",
-      custom_default_hourly_billing_rate: 0,
-      custom_project_budget_hours: [],
-    },
-
-    createProject4Info: {
-      project_name: "TC112 Project: Non-Billable",
-      company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Acme Corporation",
-      billing_type: "Non-Billable",
-      currency: "INR",
-      project_type: "Non Billable",
-      custom_business_unit: "Jupiter",
-      status: "Cancelled",
-      estimated_cost: 235000,
-      custom_billing_type: "Non-Billable",
-      custom_project_budget_hours: [],
     },
   },
   TC118: {

@@ -2,31 +2,30 @@
  * External dependencies.
  */
 import { Accordion } from "@base-ui/react/accordion";
-import { stripTags } from "@next-pms/design-system/utils";
-import { Avatar } from "@rtcamp/frappe-ui-react";
 import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
-import { RISK_LIST_COLUMNS } from "../constants";
 import { useRisks } from "../context";
 import { RiskRowActions } from "../riskRowActions";
-import { RiskStatusBadge } from "../riskStatusBadge";
-import type { RiskItem } from "../types";
+import type { RiskItem, RiskListColumn } from "../types";
+import { RiskCell } from "./cells";
 
 export interface RiskGroupProps {
   value: string;
   label: string;
+  columns: RiskListColumn[];
   risks: RiskItem[];
 }
 
-const ROW_MIN_WIDTH =
-  RISK_LIST_COLUMNS.reduce((total, col) => total + parseInt(col.width, 10), 0) +
+const rowMinWidth = (columns: RiskListColumn[]) =>
+  columns.reduce((total, col) => total + parseInt(col.width, 10), 0) +
   32 +
-  RISK_LIST_COLUMNS.length * 8;
+  columns.length * 8;
 
-export function RiskGroup({ value, label, risks }: RiskGroupProps) {
+export function RiskGroup({ value, label, columns, risks }: RiskGroupProps) {
+  const minWidth = rowMinWidth(columns);
   const openRiskDetail = useRisks((c) => c.actions.openRiskDetail);
 
   return (
@@ -50,10 +49,10 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
         <div className="overflow-x-auto">
           {/* Column header */}
           <div
-            style={{ minWidth: ROW_MIN_WIDTH }}
+            style={{ minWidth }}
             className="flex items-center gap-2 px-1 py-0.5 border-b border-outline-gray-1 text-sm text-ink-gray-5 mb-2"
           >
-            {RISK_LIST_COLUMNS.map((col) => (
+            {columns.map((col) => (
               <div
                 key={col.key}
                 style={{ minWidth: col.width, flex: col.flex }}
@@ -75,80 +74,19 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
           {risks.map((risk) => (
             <div
               key={risk.name}
-              style={{ minWidth: ROW_MIN_WIDTH }}
-              className="flex items-center gap-2 px-2 py-1.5 border-b border-outline-gray-1 hover:bg-surface-gray-1 text-base cursor-pointer last:mb-5"
+              style={{ minWidth }}
+              className="flex items-center gap-2 px-2 py-1.5 border-b border-outline-gray-1 hover:bg-surface-gray-1 text-base text-ink-gray-6 cursor-pointer last:mb-5"
               onClick={() => openRiskDetail(risk.name)}
             >
-              {/* Risk category */}
-              <div
-                style={{
-                  minWidth: RISK_LIST_COLUMNS[0].width,
-                  flex: RISK_LIST_COLUMNS[0].flex,
-                }}
-                className="truncate font-medium text-ink-gray-8 px-2 py-1.5"
-              >
-                {risk.risk_category ?? "—"}
-              </div>
-
-              {/* Summary */}
-              <div
-                style={{
-                  minWidth: RISK_LIST_COLUMNS[1].width,
-                  flex: RISK_LIST_COLUMNS[1].flex,
-                }}
-                className="truncate text-ink-gray-6 px-2 py-1.5"
-              >
-                {stripTags(risk.summary || "—")}
-              </div>
-
-              {/* Risk owner */}
-              <div
-                style={{
-                  minWidth: RISK_LIST_COLUMNS[2].width,
-                  flex: RISK_LIST_COLUMNS[2].flex,
-                }}
-                className="truncate text-ink-gray-6 px-2 py-1.5"
-              >
-                {risk.risk_owner ? (
-                  <div className="flex items-center gap-2">
-                    <Avatar
-                      size="xs"
-                      shape="circle"
-                      image={risk.risk_owner_details?.user_image ?? undefined}
-                      label={
-                        risk.risk_owner_details?.full_name ?? risk.risk_owner
-                      }
-                    />
-                    <span className="truncate">
-                      {risk.risk_owner_details?.full_name ?? risk.risk_owner}
-                    </span>
-                  </div>
-                ) : (
-                  "—"
-                )}
-              </div>
-
-              {/* Risk level */}
-              <div
-                style={{
-                  minWidth: RISK_LIST_COLUMNS[3].width,
-                  flex: RISK_LIST_COLUMNS[3].flex,
-                }}
-                className="truncate text-ink-gray-6 px-2 py-1.5"
-              >
-                {risk.risk_level ?? "—"}
-              </div>
-
-              {/* Status */}
-              <div
-                style={{
-                  minWidth: RISK_LIST_COLUMNS[4].width,
-                  flex: RISK_LIST_COLUMNS[4].flex,
-                }}
-                className="px-2 py-1.5 text-ink-gray-6"
-              >
-                <RiskStatusBadge status={risk.status} />
-              </div>
+              {columns.map((col) => (
+                <div
+                  key={col.key}
+                  style={{ minWidth: col.width, flex: col.flex }}
+                  className="flex min-w-0 px-2 py-1.5"
+                >
+                  <RiskCell column={col} risk={risk} />
+                </div>
+              ))}
 
               {/* Row actions */}
               <div

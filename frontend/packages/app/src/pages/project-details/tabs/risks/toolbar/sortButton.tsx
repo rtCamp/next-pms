@@ -10,6 +10,7 @@ import { useRisks } from "../context";
 
 const SORT_FIELDS = [
   { field: "modified", label: "Last updated on" },
+  { field: "creation", label: "Created on" },
   { field: "status", label: "Status" },
   { field: "risk_category", label: "Risk category" },
   { field: "risk_level", label: "Risk level" },
