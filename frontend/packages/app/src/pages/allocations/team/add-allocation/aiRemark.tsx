@@ -34,7 +34,7 @@ export function AiRemark({ remark }: AiRemarkProps) {
 
   return (
     <div className="flex flex-col gap-1 rounded-lg bg-surface-amber-1 px-3 py-2 text-left">
-      <span className="text-xs font-medium text-ink-amber-4">AI remark</span>
+      <span className="text-xs font-medium text-ink-amber-4">Ai remark</span>
       <p
         ref={textRef}
         className={cn(
