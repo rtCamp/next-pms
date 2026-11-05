@@ -63,6 +63,7 @@ def set_leave_balance(doc):
     never blocks the save.
     """
     import frappe
+    from frappe.utils import flt
     from hrms.hr.doctype.leave_application.leave_application import is_lwp
 
     # The saved state: submit() sets docstatus = 1 before this hook runs
@@ -95,7 +96,7 @@ def set_leave_balance(doc):
         )
         # Drop the message a frappe.throw inside the lookup queued; the save goes through
         del frappe.local.message_log[messages_before:]
-        if saved and doc.leave_balance == saved.leave_balance:
+        if saved and flt(doc.leave_balance) == flt(saved.leave_balance):
             # Belongs to the fields before this change
             doc.leave_balance = 0
 

@@ -21,7 +21,7 @@ def execute():
     )
     rows = [row for row in rows if row.leave_type not in lwp_types]
 
-    for index, row in enumerate(rows, start=1):
+    for index, row in enumerate(rows):
         try:
             balance = flt(
                 get_leave_balance_before(
