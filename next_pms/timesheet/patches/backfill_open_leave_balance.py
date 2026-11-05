@@ -12,14 +12,13 @@ from frappe.utils import flt, update_progress_bar
 def execute():
     from next_pms.timesheet.doc_events.leave_application import get_leave_balance_before
 
-    lwp_types = set(frappe.get_all("Leave Type", filters={"is_lwp": 1}, pluck="name"))
+    lwp_types = frappe.get_all("Leave Type", filters={"is_lwp": 1}, pluck="name")
     rows = frappe.get_all(
         "Leave Application",
-        filters={"docstatus": 0, "status": "Open", "leave_balance": 0},
+        filters={"docstatus": 0, "status": "Open", "leave_balance": 0, "leave_type": ("not in", lwp_types)},
         fields=["name", "employee", "leave_type", "from_date", "to_date"],
         order_by="from_date, name",
     )
-    rows = [row for row in rows if row.leave_type not in lwp_types]
 
     for index, row in enumerate(rows):
         try:
