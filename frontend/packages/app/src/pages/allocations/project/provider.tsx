@@ -10,6 +10,12 @@ import { format } from "date-fns";
  * Internal dependencies.
  */
 import { pickAllowed } from "@/lib/utils";
+import { projectAllocationsTypeOptions } from "./constants";
+import {
+  AllocationsProjectContext,
+  type AllocationsProjectContextProps,
+} from "./context";
+import { useAllocationsProjectData } from "./useAllocationsProjectData";
 import {
   ALLOCATION_TYPE_PARAM_KEY,
   ALLOCATIONS_PAGE_SIZE,
@@ -28,12 +34,6 @@ import {
   parseAllocationCompositeFilters,
   parseAllocationStringArray,
 } from "../utils";
-import { projectAllocationsTypeOptions } from "./constants";
-import {
-  AllocationsProjectContext,
-  type AllocationsProjectContextProps,
-} from "./context";
-import { useAllocationsProjectData } from "./useAllocationsProjectData";
 
 export function AllocationsProjectProvider({
   children,

@@ -6,12 +6,12 @@ import { Tooltip } from "@rtcamp/frappe-ui-react";
 import { TimeOff } from "@rtcamp/frappe-ui-react/icons";
 import { cva, type VariantProps } from "class-variance-authority";
 
+import { CrosshatchLayer } from "./crosshatchLayer";
 /**
  * Internal dependencies.
  */
 import { mergeClassNames as cn } from "../../../utils";
 import { BAR_HEIGHT, BAR_MARGIN, CELL_HEIGHT } from "../constants";
-import { CrosshatchLayer } from "./crosshatchLayer";
 import { useGanttBarInteraction } from "../hooks/useGanttBarInteraction";
 
 export interface GanttBarGeometry {

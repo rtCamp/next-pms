@@ -4,12 +4,12 @@
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { InfoHoverCard } from "@next-pms/design-system/components";
 
+import { TimelineCell } from "./cells";
+import type { TableColumn } from "./columns";
 /**
  * Internal dependencies.
  */
 import type { ProjectTimelineItem } from "../types";
-import { TimelineCell } from "./cells";
-import type { TableColumn } from "./columns";
 
 type TimelineTableProps = {
   items: ProjectTimelineItem[];

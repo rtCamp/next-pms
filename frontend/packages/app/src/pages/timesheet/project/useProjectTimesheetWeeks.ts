@@ -10,12 +10,12 @@ import type { FrappeError } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { hashString, parseFrappeErrorMsg } from "@/lib/utils";
-import { formatTimesheetWeekLabel } from "../utils";
 import type {
   ProjectFilterArgs,
   ProjectWeeksResponse,
   ProjectWeekSummary,
 } from "./types";
+import { formatTimesheetWeekLabel } from "../utils";
 
 type UseProjectTimesheetWeeksOptions = {
   date: string;

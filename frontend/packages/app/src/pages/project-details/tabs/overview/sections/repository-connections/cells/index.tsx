@@ -8,9 +8,9 @@ import { format } from "date-fns";
  */
 import { ProjectRepositoryConnection } from "@/pages/project-details/types";
 import { TextCell } from "@/pages/projects/list/cells/textCell";
-import type { TableColumn } from "../columns";
 import { DateCell } from "./dateCell";
 import { RepoNameCell } from "./repoNameCell";
+import type { TableColumn } from "../columns";
 import { ActionsCell } from "../components/actionsCell";
 
 type RepoCellProps = {

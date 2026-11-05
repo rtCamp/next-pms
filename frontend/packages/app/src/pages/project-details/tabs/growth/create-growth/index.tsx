@@ -37,6 +37,10 @@ import {
 import { DisabledField } from "@/pages/project-details/components/disabledField";
 import { UpdateLogNote } from "@/pages/project-details/components/updateLogNote";
 import { useProjectDetail } from "@/pages/project-details/context";
+import { EMPTY_GROWTH_VALUES } from "./constants";
+import { EmployeeField } from "./employeeField";
+import { buildGrowthSchema, type GrowthFormValues } from "./schema";
+import type { CreateGrowthModalProps } from "./types";
 import {
   CLIENT_PRIORITY_OPTIONS,
   FORM_EDITOR_CLASS,
@@ -48,10 +52,6 @@ import { GROWTH_HELP } from "../help";
 import { PriorityBadge } from "../list/cells/priorityBadge";
 import { StatusBadge } from "../list/cells/statusBadge";
 import type { ApiGrowthDetail } from "../types";
-import { EMPTY_GROWTH_VALUES } from "./constants";
-import { EmployeeField } from "./employeeField";
-import { buildGrowthSchema, type GrowthFormValues } from "./schema";
-import type { CreateGrowthModalProps } from "./types";
 
 const emptyCreateValues = (): GrowthFormValues => ({
   ...EMPTY_GROWTH_VALUES,

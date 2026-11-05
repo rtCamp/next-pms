@@ -9,11 +9,11 @@ import { Filter, Select, type FilterField } from "@rtcamp/frappe-ui-react";
  * Internal dependencies.
  */
 import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
+import { SortButton } from "./sortButton";
 import { RISK_STATUSES } from "../constants";
 import type { RiskStatus } from "../constants";
 import { useRisks } from "../context";
 import { RISKS_HELP } from "../help";
-import { SortButton } from "./sortButton";
 
 const USER_LINK_OPERATORS = [
   { label: "Equals", value: "=" },

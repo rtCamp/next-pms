@@ -16,11 +16,11 @@ import {
  * Internal dependencies.
  */
 import { InfiniteScroll } from "@/components/infiniteScroll";
-import StarRating from "../starRating";
+import { FeedbackDetailDialog } from "./feedbackDetailDialog";
 import { PersonCell } from "./personCell";
 import { FEEDBACK_LIST_COLUMNS } from "../constants";
+import StarRating from "../starRating";
 import { useTeamFeedbackList } from "../useTeamFeedbackList";
-import { FeedbackDetailDialog } from "./feedbackDetailDialog";
 
 export function TeamFeedbackView() {
   const { feedbackList, isLoading, hasMore, loadMore } = useTeamFeedbackList();

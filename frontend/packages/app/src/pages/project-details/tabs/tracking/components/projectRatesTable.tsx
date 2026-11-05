@@ -18,14 +18,14 @@ import {
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 import { format, parseISO } from "date-fns";
 
+import { ActionsCell } from "./actionsCell";
+import { ProjectRateModal } from "./projectRateModal";
 /**
  * Internal dependencies.
  */
 import { RATE_COLUMNS } from "../constants";
 import { useTracking } from "../context";
 import { TRACKING_HELP } from "../help";
-import { ActionsCell } from "./actionsCell";
-import { ProjectRateModal } from "./projectRateModal";
 
 const gridTemplateColumns = RATE_COLUMNS.map((c) => c.width).join(" ");
 

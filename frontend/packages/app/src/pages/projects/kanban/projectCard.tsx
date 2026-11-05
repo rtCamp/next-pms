@@ -12,11 +12,11 @@ import { AgentAlt, Apps, Calendar, Code } from "@rtcamp/frappe-ui-react/icons";
 import { ROUTES } from "@/lib/constant";
 import { formatProjectDate, toKebabCase } from "@/lib/utils";
 
+import { CLICK_DRAG_THRESHOLD_PX } from "./constants";
+import type { Employee, KanbanProjectItem } from "./types";
 import { KANBAN_CARD_TOOLTIP, PROJECT_HEALTH_TOOLTIP } from "../help";
 import { Dot } from "../list/cells/dot";
 import type { RagStatus } from "../types";
-import { CLICK_DRAG_THRESHOLD_PX } from "./constants";
-import type { Employee, KanbanProjectItem } from "./types";
 
 export function ProjectCard({ project }: { project: KanbanProjectItem }) {
   const navigate = useNavigate();

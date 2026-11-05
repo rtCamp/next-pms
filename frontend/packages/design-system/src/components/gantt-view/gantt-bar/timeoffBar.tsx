@@ -4,13 +4,13 @@
 import React from "react";
 import { Holiday } from "@rtcamp/frappe-ui-react/icons";
 
+import { GanttBar } from "./ganttBar";
+import { getTimeoffLabel } from "./utils/getTimeoffLabel";
 /**
  * Internal dependencies.
  */
 import { CELL_WIDTH } from "../constants";
 import type { TimeoffPortion } from "../types";
-import { GanttBar } from "./ganttBar";
-import { getTimeoffLabel } from "./utils/getTimeoffLabel";
 
 interface GanttTimeoffBarProps extends React.HTMLAttributes<HTMLDivElement> {
   startDate: Date;

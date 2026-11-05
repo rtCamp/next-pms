@@ -9,9 +9,9 @@ import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
  */
 import { currencyFormat } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
+import { LegendItem } from "./legendItem";
 import { useTracking } from "../context";
 import { TRACKING_HELP } from "../help";
-import { LegendItem } from "./legendItem";
 
 export function InvoiceBurnCell() {
   const projectId = useProjectDetail((state) => state.projectId);
