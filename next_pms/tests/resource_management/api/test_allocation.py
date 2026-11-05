@@ -27,6 +27,8 @@ PUBLIC_HOLIDAY = "2026-09-09"
 
 HOLIDAY_LIST = "Leave Aware Allocation Holiday List"
 EMPLOYEE_USER = "leave-aware-allocation@example.com"
+APPLICANT_USER = "leave-aware-applicant@example.com"
+MANAGER_USER = "leave-aware-manager@example.com"
 LEAVE_TYPE = "Leave Aware Allocation LWP"
 CUSTOMER = "Leave Aware Allocation Customer"
 PROJECT = "Leave Aware Allocation Project"
@@ -180,6 +182,7 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
         )
 
     def tearDown(self):
+        frappe.set_user("Administrator")
         for leave in frappe.get_all("Leave Application", filters={"employee": self.employee}, pluck="name"):
             frappe.delete_doc("Leave Application", leave, force=1, ignore_permissions=True)
         for allocation in frappe.get_all("Resource Allocation", filters={"employee": self.employee}, pluck="name"):
@@ -204,7 +207,9 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
             }
         ).insert(ignore_permissions=True)
 
-    def _apply_leave(self, from_date, to_date, half_day=False, half_day_date=None, submit=False):
+    def _apply_leave(
+        self, from_date, to_date, half_day=False, half_day_date=None, submit=False, status="Approved", notify=None
+    ):
         get_employee_leaves.clear_cache()
         leave = frappe.get_doc(
             {
@@ -217,13 +222,38 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
                 "half_day_date": half_day_date or (from_date if half_day else None),
                 "description": "leave aware allocation test",
                 "leave_approver": "Administrator",
-                "status": "Approved",
+                "status": status,
+                "custom_notify_users": [{"user": user} for user in notify or []],
             }
         ).insert(ignore_permissions=True)
 
         if submit:
             leave.submit()
         return leave
+
+    def _make_applicant(self):
+        """The employee's own user: the one who really saves a leave application."""
+        applicant = self._make_user(APPLICANT_USER)
+        frappe.db.set_value("Employee", self.employee, "user_id", applicant)
+        return applicant
+
+    def _make_user(self, email):
+        """A plain employee user. The Employee role is inserted directly: saving the User strips it."""
+        if not frappe.db.exists("User", email):
+            user = frappe.get_doc(
+                {"doctype": "User", "email": email, "first_name": email.split("@")[0], "send_welcome_email": 0}
+            ).insert(ignore_permissions=True)
+            frappe.get_doc(
+                {
+                    "doctype": "Has Role",
+                    "parent": user.name,
+                    "parenttype": "User",
+                    "parentfield": "roles",
+                    "role": "Employee",
+                }
+            ).db_insert()
+            frappe.clear_cache(user=user.name)
+        return email
 
     def _overrides(self, allocation):
         allocation.reload()
@@ -872,3 +902,76 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
         self.assertEqual(overrides[WED].source, LEAVE_SOURCE)
         self.assertEqual(overrides[PUBLIC_HOLIDAY].hours, 4)
         self.assertEqual(overrides[PUBLIC_HOLIDAY].source, MANUAL_SOURCE)
+
+    # --- who the resync is credited to -------------------------------------
+
+    def _hand_edited_by_a_manager(self, allocation):
+        """Stamp the allocation as last edited by a manager, so a later change is distinguishable."""
+        manager = self._make_user(MANAGER_USER)
+        frappe.db.set_value("Resource Allocation", allocation.name, "modified_by", manager, update_modified=False)
+        return manager
+
+    def test_leave_resync_is_credited_to_administrator_not_the_one_who_saved_the_leave(self):
+        allocation = self._allocate()
+        manager = self._hand_edited_by_a_manager(allocation)
+        applicant = self._make_applicant()
+
+        frappe.set_user(applicant)
+        self.addCleanup(frappe.set_user, "Administrator")
+        self._apply_leave(WED, THU, status="Open", notify=[self._make_user(MANAGER_USER)])
+
+        allocation.reload()
+        self.assertEqual(set(self._overrides(allocation)), {WED, THU})
+        self.assertNotIn(allocation.modified_by, (manager, applicant))
+        self.assertEqual(allocation.modified_by, "Administrator")
+        for row in allocation.override:
+            self.assertEqual(row.modified_by, "Administrator")
+
+    def test_leave_resync_hands_the_session_back_to_the_user_who_triggered_it(self):
+        self._allocate()
+        applicant = self._make_applicant()
+
+        frappe.set_user(applicant)
+        self.addCleanup(frappe.set_user, "Administrator")
+        self._apply_leave(WED, THU, status="Open", notify=[self._make_user(MANAGER_USER)])
+
+        self.assertEqual(frappe.session.user, applicant)
+
+    def test_session_is_handed_back_even_when_an_allocation_fails_to_resync(self):
+        from unittest.mock import patch
+
+        allocation = self._allocate()
+        applicant = self._make_applicant()
+
+        frappe.set_user(applicant)
+        self.addCleanup(frappe.set_user, "Administrator")
+        with patch(
+            "next_pms.resource_management.doc_events.leave_application.leave_sync.sync_leave_overrides",
+            side_effect=RuntimeError("boom"),
+        ):
+            self._apply_leave(WED, THU, status="Open", notify=[self._make_user(MANAGER_USER)])
+
+        self.assertEqual(frappe.session.user, applicant)
+        self.assertEqual(self._overrides(allocation), {})
+
+    def test_manager_edits_are_still_credited_to_the_manager(self):
+        allocation = self._allocate()
+        manager = self._make_user(MANAGER_USER)
+
+        frappe.set_user(manager)
+        self.addCleanup(frappe.set_user, "Administrator")
+        frappe.get_doc("Resource Allocation", allocation.name).save(ignore_permissions=True)
+
+        self.assertEqual(frappe.db.get_value("Resource Allocation", allocation.name, "modified_by"), manager)
+
+    def test_ai_created_allocation_is_resynced_when_an_employee_applies_for_leave(self):
+        """An employee cannot edit an AI allocation, but the leave sync is the system's doing, not theirs."""
+        allocation = self._allocate()
+        frappe.db.set_value("Resource Allocation", allocation.name, "is_ai_created", 1, update_modified=False)
+        applicant = self._make_applicant()
+
+        frappe.set_user(applicant)
+        self.addCleanup(frappe.set_user, "Administrator")
+        self._apply_leave(WED, THU, status="Open", notify=[self._make_user(MANAGER_USER)])
+
+        self.assertEqual(set(self._overrides(allocation)), {WED, THU})
