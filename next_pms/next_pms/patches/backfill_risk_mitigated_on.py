@@ -12,7 +12,7 @@ def execute():
     for row in frappe.get_all(
         "Risk Update",
         filters={"parenttype": "Risk", "parentfield": "risk_update_log", "parent": ["in", mitigated]},
-        fields=["parent", "status", "updated_at"],
+        fields=["parent", "idx", "status", "updated_at"],
         order_by="parent asc, idx asc",
     ):
         logs.setdefault(row.parent, []).append(row)
