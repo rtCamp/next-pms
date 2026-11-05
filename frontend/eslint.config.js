@@ -6,7 +6,7 @@ import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
-import importPlugin from "eslint-plugin-import-x";
+import perfectionist from "eslint-plugin-perfectionist";
 import parser from "@typescript-eslint/parser";
 
 export default tseslint.config(
@@ -22,7 +22,7 @@ export default tseslint.config(
     plugins: {
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
-      "import-x": importPlugin,
+      perfectionist,
     },
     rules: {
       "react-hooks/rules-of-hooks": "error",
@@ -31,32 +31,26 @@ export default tseslint.config(
         "warn",
         { allowConstantExport: true },
       ],
-      "import-x/order": [
+      "perfectionist/sort-imports": [
         "error",
         {
-          groups: ["builtin", "external", "internal"],
-          pathGroups: [
+          newlinesBetween: "ignore",
+          newlinesInside: "ignore",
+          customGroups: [
             {
-              pattern: "react",
-              group: "external",
-              position: "before",
-            },
-            {
-              pattern: "react-*",
-              group: "external",
-              position: "before",
-            },
-            {
-              pattern: "@/**",
-              group: "internal",
-              position: "after",
+              groupName: "react",
+              elementNamePattern: ["^react$", "^react-[^/]*$"],
             },
           ],
-          pathGroupsExcludedImportTypes: ["builtin"],
-          alphabetize: {
-            order: "asc",
-            caseInsensitive: true,
-          },
+          groups: [
+            "builtin",
+            "react",
+            "external",
+            "internal",
+            ["sibling", "index"],
+            "parent",
+            "unknown",
+          ],
         },
       ],
     },
