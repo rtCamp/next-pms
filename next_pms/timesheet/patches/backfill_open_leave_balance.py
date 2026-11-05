@@ -1,11 +1,8 @@
-"""Fill `leave_balance` on leave applications still open when the server-side setter arrived.
+"""Fill `leave_balance` on Open drafts filed before the server-side setter.
 
-The setter in next_pms.timesheet.doc_events.leave_application stores the balance before
-application for new documents and for drafts whose employee, leave type or dates change. An
-application filed before it and still awaiting a decision gets neither, so its approval email
-would still show 0; what is stored is the balance before it as of now, the number the Desk form
-would show the approver. Decided applications are left alone, submitted or not: their value
-cannot be rebuilt exactly once the ledger has moved on.
+Stores the balance before the application as of now, what the Desk form would show the
+approver. Decided applications are left alone: their value cannot be rebuilt once the ledger
+has moved on.
 """
 
 import frappe

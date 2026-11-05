@@ -1,11 +1,9 @@
-# The fields the stored balance depends on; a change to any of them on a draft recomputes it,
-# which is when the Desk form recomputes too
+# A change to any of these on a draft recomputes the stored balance
 LEAVE_BALANCE_FIELDS = ("employee", "leave_type", "from_date", "to_date")
 
 
 def before_validate(doc, method=None):
-    # Before the controller's validate: HRMS's balance validation reads leave_balance for its
-    # insufficient-balance message on leave types that allow a negative balance
+    # Before HRMS's validate, which reads leave_balance for its insufficient-balance message
     set_leave_balance(doc)
 
 
@@ -58,26 +56,16 @@ def flush_cache(doc):
 def set_leave_balance(doc):
     """Store the balance before this application, whichever client filed it.
 
-    HRMS keeps `leave_balance` ("Leave Balance Before Application") as a client-side field: the
-    Desk form and the mobile app compute it with get_leave_balance_on and send it along, and the
-    server never sets it. A Leave Application created through the API, which is what the
-    add-leave forms do, stayed at 0, and so did the HR emails built from the document. Computing
-    it here, with the same call and arguments as the Desk form, gives every client the same value.
-
-    Recomputed only for a new application or a draft changed in one of the fields the balance
-    depends on, so the value stays the balance at the time of application: the approver's save
-    (workflow transition, submit) does not move it, and neither does the Desk form, which
-    recomputes the field on a half-day toggle. A stored 0 is treated as missing and filled on the
-    next save while the application is still open, never by the decision itself, the rule the
-    backfill patch follows. A failed lookup is logged and never blocks the save.
+    HRMS sets `leave_balance` only client-side (Desk form, mobile app), so API-created
+    applications stayed at 0. Computed here with the Desk form's call for a new application or
+    a draft whose employee, leave type or dates changed; other saves keep the snapshot. A stored
+    0 is filled on the next save while the application is Open. A failed lookup is logged and
+    never blocks the save.
     """
     import frappe
     from hrms.hr.doctype.leave_application.leave_application import is_lwp
 
-    # The saved state, not the in-memory one: submit() sets docstatus = 1 before this hook runs,
-    # and a draft changed and submitted in one request still needs the new balance. A new
-    # application inserted already submitted is at its application time too, and its ledger
-    # entry is only created after validate
+    # The saved state: submit() sets docstatus = 1 before this hook runs
     saved = None if doc.is_new() else doc.get_doc_before_save()
     if saved and saved.docstatus != 0:
         return
@@ -88,7 +76,7 @@ def set_leave_balance(doc):
             doc.leave_balance = saved.leave_balance
             return
     if is_lwp(doc.leave_type):
-        # No allocation to draw on; the Desk form shows 0 for these too
+        # No allocation; the Desk form shows 0 too
         doc.leave_balance = 0
         return
     messages_before = len(frappe.get_message_log())
@@ -105,22 +93,15 @@ def set_leave_balance(doc):
             title=f"Could not store the leave balance on Leave Application {doc.name or '(new)'}",
             message=frappe.get_traceback(),
         )
-        # A frappe.throw inside the lookup queued its message before raising; the save goes
-        # through, so the client must not be shown it as an error
+        # Drop the message a frappe.throw inside the lookup queued; the save goes through
         del frappe.local.message_log[messages_before:]
         if saved and doc.leave_balance == saved.leave_balance:
-            # The value belongs to the fields before this change; leave it to be filled next time
+            # Belongs to the fields before this change
             doc.leave_balance = 0
 
 
 def get_leave_balance_before(employee, leave_type, from_date, to_date, leave_application=None):
-    """The Desk form's balance lookup: every leave in the allocation period counts.
-
-    `leave_application` lets HRMS grant the lookup to a user who can read this application but
-    not the Employee, the way its own balance validation does. HRMS before v16.20 (still allowed
-    by pyproject.toml and used by the e2e workflow) rejects the argument, so it is passed only
-    when the installed version takes it.
-    """
+    """The Desk form's lookup; `leave_application` (HRMS >= v16.20) is passed only when accepted."""
     import inspect
 
     from hrms.hr.doctype.leave_application.leave_application import get_leave_balance_on
