@@ -91,6 +91,8 @@ declare global {
         is_calendar_setup: boolean;
         global_filters: GlobalFilters;
         allow_weekend_entries?: boolean;
+        whats_new_available?: boolean;
+        whats_new_unseen?: boolean;
       };
     };
   }

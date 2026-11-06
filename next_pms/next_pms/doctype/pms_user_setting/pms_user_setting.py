@@ -17,6 +17,7 @@ class PMSUserSetting(Document):
         auto_expand_weeks_by_default: DF.Int
         use_system_auto_expand_weeks: DF.Check
         user: DF.Link
+        whats_new_last_seen: DF.Data | None
     # end: auto-generated types
 
     def validate(self):

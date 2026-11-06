@@ -16,6 +16,7 @@ export const ROUTES = {
   apps: "/apps",
   "not-found": "/not-found",
   "no-employee": "/no-employee",
+  "whats-new": "/whats-new",
 };
 export const ROLE_ACCESS = {
   leadershipDashboard: [
