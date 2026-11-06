@@ -101,11 +101,12 @@ export class ProjectRisksPage extends GrowthPage {
       .click();
   }
 
-  /** A select in the risk or update dialog: named by its placeholder, or showing it as text. */
+  /** A select in the risk or update dialog: named by its placeholder, showing it as text, or a combobox input carrying it. */
   dialogSelect(dialog, placeholder) {
     return dialog
       .getByRole("combobox", { name: placeholder })
       .or(dialog.getByRole("combobox").filter({ hasText: placeholder }))
+      .or(dialog.getByPlaceholder(placeholder))
       .first();
   }
 
