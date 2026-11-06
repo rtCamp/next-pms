@@ -30,19 +30,32 @@ export const STATUS_DOT_CLASS: Record<string, string> = {
 };
 
 export type RiskColumnKey =
-  "risk_category" | "summary" | "risk_owner" | "risk_level" | "status";
+  | "risk_category"
+  | "summary"
+  | "risk_owner"
+  | "risk_level"
+  | "status"
+  | "creation"
+  | "mitigated_on";
 
-export const RISK_COLUMNS: GroupColumn<RiskColumnKey>[] = [
+export const OPEN_RISK_COLUMNS: GroupColumn<RiskColumnKey>[] = [
   { key: "risk_category", label: "Risk category", width: "128px", flex: 1 },
   { key: "summary", label: "Risk Summary", width: "264px", flex: 4 },
   { key: "risk_owner", label: "Risk owner", width: "140px", flex: 0 },
   // 6px wider than React: InterVar sets the label 2px wider than Inter.
   { key: "risk_level", label: "Risk level", width: "80px", flex: 0 },
   { key: "status", label: "Status", width: "120px", flex: 1 },
+  { key: "creation", label: "Created on", width: "110px", flex: 0 },
+];
+
+export const MITIGATED_RISK_COLUMNS: GroupColumn<RiskColumnKey>[] = [
+  ...OPEN_RISK_COLUMNS,
+  { key: "mitigated_on", label: "Mitigated on", width: "110px", flex: 0 },
 ];
 
 export const RISK_SORT_FIELDS: SortField[] = [
   { field: "modified", label: "Last updated on" },
+  { field: "creation", label: "Created on" },
   { field: "status", label: "Status" },
   { field: "risk_category", label: "Risk category" },
   { field: "risk_level", label: "Risk level" },
@@ -62,6 +75,8 @@ export const RISK_LIST_FIELDS = [
   "summary",
   "owner",
   "risk_owner",
+  "creation",
+  "mitigated_on",
 ];
 
 /** The fields an update holds besides its audit fields. */
