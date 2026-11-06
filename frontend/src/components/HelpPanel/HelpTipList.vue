@@ -7,6 +7,7 @@ import {
   AccordionTrigger,
 } from "reka-ui";
 import { WIKI_BASE } from "@/components/InfoHoverCard";
+import { MotionDialogPlayer } from "@/components/MotionPlayer";
 import type { HelpTip } from "./types";
 
 defineProps<{ label: string; tips: HelpTip[] }>();
@@ -56,6 +57,11 @@ const labelId = useId();
           >
             <li v-for="step in tip.steps" :key="step">{{ step }}</li>
           </ol>
+          <MotionDialogPlayer
+            v-if="tip.motion"
+            :motion="tip.motion"
+            :title="tip.title"
+          />
           <a
             v-if="tip.wiki"
             :href="`${WIKI_BASE}/${tip.wiki}`"

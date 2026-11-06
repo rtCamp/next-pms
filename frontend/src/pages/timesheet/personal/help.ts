@@ -85,12 +85,14 @@ export const PERSONAL_TIMESHEET_TIPS: HelpTip[] = [
       "Add a comment and save.",
     ],
     wiki: "Personal-Timesheet#log-time-with-the-add-time-dialog",
+    motion: () => import("@/assets/motions/add-time?motion"),
   },
   {
     id: "add-time-on-day",
     title: "Open Add time on a chosen day",
     body: "Select a day's cell on the Projects / Tasks row to open Add time with that date filled in. On a project row, the project is filled in too.",
     wiki: "Personal-Timesheet#the-weeks-grid",
+    motion: () => import("@/assets/motions/add-time-on-day?motion"),
   },
   {
     id: "log-time-inline",
@@ -103,6 +105,7 @@ export const PERSONAL_TIMESHEET_TIPS: HelpTip[] = [
       "Select Save entry, or press Ctrl+Enter (Cmd+Enter on Mac).",
     ],
     wiki: "Personal-Timesheet#log-or-edit-time-inline",
+    motion: () => import("@/assets/motions/log-time-inline?motion"),
   },
   {
     id: "edit-time-inline",
@@ -115,6 +118,7 @@ export const PERSONAL_TIMESHEET_TIPS: HelpTip[] = [
       "Or select Delete entry to remove it. There's no confirmation.",
     ],
     wiki: "Personal-Timesheet#log-or-edit-time-inline",
+    motion: () => import("@/assets/motions/edit-time-inline?motion"),
   },
   {
     id: "starred-tasks",
@@ -125,6 +129,7 @@ export const PERSONAL_TIMESHEET_TIPS: HelpTip[] = [
       "In a week, select the star at the start of the Projects / Tasks row.",
     ],
     wiki: "Personal-Timesheet#the-weeks-grid",
+    motion: () => import("@/assets/motions/import-liked-tasks?motion"),
   },
   {
     id: "calendar-events",
@@ -135,6 +140,7 @@ export const PERSONAL_TIMESHEET_TIPS: HelpTip[] = [
       "Pick the events. Duration becomes their combined length and each event is listed in the comment.",
     ],
     wiki: "FAQ-and-Troubleshooting#why-is-add-calendar-events-greyed-out-in-add-time",
+    motion: () => import("@/assets/motions/calendar-events?motion"),
   },
   {
     id: "submit-week",
@@ -145,6 +151,7 @@ export const PERSONAL_TIMESHEET_TIPS: HelpTip[] = [
       "Add a note if you like, then select Submit.",
     ],
     wiki: "Personal-Timesheet#submit-a-week-for-approval",
+    motion: () => import("@/assets/motions/submit-week?motion"),
   },
   {
     id: "resubmit-week",
@@ -156,5 +163,6 @@ export const PERSONAL_TIMESHEET_TIPS: HelpTip[] = [
       "Select the cross or check at the end of the week's row, then select Submit.",
     ],
     wiki: "Personal-Timesheet#submit-a-week-for-approval",
+    motion: () => import("@/assets/motions/resubmit-rejected-week?motion"),
   },
 ];

@@ -69,6 +69,7 @@ export const TEAM_TIMESHEET_TIPS: HelpTip[] = [
       "Select Approve.",
     ],
     wiki: "Team-Timesheet#approve-a-week",
+    motion: () => import("@/assets/motions/approve-week?motion"),
   },
   {
     id: "approve-part-of-week",
@@ -76,6 +77,7 @@ export const TEAM_TIMESHEET_TIPS: HelpTip[] = [
     body: "Only the ticked days are approved or rejected, so you can approve part of a week and reject the rest afterwards.",
     steps: REVIEW_WEEK_STEPS,
     wiki: "Team-Timesheet#approve-a-week",
+    motion: () => import("@/assets/motions/approve-part-of-week?motion"),
   },
   {
     id: "reject-week",
@@ -87,5 +89,6 @@ export const TEAM_TIMESHEET_TIPS: HelpTip[] = [
       "Enter the reason and select Reject timesheet.",
     ],
     wiki: "Team-Timesheet#approve-a-week",
+    motion: () => import("@/assets/motions/reject-week?motion"),
   },
 ];

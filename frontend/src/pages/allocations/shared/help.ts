@@ -246,6 +246,7 @@ export const TEAM_ALLOCATION_TIPS: HelpTip[] = [
     ],
     wiki: "Team-Allocations#add-allocation",
     roles: ROLE_ACCESS.manageAllocations,
+    motion: () => import("@/assets/motions/add-allocation?motion"),
   },
   {
     id: "allocate-from-grid",
@@ -257,6 +258,7 @@ export const TEAM_ALLOCATION_TIPS: HelpTip[] = [
     ],
     wiki: "Team-Allocations#inline-editing",
     roles: ROLE_ACCESS.manageAllocations,
+    motion: () => import("@/assets/motions/drag-to-allocate?motion"),
   },
   {
     id: "resize-allocation",
@@ -269,8 +271,12 @@ export const TEAM_ALLOCATION_TIPS: HelpTip[] = [
     ],
     wiki: "Team-Allocations#resize-a-booking-on-the-grid",
     roles: ROLE_ACCESS.manageAllocations,
+    motion: () => import("@/assets/motions/resize-allocation?motion"),
   },
-  VARY_HOURS_TIP,
+  {
+    ...VARY_HOURS_TIP,
+    motion: () => import("@/assets/motions/edit-schedule?motion"),
+  },
   {
     id: "allocation-card",
     title: "Hover a bar to open its card",
@@ -297,6 +303,7 @@ export const PROJECT_ALLOCATION_TIPS: HelpTip[] = [
     ],
     wiki: "Team-Allocations#inline-editing",
     roles: ROLE_ACCESS.manageAllocations,
+    motion: () => import("@/assets/motions/drag-to-allocate-project?motion"),
   },
   {
     id: "resize-allocation",
@@ -309,8 +316,12 @@ export const PROJECT_ALLOCATION_TIPS: HelpTip[] = [
     ],
     wiki: "Project-Allocations#resize-a-booking-on-the-grid",
     roles: ROLE_ACCESS.manageAllocations,
+    motion: () => import("@/assets/motions/resize-allocation-project?motion"),
   },
-  VARY_HOURS_TIP,
+  {
+    ...VARY_HOURS_TIP,
+    motion: () => import("@/assets/motions/edit-schedule-project?motion"),
+  },
   {
     id: "allocation-card",
     title: "Hover a bar to open its card",

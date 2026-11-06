@@ -1,5 +1,4 @@
-/** A loaded motion: the animation a tip plays to show its task. Typed once motions are ported. */
-export type MotionModule = unknown;
+import type { MotionLoader } from "@/components/MotionPlayer";
 
 /** One how-to or tip in the Help panel. */
 export interface HelpTip {
@@ -12,7 +11,7 @@ export interface HelpTip {
   /** Page and anchor under `WIKI_BASE`, e.g. "Team-Allocations#add-allocation". */
   wiki?: string;
   /** Lazy import of the motion that shows the task, played under the text. */
-  motion?: () => Promise<MotionModule>;
+  motion?: MotionLoader;
   /** Only shown to users who hold one of these roles. */
   roles?: readonly string[];
 }

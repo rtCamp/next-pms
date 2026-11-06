@@ -41,6 +41,7 @@ export const PROJECT_TIMESHEET_TIPS: HelpTip[] = [
       "Select Approve.",
     ],
     wiki: ROLLUP_WIKI,
+    motion: () => import("@/assets/motions/approve-project-time?motion"),
   },
   {
     id: "reject-project-time",
@@ -52,5 +53,6 @@ export const PROJECT_TIMESHEET_TIPS: HelpTip[] = [
       "Enter the reason and select Reject timesheet.",
     ],
     wiki: ROLLUP_WIKI,
+    motion: () => import("@/assets/motions/reject-project-time?motion"),
   },
 ];

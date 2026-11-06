@@ -4,7 +4,7 @@ import { useArgs } from "storybook/preview-api";
 import { expect, fn, screen, userEvent, waitFor, within } from "storybook/test";
 import { WIKI_BASE } from "@/components/InfoHoverCard";
 import HelpPanel from "./HelpPanel.vue";
-import { GENERAL_TIPS, PAGE_TIPS } from "./HelpPanel.fixtures";
+import { GENERAL_TIPS, MOTION_TIP, PAGE_TIPS } from "./HelpPanel.fixtures";
 
 const meta = {
   title: "Components/HelpPanel/Interactions",
@@ -166,5 +166,22 @@ export const PageWithoutTips: Story = {
     await expect(
       dialog.getByRole("group", { name: "Everywhere" }),
     ).toBeInTheDocument();
+  },
+};
+
+/** A tip with a motion shows the play icon and plays the motion under its text when opened. */
+export const PlaysATipsMotion: Story = {
+  args: { pageTips: [MOTION_TIP, ...PAGE_TIPS] },
+  play: async () => {
+    const help = within(await panel());
+    await userEvent.click(
+      help.getByRole("button", { name: "Send a week for approval" }),
+    );
+    await help.findByRole("slider", { name: "Animation progress" });
+    await waitFor(() =>
+      expect(
+        help.getByRole("img", { name: "Send a week for approval" }),
+      ).toHaveAttribute("data-motion", "submit-week"),
+    );
   },
 };

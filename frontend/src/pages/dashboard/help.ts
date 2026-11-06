@@ -286,6 +286,7 @@ export const MANAGER_DASHBOARD_TIPS: HelpTip[] = [
     body: "Decide your direct reports' open requests in Upcoming time-offs.",
     steps: ["Select ✓ on an open request.", "Select Approve leave."],
     wiki: `${MANAGER_WIKI}#approve-a-leave-request`,
+    motion: () => import("@/assets/motions/approve-leave?motion"),
   },
   {
     id: "reject-leave",
@@ -297,6 +298,7 @@ export const MANAGER_DASHBOARD_TIPS: HelpTip[] = [
       "Select Reject leave.",
     ],
     wiki: `${MANAGER_WIKI}#approve-a-leave-request`,
+    motion: () => import("@/assets/motions/reject-leave?motion"),
   },
   CALENDAR_DATE_TIP,
   {

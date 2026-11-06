@@ -61,6 +61,7 @@ export const PROJECT_DETAIL_TIPS: Partial<Record<ProjectTabKey, HelpTip[]>> = {
       id: "calendar-todo",
       title: "Add a ToDo to a milestone",
       body: "Select + in the ToDos column of a milestone or touchpoint. Add ToDo opens already linked to it.",
+      motion: () => import("@/assets/motions/calendar-todo?motion"),
     },
     {
       id: "calendar-tab",
@@ -86,6 +87,8 @@ export const PROJECT_DETAIL_TIPS: Partial<Record<ProjectTabKey, HelpTip[]>> = {
       ],
       wiki: "Project-Detail#hide-or-restore-a-tracking-card",
       roles: CUSTOMIZATION_ROLES,
+      motion: () =>
+        import("@/assets/motions/hide-restore-tracking-cards?motion"),
     },
     {
       id: "tracking-tab",
@@ -106,6 +109,7 @@ export const PROJECT_DETAIL_TIPS: Partial<Record<ProjectTabKey, HelpTip[]>> = {
       title: "Change a risk's status or level with an update",
       body: "Open the risk from the list and select + beside Updates. Pick the new Status or Risk, add a Note and select Add update.",
       wiki: "Project-Detail#change-a-risks-status-or-level",
+      motion: () => import("@/assets/motions/change-risk-status?motion"),
     },
     {
       id: "risks-tab",
@@ -118,6 +122,7 @@ export const PROJECT_DETAIL_TIPS: Partial<Record<ProjectTabKey, HelpTip[]>> = {
       id: "growth-status",
       title: "Change an initiative's status with an update",
       body: "Open the initiative from the list and select + beside Updates. Set the new Status, Priority for Client or Billable outcome, add a Note and select Add update.",
+      motion: () => import("@/assets/motions/change-growth-status?motion"),
     },
     {
       id: "growth-tab",
@@ -136,6 +141,7 @@ export const PROJECT_DETAIL_TIPS: Partial<Record<ProjectTabKey, HelpTip[]>> = {
       title: "Start a note from a saved template",
       body: "Select Create, then New from template, pick a template and select Use template. To save your own, select Create, then Create template.",
       wiki: "Project-Detail#write-a-note",
+      motion: () => import("@/assets/motions/note-from-template?motion"),
     },
     {
       id: "notes-tab",
@@ -156,6 +162,7 @@ export const PROJECT_DETAIL_TIPS: Partial<Record<ProjectTabKey, HelpTip[]>> = {
       id: "link-todo",
       title: "Link a ToDo",
       body: "In Add ToDo, pick a record under Link to milestone, touchpoint or growth initiative. The ToDo then also shows in the ToDos column on the Calendar tab, or under Action items on the growth initiative.",
+      motion: () => import("@/assets/motions/link-todo?motion"),
     },
     {
       id: "to-do-tab",

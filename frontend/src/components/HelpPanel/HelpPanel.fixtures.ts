@@ -1,5 +1,13 @@
 import type { HelpTip } from "./types";
 
+/** A page tip that plays a motion. */
+export const MOTION_TIP: HelpTip = {
+  id: "submit-week",
+  title: "Send a week for approval",
+  body: "Select the send button at the end of a week's row, then Submit.",
+  motion: () => import("@/assets/motions/submit-week?motion"),
+};
+
 export const PAGE_TIPS: HelpTip[] = [
   {
     id: "add-time-entry",

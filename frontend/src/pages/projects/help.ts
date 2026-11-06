@@ -168,6 +168,7 @@ export const PROJECTS_TIPS: HelpTip[] = [
       "Select Kanban view or one of your saved views.",
     ],
     wiki: "Projects#switch-between-list-and-kanban",
+    motion: () => import("@/assets/motions/switch-view?motion"),
   },
   {
     id: "save-view",
@@ -179,6 +180,7 @@ export const PROJECTS_TIPS: HelpTip[] = [
       "Enter a name and select Create.",
     ],
     wiki: "Saved-Views#create-a-saved-view",
+    motion: () => import("@/assets/motions/save-view?motion"),
   },
   {
     id: "sort-list",
@@ -189,6 +191,7 @@ export const PROJECTS_TIPS: HelpTip[] = [
       "Select a field, such as Start date. Select it again to reverse the order.",
     ],
     wiki: "Projects#view-switcher-and-toolbar",
+    motion: () => import("@/assets/motions/sort-list?motion"),
   },
   {
     id: "add-column",
@@ -199,6 +202,7 @@ export const PROJECTS_TIPS: HelpTip[] = [
       "Select Add Column and pick a column from the list.",
     ],
     wiki: "Projects#customise-columns",
+    motion: () => import("@/assets/motions/add-column?motion"),
   },
   {
     id: "remove-column",
@@ -209,6 +213,7 @@ export const PROJECTS_TIPS: HelpTip[] = [
       "Select × next to the column.",
     ],
     wiki: "Projects#customise-columns",
+    motion: () => import("@/assets/motions/remove-column?motion"),
   },
   {
     id: "reorder-columns",
@@ -219,6 +224,7 @@ export const PROJECTS_TIPS: HelpTip[] = [
       "Drag a column by its handle to a new place in the list.",
     ],
     wiki: "Projects#customise-columns",
+    motion: () => import("@/assets/motions/reorder-columns?motion"),
   },
   {
     id: "pin-column",
@@ -229,11 +235,13 @@ export const PROJECTS_TIPS: HelpTip[] = [
       "Select the pin next to a column. Select it again to unpin it.",
     ],
     wiki: "Projects#customise-columns",
+    motion: () => import("@/assets/motions/pin-column?motion"),
   },
   {
     id: "change-phase",
     title: "Drag a card to change its phase",
     body: "In Kanban view, drag a project's card to another phase column. The new phase is saved at once.",
     wiki: "Projects#kanban-view",
+    motion: () => import("@/assets/motions/change-phase?motion"),
   },
 ];
