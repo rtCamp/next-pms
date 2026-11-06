@@ -1,13 +1,11 @@
 import { expect } from "allure-playwright";
 import { gotoWithRetry } from "../utils/navigation";
-import { escapeRegExp } from "../utils/stringUtils";
 import { scaleTimeout } from "../utils/timeouts";
 
 /**
- * The Settings dialog, opened from the Next PMS menu in the sidebar header. A section
- * ("User Configuration", "System Configuration") is a labelled nav of tab buttons.
- * Checkboxes and fields carry no accessible label of their own, so they are found from
- * the text beside them.
+ * The Settings dialog, opened from the Next PMS menu in the sidebar header. Its sidebar is
+ * one tablist; a section ("User Configuration", "System Configuration") is a group of tabs
+ * under a plain-text label, with no role or accessible name of its own.
  */
 export class SettingsPage {
   /**
@@ -47,12 +45,23 @@ export class SettingsPage {
     await this.dialog.waitFor({ timeout: scaleTimeout(15000) });
   }
 
+  /** The sections of the sidebar: each is its label followed by its tabs. */
+  get sections() {
+    return this.dialog.getByRole("tablist").locator("xpath=./div/div");
+  }
+
   section(label) {
-    return this.dialog.getByRole("navigation", { name: label });
+    return this.sections.filter({
+      has: this.page.getByText(label, { exact: true }),
+    });
+  }
+
+  tabs(sectionLabel) {
+    return this.section(sectionLabel).getByRole("tab");
   }
 
   tab(sectionLabel, name) {
-    return this.section(sectionLabel).getByRole("button", {
+    return this.section(sectionLabel).getByRole("tab", {
       name,
       exact: true,
     });
@@ -61,8 +70,8 @@ export class SettingsPage {
   async openTab(sectionLabel, name) {
     await this.tab(sectionLabel, name).click();
     await expect(this.tab(sectionLabel, name)).toHaveAttribute(
-      "aria-current",
-      "page",
+      "aria-selected",
+      "true",
     );
   }
 
@@ -74,12 +83,8 @@ export class SettingsPage {
   // Fields
   // --------------------------------------
 
-  /** A checkbox, found by the label printed beside it. */
   checkbox(label) {
-    return this.dialog
-      .locator('div:has(> input[type="checkbox"])')
-      .filter({ hasText: new RegExp(`^${escapeRegExp(label)}$`) })
-      .getByRole("checkbox");
+    return this.dialog.getByRole("checkbox", { name: label, exact: true });
   }
 
   /** The text that names a field; it is on the page only while the field is. */
