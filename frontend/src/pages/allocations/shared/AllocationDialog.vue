@@ -14,6 +14,7 @@ import {
 } from "frappe-ui";
 import { DurationInput } from "@/components/DurationInput";
 import { InfoHoverCard } from "@/components/InfoHoverCard";
+import AiRemark from "./AiRemark.vue";
 import {
   RECURRENCE_OPTIONS,
   scheduleRequestFromForm,
@@ -149,18 +150,14 @@ function avatarOf(option: unknown) {
           This allocation was created by
           <span class="text-ink-amber-8">Ai</span>
         </span>
-        <div
-          v-if="isAi && state.context.aiReason"
-          class="mt-2 flex min-w-0 max-w-full items-center gap-1 text-ink-amber-8"
-          :title="state.context.aiReason"
-        >
-          <span class="shrink-0 text-sm-medium">Remark:</span>
-          <p class="min-w-0 truncate text-sm">{{ state.context.aiReason }}</p>
-        </div>
       </div>
     </template>
 
     <form class="space-y-4" novalidate @submit.prevent="state.submit">
+      <AiRemark
+        v-if="isAi && state.context.aiReason"
+        :remark="state.context.aiReason"
+      />
       <template v-for="field in dialogs.fieldOrder" :key="field">
         <div v-if="field === 'employee'">
           <Combobox
@@ -449,9 +446,17 @@ function avatarOf(option: unknown) {
             @click="state.close"
           />
           <Button
+            v-if="isAi"
+            variant="outline"
+            label="Save"
+            :loading="state.submitting && state.savingAsTentative"
+            :disabled="state.submitting"
+            @click="state.saveAsTentative"
+          />
+          <Button
             variant="solid"
             :label="submitLabel"
-            :loading="state.submitting"
+            :loading="state.submitting && !state.savingAsTentative"
             :disabled="!state.canSubmit"
             @click="state.submit"
           />
