@@ -16,15 +16,15 @@ import { useToasts } from "@rtcamp/frappe-ui-react";
  */
 import { pickAllowed, toKebabCase } from "@/lib/utils";
 
-import { useProjectKanban } from "./context";
-import type { Phase } from "../types";
-
 import { KANBAN_COLUMN_WIDTH } from "./constants";
+import { useProjectKanban } from "./context";
+
 import { Header } from "./header";
 import { ProjectCard } from "./projectCard";
 import type { KanbanProjectItem } from "./types";
 import type { OpenAddProject } from "../components/add-project/types";
 import { PHASES } from "../constants";
+import type { Phase } from "../types";
 
 type ProjectIdsByPhase = Record<Phase, string[]>;
 

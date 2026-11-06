@@ -21,7 +21,6 @@ import {
   mergeClassNames,
   parseFrappeErrorMsg,
 } from "@/lib/utils";
-import { useProjectDetail } from "../../context";
 import { OverviewSection } from "./components/overviewSection";
 import { SOURCING_FIELDS } from "./constants";
 import { overviewSchema, type OverviewFormValues } from "./schema";
@@ -30,6 +29,7 @@ import { Marketing } from "./sections/marketing";
 import { RepositoryConnections } from "./sections/repository-connections";
 import { Sourcing } from "./sections/sourcing";
 import { Specifics } from "./sections/specifics";
+import { useProjectDetail } from "../../context";
 
 export type { OverviewFormValues };
 

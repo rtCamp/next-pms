@@ -3,12 +3,12 @@
  */
 import { Accordion } from "@base-ui/react/accordion";
 
+import { RiskGroup } from "./listViewGroup";
 /**
  * Internal dependencies.
  */
 import { MITIGATED_RISK_COLUMNS, OPEN_RISK_COLUMNS } from "../constants";
 import { useRisks } from "../context";
-import { RiskGroup } from "./listViewGroup";
 
 export function RisksListView() {
   const data = useRisks((c) => c.state.data);

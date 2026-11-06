@@ -16,11 +16,11 @@ import {
 } from "@rtcamp/frappe-ui-react";
 import { EditAlt, Check, Close } from "@rtcamp/frappe-ui-react/icons";
 
+import type { TimesheetEntry } from "./types";
 /**
  * Internal Dependencies
  */
 import { DECIDED_ENTRY_TOOLTIP, EDIT_ENTRY_TOOLTIP } from "../help";
-import type { TimesheetEntry } from "./types";
 
 interface EntryRowProps {
   entry: TimesheetEntry;

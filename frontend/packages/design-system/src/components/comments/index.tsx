@@ -9,9 +9,9 @@ import { useMemo } from "react";
 import { CommentInput } from "./commentInput";
 import { CommentThread } from "./commentThread";
 import { CommentsProvider } from "./provider";
+import type { CommentsProps } from "./types";
 import { mergeClassNames as cn } from "../../utils";
 import Spinner from "../spinner";
-import type { CommentsProps } from "./types";
 
 export type { CommentNode, CommentsProps } from "./types";
 

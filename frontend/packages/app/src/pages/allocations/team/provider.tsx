@@ -11,6 +11,13 @@ import { format } from "date-fns";
  */
 import { useDebounce } from "@/hooks/useDebounce";
 import { pickAllowed } from "@/lib/utils";
+import { teamAllocationsTypeOptions } from "./constants";
+import {
+  AllocationsTeamContext,
+  type AllocationsTeamContextProps,
+} from "./context";
+import { useAllocationsTeamData } from "./useAllocationsTeamData";
+import { normalizeAllocationTypeSelection } from "./utils";
 import {
   ALLOCATION_TYPE_PARAM_KEY,
   ALLOCATIONS_PAGE_SIZE,
@@ -22,13 +29,6 @@ import {
   SEARCH_PARAM_KEY,
 } from "../constants";
 import type { AllocationRefreshTargets, AllocationsDuration } from "../types";
-import { teamAllocationsTypeOptions } from "./constants";
-import {
-  AllocationsTeamContext,
-  type AllocationsTeamContextProps,
-} from "./context";
-import { useAllocationsTeamData } from "./useAllocationsTeamData";
-import { normalizeAllocationTypeSelection } from "./utils";
 import {
   getWeekCountForDuration,
   moveDateByDuration,

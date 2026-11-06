@@ -8,9 +8,9 @@ import { InfoHoverCard, ProgressBar } from "@next-pms/design-system/components";
  */
 import { currencyFormat } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
+import { LegendItem } from "./legendItem";
 import { useTracking } from "../context";
 import { TRACKING_HELP } from "../help";
-import { LegendItem } from "./legendItem";
 
 export function BudgetBurnCell() {
   const currency = useProjectDetail((state) => state.project?.custom_currency);

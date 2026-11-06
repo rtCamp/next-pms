@@ -19,11 +19,11 @@ import { FrappeError, useFrappeUpdateDoc } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { RISK_LEVELS, RISK_STATUSES } from "../constants";
-import { RiskStatusBadge } from "../riskStatusBadge";
 import { addUpdateSchema } from "./schema";
 import type { AddUpdateModalProps } from "./types";
+import { RISK_LEVELS, RISK_STATUSES } from "../constants";
 import { RiskLevelBadge } from "../riskLevelBadge";
+import { RiskStatusBadge } from "../riskStatusBadge";
 
 export function AddUpdateModal({
   open,

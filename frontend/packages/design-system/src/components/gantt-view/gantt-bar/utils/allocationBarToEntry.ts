@@ -3,13 +3,13 @@
  */
 import { format } from "date-fns";
 
+import { getEditableHoursPerDay } from "./getEditableHoursPerDay";
 /**
  * Internal dependencies.
  */
 import type { AllocationCallbackData, DeleteAllocationMode } from "../../types";
 import type { ProjectAllocationBar } from "../../utils";
 import type { AllocationEntry } from "../allocationPopover";
-import { getEditableHoursPerDay } from "./getEditableHoursPerDay";
 
 /** Convert a ProjectAllocationBar to a display-ready AllocationEntry. */
 export function allocationBarToEntry(

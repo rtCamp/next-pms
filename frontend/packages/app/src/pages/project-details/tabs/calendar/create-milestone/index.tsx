@@ -30,10 +30,10 @@ import {
  */
 import { useUserLookup } from "@/hooks/useUserLookup";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { CALENDAR_HELP } from "../help";
-import type { TimelineItemCategory } from "../types";
 import { createMilestoneSchema } from "./schema";
 import type { CreateMilestoneModalProps } from "./types";
+import { CALENDAR_HELP } from "../help";
+import type { TimelineItemCategory } from "../types";
 
 const defaultValues = {
   title: "",

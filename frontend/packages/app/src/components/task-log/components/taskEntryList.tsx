@@ -6,11 +6,11 @@ import { mergeClassNames as cn } from "@next-pms/design-system/utils";
 import { StaticTextEditor } from "@rtcamp/frappe-ui-react";
 import { format, parseISO } from "date-fns";
 
+import TimeBadge from "./timeBadge";
 /**
  * Internal dependencies.
  */
 import { TaskLog, TaskWorker } from "../types";
-import TimeBadge from "./timeBadge";
 
 type TaskEntryListProps = {
   taskLogs: TaskLog[] | null;

@@ -7,9 +7,9 @@ import { InfoHoverCard, ProgressBar } from "@next-pms/design-system/components";
  * Internal dependencies.
  */
 import { formatHours } from "@/lib/utils";
+import { LegendItem } from "./legendItem";
 import { useTracking } from "../context";
 import { TRACKING_HELP } from "../help";
-import { LegendItem } from "./legendItem";
 
 export function HoursUsageCell() {
   const billable = useTracking(

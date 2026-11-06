@@ -36,5 +36,10 @@
     "dotenv": "^17.2.3",
     "axios": "^1.18.1",
     "proper-lockfile": "^4.1.2"
+  },
+  "overrides": {
+    "eslint": {
+      "minimatch": "^11.0.1"
+    }
   }
 }

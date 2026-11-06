@@ -16,10 +16,10 @@ import { DocumentUploadButton } from "@/pages/project-details/components/documen
 import { FileCard } from "@/pages/project-details/components/fileCard";
 import type { FileAttachment } from "@/pages/project-details/types";
 import { useUser } from "@/providers/user";
+import { UpdateEntry } from "./updateEntry";
 import { AddUpdateModal } from "../add-update";
 import { RISKS_HELP } from "../help";
 import type { EnrichedRiskUpdateEntry, RiskDetail } from "../types";
-import { UpdateEntry } from "./updateEntry";
 
 interface RiskDetailContentProps {
   risk: RiskDetail;

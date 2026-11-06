@@ -4,13 +4,13 @@
 import { Accordion } from "@base-ui/react/accordion";
 import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
+import { RiskCell } from "./cells";
 /**
  * Internal dependencies.
  */
 import { useRisks } from "../context";
 import { RiskRowActions } from "../riskRowActions";
 import type { RiskItem, RiskListColumn } from "../types";
-import { RiskCell } from "./cells";
 
 export interface RiskGroupProps {
   value: string;

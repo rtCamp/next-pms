@@ -7,13 +7,13 @@ import { format, parseISO } from "date-fns";
 import { FrappeContext } from "frappe-react-sdk";
 import { useUser } from "@/providers/user";
 
+import { MetaRow } from "./metaRow";
 /**
  * Internal dependencies.
  */
 import StarRating from "../starRating";
 import { useFeedbackComments } from "../useFeedbackComments";
 import { useTeamFeedbackBreakdown } from "../useTeamFeedbackBreakdown";
-import { MetaRow } from "./metaRow";
 
 export function FeedbackDetailBody({ feedbackId }: { feedbackId: string }) {
   const { detail, breakdown, isLoading } = useTeamFeedbackBreakdown(feedbackId);
