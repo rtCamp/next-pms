@@ -1,0 +1,1 @@
+{"width":1920,"height":1080,"background":"#F4F4F5","fonts":{"sans":{"family":"Inter"}},"scenes":[{"id":"approve-leave","name":"Approve leave","dur":11.5,"desc":"Scroll the Manager dashboard to Upcoming time-offs, click the green check on an Open request, confirm with Approve leave. The request turns Approved."}]}

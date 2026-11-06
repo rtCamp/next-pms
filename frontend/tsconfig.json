@@ -8,6 +8,7 @@
     "src/**/*.ts",
     "src/**/*.vue",
     ".storybook/*.ts",
+    "tools/*.ts",
     "vitest.config.ts"
   ]
 }

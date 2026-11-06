@@ -39,6 +39,7 @@ across components live in `src/utils/`.
 | `InfoHoverCard/` | `InfoHoverCard` (the info icon beside a label: a card explaining it on hover or focus, with a wiki link, or a plain tooltip), `FieldHelp`, `WIKI_BASE` |
 | `LoadingOverlay/` | `LoadingOverlay` |
 | `MonthPicker/` | `MonthPicker` |
+| `MotionPlayer/` | `MotionPlayer` (plays a help motion, a `?motion` import of a folder in `src/assets/motions/`, as live DOM with play/pause, replay, scrubbing and enlarge/shrink), `MotionDialogPlayer` (a tip's inline player that enlarges into a dialog); `kit.ts` is the runtime the scenes call, `motionTokens.css` maps the scenes' old `--color-*` variables to frappe-ui's |
 | `NotificationTray/` | `NotificationTray`, `notificationIcon` |
 | `PhaseIcon/` | `PhaseIcon` (a project phase's colour), `PROJECT_PHASE_COLORS` |
 | `ProgressBar/` | `ProgressBar` |
