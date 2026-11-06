@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Button, Spinner } from "frappe-ui";
+import { Button, Spinner, Tooltip } from "frappe-ui";
 import {
   List,
   ListCell,
@@ -11,6 +11,7 @@ import {
 } from "frappe-ui/list";
 import type { ProjectReportRow } from "@/pages/project-details/types";
 import { REPORT_COLUMNS } from "./constants";
+import { RESYNC_TOOLTIP } from "./help";
 import { formatGeneratedOn, sortReports } from "./utils";
 
 const props = defineProps<{ reports: ProjectReportRow[] }>();
@@ -23,12 +24,9 @@ const rows = computed(() => sortReports(props.reports));
   <section class="flex flex-col gap-3">
     <div class="flex items-center justify-between">
       <h2 class="text-2xl-semibold text-ink-gray-8">Project Reports</h2>
-      <Button
-        v-if="reports.length"
-        variant="subtle"
-        label="Resync"
-        @click="$emit('resync')"
-      />
+      <Tooltip v-if="reports.length" :text="RESYNC_TOOLTIP">
+        <Button variant="subtle" label="Resync" @click="$emit('resync')" />
+      </Tooltip>
     </div>
 
     <p v-if="!rows.length" class="text-base text-ink-gray-5">

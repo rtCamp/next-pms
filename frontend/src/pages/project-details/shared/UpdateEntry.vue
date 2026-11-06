@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Avatar, Button, Dropdown } from "frappe-ui";
+import { Avatar, Button, Dropdown, Tooltip } from "frappe-ui";
 import { RichText } from "@/components/RichText";
 import { formatRelativeTimeShort } from "@/utils/text";
+import { UPDATE_ACTIONS_TOOLTIP } from "./help";
 import type { Person } from "./types";
 
 const props = defineProps<{
@@ -11,7 +12,9 @@ const props = defineProps<{
   updatedAt?: string;
   /** HTML. */
   note?: string | null;
-  /** Shows the update's Edit and Delete actions. */
+  /** Shows the update's actions menu; disabled, with the reason, when `canManage` is false. */
+  showActions: boolean;
+  /** Enables the update's Edit and Delete actions. */
   canManage: boolean;
 }>();
 
@@ -60,19 +63,32 @@ const actions = [
     >
       <div class="rounded-4 border border-outline-gray-1 p-4">
         <div
-          v-if="$slots.badges || canManage"
+          v-if="$slots.badges || showActions"
           class="flex flex-wrap items-center gap-1 text-sm text-ink-gray-7"
           :class="note && 'mb-2'"
         >
           <slot name="badges" />
-          <Dropdown v-if="canManage" :options="actions" align="end">
-            <Button
-              class="ml-auto"
-              variant="ghost"
-              icon="lucide-ellipsis"
-              label="Update actions"
-            />
-          </Dropdown>
+          <template v-if="showActions">
+            <Dropdown v-if="canManage" :options="actions" align="end">
+              <Button
+                class="ml-auto"
+                variant="ghost"
+                icon="lucide-ellipsis"
+                label="Update actions"
+              />
+            </Dropdown>
+            <Tooltip v-else :text="UPDATE_ACTIONS_TOOLTIP(author.label)">
+              <!-- eslint-disable-next-line vuejs-accessibility/no-noninteractive-tabindex -- the disabled button can't take focus; its wrapper shows why -->
+              <span class="ml-auto" tabindex="0">
+                <Button
+                  variant="ghost"
+                  icon="lucide-ellipsis"
+                  label="Update actions"
+                  disabled
+                />
+              </span>
+            </Tooltip>
+          </template>
         </div>
         <RichText
           v-if="note"

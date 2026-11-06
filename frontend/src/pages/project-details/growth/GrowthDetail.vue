@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Button, Spinner } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { RichText } from "@/components/RichText";
 import LoadError from "@/pages/project-details/LoadError.vue";
 import ActivitySection from "@/pages/project-details/shared/ActivitySection.vue";
@@ -16,6 +17,7 @@ import GrowthPriorityPill from "./GrowthPriorityPill.vue";
 import GrowthStatusBadge from "./GrowthStatusBadge.vue";
 import GrowthUpdateDialog from "./GrowthUpdateDialog.vue";
 import { growthDetails } from "./growth";
+import { GROWTH_HELP } from "./help";
 import { useGrowthDetail } from "./useGrowthDetail";
 
 const props = defineProps<{ growthId: string }>();
@@ -132,7 +134,10 @@ const record = computed(() => ({
       </section>
       <section class="mb-4.5">
         <div class="mb-3 flex items-center justify-between">
-          <h3 class="text-lg-medium text-ink-gray-7">Updates</h3>
+          <div class="flex min-w-0 items-center gap-1.5">
+            <h3 class="text-lg-medium text-ink-gray-7">Updates</h3>
+            <InfoHoverCard :help="GROWTH_HELP.updates" />
+          </div>
           <Button
             v-if="permissions.canEdit"
             variant="ghost"
@@ -148,6 +153,7 @@ const record = computed(() => ({
             :author="update.author"
             :updated-at="update.updated_at"
             :note="update.note"
+            :show-actions="permissions.canEdit"
             :can-manage="detail.canManage(update)"
             @edit="detail.openEditUpdate(update)"
             @delete="detail.requestDeleteUpdate(update)"

@@ -6,6 +6,7 @@ import OwnerPill from "@/pages/project-details/shared/OwnerPill.vue";
 import { toPerson } from "@/pages/project-details/shared/permissions";
 import { formatProjectDate } from "@/utils/date";
 import type { Person, UserDetails } from "@/pages/project-details/shared/types";
+import { OWNER_TOOLTIP, RISK_OWNER_TOOLTIP } from "./help";
 import RiskActions from "./RiskActions.vue";
 import RiskLevelPill from "./RiskLevelPill.vue";
 import RiskStatusBadge from "./RiskStatusBadge.vue";
@@ -70,8 +71,12 @@ const dateChips = computed(() =>
     </div>
     <div class="flex flex-wrap items-center gap-1 text-sm text-ink-gray-7">
       <RiskLevelPill :level="risk.risk_level" />
-      <OwnerPill :person="riskOwner" title="Risk owner" />
-      <OwnerPill :person="owner" title="Owner" />
+      <OwnerPill
+        :person="riskOwner"
+        title="Risk owner"
+        :tooltip="RISK_OWNER_TOOLTIP"
+      />
+      <OwnerPill :person="owner" title="Owner" :tooltip="OWNER_TOOLTIP" />
       <span class="rounded-full bg-surface-gray-2 px-2 py-1">
         <RiskStatusBadge :status="risk.status" />
       </span>
