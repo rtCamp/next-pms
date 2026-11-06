@@ -13,6 +13,9 @@ import { deleteUserGroupForEmployee } from "../helpers/teamTabHelper";
  * Global teardown function to delete the stale test data after running tests.
  */
 const globalTeardown = async () => {
+  // A fresh CI site is thrown away after the run, so there is nothing to clean.
+  if (process.env.E2E_FRESH_SITE) return;
+
   // Locate and read test-tc-ids.json
   const projectRoot = path.resolve(__dirname, "..");
   const tcJsonPath = path.join(projectRoot, "test-tc-ids.json");

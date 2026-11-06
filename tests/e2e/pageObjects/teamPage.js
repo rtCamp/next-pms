@@ -904,24 +904,6 @@ export class TeamPage {
   }
 
   /**
-   * Check and apply User Group filter.
-   *
-   * The "User Group" control no longer exists: this page's filter panel offers
-   * Project, Task, Date, Member, Member Status and Business Unit only, and no
-   * user-group control exists anywhere on the timesheet or allocations team
-   * pages. Kept because the skipped TC94 still references it - it will time out
-   * if called.
-   */
-  async checkUserGroup(userGroupName) {
-    await this.page.getByRole("button", { name: "User Group" }).click();
-    await this.page
-      .getByRole("option", { name: userGroupName })
-      .getByRole("checkbox")
-      .check();
-    await this.page.getByPlaceholder("User Group").press("Escape");
-  }
-
-  /**
    * Verify if filters are applied
    */
   async isFilterApplied() {
@@ -1028,21 +1010,6 @@ export class TeamPage {
       await this.clearAllFiltersButton.first().click();
       await this.page.waitForTimeout(1200);
     }
-  }
-
-  /**
-   * Updates and saves a view
-   */
-  async saveNewView(employeeName) {
-    const filterApplied = await this.isFilterApplied();
-    if (filterApplied) {
-      await this.clearFilters();
-      await this.saveChanges.click();
-      await this.goto();
-    }
-    await this.applyReportsTo(employeeName);
-    await this.selectEmployeeStatus("Active");
-    await this.saveChanges.click();
   }
 
   /**

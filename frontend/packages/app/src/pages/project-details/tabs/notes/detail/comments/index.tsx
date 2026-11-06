@@ -6,11 +6,11 @@ import { Comments } from "@next-pms/design-system/components";
 import { FrappeContext } from "frappe-react-sdk";
 import { useUser } from "@/providers/user";
 
+import { useNoteComments } from "./useNoteComments";
 /**
  * Internal dependencies.
  */
 import { mapNoteComment } from "../utils";
-import { useNoteComments } from "./useNoteComments";
 
 type NoteCommentsProps = {
   noteId: string;

@@ -9,7 +9,7 @@
   "private": true,
   "scripts": {
     "dev": "cd frontend && npm run dev",
-    "build": "git submodule update --init --recursive && npm --prefix frontend run build",
+    "build": "([ -f frappe-ui-react/package.json ] || git submodule update --init --recursive) && npm --prefix frontend run build",
     "e2e:tests": "npx playwright test --config=tests/e2e/playwright.config.js",
     "lint:precommit": "eslint --fix --config eslint.config.js",
     "allure:report": "allure generate allure-results --clean -o allure-report-for-count-extraction",
@@ -36,5 +36,10 @@
     "dotenv": "^17.2.3",
     "axios": "^1.18.1",
     "proper-lockfile": "^4.1.2"
+  },
+  "overrides": {
+    "eslint": {
+      "minimatch": "^11.0.1"
+    }
   }
 }

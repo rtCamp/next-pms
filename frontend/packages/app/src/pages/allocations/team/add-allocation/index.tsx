@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { InfoHoverCard } from "@next-pms/design-system/components";
@@ -38,6 +38,7 @@ import { isWeekendEntryAllowed, parseFrappeErrorMsg } from "@/lib/utils";
 import { ALLOCATION_DIALOG_HELP } from "@/pages/allocations/help";
 import { useEmployeeAvailability } from "@/pages/allocations/useEmployeeAvailability";
 import { isLeaveOwnedOverride } from "@/pages/allocations/utils";
+import { AiRemark } from "./aiRemark";
 import {
   addAllocationDefaultValues,
   allocationRecurrenceLabels,
@@ -65,7 +66,9 @@ function AddAllocationModal({
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [projectSearch, setProjectSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [savingAsTentative, setSavingAsTentative] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const saveAsTentativeRef = useRef(false);
   const [teamAddConfirmOpen, setTeamAddConfirmOpen] = useState(false);
   const [pendingApprovalValues, setPendingApprovalValues] =
     useState<AddAllocationFormValues | null>(null);
@@ -136,9 +139,17 @@ function AddAllocationModal({
       onSubmit: addAllocationFormSchema,
     },
     onSubmit: async ({ value }) => {
+      const saveAsTentative = saveAsTentativeRef.current;
+      saveAsTentativeRef.current = false;
+      setSavingAsTentative(saveAsTentative);
       setSubmitting(true);
 
       try {
+        if (saveAsTentative) {
+          await submitAllocation(value, { saveAsTentative });
+          return;
+        }
+
         if (initialValues?.isAiCreated) {
           if (isProjectEmployeeAccessPending) {
             toast.error(
@@ -176,7 +187,10 @@ function AddAllocationModal({
   }, [form, mergedDefaultValues, onOpenChange]);
 
   const submitAllocation = useCallback(
-    async (value: typeof mergedDefaultValues) => {
+    async (
+      value: typeof mergedDefaultValues,
+      { saveAsTentative = false }: { saveAsTentative?: boolean } = {},
+    ) => {
       const payload = {
         allocation: {
           doctype: "Resource Allocation",
@@ -187,7 +201,8 @@ function AddAllocationModal({
           allocation_end_date: value.toDate,
           hours_allocated_per_day: value.hoursPerDay,
           is_billable: Number(value.isBillable),
-          status: value.isTentative ? "Tentative" : "Confirmed",
+          status:
+            saveAsTentative || value.isTentative ? "Tentative" : "Confirmed",
           ...(initialValues?.isAiCreated ? { is_ai_created: 0 } : {}),
           note: value.note ?? "",
           include_weekends: value.includeWeekends,
@@ -211,11 +226,13 @@ function AddAllocationModal({
       }
 
       toast.success(
-        initialValues?.isAiCreated
-          ? "Allocation approved successfully"
-          : variant === "edit"
-            ? "Allocation updated successfully"
-            : "Allocation created successfully",
+        saveAsTentative
+          ? "Allocation saved as tentative"
+          : initialValues?.isAiCreated
+            ? "Allocation approved successfully"
+            : variant === "edit"
+              ? "Allocation updated successfully"
+              : "Allocation created successfully",
       );
 
       closeModal();
@@ -779,20 +796,6 @@ function AddAllocationModal({
                   <span className="text-ink-amber-4">Ai</span>
                 </span>
               )}
-              {initialValues?.isAiCreated &&
-                initialValues.aiAllocationReason && (
-                  <div
-                    className="mt-2 flex min-w-0 max-w-full items-start gap-1 text-ink-amber-4"
-                    title={initialValues.aiAllocationReason}
-                  >
-                    <span className="shrink-0 text-sm font-medium">
-                      Remark:
-                    </span>
-                    <p className="min-w-0 whitespace-pre-line break-words text-sm font-normal">
-                      {initialValues.aiAllocationReason}
-                    </p>
-                  </div>
-                )}
             </div>
           ),
         }}
@@ -836,6 +839,18 @@ function AddAllocationModal({
                   disabled={submitting || deleting}
                 />
               )}
+              {initialValues?.isAiCreated && (
+                <Button
+                  variant="outline"
+                  label="Save"
+                  onClick={() => {
+                    saveAsTentativeRef.current = true;
+                    void form.handleSubmit();
+                  }}
+                  disabled={submitting || deleting}
+                  loading={submitting && savingAsTentative}
+                />
+              )}
               <Button
                 variant="solid"
                 label={
@@ -845,7 +860,10 @@ function AddAllocationModal({
                       ? "Allocate"
                       : "Save Changes"
                 }
-                onClick={() => form.handleSubmit()}
+                onClick={() => {
+                  saveAsTentativeRef.current = false;
+                  void form.handleSubmit();
+                }}
                 disabled={
                   submitting ||
                   deleting ||
@@ -856,13 +874,17 @@ function AddAllocationModal({
                       !hasProjectEmployeeAccess)) ||
                   (isProjectEmployeeMismatch && !initialValues?.isAiCreated)
                 }
-                loading={submitting}
+                loading={submitting && !savingAsTentative}
               />
             </div>
           </div>
         }
       >
         <div className="space-y-4">
+          {initialValues?.isAiCreated && initialValues.aiAllocationReason && (
+            <AiRemark remark={initialValues.aiAllocationReason} />
+          )}
+
           {layoutVariant === "project" ? (
             <>
               {projectField}

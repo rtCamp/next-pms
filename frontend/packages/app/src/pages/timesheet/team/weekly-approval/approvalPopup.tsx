@@ -12,12 +12,12 @@ import {
   Success,
 } from "@rtcamp/frappe-ui-react/icons";
 
+import EntryRow from "./entryRow";
+import { useWeeklyApproval } from "./provider";
 /**
  * Internal Dependencies
  */
 import { DECIDED_DAY_TOOLTIP } from "../help";
-import EntryRow from "./entryRow";
-import { useWeeklyApproval } from "./provider";
 
 const ApprovalPopup = () => {
   const {

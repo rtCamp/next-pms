@@ -4,12 +4,6 @@ import type {
   Project,
 } from "@next-pms/design-system/components";
 import { parseISO } from "date-fns";
-import {
-  calculateAllocationHourlyRate,
-  formatAllocationCapacity,
-  getAllocationCapacityHoursPerDay,
-  mapResourceAllocationSegments,
-} from "../utils";
 import { teamAllocationStatusOptionValues } from "./constants";
 import type {
   AllocationTypeSelection,
@@ -17,6 +11,12 @@ import type {
   ManagerNameMap,
   TeamAllocationResponse,
 } from "./type";
+import {
+  calculateAllocationHourlyRate,
+  formatAllocationCapacity,
+  getAllocationCapacityHoursPerDay,
+  mapResourceAllocationSegments,
+} from "../utils";
 
 /**
  * Resolves the allocation-type multi-select into the two axes the API takes.

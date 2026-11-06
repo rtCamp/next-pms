@@ -4,14 +4,14 @@
 import { Spinner } from "@next-pms/design-system/components";
 import { format } from "date-fns";
 
-/**
- * Internal dependencies.
- */
-import { useClientFeedbackBreakdown } from "../useClientFeedbackBreakdown";
 import { FeedbackBreakdown } from "./feedbackBreakdown";
 import { MonthTimeline } from "./monthTimeline";
 import { ResponsesList } from "./responsesList";
 import { useFeedbackContext } from "../context";
+/**
+ * Internal dependencies.
+ */
+import { useClientFeedbackBreakdown } from "../useClientFeedbackBreakdown";
 
 export function ClientFeedbackView() {
   const {

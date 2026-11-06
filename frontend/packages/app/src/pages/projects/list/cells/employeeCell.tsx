@@ -4,11 +4,11 @@
 import { useRef } from "react";
 import { Avatar, Tooltip } from "@rtcamp/frappe-ui-react";
 
+import { TextCell } from "./textCell";
 /**
  * Internal dependencies.
  */
 import type { Employee } from "../types";
-import { TextCell } from "./textCell";
 
 export function EmployeeCell({ employee }: { employee: Employee | null }) {
   const nameRef = useRef<HTMLSpanElement>(null);

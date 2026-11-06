@@ -5,12 +5,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Popover } from "@base-ui/react/popover";
 import { Button } from "@rtcamp/frappe-ui-react";
 
-/**
- * Internal dependencies.
- */
-import { useGanttStore } from "../ganttStore";
-import type { ProjectAllocationBar } from "../ganttStore";
-import { getBarDateRange, getBarDaySpan, getBarTimelineBounds } from "../utils";
 import { GanttAllocationPopover } from "./allocationPopover";
 import {
   GanttBar,
@@ -22,6 +16,12 @@ import { getCapacityStatus } from "./utils/getCapacityStatus";
 import { getEditableHoursPerDay } from "./utils/getEditableHoursPerDay";
 import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
 import { mergeClassNames as cn } from "../../../utils";
+/**
+ * Internal dependencies.
+ */
+import { useGanttStore } from "../ganttStore";
+import type { ProjectAllocationBar } from "../ganttStore";
+import { getBarDateRange, getBarDaySpan, getBarTimelineBounds } from "../utils";
 
 interface GanttAllocationBarProps {
   allocation: ProjectAllocationBar;

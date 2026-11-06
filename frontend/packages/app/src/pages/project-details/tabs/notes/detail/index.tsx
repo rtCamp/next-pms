@@ -3,13 +3,13 @@
  */
 import { Spinner } from "@next-pms/design-system/components";
 
+import { NoteComments } from "./comments";
+import { NoteDetailContent } from "./content";
+import { NoteDetailHeader } from "./header";
 /**
  * Internal dependencies.
  */
 import { useNotes } from "../context";
-import { NoteComments } from "./comments";
-import { NoteDetailContent } from "./content";
-import { NoteDetailHeader } from "./header";
 
 type NoteDetailProps = {
   noteId: string;

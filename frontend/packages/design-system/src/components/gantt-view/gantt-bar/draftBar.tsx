@@ -6,6 +6,11 @@ import { Button, Tooltip } from "@rtcamp/frappe-ui-react";
 import { Close } from "@rtcamp/frappe-ui-react/icons";
 import { format } from "date-fns";
 
+import {
+  GanttBar,
+  type GanttBarGeometry,
+  type GanttBarRenderState,
+} from "./ganttBar";
 /**
  * Internal dependencies.
  */
@@ -13,11 +18,6 @@ import { FULL_DAY_HOURS } from "../constants";
 import { useGanttStore } from "../ganttStore";
 import type { AllocationCallbackData } from "../types";
 import { getBarDateRange, getBarDaySpan, getBarTimelineBounds } from "../utils";
-import {
-  GanttBar,
-  type GanttBarGeometry,
-  type GanttBarRenderState,
-} from "./ganttBar";
 
 interface DraftBarProps {
   rowKey: string;

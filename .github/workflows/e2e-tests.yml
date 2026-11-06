@@ -31,6 +31,7 @@ jobs:
     env:
       TZ: Asia/Kolkata # the suite and the seeded site both assume IST
       CI: "true"
+      E2E_FRESH_SITE: "true" # new-site below, so nothing to sweep before seeding
 
     steps:
       - uses: actions/checkout@v7
@@ -67,7 +68,7 @@ jobs:
       - name: Setup bench
         run: |
           pip install frappe-bench
-          bench init --skip-redis-config-generation --skip-assets --frappe-branch v16.31.0 --python "$(which python)" ~/frappe-bench
+          bench init --skip-redis-config-generation --skip-assets --frappe-branch v16.54.0 --python "$(which python)" ~/frappe-bench
           mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
           mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
           mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL innodb_flush_log_at_trx_commit = 0"
@@ -80,8 +81,8 @@ jobs:
           echo "::add-mask::$E2E_PASSWORD"
           echo "E2E_PASSWORD=$E2E_PASSWORD" >> "$GITHUB_ENV"
 
-          bench get-app erpnext --branch v16.32.1 --skip-assets
-          bench get-app hrms --branch v16.16.0 --skip-assets
+          bench get-app erpnext --branch v16.53.0 --skip-assets
+          bench get-app hrms --branch v16.53.0 --skip-assets
           bench get-app frappe_gmail_thread https://github.com/rtCamp/frappe-gmail-thread --branch develop --skip-assets
           bench get-app frappe_comment_xt https://github.com/rtCamp/frappe-comment-xt --branch develop --skip-assets
           bench get-app frappe_slack_connector https://github.com/rtCamp/frappe-slack-connector --branch develop --skip-assets

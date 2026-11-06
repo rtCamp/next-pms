@@ -9,6 +9,14 @@ import type {
 import { formatDateRange } from "@next-pms/design-system/date";
 import { addDays, isSameDay, parseISO } from "date-fns";
 
+import type {
+  Customer,
+  ManagerNameMap,
+  ProjectAllocationResponse,
+  ProjectEmployee,
+  ProjectRecord,
+  ProjectResourceAllocation,
+} from "./type";
 /**
  * Internal dependencies.
  */
@@ -19,14 +27,6 @@ import {
   getAllocationCapacityHoursPerDay,
   mapResourceAllocationSegments,
 } from "../utils";
-import type {
-  Customer,
-  ManagerNameMap,
-  ProjectAllocationResponse,
-  ProjectEmployee,
-  ProjectRecord,
-  ProjectResourceAllocation,
-} from "./type";
 
 /**
  * Normalizes project allocation collections from the API into an array.

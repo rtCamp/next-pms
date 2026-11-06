@@ -1,15 +1,15 @@
-/**
- * Internal dependencies.
- */
-import type { ProjectTimelineItem } from "../../types";
-import type { TableColumn } from "../columns";
 import { ActionsCell } from "./actionsCell";
 import { DateCell } from "./dateCell";
 import { OwnerCell } from "./ownerCell";
 import { TitleCell } from "./titleCell";
 import { TodosCell } from "./todosCell";
 import { WatchersCell } from "./watchersCell";
+/**
+ * Internal dependencies.
+ */
+import type { ProjectTimelineItem } from "../../types";
 import { isDateOverdue } from "../../utils";
+import type { TableColumn } from "../columns";
 
 type TimelineCellProps = {
   item: ProjectTimelineItem;

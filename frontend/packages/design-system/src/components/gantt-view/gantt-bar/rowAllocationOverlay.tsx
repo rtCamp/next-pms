@@ -11,6 +11,7 @@ import React, {
 import { Button } from "@rtcamp/frappe-ui-react";
 import { AddMd } from "@rtcamp/frappe-ui-react/icons";
 
+import { DraftBar } from "./draftBar";
 /**
  * Internal dependencies.
  */
@@ -21,7 +22,6 @@ import { useRowAllocationDraft } from "../hooks/useRowAllocationDraft";
 import type { AllocationCallbackData } from "../types";
 import { isColumnOccupied, type DraftBarSeed } from "../utils";
 import type { OccupyingAllocation } from "../utils";
-import { DraftBar } from "./draftBar";
 
 export interface RowAllocationOverlayHandle {
   handleRowPointerDown: (

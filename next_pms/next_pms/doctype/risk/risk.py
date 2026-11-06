@@ -1,8 +1,11 @@
 # Copyright (c) 2026, rtCamp and contributors
 # For license information, please see license.txt
 
+from datetime import datetime
+
 import frappe
 from frappe.model.document import Document
+from frappe.utils import get_datetime
 
 from next_pms.utils.permissions import has_owner_gated_permission
 from next_pms.utils.update_log import prevent_changing_others_update_rows, stamp_new_update_rows
@@ -19,6 +22,7 @@ class Risk(Document):
 
         from next_pms.next_pms.doctype.risk_update.risk_update import RiskUpdate
 
+        mitigated_on: DF.Datetime | None
         mitigation_plan: DF.TextEditor | None
         project: DF.Link
         risk_category: DF.Link | None
@@ -34,6 +38,7 @@ class Risk(Document):
         stamp_new_update_rows(self.risk_update_log)
         prevent_changing_others_update_rows(self, "risk_update_log", ("note", "status", "risk_level"))
         self._sync_fields_from_latest_update()
+        self.mitigated_on = get_mitigated_on(self.status, self.risk_update_log)
 
     def _ensure_initial_update_log(self):
         if self.risk_update_log:
@@ -57,6 +62,20 @@ class Risk(Document):
             self.status = latest.status
         if latest.risk_level and self.risk_level != latest.risk_level:
             self.risk_level = latest.risk_level
+
+
+def get_mitigated_on(status, update_log):
+    """Return when the current mitigated streak began, or None when the risk is not mitigated."""
+    if status != "Mitigated":
+        return None
+    mitigated_on = None
+    for row in sorted(update_log, key=lambda r: (get_datetime(r.updated_at) or datetime.min, r.idx or 0), reverse=True):
+        if not row.status:
+            continue
+        if row.status != "Mitigated":
+            break
+        mitigated_on = row.updated_at
+    return mitigated_on
 
 
 def has_permission(doc, ptype="read", user=None, debug=False):

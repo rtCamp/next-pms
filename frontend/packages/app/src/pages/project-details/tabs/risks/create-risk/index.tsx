@@ -31,12 +31,12 @@ import { DisabledField } from "@/pages/project-details/components/disabledField"
 import { UpdateLogNote } from "@/pages/project-details/components/updateLogNote";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { toEmployeeUserOptions } from "@/pages/project-details/utils";
-import { RISK_LEVELS, RISK_STATUSES } from "../constants";
-import { useRisks } from "../context";
-import { RISKS_HELP } from "../help";
 import { EMPTY_RISK_VALUES } from "./constants";
 import { createRiskSchema, editRiskSchema } from "./schema";
 import type { CreateRiskModalProps } from "./types";
+import { RISK_LEVELS, RISK_STATUSES } from "../constants";
+import { useRisks } from "../context";
+import { RISKS_HELP } from "../help";
 import { RiskLevelBadge } from "../riskLevelBadge";
 import { RiskStatusBadge } from "../riskStatusBadge";
 import type { ApiRiskDetail } from "../types";

@@ -2,13 +2,13 @@
  * Internal dependencies.
  */
 import { Popover } from "@base-ui/react/popover";
-import { useGanttStore } from "../ganttStore";
-import type { ProjectGroup, ProjectSummaryBar } from "../ganttStore";
-import { formatHours } from "../utils";
 import { GanttAllocationPopover } from "./allocationPopover";
 import { GanttBar } from "./ganttBar";
 import { allocationBarToEntry } from "./utils/allocationBarToEntry";
 import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
+import { useGanttStore } from "../ganttStore";
+import type { ProjectGroup, ProjectSummaryBar } from "../ganttStore";
+import { formatHours } from "../utils";
 
 interface GanttProjectSummaryBarProps {
   project: ProjectGroup;

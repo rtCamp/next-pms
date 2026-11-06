@@ -3,11 +3,11 @@
  */
 import { Avatar } from "@rtcamp/frappe-ui-react";
 
+import { MemberHoverCard } from "./memberHoverCard";
 /**
  * Internal dependencies.
  */
 import type { AboutMember } from "../types";
-import { MemberHoverCard } from "./memberHoverCard";
 
 export function MemberRow({ member }: { member: AboutMember }) {
   return (

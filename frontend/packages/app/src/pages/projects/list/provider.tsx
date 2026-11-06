@@ -13,11 +13,11 @@ import {
   useFrappeDocTypeEventListener,
 } from "frappe-react-sdk";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { ProjectListContext, type ProjectListContextProps } from "./context";
+import type { ResponseProjectList } from "./types";
 import { useProjectFilters } from "../components/project-filters/useProjectFilters";
 import { PROJECT_LIST_PAGE_SIZE, PROJECTS_VIEW_METHOD } from "../constants";
-import { ProjectListContext, type ProjectListContextProps } from "./context";
 import { buildListFrappeFilters } from "../utils";
-import type { ResponseProjectList } from "./types";
 
 export function ProjectListProvider({ children }: PropsWithChildren) {
   const toast = useToasts();
