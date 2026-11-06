@@ -1,0 +1,13 @@
+#stage { --ground:var(--color-surface-gray-2); --main:var(--color-ink-gray-8); --second:var(--color-ink-gray-5); --accent:#3B82F6; color:var(--main); font-family:var(--sans, system-ui, sans-serif); font-weight:420 }
+.ground { position:absolute; inset:0; background:var(--ground) }
+.words { position:absolute; margin:0; display:flex; flex-direction:column; gap:24px } .words > * { margin:0 }
+.line { font-family:var(--sans, system-ui, sans-serif); font-size:20px; font-weight:600 } .sub { font-size:14px }
+.win { position:absolute; left:240px; top:90px; width:1440px; height:900px; background:var(--color-surface-white); border-radius:12px; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,.06), 0 18px 40px -12px rgba(0,0,0,.18) }
+.gh { position:absolute; display:block; background:var(--color-surface-gray-3); border-radius:3px }
+.hair { position:absolute; display:block; height:1px; background:var(--color-outline-gray-1) }
+.lm { color:var(--second); white-space:nowrap }
+.badge { position:absolute; display:inline-flex; align-items:center; height:20px; padding:0 6px; border-radius:9999px; font-size:12px; font-weight:420; line-height:20px; white-space:nowrap }
+.btn { position:absolute; display:flex; align-items:center; justify-content:center; gap:8px; height:28px; border-radius:8px; font-size:14px; font-weight:420; line-height:16px; white-space:nowrap }
+.ic { display:block; width:16px; height:16px; flex:none }
+.cb { position:absolute; width:14px; height:14px; border-radius:2px; box-sizing:border-box }
+.ring { position:absolute; border:3px solid var(--accent); box-sizing:border-box; opacity:0 }

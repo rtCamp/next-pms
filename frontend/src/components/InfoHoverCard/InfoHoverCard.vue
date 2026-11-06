@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { HoverCard, Tooltip } from "frappe-ui";
+import { WIKI_BASE } from "./constants";
 import type { InfoHoverCardProps } from "./types";
 
 defineProps<InfoHoverCardProps>();
@@ -83,6 +84,18 @@ const triggerClass =
         >
           <li v-for="line in help.details" :key="line">{{ line }}</li>
         </ul>
+        <template v-if="help.wiki">
+          <hr class="border-outline-gray-1" />
+          <a
+            :href="`${WIKI_BASE}/${help.wiki}`"
+            target="_blank"
+            rel="noreferrer"
+            class="flex w-fit items-center gap-1 self-center text-xs text-ink-gray-7 underline underline-offset-2 hover:text-ink-gray-9"
+          >
+            Learn more in the wiki
+            <span class="lucide-arrow-up-right size-3" aria-hidden="true" />
+          </a>
+        </template>
       </div>
     </HoverCard>
     <Tooltip v-else :text="tooltip">

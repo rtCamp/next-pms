@@ -16,6 +16,7 @@ import { useEmployeeLookup } from "@/composables/useEmployeeLookup";
 import type { LookupOption } from "@/composables/useRemoteLookup";
 import RichTextEditor from "@/pages/project-details/RichTextEditor.vue";
 import DisabledField from "@/pages/project-details/shared/DisabledField.vue";
+import HelpField from "@/pages/project-details/shared/HelpField.vue";
 import PriorityIcon from "@/pages/project-details/shared/PriorityIcon.vue";
 import { toEmployeeUserOptions } from "@/pages/project-details/shared/permissions";
 import {
@@ -35,6 +36,7 @@ import {
   RISK_LEVELS,
   RISK_STATUSES,
 } from "./constants";
+import { RISKS_HELP } from "./help";
 import RiskLevelPill from "./RiskLevelPill.vue";
 import RiskStatusBadge from "./RiskStatusBadge.vue";
 import { riskForm, validateRiskForm } from "./risks";
@@ -285,35 +287,41 @@ async function submit() {
         </template>
       </Select>
       <UpdateLogNote v-if="isEdit" :message="EDIT_LOG_NOTE" />
-      <Combobox
-        v-model="owner"
-        v-model:query="ownerQuery"
+      <HelpField
+        v-slot="{ id }"
         label="Risk owner"
-        size="md"
-        variant="outline"
-        :options="ownerOptions"
-        :loading="lookup.loading"
-        :filterable="false"
-        open-on-focus
-        placeholder="Select risk owner"
+        :help="RISKS_HELP.riskOwner"
       >
-        <template #item-prefix="{ item }">
-          <Avatar
-            size="xs"
-            shape="circle"
-            :image="personOf(item).image"
-            :label="personOf(item).label"
-          />
-        </template>
-        <template v-if="searchError && !ownerOptions.length" #empty>
-          <span role="alert" class="text-ink-red-6">{{ searchError }}</span>
-        </template>
-        <template v-else-if="searchError" #footer>
-          <p role="alert" class="px-3 py-1.5 text-base text-ink-red-6">
-            {{ searchError }}
-          </p>
-        </template>
-      </Combobox>
+        <Combobox
+          :id="id"
+          v-model="owner"
+          v-model:query="ownerQuery"
+          size="md"
+          variant="outline"
+          :options="ownerOptions"
+          :loading="lookup.loading"
+          :filterable="false"
+          open-on-focus
+          placeholder="Select risk owner"
+        >
+          <template #item-prefix="{ item }">
+            <Avatar
+              size="xs"
+              shape="circle"
+              :image="personOf(item).image"
+              :label="personOf(item).label"
+            />
+          </template>
+          <template v-if="searchError && !ownerOptions.length" #empty>
+            <span role="alert" class="text-ink-red-6">{{ searchError }}</span>
+          </template>
+          <template v-else-if="searchError" #footer>
+            <p role="alert" class="px-3 py-1.5 text-base text-ink-red-6">
+              {{ searchError }}
+            </p>
+          </template>
+        </Combobox>
+      </HelpField>
       <div class="flex flex-col gap-1.5">
         <FormLabel label="Summary" />
         <RichTextEditor

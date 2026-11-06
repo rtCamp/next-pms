@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Button, Select } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { SortSelector } from "@/components/SortSelector";
 import { GROWTH_SORT_FIELDS } from "./constants";
 import { nameFilterOptions } from "./growth";
+import { GROWTH_HELP } from "./help";
 import OwnerFilter from "./OwnerFilter.vue";
 import { useGrowth } from "./useGrowth";
 
@@ -34,11 +36,14 @@ const categoryOptions = computed(() =>
         placeholder="Activity owner"
         :options="activityOwnerOptions"
       />
-      <OwnerFilter
-        v-model="filters.ideationOwner"
-        placeholder="Ideation owner"
-        :options="ideationOwnerOptions"
-      />
+      <div class="flex items-center gap-1.5">
+        <OwnerFilter
+          v-model="filters.ideationOwner"
+          placeholder="Ideation owner"
+          :options="ideationOwnerOptions"
+        />
+        <InfoHoverCard :help="GROWTH_HELP.owners" />
+      </div>
       <Select
         v-model="filters.status"
         class="w-32 text-ink-gray-7"

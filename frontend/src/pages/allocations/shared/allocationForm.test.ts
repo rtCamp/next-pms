@@ -286,6 +286,13 @@ describe("allocationPayload", () => {
     expect(
       allocationPayload(form, context({ isAiCreated: true })).is_ai_created,
     ).toBe(0);
+    expect(
+      allocationPayload(
+        { ...form, isTentative: false },
+        context({ isAiCreated: true }),
+        { saveAsTentative: true },
+      ).status,
+    ).toBe("Tentative");
   });
 });
 

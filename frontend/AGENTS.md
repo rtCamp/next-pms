@@ -54,7 +54,8 @@ src/
   router-meta.d.ts route meta: title, roles, standalone
   session/         useSession(): the signed-in user, roles and employee record; ROLE_ACCESS, hasAnyRole
   layout/          AppSidebar (frappe-ui Sidebar) with the search palette (GlobalSearch, Mod+K), the notification
-                   tray and the Settings dialog; AppSidebarHeader, AppSidebarSection, the nav links and search pages
+                   tray, the Settings dialog (Mod+Shift+Comma) and the Help panel (each page's tips, by route, in
+                   help.ts); AppSidebarHeader, AppSidebarSection, the nav links and search pages
                    (sidebarSections.ts), usePreloadRoute (loads a page's code on hovering
                    its link), StatusMessage for the status pages and SessionError; settings/ holds the Settings
                    dialog's panels and the Timesheet Settings form helpers (systemSettings.ts, with unit tests)

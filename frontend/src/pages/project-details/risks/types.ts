@@ -19,6 +19,9 @@ export interface RiskRow {
   owner: string;
   /** The user responsible for it; the project manager when created without one. */
   risk_owner: string | null;
+  creation: string;
+  /** Set by the server when the status becomes Mitigated. */
+  mitigated_on: string | null;
 }
 
 /** A row of a risk's `risk_update_log`. */

@@ -9,8 +9,10 @@ import {
   TextInput,
 } from "frappe-ui";
 import RichTextEditor from "@/pages/project-details/RichTextEditor.vue";
+import HelpField from "@/pages/project-details/shared/HelpField.vue";
 import { CLIENT_PRIORITIES } from "./constants";
 import { growthUpdateForm, validateGrowthUpdateForm } from "./growth";
+import { GROWTH_HELP } from "./help";
 import type { GrowthUpdateErrors, GrowthUpdateForm } from "./types";
 import { useGrowth } from "./useGrowth";
 import type { GrowthDetailState } from "./useGrowthDetail";
@@ -125,16 +127,22 @@ async function submit() {
         :options="PRIORITY_OPTIONS"
         placeholder="Select priority"
       />
-      <TextInput
-        v-model="form.billable_outcome"
+      <HelpField
+        v-slot="{ id }"
         label="Billable outcome"
-        type="number"
-        min="0"
-        size="md"
-        variant="outline"
-        placeholder="0"
-        :error="errors.billable_outcome"
-      />
+        :help="GROWTH_HELP.billableOutcome"
+      >
+        <TextInput
+          :id="id"
+          v-model="form.billable_outcome"
+          type="number"
+          min="0"
+          size="md"
+          variant="outline"
+          placeholder="0"
+          :error="errors.billable_outcome"
+        />
+      </HelpField>
       <div class="flex flex-col gap-1.5">
         <FormLabel label="Note" required />
         <RichTextEditor

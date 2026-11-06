@@ -1,0 +1,1 @@
+{"width":1920,"height":1080,"background":"#F4F4F5","fonts":{"sans":{"family":"Inter"}},"scenes":[{"id":"star-task","name":"Star a task","dur":4.8,"desc":"On the Tasks list, the cursor rests on a task's star button and clicks it. The star turns solid amber, so the task is starred."}]}
