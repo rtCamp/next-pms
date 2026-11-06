@@ -6,12 +6,12 @@ from next_pms.tests.project_currency.overrides.fixtures import (
     HOURLY_COST_USD,
     NEXT_WEEK,
     USD_CUSTOMER,
+    WEEK_AFTER_NEXT,
     OverrideTestCase,
     capture_costing,
     run_costing,
 )
 
-WEEK_AFTER_NEXT = "2026-08-18"
 BILLING_RATE_USD = 10
 
 

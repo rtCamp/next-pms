@@ -11,12 +11,11 @@ from next_pms.tests.project_currency.overrides.fixtures import (
     NEXT_WEEK,
     USD_CUSTOMER,
     USD_TO_INR,
+    WEEK_AFTER_NEXT,
     OverrideTestCase,
     capture_costing,
     insert_bare,
 )
-
-WEEK_AFTER_NEXT = "2026-08-18"
 
 
 class TestProjectOverride(OverrideTestCase):

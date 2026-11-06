@@ -301,3 +301,23 @@ class TestTimesheetOverride(OverrideTestCase):
             cancelled.cancel()
 
         self.assertEqual(frappe.db.get_value("Timesheet", timesheet.name, "status"), "Cancelled")
+
+    def test_salary_slip_sets_payslip_status(self):
+        """hrms's set_status. ERPNext's alone would leave Submitted, so this fails if the hook stops extending."""
+        timesheet = self.build_timesheet(
+            self.project.name, self.task.name, [{"hours": 1}], docstatus=1, salary_slip="Override Test Slip"
+        )
+
+        timesheet.set_status()
+
+        self.assertEqual(timesheet.status, "Payslip")
+
+    def test_header_sales_invoice_alone_does_not_complete(self):
+        """hrms needs both a salary slip and a sales invoice for Completed; ERPNext needs only the invoice."""
+        timesheet = self.build_timesheet(
+            self.project.name, self.task.name, [{"hours": 1}], docstatus=1, sales_invoice="Override Test Invoice"
+        )
+
+        timesheet.set_status()
+
+        self.assertEqual(timesheet.status, "Submitted")

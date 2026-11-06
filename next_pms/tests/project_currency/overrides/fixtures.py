@@ -15,6 +15,8 @@ EMPLOYEE_USER = "override-test-employee@example.com"
 
 DATE = "2026-08-04"
 NEXT_WEEK = "2026-08-11"
+WEEK_AFTER_NEXT = "2026-08-18"
+TRANSACTION_DATES = (DATE, NEXT_WEEK, WEEK_AFTER_NEXT)
 
 USD_TO_INR = 80.0
 INR_TO_USD = 0.0125
@@ -37,10 +39,11 @@ class OverrideTestCase(IntegrationTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        ensure_global_currency("INR")
+        use_global_currency("INR")
         ensure_customer(USD_CUSTOMER, "USD")
-        set_exchange_rate("USD", "INR", USD_TO_INR)
-        set_exchange_rate("INR", "USD", INR_TO_USD)
+        for date in TRANSACTION_DATES:
+            set_exchange_rate("USD", "INR", USD_TO_INR, date)
+            set_exchange_rate("INR", "USD", INR_TO_USD, date)
         cls.employee = make_employee(
             EMPLOYEE_USER,
             company=COMPANY,
@@ -121,10 +124,11 @@ class OverrideTestCase(IntegrationTestCase):
         return doc
 
 
-def ensure_global_currency(currency):
-    if not frappe.db.get_default("currency"):
-        frappe.db.set_default("currency", currency)
-        frappe.clear_cache()
+def use_global_currency(currency):
+    """Make currency the default Administrator sees: a user default would override the site one."""
+    frappe.db.set_default("currency", currency)
+    frappe.defaults.clear_default("currency", parent="Administrator")
+    frappe.clear_cache()
 
 
 def ensure_customer(name, currency):
