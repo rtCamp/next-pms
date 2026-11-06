@@ -197,8 +197,9 @@ test.describe("Manager: Projects list", () => {
 
     await list.columnOptions("Client name").click();
     const fourth = page.getByRole("menuitem", { name: "Pin column" });
-    await fourth.hover();
-    await expect(page.getByText("You can pin up to 3 columns")).toBeVisible();
+    // Vue prints the limit under the disabled item instead of in a hover tooltip.
+    await expect(fourth).toBeDisabled();
+    await expect(fourth).toContainText("You can pin up to 3 columns");
     await fourth.click({ force: true });
     await page.keyboard.press("Escape");
     expect(new URL(page.url()).searchParams.get("pinned")).toBe(pinned);
