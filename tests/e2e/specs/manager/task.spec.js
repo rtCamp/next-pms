@@ -3,6 +3,7 @@ const { test, expect } = require("../../playwright.fixture.cjs");
 import { TaskPage } from "../../pageObjects/taskPage";
 import { readJSONFile } from "../../utils/fileUtils";
 import * as allure from "allure-js-commons";
+import { scaleTimeout } from "../../utils/timeouts";
 //Add type hints to help VS Code recognize TaskPage
 /** @type {TaskPage} */
 let taskPage;
@@ -51,49 +52,6 @@ test.describe("Manager : Task", () => {
     expect(isTaskDetailsDialogVisible).toBeTruthy();
   });
 
-  // The "Columns" button this case exists to exercise is gone from the redesign:
-  // the task table ships a fixed set of columns (Subject, Project, Status,
-  // Expected time, Priority, Due date) and there is no add/remove control for
-  // them anywhere on the page. Nothing is left to drive, and unlike TC25/TC26 -
-  // which lost the same control but could be rescoped onto the surviving
-  // "Is Billable" filter field - customisable columns have no replacement to
-  // point at. Skipped rather than deleted pending a call from @ayushnirwal on
-  // whether column customisation was dropped deliberately.
-  test.skip("TC20: The information table columns should be customizable using the ‘Columns’ button at the top.   ", async ({
-    jsonDir,
-  }) => {
-    allure.story("Task");
-    const stubPath = path.join(jsonDir, "TC20.json");
-    const data = await readJSONFile(stubPath);
-    const TC20data = data.TC20;
-    //Verify if the column if already present:
-    if (await taskPage.isColumnPresent(TC20data.col)) {
-      // Remove column and save
-      await taskPage.removeColumn(TC20data.col);
-      await taskPage.saveView();
-    }
-
-    // Add column to view and save
-    await taskPage.addColumn(TC20data.col);
-    await taskPage.saveView();
-
-    // Re-navigate to tab and store column status
-    await taskPage.goto();
-    const isColumnPresent1 = await taskPage.isColumnPresent(TC20data.col);
-
-    // Remove column and save
-    await taskPage.removeColumn(TC20data.col);
-    await taskPage.saveView();
-
-    // Re-navigate to tab and store column status
-    await taskPage.goto();
-    const isColumnPresent2 = await taskPage.isColumnPresent(TC20data.col);
-
-    // Assertions
-    expect(await isColumnPresent1).toBeTruthy();
-    expect(await isColumnPresent2).toBeFalsy();
-  });
-
   test("TC22: A task like/favourite functionality.", async ({ jsonDir }) => {
     allure.story("Task");
     const stubPath = path.join(jsonDir, "TC22.json");
@@ -137,7 +95,7 @@ test.describe("Manager : Task", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    test.setTimeout(90000);
+    test.setTimeout(scaleTimeout(45000));
     const stubPath = path.join(jsonDir, "TC25.json");
     const data = await readJSONFile(stubPath);
     const TC25data = data.TC25;
@@ -153,7 +111,7 @@ test.describe("Manager : Task", () => {
     jsonDir,
   }) => {
     allure.story("Task");
-    test.setTimeout(90000);
+    test.setTimeout(scaleTimeout(45000));
     const stubPath = path.join(jsonDir, "TC26.json");
     const data = await readJSONFile(stubPath);
     const TC26data = data.TC26;

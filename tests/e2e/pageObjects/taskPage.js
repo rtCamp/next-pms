@@ -99,6 +99,54 @@ export class TaskPage {
       name: "Save and close",
       exact: true,
     });
+
+    // List rows and toolbar
+    this.rows = this.tasksTable.getByRole("rowgroup").getByRole("row");
+    // Only the subject button has no aria-label (the others are Add time, Star task and Task actions).
+    this.subjectButtons = this.rows.locator("button:not([aria-label])");
+    this.toolbar = this.searchInput.locator(
+      "xpath=ancestor::div[contains(@class,'justify-between')][1]",
+    );
+    this.projectFilter = this.toolbar.getByPlaceholder("Project");
+    // Search, Project and Status sit in three boxes of the same width.
+    this.statusFilter = this.toolbar.locator("div.w-44").nth(2);
+    this.sortButton = page.getByRole("button", { name: /^Sort/ }).first();
+    this.columnsToggle = page.getByRole("button", { name: /^Columns/ }).first();
+    this.clearAllFiltersButton = page.getByRole("button", {
+      name: /clear all filters/i,
+    });
+    this.columnHeader = (name) =>
+      page.getByRole("columnheader", { name, exact: true });
+
+    // Add / Edit Task dialog
+    this.taskDialog = page
+      .getByRole("dialog")
+      .filter({ hasText: /(Add|Edit) Task/ });
+    this.projectInput = this.taskDialog.getByPlaceholder("Select project");
+    this.subjectInput = this.taskDialog.getByPlaceholder("Add subject");
+    this.hoursInput = this.taskDialog.getByPlaceholder("Hours");
+    this.dueDateInput = this.taskDialog.getByPlaceholder("Due Date");
+    this.priorityControl = this.taskDialog
+      .getByRole("combobox")
+      .filter({ hasText: /^(Low|Medium|High|Urgent)$/ });
+    this.descriptionEditor = this.taskDialog
+      .locator("[contenteditable]")
+      .first();
+    this.submitButton = this.taskDialog.getByRole("button", {
+      name: /^(Add Task|Save)$/,
+    });
+    this.cancelButton = this.taskDialog.getByRole("button", {
+      name: "Cancel",
+      exact: true,
+    });
+    this.dialogMessage = (text) =>
+      this.taskDialog.getByText(text, { exact: true });
+
+    this.toast = (text) =>
+      page
+        .getByRole("region", { name: /notification/i })
+        .getByText(text)
+        .first();
   }
 
   // --------------------------------------
@@ -521,5 +569,293 @@ export class TaskPage {
     await this.timeSpent.fill(time);
     await this.commentTextbox.fill(comment);
     await this.addTimeButton.click();
+  }
+
+  // --------------------------------------
+  // List: opening, searching, filtering
+  // --------------------------------------
+
+  /**
+   * Opens the list. Every control keeps its state in the URL, so a test can
+   * start from any combination: `status` and `advanced` are arrays, the rest strings.
+   */
+  async gotoTasks({
+    project,
+    projectLabel,
+    search,
+    status,
+    advanced,
+    sortField,
+    sortOrder,
+    columnOrder,
+  } = {}) {
+    const params = [
+      project && `project=${encodeURIComponent(project)}`,
+      projectLabel && `projectLabel=${encodeURIComponent(projectLabel)}`,
+      search && `search=${encodeURIComponent(search)}`,
+      status && `status=${encodeURI(JSON.stringify(status))}`,
+      advanced && `advanced=${encodeURIComponent(JSON.stringify(advanced))}`,
+      sortField && `sortField=${sortField}`,
+      sortOrder && `sortOrder=${sortOrder}`,
+      columnOrder && `columnOrder=${columnOrder}`,
+    ].filter(Boolean);
+    await gotoWithRetry(
+      this.page,
+      `/next-pms/tasks${params.length ? `?${params.join("&")}` : ""}`,
+    );
+    await this.waitForList();
+  }
+
+  /** Waits for rows, or the empty message, to show. */
+  async waitForList() {
+    await this.tasksTable.waitFor({
+      state: "visible",
+      timeout: scaleTimeout(30000),
+    });
+    await expect(this.rows.first().or(this.emptyTaskList).first()).toBeVisible({
+      timeout: scaleTimeout(30000),
+    });
+  }
+
+  /** The row of a task, by its exact subject. */
+  rowOf(subject) {
+    return this.rows.filter({
+      has: this.page.getByRole("button", { name: subject, exact: true }),
+    });
+  }
+
+  /** The URL parameter a control keeps its state in. */
+  param(name) {
+    return new URL(this.page.url()).searchParams.get(name);
+  }
+
+  /** The statuses in the URL; the app encodes that parameter twice. */
+  statusParam() {
+    return JSON.parse(decodeURI(this.param("status") ?? "[]"));
+  }
+
+  /** The popup of a task, which opens when its subject is clicked. */
+  popup(subject) {
+    return this.page.getByRole("dialog").filter({ hasText: subject }).first();
+  }
+
+  /** Types a search term and waits for the debounce to put it in the URL. */
+  async search(term) {
+    await this.searchInput.fill(term);
+    await expect.poll(() => this.param("search")).toBe(term || null);
+  }
+
+  /** Picks a project from the Project filter; "All" clears it. */
+  async chooseProject(name) {
+    await this.projectFilter.click();
+    await this.projectFilter.fill(name === "All" ? "" : name);
+    await this.page.getByRole("option", { name, exact: true }).click();
+  }
+
+  /** Toggles statuses in the Status filter. */
+  async toggleStatuses(...statuses) {
+    await this.statusFilter.click();
+    for (const status of statuses) {
+      await this.page
+        .getByRole("option", { name: status, exact: true })
+        .click();
+    }
+    await this.page.keyboard.press("Escape");
+  }
+
+  async openFilterPanel() {
+    if (!(await this.filterFieldInput.first().isVisible())) {
+      await this.filterButton.click();
+      await this.filterFieldInput
+        .first()
+        .waitFor({ state: "visible", timeout: scaleTimeout(15000) });
+    }
+  }
+
+  /** Picks a field in the Filter panel's first condition; choosing one resets its operator. */
+  async chooseFilterField(field) {
+    await this.openFilterPanel();
+    const input = this.filterFieldInput.last();
+    await input.click();
+    await input.fill(field);
+    await this.page
+      .getByRole("option", { name: new RegExp(`^${field}$`, "i") })
+      .first()
+      .click();
+  }
+
+  /** Sets "<field> <operator> <value>" for a select field such as Priority. */
+  async applyFilter({ field, operator, value }) {
+    await this.chooseFilterField(field);
+    await this.filterOperatorInput.last().click();
+    await this.page
+      .getByRole("option", { name: new RegExp(`^${operator}$`, "i") })
+      .first()
+      .click();
+    await this.filterValueInput.last().click();
+    await this.page
+      .getByRole("option", { name: new RegExp(`^${value}$`, "i") })
+      .first()
+      .click();
+    await this.closeFilterPanel();
+  }
+
+  /** Sets "Due date between <from> and <to>", two days of the month on show. */
+  async applyDueDateRange(fromDay, toDay) {
+    await this.chooseFilterField("Due date");
+    // The range control is a popover trigger, not an input.
+    await this.page
+      .locator("span[role=button][aria-haspopup=dialog]")
+      .last()
+      .click();
+    for (const day of [fromDay, toDay]) {
+      await this.page
+        .locator("button:visible")
+        .filter({ hasText: new RegExp(`^${day}$`) })
+        .first()
+        .click();
+    }
+    await this.closeFilterPanel();
+  }
+
+  async closeFilterPanel() {
+    await this.page.keyboard.press("Escape");
+    await this.filterFieldInput
+      .first()
+      .waitFor({ state: "hidden", timeout: scaleTimeout(10000) })
+      .catch(() => {});
+  }
+
+  // --------------------------------------
+  // List: sorting and columns
+  // --------------------------------------
+
+  /** Picks a field in the Sort menu. */
+  async sortBy(label) {
+    await this.sortButton.click();
+    // The header button has the same name; the menu is the later one.
+    await this.page
+      .getByRole("button", { name: label, exact: true })
+      .last()
+      .click();
+    await this.page.keyboard.press("Escape");
+  }
+
+  async clearSort() {
+    await this.sortButton.click();
+    await this.page.getByRole("button", { name: "Clear sort" }).click();
+    await this.page.keyboard.press("Escape");
+  }
+
+  async clickHeader(label) {
+    await this.columnHeader(label).getByRole("button").click();
+  }
+
+  /** Opens the Columns menu unless it is already open: the button toggles it. */
+  async openColumnsMenu() {
+    const open = await this.page
+      .getByRole("button", { name: /^Remove column:/ })
+      .first()
+      .isVisible();
+    if (!open) await this.columnsToggle.click();
+  }
+
+  async removeColumn(name) {
+    await this.openColumnsMenu();
+    await this.page
+      .getByRole("button", { name: `Remove column: ${name}` })
+      .click();
+  }
+
+  /** The menu's footer holds the Add Column combobox beside Reset to Default. */
+  columnsFooter() {
+    return this.page
+      .getByRole("button", { name: "Reset to Default" })
+      .locator("xpath=..");
+  }
+
+  async addColumn(name) {
+    await this.openColumnsMenu();
+    await this.columnsFooter().getByRole("combobox").click();
+    await this.page.getByRole("option", { name, exact: true }).click();
+  }
+
+  async resetColumns() {
+    await this.openColumnsMenu();
+    await this.page.getByRole("button", { name: "Reset to Default" }).click();
+  }
+
+  // --------------------------------------
+  // Add / edit dialog
+  // --------------------------------------
+
+  async openAddTask() {
+    await this.addTaskbutton.click();
+    await this.submitButton.waitFor({
+      state: "visible",
+      timeout: scaleTimeout(15000),
+    });
+  }
+
+  async chooseDialogProject(name) {
+    await this.projectInput.click();
+    await this.projectInput.fill(name);
+    await this.page.getByRole("option", { name, exact: true }).click();
+  }
+
+  async setPriority(priority) {
+    await this.priorityControl.click();
+    await this.page.getByText(priority, { exact: true }).last().click();
+  }
+
+  /** Picks a day of the month on show; the picker closes on a pick. */
+  async pickDueDate(day) {
+    await this.dueDateInput.click();
+    await this.page
+      .locator("button:visible")
+      .filter({ hasText: new RegExp(`^${day}$`) })
+      .first()
+      .click();
+  }
+
+  async fillTask({ project, subject, priority, hours, dueDay, description }) {
+    if (project) await this.chooseDialogProject(project);
+    if (subject) await this.subjectInput.fill(subject);
+    if (priority) await this.setPriority(priority);
+    if (hours) await this.hoursInput.fill(hours);
+    if (dueDay) await this.pickDueDate(dueDay);
+    if (description) await this.descriptionEditor.fill(description);
+  }
+
+  // --------------------------------------
+  // Row actions
+  // --------------------------------------
+
+  async openRowMenu(subject) {
+    await this.rowOf(subject)
+      .getByRole("button", { name: "Task actions" })
+      .click();
+  }
+
+  async chooseRowAction(subject, action) {
+    await this.openRowMenu(subject);
+    await this.page.getByRole("menuitem", { name: action }).click();
+  }
+
+  starButton(subject) {
+    return this.rowOf(subject).getByRole("button", { name: /star task/i });
+  }
+
+  addTimeButtonOf(subject) {
+    return this.rowOf(subject).getByRole("button", { name: "Add time" });
+  }
+
+  /** Confirms or cancels the open delete dialog. */
+  async answerDialog(label) {
+    await this.page
+      .getByRole("dialog")
+      .last()
+      .getByRole("button", { name: label, exact: true })
+      .click();
   }
 }

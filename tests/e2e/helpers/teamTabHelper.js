@@ -1,92 +1,10 @@
 import path from "path";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
-import {
-  getFormattedDate,
-  getDateForWeekday,
-  getShortFormattedDate,
-} from "../utils/dateUtils";
-import { getRandomValue } from "../utils/stringUtils";
-//import { deleteEmployee } from "../utils/api/employeeRequests";
-import { submitTimesheetForApproval } from "./timesheetHelper";
-import { actOnTimesheet } from "../utils/api/timesheetRequests";
+import { getShortFormattedDate } from "../utils/dateUtils";
 import {
   createUserGroup,
   deleteUserGroup,
 } from "../utils/api/userGroupRequests";
-// ------------------------------------------------------------------------------------------
-
-/**
- * Randomly assigns and acts on approval status for provided testCaseIDs.
- * @param {string[]} testCaseIDs  IDs to process in managerTeamData
- * @param {string[]} approvalOptions  possible statuses, defaults to pending/rejected
- */
-export const randomApprovalStatus = async (
-  testCaseIDs,
-  jsonDir,
-  approvalOptions = ["Approval Pending", "Partially Rejected"],
-) => {
-  if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
-
-  for (const tcId of testCaseIDs) {
-    const stubPath = path.join(jsonDir, `${tcId}.json`);
-
-    // Read the entire stub { "TCn": entry }
-    const fullStub = await readJSONFile(stubPath);
-    const entry = fullStub[tcId];
-    if (!entry) {
-      console.warn(`⚠️ No data under key "${tcId}" in ${stubPath}`);
-      continue;
-    }
-
-    // Skip if no approval payload
-    if (!entry.payloadApprovalStatus) {
-      console.warn(`Skipping ${tcId}: no payloadApprovalStatus`);
-      continue;
-    }
-
-    // Select a random status
-    const randomStatus = getRandomValue(approvalOptions);
-    console.warn(
-      `Selected RANDOM Approval Status for ${tcId}: ${randomStatus}`,
-    );
-
-    // Assign status
-    entry.payloadApprovalStatus.approvalStatus = randomStatus;
-
-    // Submit for approval
-    await submitTimesheetForApproval(
-      entry.payloadApprovalStatus.empId,
-      entry.payloadApprovalStatus.managerID,
-      entry.payloadApprovalStatus.employeeAPI,
-    );
-
-    // Additional actions based on status
-    switch (randomStatus) {
-      case "Approval Pending":
-        console.warn(`CASE [${tcId}]: Approval Pending`);
-        break;
-
-      case "Partially Rejected":
-        console.warn(`CASE [${tcId}]: Partially Rejected`);
-        // Convert the timesheet entry day to a proper date
-        const formatted = getFormattedDate(getDateForWeekday(entry.cell.col));
-
-        await actOnTimesheet({
-          dates: [formatted],
-          employee: entry.payloadApprovalStatus.empId,
-          note: "Partial rejecting timesheet via API",
-          status: "Rejected",
-        });
-        break;
-
-      default:
-        console.warn(`Unhandled approval status: ${randomStatus}`);
-    }
-
-    // Persist mutated stub, wrapped under its own TC key
-    await writeDataToFile(stubPath, { [tcId]: entry });
-  }
-};
 // ------------------------------------------------------------------------------------------
 
 /**

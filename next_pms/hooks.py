@@ -246,11 +246,13 @@ doc_events = {
         "validate": "next_pms.project_currency.doc_events.task.validate",
     },
     "Leave Application": {
+        "after_insert": "next_pms.next_pms.notifications.leave_application_after_insert",
         "on_update": [
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
             "next_pms.timesheet.doc_events.leave_application.on_update",
             "next_pms.resource_management.doc_events.leave_application.resync_allocations",
             "next_pms.api.dashboard.clear_employees_on_leave_cache",
+            "next_pms.next_pms.notifications.leave_application_resolved",
         ],
         # `on_update` does not fire when a submitted leave changes status, so approval of an
         # already-submitted application would otherwise never reach the allocations.
@@ -259,17 +261,20 @@ doc_events = {
             "next_pms.timesheet.doc_events.leave_application.on_update",
             "next_pms.resource_management.doc_events.leave_application.resync_allocations",
             "next_pms.api.dashboard.clear_employees_on_leave_cache",
+            "next_pms.next_pms.notifications.leave_application_resolved",
         ],
         "on_trash": [
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
             "next_pms.timesheet.doc_events.leave_application.on_trash",
             "next_pms.api.dashboard.clear_employees_on_leave_cache",
+            "next_pms.next_pms.notifications.leave_application_deleted",
         ],
         "on_cancel": [
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
             "next_pms.timesheet.doc_events.leave_application.on_cancel",
             "next_pms.resource_management.doc_events.leave_application.resync_allocations",
             "next_pms.api.dashboard.clear_employees_on_leave_cache",
+            "next_pms.next_pms.notifications.leave_application_resolved",
         ],
         # Deletion is resynced after the row is gone — on_trash still sees the leave in the DB.
         "after_delete": [
