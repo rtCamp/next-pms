@@ -5,7 +5,7 @@ import { TeamPage } from "./team";
 const UNITS = { week: "Week", month: "Month", quarter: "Quarter" };
 // A tooltip trigger. The popover has another beside its hours line, the info icon, so
 // reach the avatar through the "Created on" / "Last edited on" row it sits in.
-const AVATAR = "[data-base-ui-tooltip-trigger]";
+const AVATAR = "[data-grace-area-trigger]";
 
 /**
  * The Team and Project tabs of Allocations: the toolbar they share (search, pickers,
@@ -23,7 +23,11 @@ export class AllocationsPage extends TeamPage {
     this.noData = page.getByText("No Data", { exact: true });
     this.headerRow = page.locator("thead");
     // Designation, Department and Allocation type on Team; Allocation type on Project.
-    this.pickers = page.getByRole("combobox", { name: "Select options" });
+    // frappe-ui's MultiSelect drops its aria-label, so its trigger is named by the
+    // placeholder or the selection; Duration's Select trigger is a combobox.
+    this.pickers = page.locator(
+      'button[data-slot="trigger"][aria-haspopup="listbox"]:not([role])',
+    );
     this.durationSelect = page
       .getByRole("combobox")
       .filter({ hasText: /^This (week|month|quarter)$/ });
@@ -88,7 +92,7 @@ export class AllocationsPage extends TeamPage {
   async pick(picker, values) {
     await picker.click();
     await this.page.getByRole("option").first().waitFor();
-    const search = this.page.getByPlaceholder("Search for...");
+    const search = this.page.locator('[data-slot="search"] input');
     for (const value of values) {
       // Designation and Department have a search box; Allocation type lists six options.
       if (await search.isVisible()) await search.fill(value);
@@ -126,55 +130,61 @@ export class AllocationsPage extends TeamPage {
   // Rows
   // --------------------------------------
 
-  /** The names in the grid's rows, from their "View <name> details" controls. */
+  /** The names in the grid's top-level rows, from their "Toggle <name>" buttons. */
   async rowNames() {
     return this.table
-      .locator('tbody [aria-label^="View "]')
+      .getByRole("button", { name: /^Toggle / })
       .evaluateAll((els) =>
-        els.map((el) =>
-          el
-            .getAttribute("aria-label")
-            .replace(/^View /, "")
-            .replace(/ details$/, ""),
-        ),
+        els.map((el) => el.getAttribute("aria-label").replace(/^Toggle /, "")),
       );
   }
 
+  /** A row by the name in its header cell; child rows have no button to anchor on. */
   row(name) {
     return this.table.locator("tbody tr").filter({
-      has: this.page.locator(`[aria-label="View ${name} details"]`),
+      has: this.page.locator("th").getByText(name, { exact: true }),
     });
   }
 
   /** A member's or project's per-week summary chips ("4h free", "Full"). */
   chips(name) {
-    return this.row(name).getByRole("button", { name: "Allocation summary" });
+    return this.row(name).locator('[data-gantt-bar][role="button"]');
   }
 
   async hoverCard(name) {
-    await this.page
-      .locator(`[aria-label="View ${name} details"]`)
-      .hover({ force: true });
+    // The card opens on focus as well as hover, and a headless hover doesn't
+    // reliably open it. A row that can't expand has no button, only the hover area.
+    const toggle = this.row(name).getByRole("button", {
+      name: `Toggle ${name}`,
+    });
+    if (await toggle.count()) await toggle.focus();
+    else await this.row(name).locator("th").first().hover();
     await this.floating.waitFor({ timeout: scaleTimeout(10000) });
     return this.floating;
   }
 
   /** Opens the popover of a row's chip: project, dates, hours, status, Edit and Delete. */
   async openChip(name, index = 0) {
-    await this.chips(name).nth(index).click();
+    // A chip's card opens on hover or focus, not on click.
+    await this.chips(name).nth(index).focus();
     // An employee's popover has no buttons, so wait for its hours line.
     await this.popover.waitFor({ timeout: scaleTimeout(10000) });
     return this.popover;
   }
 
   async expandRow(name) {
-    const chevron = this.row(name).getByRole("button", {
-      name: /^(Expand|Collapse)$/,
+    const toggle = this.row(name).getByRole("button", {
+      name: `Toggle ${name}`,
     });
-    // The row stays open across a reload; a full-size overlay covers the chevron.
-    if ((await chevron.getAttribute("aria-label")) === "Expand") {
-      await chevron.dispatchEvent("click");
+    // The row stays open across a reload.
+    if ((await toggle.getAttribute("aria-expanded")) !== "true") {
+      await toggle.click();
     }
+    // The child rows mount after the toggle; callers read them without waiting.
+    await this.row(name)
+      .first()
+      .locator("xpath=following-sibling::tr[1]")
+      .waitFor({ timeout: scaleTimeout(10000) });
   }
 
   /** The bar of an allocation in an expanded member's project row: "2h/day for 1 day". */
@@ -205,14 +215,11 @@ export class AllocationsPage extends TeamPage {
       .locator(AVATAR)
       .first()
       .hover();
-    // The tooltip floats like the popover but holds only the name.
-    const tooltip = this.page
-      .locator("[data-side]:visible")
-      .filter({ hasText: /\S/ })
-      .filter({ hasNotText: /h\/day/ })
-      .last();
-    await tooltip.waitFor({ timeout: scaleTimeout(10000) });
-    return (await tooltip.innerText()).trim();
+    // Reka renders the tooltip's text twice: the visible bubble and a hidden
+    // role="tooltip" copy for screen readers. Read the copy.
+    const tooltip = this.page.getByRole("tooltip").last();
+    await tooltip.waitFor({ state: "attached", timeout: scaleTimeout(10000) });
+    return (await tooltip.textContent()).trim();
   }
 
   /** A project row's bars that span several days, left to right: a weekly series. */
@@ -249,32 +256,11 @@ export class AllocationsPage extends TeamPage {
   /** Picks a start and end day in the dialog's calendar, walking months as needed. */
   async pickDateRange(from, to) {
     await this.dateRangeInput.click();
-    const grid = this.page.getByRole("grid");
-    await grid.waitFor({ timeout: scaleTimeout(10000) });
-    for (const iso of [from, to]) {
-      const date = new Date(`${iso}T00:00:00`);
-      const caption = date.toLocaleDateString("en-US", {
-        month: "short",
-        year: "numeric",
-      });
-      for (let step = 0; step < 12; step++) {
-        const shown = (await this.calendarCaption.textContent())?.trim();
-        if (shown === caption) break;
-        await (
-          new Date(`${shown} 1`) > date
-            ? this.calendarPrevMonth
-            : this.calendarNextMonth
-        ).click();
-      }
-      // Days of the next and previous months spill into the grid, so a low day is the
-      // first match and a high one the last.
-      const cells = grid.getByRole("gridcell", {
-        name: String(date.getDate()),
-        exact: true,
-      });
-      await (date.getDate() <= 15 ? cells.first() : cells.last()).click();
-    }
-    await grid.waitFor({ state: "hidden", timeout: scaleTimeout(5000) });
+    await this.pickCalendarDay(from);
+    await this.pickCalendarDay(to);
+    await this.calendarGrid
+      .first()
+      .waitFor({ state: "hidden", timeout: scaleTimeout(5000) });
   }
 
   /** Fills Add allocation: employee, project, dates, hours, and optionally a weekly repeat. */
@@ -329,6 +315,11 @@ export class AllocationsPage extends TeamPage {
   /** "Oct 23" for a date, as the popover's Created on / Last edited on line prints it. */
   static shortDay(date) {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+
+  /** "Nov 2 2026" for an ISO date, as the dialog's date range prints it. */
+  static rangeDay(iso) {
+    return AllocationsPage.day(iso).replace(",", "");
   }
 
   /** "Nov 2, 2026" for an ISO date, as popovers and dialogs print it. */

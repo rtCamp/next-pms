@@ -38,9 +38,11 @@ export class NavigationPage {
       name: "Close notifications tray",
     });
 
-    this.notFoundHeading = page.getByRole("heading", { name: "404" });
+    this.notFoundHeading = page.getByRole("heading", {
+      name: "Page not found",
+    });
     this.noEmployeeHeading = page.getByRole("heading", {
-      name: "Access Restricted",
+      name: "Access restricted",
     });
   }
 

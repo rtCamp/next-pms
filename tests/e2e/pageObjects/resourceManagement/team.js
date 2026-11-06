@@ -21,31 +21,33 @@ export class TeamPage extends TimelinePage {
   constructor(page) {
     super(page);
     this.deleteButton = page.getByRole("img", { name: "Delete" });
-    // Member rows carry no ARIA roles, so anchor on the per-row name control.
+    // Member rows carry no ARIA roles, so anchor on the row's "Toggle <name>" button,
+    // which covers the header cell and expands the member into their projects.
     this.memberRows = page
       .locator("table tr")
-      .filter({ has: page.locator('[aria-label^="View "]') });
+      .filter({ has: page.getByRole("button", { name: /^Toggle / }) });
     this.firstEmployeeFromTable = this.memberRows
       .first()
-      .locator('[aria-label^="View "]')
+      .locator("th span.truncate")
       .first();
-    // The chevron that expands a member into their allocated projects. Its label
-    // stays "Expand" while aria-expanded flips, so match either wording.
     this.firstMemberExpandButton = this.memberRows
       .first()
-      .getByRole("button", { name: /^(Expand|Collapse)$/ })
+      .getByRole("button", { name: /^Toggle / })
       .first();
     this.reportsToDropdown = page.getByRole("button", {
       name: "Reporting Manager",
     });
-    // One "View <name> details" control per member row.
+    // One "Toggle <name>" button per member row.
     this.employeeCountFromTable = page
       .getByRole("table")
-      .getByRole("button", { name: /^View .* details$/ });
-    // The grid has no ARIA roles, so anchor a member's row on that control.
+      .getByRole("button", { name: /^Toggle / });
+    // The grid has no ARIA roles, so anchor a member's row on that button.
     this.memberRow = (employeeName) =>
       page.locator("table tr").filter({
-        has: page.locator(`[aria-label="View ${employeeName} details"]`),
+        has: page.getByRole("button", {
+          name: `Toggle ${employeeName}`,
+          exact: true,
+        }),
       });
     this.leftSidebar = page.getByText(
       "Next PMSHomeTimesheetTeamProjectTaskResource",
@@ -108,11 +110,10 @@ export class TeamPage extends TimelinePage {
     await Promise.all([
       this.page.waitForResponse(
         (resp) =>
-          resp
-            .url()
-            .includes(
-              "/api/method/next_pms.resource_management.api.team.get_resource_management_team_view_data",
-            ) && resp.status() === 200,
+          resp.url().includes(
+            // The Vue app calls /api/v2/method/...
+            "next_pms.resource_management.api.team.get_resource_management_team_view_data",
+          ) && resp.status() === 200,
       ),
       this.page.goto("/next-pms/allocations/team", {
         waitUntil: "domcontentloaded",
@@ -204,13 +205,7 @@ export class TeamPage extends TimelinePage {
     const expand = this.firstMemberExpandButton;
     await expand.waitFor({ state: "visible", timeout: scaleTimeout(15000) });
 
-    // Every member row is covered by a full-size transparent button
-    // (absolute inset-0 z-10) that swallows pointer events, so a normal click on
-    // the chevron is intercepted and retries until the test times out.
-    // dispatchEvent targets the chevron directly, skipping hit-testing - and
-    // unlike click({force:true}) it does not also fire the overlay's
-    // member-details dialog, which would sit over the rows we then assert on.
-    await expand.dispatchEvent("click");
+    await expand.click();
     await this.page.waitForTimeout(1500);
   }
 
@@ -224,7 +219,7 @@ export class TeamPage extends TimelinePage {
 
   /**
    * The member names currently rendered, read from each row's
-   * "View <name> details" control.
+   * "Toggle <name>" button.
    *
    * More reliable than the row count for asserting a filter narrowed things:
    * the grid renders a fixed page of 10, so once a filtered set also reaches 10
@@ -239,12 +234,7 @@ export class TeamPage extends TimelinePage {
     );
 
     return labels
-      .map((l) =>
-        l
-          .replace(/^View\s+/, "")
-          .replace(/\s+details$/, "")
-          .trim(),
-      )
+      .map((l) => l.replace(/^Toggle\s+/, "").trim())
       .filter(Boolean);
   }
 

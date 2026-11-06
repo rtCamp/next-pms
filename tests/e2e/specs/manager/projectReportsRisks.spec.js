@@ -12,6 +12,9 @@ import {
 import { readJSONFile } from "../../utils/fileUtils";
 import { scaleTimeout } from "../../utils/timeouts";
 
+// Seeded by global setup; named here so a run of this spec alone seeds it.
+const FIXTURE = "TC299";
+
 // TC299 seeds "E2E Prj Detail" with a Done report, an open High risk and a mitigated
 // Low one; see data/manager/projects.js. Cases that change a risk make their own.
 const OPEN_RISK = "E2E Prj open risk";
@@ -31,7 +34,9 @@ test.describe("Manager: Project reports and risks", () => {
 
   test.beforeEach(async ({ page, jsonDir }) => {
     risks = new ProjectRisksPage(page);
-    const data = (await readJSONFile(path.join(jsonDir, "TC299.json"))).TC299;
+    const data = (await readJSONFile(path.join(jsonDir, `${FIXTURE}.json`)))[
+      FIXTURE
+    ];
     project = data.payloadDeleteProject5.projectId;
     docs = data.docs;
   });
@@ -118,7 +123,10 @@ test.describe("Manager: Project reports and risks", () => {
     allure.story("Projects");
     const posted = [];
     page.on("request", (req) => {
-      if (req.method() === "POST" && req.url().includes("/api/resource/Risk"))
+      if (
+        req.method() === "POST" &&
+        /\/api\/(resource|v2\/document)\/Risk\b/.test(req.url())
+      )
         posted.push(req.url());
     });
     await risks.goto(project);

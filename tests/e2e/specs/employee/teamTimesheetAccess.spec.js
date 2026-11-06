@@ -14,12 +14,17 @@ test.describe("Employee: Team timesheet access", () => {
     allure.story("Team Timesheet");
     await gotoWithRetry(page, "/next-pms/timesheet/team");
     await expect(page).toHaveURL(/\/next-pms\/not-found/);
-    await expect(page.getByRole("heading", { name: "404" })).toBeVisible();
     await expect(
-      page.getByText("Sorry, we couldn't find the page you're looking for."),
+      page.getByRole("heading", { name: "Page not found" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "Return to Home" }),
+      page.getByText("There's nothing at this address."),
+    ).toBeVisible();
+    // frappe-ui renders a Button with a route as a link.
+    await expect(
+      page
+        .getByRole("link", { name: "Go home" })
+        .or(page.getByRole("button", { name: "Go home" })),
     ).toBeVisible();
   });
 

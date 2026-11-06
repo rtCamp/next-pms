@@ -139,7 +139,9 @@ test.describe("Settings: personal and system configuration", () => {
 
     const weeks = new TimesheetWeeksPage(page);
     const expanded = () =>
-      weeks.weekHeaders.and(page.locator('[aria-expanded="true"]')).count();
+      weeks.weekHeaders
+        .filter({ has: page.locator('button[aria-expanded="true"]') })
+        .count();
     await weeks.goto();
     await expect.poll(expanded).toBe(own);
 

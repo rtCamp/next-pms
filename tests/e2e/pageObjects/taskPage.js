@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 import path from "path";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
+import { dayOfThisMonth } from "../utils/dateUtils";
 import { gotoWithRetry } from "../utils/navigation.js";
 import { scaleTimeout } from "../utils/timeouts";
 
@@ -87,13 +88,13 @@ export class TaskPage {
       .first();
 
     //Add Time Modal
-    this.timeSpent = page.getByRole("textbox", { name: ":00" });
+    this.timeSpent = page.getByRole("textbox", { name: /^Duration/ });
     this.datePicker = page.getByRole("button", { name: "Today" });
     this.projectSelector = page.getByRole("button", {
       name: "Search Projects",
     });
     this.tasksSelector = page.getByRole("button", { name: "Search Task" });
-    this.commentTextbox = page.getByRole("paragraph").filter({ hasText: /^$/ });
+    this.commentTextbox = page.getByRole("textbox", { name: "Comment" });
     // The modal submits with "Save and close" / "Save and add another".
     this.addTimeButton = page.getByRole("button", {
       name: "Save and close",
@@ -101,15 +102,23 @@ export class TaskPage {
     });
 
     // List rows and toolbar
-    this.rows = this.tasksTable.getByRole("rowgroup").getByRole("row");
+    // frappe-ui's List has no rowgroup; the header is a row of columnheaders, so
+    // a data row is a row with cells.
+    this.rows = this.tasksTable
+      .getByRole("row")
+      .filter({ has: page.getByRole("cell") });
     // Only the subject button has no aria-label (the others are Add time, Star task and Task actions).
     this.subjectButtons = this.rows.locator("button:not([aria-label])");
     this.toolbar = this.searchInput.locator(
       "xpath=ancestor::div[contains(@class,'justify-between')][1]",
     );
     this.projectFilter = this.toolbar.getByPlaceholder("Project");
-    // Search, Project and Status sit in three boxes of the same width.
-    this.statusFilter = this.toolbar.locator("div.w-44").nth(2);
+    // frappe-ui's MultiSelect drops its aria-label and names its trigger after
+    // the selection, so it's found by its trigger slot; the Project combobox's
+    // trigger is not a button.
+    this.statusFilter = this.toolbar
+      .locator('button[data-slot="trigger"]')
+      .first();
     this.sortButton = page.getByRole("button", { name: /^Sort/ }).first();
     this.columnsToggle = page.getByRole("button", { name: /^Columns/ }).first();
     this.clearAllFiltersButton = page.getByRole("button", {
@@ -168,11 +177,19 @@ export class TaskPage {
    * Searches for a task in the search input.
    */
   async searchTask(name) {
+    await this.waitForList();
+    // The old rows stay on screen until the debounced refetch lands.
+    const searched = this.page.waitForResponse(
+      (resp) =>
+        resp.url().includes("get_task_list") &&
+        decodeURIComponent(resp.url().replace(/\+/g, " ")).includes(name),
+      { timeout: scaleTimeout(15000) },
+    );
     await this.searchInput.fill(name);
     //Verify that search input is filled
-    await expect(this.getSearchInputByValue(name)).toBeVisible();
-    await this.page.waitForSelector("svg.animate-spin", { state: "hidden" });
-    await this.searchInput.press("ArrowDown+Enter");
+    await expect(this.searchInput).toHaveValue(name);
+    await searched;
+    await this.waitForList();
   }
 
   // --------------------------------------
@@ -238,7 +255,7 @@ export class TaskPage {
   async getTaskRows() {
     await this.tasksTable.waitFor({ state: "visible" });
 
-    return this.tasksTable.getByRole("rowgroup").getByRole("row");
+    return this.rows;
   }
 
   /**
@@ -703,16 +720,11 @@ export class TaskPage {
   /** Sets "Due date between <from> and <to>", two days of the month on show. */
   async applyDueDateRange(fromDay, toDay) {
     await this.chooseFilterField("Due date");
-    // The range control is a popover trigger, not an input.
-    await this.page
-      .locator("span[role=button][aria-haspopup=dialog]")
-      .last()
-      .click();
+    await this.page.getByRole("combobox", { name: "Value" }).last().click();
+    // Calendar cells are named by their ISO date.
     for (const day of [fromDay, toDay]) {
       await this.page
-        .locator("button:visible")
-        .filter({ hasText: new RegExp(`^${day}$`) })
-        .first()
+        .getByRole("gridcell", { name: new RegExp(`^${dayOfThisMonth(day)}`) })
         .click();
     }
     await this.closeFilterPanel();
@@ -767,16 +779,9 @@ export class TaskPage {
       .click();
   }
 
-  /** The menu's footer holds the Add Column combobox beside Reset to Default. */
-  columnsFooter() {
-    return this.page
-      .getByRole("button", { name: "Reset to Default" })
-      .locator("xpath=..");
-  }
-
   async addColumn(name) {
     await this.openColumnsMenu();
-    await this.columnsFooter().getByRole("combobox").click();
+    await this.page.getByRole("button", { name: "Add Column" }).click();
     await this.page.getByRole("option", { name, exact: true }).click();
   }
 

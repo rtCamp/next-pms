@@ -177,7 +177,9 @@ test.describe("Access & Roles", () => {
         });
         await expect(nav.noEmployeeHeading).toBeVisible();
         await expect(
-          page.getByText("You are not an employee in this company."),
+          page.getByText(
+            "Next PMS needs an Employee record linked to your user.",
+          ),
         ).toBeVisible();
         await expect(
           page.getByRole("button", { name: "Log out" }),

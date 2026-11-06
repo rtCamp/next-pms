@@ -36,9 +36,10 @@ const DEFAULT_HEADERS = [
   "Expected time",
   "Priority",
   "Due date",
-  "",
-  "",
-  "",
+  // The action columns' headers are screen-reader only.
+  "Add time",
+  "Star",
+  "Actions",
 ];
 
 test.describe("Manager: Task list", () => {
@@ -163,7 +164,9 @@ test.describe("Manager: Task list", () => {
     const [other] = await getDocList(
       "Project",
       [["project_name", "=", data.payloadCreateProject2.project_name]],
-      { fields: ["name"] },
+      {
+        fields: ["name"],
+      },
     );
     await seedTask(projectId, data.first);
     await seedTask(other.name, data.second);
@@ -282,7 +285,9 @@ test.describe("Manager: Task list", () => {
     const [other] = await getDocList(
       "Project",
       [["project_name", "=", data.payloadCreateProject2.project_name]],
-      { fields: ["name"] },
+      {
+        fields: ["name"],
+      },
     );
     const alpha = `${data.task} alpha`;
     await seedTask(projectId, alpha, { status: "Working", priority: "High" });
@@ -365,7 +370,8 @@ test.describe("Manager: Task list", () => {
 
     await openProjectList(data, projectId);
     const header = taskPage.columnHeader("Subject");
-    await expect(header).toHaveAttribute("aria-sort", "none");
+    // frappe-ui leaves aria-sort off an unsorted header, which means "none".
+    await expect(header).not.toHaveAttribute("aria-sort");
 
     await taskPage.clickHeader("Subject");
     await expect(header).toHaveAttribute("aria-sort", "descending");
@@ -560,12 +566,11 @@ test.describe("Manager: Task list", () => {
       hours: "2",
       description: data.description,
     });
-    await page.route("**/api/method/**task.add_task**", (route) =>
-      route.abort(),
-    );
+    await page.route("**/method/**task.add_task**", (route) => route.abort());
     await taskPage.submitButton.click();
 
-    await expect(taskPage.dialogMessage("Network Error")).toBeVisible();
+    // The browser's message for an aborted fetch; React's axios said "Network Error".
+    await expect(taskPage.dialogMessage("Failed to fetch")).toBeVisible();
     await expect(taskPage.taskDialog).toBeVisible();
     await expect(taskPage.subjectInput).toHaveValue(data.subject);
     await expect(taskPage.submitButton).toBeEnabled();
