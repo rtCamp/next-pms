@@ -35,7 +35,8 @@ across components live in `src/utils/`.
 | `ErrorFallback/` | `ErrorFallback` |
 | `Filter/` | `Filter`, `FilterLinkValue` (the `#link-value` input: searches the field's doctype or `customMethod`), `DEFAULT_OPERATORS` |
 | `GanttGrid/` | `GanttGrid` (the Team and Project allocations grid: weeks of day columns, employee or project rows with their allocation bars, hover cards, resize and drag-to-create; renders and emits, fetches nothing; needs `provideUnsavedChanges()` above it) and its row and event types; `GanttBar` and `GanttTimeoffBar` (the bars alone, for help legends); its day-column sizes and `buildTimeline` / `columnIndex`, also used by the Calendar tab's Gantt |
-| `InfoHoverCard/` | `InfoHoverCard` (the info icon beside a label: a card explaining it on hover or focus, or a plain tooltip), `FieldHelp` |
+| `HelpPanel/` | `HelpPanel` (the sidebar's non-modal Help panel: the page's tips and the tips for every page, in an accordion, filtered by role), `HelpTip`, `visibleTips` |
+| `InfoHoverCard/` | `InfoHoverCard` (the info icon beside a label: a card explaining it on hover or focus, with a wiki link, or a plain tooltip), `FieldHelp`, `WIKI_BASE` |
 | `LoadingOverlay/` | `LoadingOverlay` |
 | `MonthPicker/` | `MonthPicker` |
 | `NotificationTray/` | `NotificationTray`, `notificationIcon` |
