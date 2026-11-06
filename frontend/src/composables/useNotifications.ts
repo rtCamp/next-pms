@@ -11,13 +11,15 @@ import {
   type MaybeRefOrGetter,
   type Ref,
 } from "vue";
-import { dayjs, toast, useList } from "frappe-ui";
+import { dayjs, toast, useCall, useList } from "frappe-ui";
 import type { NotificationEntry } from "@/components/NotificationTray";
 import { useSession } from "@/session";
 import { useSocket } from "@/socket";
 import { errorMessage } from "@/utils/errors";
 
 const NOTIFICATION_DOCTYPE = "NextPMS Notifications";
+const MARK_AS_VIEWED_URL =
+  "/api/v2/method/next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications.mark_as_viewed";
 const NOTIFICATION_LIMIT = 20;
 /** Socket events after which the list is reloaded. */
 const NOTIFICATION_EVENTS = ["notification", "pm_report_ready"];
@@ -59,7 +61,7 @@ export function toNotificationEntry(doc: NotificationDoc): NotificationEntry {
 }
 
 export interface AppNotifications {
-  /** The latest notifications, newest first. */
+  /** The latest unread notifications, newest first. */
   notifications: ComputedRef<NotificationEntry[]>;
   unreadCount: ComputedRef<number>;
   loading: ComputedRef<boolean>;
@@ -75,7 +77,7 @@ const notificationsKey: InjectionKey<AppNotifications> =
   Symbol("notifications");
 
 /**
- * Loads the signed-in user's 20 latest notifications for the whole app, newest first,
+ * Loads the signed-in user's 20 latest unread notifications for the whole app, newest first,
  * and reloads them on the realtime `notification` and `pm_report_ready` events. Call
  * once, in the shell; `enabled` gates the loading on the user's roles.
  */
@@ -97,7 +99,7 @@ export function provideNotifications(
       "url",
       "viewed",
     ],
-    filters: () => ({ user: session.userId }),
+    filters: () => ({ user: session.userId, viewed: 0 }),
     orderBy: "creation desc",
     limit: NOTIFICATION_LIMIT,
     immediate: false,
@@ -122,12 +124,17 @@ export function provideNotifications(
 
   const docs = computed(() => (toValue(enabled) ? (list.data ?? []) : []));
 
-  /** Marks the notifications viewed; a failure shows a toast and doesn't reject. */
-  async function markViewed(ids: string[]) {
+  const markViewedCall = useCall<unknown, { name?: string }>({
+    url: MARK_AS_VIEWED_URL,
+    method: "POST",
+    immediate: false,
+  });
+
+  /** Marks one notification, or all of them, viewed; a failure shows a toast and doesn't reject. */
+  async function markViewed(params: { name?: string }) {
     try {
-      await Promise.all(
-        ids.map((name) => list.setValue.submit({ name, viewed: 1 })),
-      );
+      await markViewedCall.submit(params);
+      await list.reload();
     } catch (error) {
       toast.error(errorMessage(error));
     }
@@ -136,13 +143,12 @@ export function provideNotifications(
   async function markAsViewed(id: string) {
     const doc = docs.value.find((row) => row.name === id);
     if (!doc || doc.viewed) return;
-    await markViewed([id]);
+    await markViewed({ name: id });
   }
 
   async function markAllAsViewed() {
-    const unread = docs.value.filter((doc) => !doc.viewed);
-    if (!unread.length) return;
-    await markViewed(unread.map((doc) => doc.name));
+    if (!docs.value.length) return;
+    await markViewed({});
   }
 
   const notifications: AppNotifications = {

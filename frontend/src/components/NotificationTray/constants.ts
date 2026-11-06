@@ -5,6 +5,7 @@ export const DOCTYPE_ICONS: Record<string, string> = {
   Project: "lucide-folder",
   "Project Status Update": "lucide-at-sign",
   "Project RAG Status": "lucide-at-sign",
+  "Leave Application": "lucide-calendar",
 };
 
 export const MENTION_ICON = "lucide-at-sign";
