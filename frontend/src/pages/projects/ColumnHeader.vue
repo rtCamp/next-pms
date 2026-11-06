@@ -63,7 +63,7 @@ function sort() {
     ref="header"
     role="columnheader"
     :aria-sort="ariaSort"
-    class="flex min-w-0 items-center gap-1 text-sm text-ink-gray-5"
+    class="group flex min-w-0 items-center gap-1 text-sm text-ink-gray-5"
     :class="isDragging && 'opacity-50'"
   >
     <Tooltip
@@ -96,7 +96,7 @@ function sort() {
     <Dropdown :options="pinOptions" side="bottom">
       <button
         type="button"
-        class="shrink-0 rounded-1 p-0.5 text-ink-gray-6 focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3"
+        class="shrink-0 rounded-1 p-0.5 text-ink-gray-6 transition-opacity focus:outline-none focus-visible:opacity-100 focus-visible:ring focus-visible:ring-outline-gray-3 data-[state=open]:opacity-100 md:opacity-0 md:group-hover:opacity-100"
         :aria-label="`${column.label} column options`"
       >
         <span class="lucide-chevron-down block size-3.5" aria-hidden="true" />
