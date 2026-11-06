@@ -5,7 +5,8 @@ permissions:
 on:
   pull_request:
     paths:
-      - 'frontend/**'
+      - "frontend/**"
+      - ".github/workflows/pr-test-build.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,55 +16,21 @@ jobs:
   build:
     name: "Frontend Build Test"
     runs-on: ubuntu-latest
-    container:
-      image: node:18
     defaults:
       run:
-        shell: bash
+        working-directory: frontend
+
     steps:
       - uses: actions/checkout@v6
-        with:
-          submodules: recursive
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version-file: 'frontend/.nvmrc'
-          cache: 'npm'
-      
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
-      - name: Install dependencies for Submodule - frappe-ui-react
-        run: |
-          cd frappe-ui-react
-          pnpm i
-        env:
-          npm_config_cache: ~/.npm
-
-      - name: Install dependencies
-        run: |
-          cd frontend
-          npm ci
-        env:
-          npm_config_cache: ~/.npm
-        
-      - name: Cache node modules
-        uses: actions/cache@v5
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Build Submodule - frappe-ui-react
-        run: |
-          cd frappe-ui-react
-          pnpm build
+      - name: Install npm dependencies
+        run: npm ci
 
       - name: Build app
-        run: |
-          cd frontend
-          npm run build
+        run: npm run build

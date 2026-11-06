@@ -1,0 +1,298 @@
+import type { Meta, StoryObj } from "@storybook/vue3-vite";
+import { expect, fn, screen, userEvent, waitFor, within } from "storybook/test";
+import { onUnmounted } from "vue";
+import { useRouter } from "vue-router";
+import AppSidebar from "./AppSidebar.vue";
+import { SIDEBAR_COLLAPSED_KEY } from "./constants";
+
+const meta = {
+  title: "Layout/AppSidebar/Interactions",
+  component: AppSidebar,
+  tags: ["interaction"],
+  parameters: { layout: "fullscreen" },
+  args: {
+    roles: [],
+    employee: "HR-EMP-00042",
+    employeeName: "Asha Rao",
+    onLogout: fn(),
+  },
+  beforeEach: () => {
+    // Each story starts expanded, whatever an earlier one stored.
+    localStorage.removeItem(SIDEBAR_COLLAPSED_KEY);
+  },
+  render: (args) => ({
+    components: { AppSidebar },
+    setup: () => ({ args }),
+    template: `
+      <div class="flex h-[600px]">
+        <AppSidebar v-bind="args" />
+      </div>
+    `,
+  }),
+} satisfies Meta<typeof AppSidebar>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+/** An employee without review or project roles: their own timesheet, tasks and allocations. */
+export const Employee: Story = {
+  play: async ({ canvas }) => {
+    await expect(
+      canvas.getByRole("link", { name: "Timesheet" }),
+    ).toHaveAttribute("href", "/timesheet");
+    await expect(
+      canvas.getByRole("link", { name: "Tasks" }),
+    ).toBeInTheDocument();
+    await expect(
+      canvas.queryByRole("link", { name: "Projects" }),
+    ).not.toBeInTheDocument();
+    await expect(
+      canvas.queryByRole("button", { name: "Dashboards" }),
+    ).not.toBeInTheDocument();
+    await expect(
+      canvas.queryByRole("button", { name: "Timesheet" }),
+    ).not.toBeInTheDocument();
+    await expect(
+      canvas.getByRole("button", { name: "Allocations" }),
+    ).toBeInTheDocument();
+    await expect(
+      canvas.queryByRole("button", { name: "Notifications" }),
+    ).not.toBeInTheDocument();
+  },
+};
+
+/** Projects and delivery roles get Notifications, which opens the tray beside the sidebar. */
+export const Notifications: Story = {
+  args: { roles: ["Projects User"] },
+  play: async ({ canvas }) => {
+    await userEvent.click(
+      canvas.getByRole("button", { name: "Notifications" }),
+    );
+    const tray = await screen.findByRole("dialog", { name: "Notifications" });
+    await waitFor(() => expect(tray).toBeVisible());
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  },
+};
+
+/** A timesheet reviewer gets a Timesheet section; Team opens on their reports. */
+export const TimesheetReviewer: Story = {
+  args: { roles: ["Timesheet User"] },
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "Timesheet" }));
+    await expect(
+      canvas.getByRole("link", { name: "Personal" }),
+    ).toHaveAttribute("href", "/timesheet");
+    await expect(canvas.getByRole("link", { name: "Team" })).toHaveAttribute(
+      "href",
+      "/timesheet/team?reportsTo=HR-EMP-00042",
+    );
+    await expect(
+      canvas.getByRole("link", { name: "Projects" }),
+    ).toHaveAttribute("href", "/timesheet/project");
+  },
+};
+
+/** A projects manager sees open projects and, with one dashboard, has it at the top. */
+export const ProjectsManager: Story = {
+  args: { roles: ["Projects Manager"] },
+  play: async ({ canvas }) => {
+    await expect(
+      canvas.getByRole("link", { name: "Projects" }),
+    ).toHaveAttribute("href", "/projects?status=Open");
+    await expect(canvas.getByRole("link", { name: "Manager" })).toHaveAttribute(
+      "href",
+      "/dashboard/manager",
+    );
+    await expect(
+      canvas.queryByRole("button", { name: "Dashboards" }),
+    ).not.toBeInTheDocument();
+  },
+};
+
+/** Two dashboards go into their own section. */
+export const Leadership: Story = {
+  args: { roles: ["Delivery Manager"] },
+  play: async ({ canvas }) => {
+    const section = canvas.getByRole("button", { name: "Dashboards" });
+    await userEvent.click(section);
+    await expect(
+      canvas.getByRole("link", { name: "Leadership" }),
+    ).toHaveAttribute("href", "/dashboard/leadership");
+    await expect(canvas.getByRole("link", { name: "Manager" })).toHaveAttribute(
+      "href",
+      "/dashboard/manager",
+    );
+  },
+};
+
+/** Sections start closed and open from their label. */
+export const OpenSection: Story = {
+  play: async ({ canvas }) => {
+    const section = canvas.getByRole("button", { name: "Allocations" });
+    await expect(section).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(section);
+    await expect(section).toHaveAttribute("aria-expanded", "true");
+    await expect(canvas.getByRole("link", { name: "Team" })).toHaveAttribute(
+      "href",
+      "/allocations/team",
+    );
+  },
+};
+
+/** The toggle collapses the sidebar to icons and remembers the choice. */
+export const Collapse: Story = {
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "Collapse" }));
+    await expect(
+      canvas.getByRole("button", { name: "Expand" }),
+    ).toBeInTheDocument();
+    await expect(localStorage.getItem(SIDEBAR_COLLAPSED_KEY)).toBe("true");
+  },
+};
+
+/** Collapsed, the sidebar shows closed sections' icons too, and expanding it closes them again. */
+export const CollapsedShowsClosedSections: Story = {
+  play: async ({ canvas }) => {
+    const team = () => canvas.getByRole("link", { name: "Team", hidden: true });
+    await expect(team()).not.toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Collapse" }));
+    await expect(team()).toBeVisible();
+    await expect(
+      canvas.getByRole("link", { name: "Projects", hidden: true }),
+    ).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Expand" }));
+    await expect(team()).not.toBeVisible();
+    await expect(
+      canvas.getByRole("button", { name: "Allocations", hidden: true }),
+    ).toHaveAttribute("aria-expanded", "false");
+  },
+};
+
+/** On a phone the sidebar collapses by itself, and closed sections still show their icons. */
+export const MobileCollapsedShowsClosedSections: Story = {
+  globals: { viewport: { value: "mobile1" } },
+  play: async ({ canvas }) => {
+    await expect(
+      canvas.getByRole("button", { name: "Expand" }),
+    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        canvas.getByRole("link", { name: "Team", hidden: true }),
+      ).toBeVisible(),
+    );
+  },
+};
+
+/** Logout sits in the header menu and is left to the parent. */
+export const LogOut: Story = {
+  play: async ({ args, canvas }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /Next PMS/ }));
+    await userEvent.click(
+      await screen.findByRole("menuitem", { name: "Logout" }),
+    );
+    await waitFor(() => expect(args.onLogout).toHaveBeenCalledOnce());
+  },
+};
+
+/** The header menu has React's items, in React's order. */
+export const HeaderMenu: Story = {
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /Next PMS/ }));
+    await screen.findByRole("menu");
+    const labels = screen
+      .getAllByRole("menuitem")
+      .map((item) => item.textContent?.trim());
+    await expect(labels).toEqual([
+      "Apps",
+      "Switch To Desk",
+      "Settings",
+      "Toggle Theme",
+      "Logout",
+    ]);
+
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+  },
+};
+
+// A new loader per render: the preload remembers loaders it has called.
+let loadTasks = fn();
+
+/** Hovering or focusing a link loads its page's code once, before the click. */
+export const PreloadsPageCode: Story = {
+  render: (args) => ({
+    components: { AppSidebar },
+    setup() {
+      const router = useRouter();
+      loadTasks = fn(async () => ({ render: () => null }));
+      router.addRoute({
+        path: "/tasks",
+        name: "preload-tasks",
+        component: loadTasks,
+      });
+      onUnmounted(() => router.removeRoute("preload-tasks"));
+      return { args };
+    },
+    template: `
+      <div class="flex h-[600px]">
+        <AppSidebar v-bind="args" />
+      </div>
+    `,
+  }),
+  play: async ({ canvas }) => {
+    const tasks = canvas.getByRole("link", { name: "Tasks" });
+    await expect(loadTasks).not.toHaveBeenCalled();
+    await userEvent.hover(tasks);
+    await waitFor(() => expect(loadTasks).toHaveBeenCalledOnce());
+    await userEvent.unhover(tasks);
+    tasks.focus();
+    await userEvent.hover(tasks);
+    await expect(loadTasks).toHaveBeenCalledOnce();
+  },
+};
+
+let storyRouter: ReturnType<typeof useRouter> | undefined;
+
+/** Ctrl+K opens the search palette; it lists the user's pages and goes to the picked one. */
+export const Search: Story = {
+  args: { roles: ["Projects Manager"] },
+  render: (args) => ({
+    components: { AppSidebar },
+    setup() {
+      storyRouter = useRouter();
+      return { args };
+    },
+    template: `
+      <div class="flex h-[600px]">
+        <AppSidebar v-bind="args" />
+      </div>
+    `,
+  }),
+  play: async ({ canvas }) => {
+    await expect(
+      canvas.getByRole("button", { name: "Search" }),
+    ).toBeInTheDocument();
+
+    await userEvent.keyboard("{Control>}k{/Control}");
+    const palette = await screen.findByRole("dialog", { name: "Search" });
+    await expect(
+      within(palette).getByRole("option", { name: "Dashboard - Manager" }),
+    ).toBeInTheDocument();
+    await expect(
+      within(palette).queryByRole("option", { name: "Dashboard - Leadership" }),
+    ).not.toBeInTheDocument();
+
+    await userEvent.keyboard("alloc");
+    await waitFor(() =>
+      expect(within(palette).getAllByRole("option")).toHaveLength(2),
+    );
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await waitFor(() =>
+      expect(storyRouter?.currentRoute.value.fullPath).toBe(
+        "/allocations/team",
+      ),
+    );
+  },
+};
