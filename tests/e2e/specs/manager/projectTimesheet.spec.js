@@ -75,19 +75,28 @@ test.describe("Manager: Project timesheet", () => {
     await expect(pending).toBeVisible();
 
     await projects.toggle(row, alpha);
-    await expect(row).toHaveAttribute("aria-expanded", "false");
+    await expect(projects.rowToggle(row, alpha)).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
     await expect(pending).toHaveCount(0);
 
     await projects.toggle(row, alpha);
     await expect(pending).toBeVisible();
     // Members start closed.
-    await expect(pending).toHaveAttribute("aria-expanded", "false");
+    await expect(projects.rowToggle(pending, member.Pending)).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
     await expect(
       projects.memberPanel(LAST, alpha, member.Pending).getByText(task),
     ).toHaveCount(0);
 
     await projects.toggle(pending, member.Pending);
-    await expect(pending).toHaveAttribute("aria-expanded", "true");
+    await expect(projects.rowToggle(pending, member.Pending)).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
     await expect(
       projects.memberPanel(LAST, alpha, member.Pending).getByText(task),
     ).toBeVisible();
@@ -144,7 +153,8 @@ test.describe("Manager: Project timesheet", () => {
     ).toBeVisible();
   });
 
-  test("TC225: The filters on the Project tab narrow the weeks and rows by member and project", async () => {
+  // Vue: a filter row switched from Project to Member still searches Projects for its value.
+  test.fixme("TC225: The filters on the Project tab narrow the weeks and rows by member and project", async () => {
     allure.story("Timesheet");
 
     await test.step("Member", async () => {

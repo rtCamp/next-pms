@@ -64,13 +64,17 @@ export class TimesheetPage {
       .getByRole("button", { name: "Add time", exact: true });
 
     // Modals
-    // The dialog exposes no accessible name; only one is open at a time.
-    this.addLeaveModal = page.getByRole("dialog");
-    // Time entry happens in two surfaces, both exposed as a single dialog: the
-    // header "Add time" modal (project + task + duration) and the popover that
-    // opens from a timesheet cell (duration + comment only).
-    this.addTimeModal = page.getByRole("dialog");
-    this.editTimeModal = page.getByRole("dialog");
+    this.addLeaveModal = page.getByRole("dialog", { name: "Add time off" });
+    // A task cell opens a hover card listing the day's entries; it has no role.
+    this.entryPopover = page
+      .locator('[data-slot="content"][data-state="open"]')
+      .last();
+    // Time entry happens in two surfaces: the header "Add time" dialog (project +
+    // task + duration) and the cell popover (duration + comment only).
+    this.addTimeModal = page
+      .getByRole("dialog", { name: "Add time" })
+      .or(this.entryPopover);
+    this.editTimeModal = this.entryPopover;
     this.submitTimesheetModal = page.getByRole("dialog").filter({
       has: page.getByRole("heading", { name: "Submit for approval" }),
     });
@@ -94,9 +98,8 @@ export class TimesheetPage {
     });
 
     // Latest Timesheet Elements
-    this.latestTimesheetDiv = page
-      .locator("//div[@data-orientation='vertical']")
-      .first();
+    // The first week group of the grid.
+    this.latestTimesheetDiv = page.locator("div.scroll-mt-7").first();
     // The timesheet grid has no table semantics. Every line is a row div whose
     // indentation class encodes its level: week header (pl-3), weekly totals /
     // project / time-off (pl-7.5) and task (pl-13.5).
@@ -184,7 +187,10 @@ export class TimesheetPage {
       await this.selectComboboxOption("Select task", task);
     }
     if (desc) {
-      await this.addTimeModal.locator("[contenteditable]").first().fill(desc);
+      await this.addTimeModal
+        .locator('[contenteditable="true"]')
+        .first()
+        .fill(desc);
     }
     // the cell popover saves with "Save entry", the header modal with "Save and close"
     await this.saveEntry(
@@ -274,7 +280,7 @@ export class TimesheetPage {
     // The dialog is now: leave-type combobox, start/end dates (defaulting to
     // today), a Full/First/Second Half choice and a reason textarea.
     const dialog = this.addLeaveModal;
-    await dialog.getByRole("combobox").first().click();
+    await dialog.getByRole("combobox", { name: /Leave type/ }).click();
     await this.page
       .getByRole("option", { name: "Unpaid Time Off" })
       .first()
@@ -420,7 +426,7 @@ export class TimesheetPage {
 
     // Iterate through each row to extract the task name from the first cell
     for (const row of await rows.all()) {
-      const task = await row.locator("span.truncate").first().textContent();
+      const task = await row.locator("button.truncate").first().textContent();
       tasks.push(task.trim());
     }
 
@@ -468,7 +474,7 @@ export class TimesheetPage {
     // Entry details are no longer a hover tooltip - the cell opens a popover
     // listing that day's entries with their descriptions.
     await this.openCell(cell);
-    const popover = this.page.getByRole("dialog").first();
+    const popover = this.entryPopover;
     await popover.waitFor({ state: "visible", timeout: scaleTimeout(15000) });
 
     return await popover.innerText();
@@ -480,7 +486,7 @@ export class TimesheetPage {
   async isTimeEntryBillable(cellInfo) {
     const cell = await this.getCell(cellInfo);
     // Only non-billable entries are flagged, with an amber dot under the hours.
-    const nonBillableDot = cell.locator("span.bg-surface-amber-3");
+    const nonBillableDot = cell.getByRole("img", { name: "Non-billable" });
 
     return (await nonBillableDot.count()) === 0;
   }
@@ -526,7 +532,10 @@ export class TimesheetPage {
     await this.editTimeModal.getByPlaceholder("00:00").fill(duration);
 
     if (desc) {
-      await this.editTimeModal.locator("[contenteditable]").last().fill(desc);
+      await this.editTimeModal
+        .locator('[contenteditable="true"]')
+        .last()
+        .fill(desc);
     }
     await this.saveEntry(
       this.editTimeModal.getByRole("button", { name: "Save entry" }),
@@ -543,10 +552,7 @@ export class TimesheetPage {
 
     await this.openCell(cell);
 
-    // Each entry in the popover carries an icon-only button that opens it for
-    // editing; the entry is identified by the description it already holds.
-    const entry = this.editTimeModal.filter({ hasText: plainTextDesc }).first();
-    await entry.getByRole("button").filter({ hasText: /^$/ }).first().click();
+    await this.editEntry(plainTextDesc);
 
     // The duration field is a masked time input backed by a hidden minutes
     // field, and it only commits the typed value to component state on blur -
@@ -557,10 +563,28 @@ export class TimesheetPage {
     await duration.blur();
     await this.page.waitForTimeout(500);
 
-    await this.editTimeModal.locator("[contenteditable]").first().fill(newDesc);
+    await this.editTimeModal
+      .locator('[contenteditable="true"]')
+      .first()
+      .fill(newDesc);
     await this.saveEntry(
       this.editTimeModal.getByRole("button", { name: "Save entry" }),
     );
+  }
+
+  /**
+   * Opens the entry carrying `desc` in the open cell popover for editing.
+   */
+  async editEntry(desc) {
+    // Each entry has an "Edit entry" button that only takes pointer events while
+    // the entry is hovered.
+    const entry = this.editTimeModal
+      .locator("div.group")
+      .filter({ hasText: desc })
+      .first();
+    await entry.waitFor({ state: "visible", timeout: scaleTimeout(15000) });
+    await entry.hover();
+    await entry.getByRole("button", { name: "Edit entry" }).click();
   }
 
   /**
@@ -571,37 +595,7 @@ export class TimesheetPage {
 
     await this.openCell(cell);
 
-    // The dialog lists each entry as a header button (the duration) followed by
-    // a region holding the description. Neither of the old anchors survives:
-    // there is no "items-start" ancestor, and no "bg-destructive" button
-    // anywhere in the timesheet dialog (that class is only used by
-    // taskStatusIndicator now). Find the entry by its description, then step
-    // back to its header, whose nested icon button is the delete.
-    const region = this.editTimeModal
-      .getByRole("region")
-      .filter({ hasText: desc })
-      .first();
-    await region.waitFor({ state: "visible", timeout: scaleTimeout(15000) });
-
-    // The delete control is an unlabelled icon button that only exists visually
-    // on hover: "absolute right-0 top-0 opacity-0 pointer-events-none
-    // group-hover:opacity-100". It is not a preceding sibling of the panel, so
-    // go up to the accordion item that holds both and hover that first.
-    const item = region.locator("xpath=..");
-    await item.hover();
-    await this.page.waitForTimeout(500);
-
-    // That hover control opens the entry's edit form; deleting is a named
-    // button inside it. Two steps, not one - the old single-click assumption is
-    // why this looked unfixable.
-    const editButton = item
-      .locator('button[class*="absolute"][class*="right-0"]')
-      .first();
-    await editButton.waitFor({
-      state: "visible",
-      timeout: scaleTimeout(10000),
-    });
-    await editButton.click();
+    await this.editEntry(desc);
 
     const deleteButton = this.editTimeModal.getByRole("button", {
       name: "Delete entry",
@@ -614,7 +608,9 @@ export class TimesheetPage {
     // retry then finds the entry already gone.
     const deleted = this.page.waitForResponse(
       (res) => res.url().includes("timesheet.api.timesheet.delete"),
-      { timeout: scaleTimeout(60000) },
+      {
+        timeout: scaleTimeout(60000),
+      },
     );
     await deleteButton.click();
     await deleted;
@@ -711,7 +707,7 @@ export class TimesheetPage {
         throw new Error(`No timesheet row for "${task}" in the current week.`);
       });
 
-    await row.locator("span.truncate").first().click();
+    await row.locator("button.truncate").first().click();
     await this.page.waitForTimeout(2000);
   }
 

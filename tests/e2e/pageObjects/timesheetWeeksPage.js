@@ -1,6 +1,13 @@
 import { expect } from "@playwright/test";
 import { gotoWithRetry } from "../utils/navigation";
 import { scaleTimeout } from "../utils/timeouts";
+import {
+  pickCalendarDay,
+  rowToggle,
+  weekHeader,
+  weekHeaders,
+  weekRegion,
+} from "./timesheetGrid";
 import { TimesheetTabPage } from "./timesheetTabPage";
 
 /**
@@ -27,6 +34,72 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
     this.submitDialog = page.getByRole("dialog", {
       name: "Submit for approval",
     });
+    // frappe-ui's MultiSelect drops its aria-label, and its name is the selection.
+    this.approvalFilter = page
+      .locator('button[aria-haspopup="listbox"]')
+      .first();
+    this.dateField = this.addTimeDialog.getByRole("combobox", {
+      name: /^Date/,
+    });
+    this.halfDayField = this.addTimeOffDialog.getByPlaceholder(
+      "Select half day date",
+    );
+    // A task cell opens a hover card listing the day's entries; it has no role.
+    this.entryPopover = page
+      .locator('[data-slot="content"][data-state="open"]')
+      .last();
+  }
+
+  get weekHeaders() {
+    return weekHeaders(this.page);
+  }
+
+  /** A week's header row, by its label ("This week", "Oct 5 - 11, 2026"). */
+  weekHeader(label) {
+    return weekHeader(this.page, label);
+  }
+
+  weekRegion(label) {
+    return weekRegion(this.page, label);
+  }
+
+  async clickDay(isoDate) {
+    await pickCalendarDay(this.page, isoDate);
+  }
+
+  /** The time-off dialog's From and To fields. */
+  get dateFields() {
+    return this.addTimeOffDialog.getByRole("combobox", { name: /^(From|To)/ });
+  }
+
+  /** As in the base page, but the leave duration is a radio group. */
+  async fillTimeOff({ from, to = from, duration, type, reason }) {
+    await this.pickDate(this.dateFields.nth(0), from);
+    await this.pickDate(this.dateFields.nth(1), to);
+    if (duration) {
+      await this.addTimeOffDialog
+        .getByRole("radio", { name: duration, exact: true })
+        .click();
+    }
+    if (type) {
+      await this.addTimeOffDialog
+        .getByRole("combobox", { name: /Leave type/ })
+        .click();
+      await this.page.getByRole("option", { name: type }).click();
+    }
+    if (reason) {
+      await this.addTimeOffDialog
+        .getByRole("textbox", { name: /Reason/ })
+        .fill(reason);
+    }
+  }
+
+  /** The day cells of a row, Monday first; their text is the hours or a dash. */
+  cells(row) {
+    // An empty cell's dash sits between spaces in its text.
+    return row
+      .getByRole("button")
+      .filter({ hasText: /^\s*(\d{2}:\d{2}|-)\s*$/ });
   }
 
   // --------------------------------------
@@ -70,20 +143,23 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
   }
 
   async expandWeek(label) {
-    const header = this.weekHeader(label);
-    await header.waitFor({ timeout: scaleTimeout(30000) });
-    if ((await header.getAttribute("aria-expanded")) === "false") {
-      await header.click();
+    const toggle = rowToggle(this.page, label);
+    await toggle.waitFor({ timeout: scaleTimeout(30000) });
+    if ((await toggle.getAttribute("aria-expanded")) === "false") {
+      await toggle.click();
     }
   }
 
-  /** The rows of a week: its Total row first, then project and task rows. */
+  /** The rows of a week under its header (pl-3): its Total row first, then project and task rows. */
   rows(label) {
-    return this.weekRegion(label).locator("div.border-b.transition-colors");
+    return this.weekRegion(label).locator(
+      "div.border-b.transition-colors:not(.pl-3)",
+    );
   }
 
+  /** The week's Total row, labelled "Projects / Tasks"; hidden while a task search is on. */
   totalRow(label) {
-    return this.rows(label).first();
+    return this.rows(label).filter({ hasText: /^\s*Projects\s*\/\s*Tasks/ });
   }
 
   /** A project or task row, by the exact text it carries. */
@@ -98,11 +174,16 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
     const row = this.row(label, "Time-off");
     // The row is only there once the week has a leave or a holiday.
     if ((await row.count()) === 0) return Array(7).fill("-");
-    const lines = (await row.innerText())
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean);
-    return lines.slice(1, 8);
+    // Children: the label, the seven days, Total. A holiday's day also holds its
+    // name for screen readers, so read only the first span.
+    const days = row.locator(":scope > div");
+    const hours = [];
+    for (let day = 1; day <= 7; day++) {
+      hours.push(
+        (await days.nth(day).locator("span").first().innerText()).trim(),
+      );
+    }
+    return hours;
   }
 
   submitButton(label) {
@@ -136,9 +217,8 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
   /** Changes the hours of the entry carrying `comment` in a task row's day cell. */
   async updateEntry(cell, { comment, duration }) {
     await cell.click();
-    const popover = this.page.getByRole("dialog").last();
-    const entry = popover.filter({ hasText: comment }).first();
-    await entry.getByRole("button").filter({ hasText: /^$/ }).first().click();
+    const popover = this.entryPopover;
+    await this.editEntry(comment);
     const field = popover.getByPlaceholder("00:00");
     await field.fill(duration);
     // The masked field only commits on blur; without it the save posts the old value.
@@ -156,18 +236,22 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
   /** Deletes the entry carrying `comment` in a task row's day cell. */
   async deleteEntry(cell, comment) {
     await cell.click();
-    const popover = this.page.getByRole("dialog").last();
-    const item = popover
-      .getByRole("region")
-      .filter({ hasText: comment })
-      .first()
-      .locator("xpath=..");
-    await item.hover();
-    await item
-      .locator('button[class*="absolute"][class*="right-0"]')
-      .first()
+    await this.editEntry(comment);
+    await this.entryPopover
+      .getByRole("button", { name: "Delete entry" })
       .click();
-    await popover.getByRole("button", { name: "Delete entry" }).click();
+  }
+
+  /** Opens the entry carrying `comment` in the open cell popover for editing. */
+  async editEntry(comment) {
+    // "Edit entry" only takes pointer events while its entry is hovered.
+    const entry = this.entryPopover
+      .locator("div.group")
+      .filter({ hasText: comment })
+      .first();
+    await entry.waitFor({ timeout: scaleTimeout(15000) });
+    await entry.hover();
+    await entry.getByRole("button", { name: "Edit entry" }).click();
   }
 
   // --------------------------------------
