@@ -152,6 +152,9 @@ const PersonalTimesheetGrid = () => {
                               }
                               status={value.status}
                               hideTotalRow={hasTaskFilter}
+                              rejectionUnlockedDates={
+                                value.rejection_unlocked_dates
+                              }
                             />
                           </div>
                         </Fragment>

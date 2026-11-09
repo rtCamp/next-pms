@@ -35,6 +35,7 @@ export type TeamMember = {
   workingFrequency: WorkingFrequency;
   status: ApprovalStatusLabelType;
   backdateRestrictedBefore: string | null;
+  rejectionUnlockedDates: string[];
 };
 
 type TeamTimesheetRowProps = {
@@ -108,6 +109,7 @@ export const TeamTimesheetRow = ({
                 collapsed={true}
                 disabled={member.status === "Approved"}
                 backdateRestrictedBefore={member.backdateRestrictedBefore}
+                rejectionUnlockedDates={member.rejectionUnlockedDates}
                 onCellClick={(date) =>
                   openAddTimeDialog({
                     date,
@@ -137,6 +139,7 @@ export const TeamTimesheetRow = ({
                         backdateRestrictedBefore={
                           member.backdateRestrictedBefore
                         }
+                        rejectionUnlockedDates={member.rejectionUnlockedDates}
                         onCellClick={(date) =>
                           openAddTimeDialog({
                             date,
@@ -167,6 +170,9 @@ export const TeamTimesheetRow = ({
                               employee={member.employee}
                               backdateRestrictedBefore={
                                 member.backdateRestrictedBefore
+                              }
+                              rejectionUnlockedDates={
+                                member.rejectionUnlockedDates
                               }
                               hideLikeButton={true}
                               setSelectedTask={setSelectedTask}
