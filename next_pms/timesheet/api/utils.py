@@ -1206,6 +1206,7 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
             "leaves_by_employee": {},
             "holidays_by_employee": {},
             "backdate_boundary_by_employee": {},
+            "rejection_unlocked_dates_by_employee": {},
             "timesheet_map": {},
             "emp_ts_by_start": {},
             "detail_by_parent": {},
@@ -1354,16 +1355,21 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
 
     has_search_or_task_filters = bool(parsed_filters.get("Task"))
 
-    from next_pms.timesheet.doc_events.timesheet import get_backdate_restriction_boundaries
+    from next_pms.timesheet.doc_events.timesheet import get_date_access
 
-    backdate_boundary_by_employee = get_backdate_restriction_boundaries(employee_names)
+    date_access = get_date_access(
+        employee_names,
+        min(week["start_date"] for week in dates),
+        max(week["end_date"] for week in dates),
+    )
 
     return {
         "working_hours_map": working_hours_map,
         "daily_norm_map": daily_norm_map,
         "leaves_by_employee": leaves_by_employee,
         "holidays_by_employee": holidays_by_employee,
-        "backdate_boundary_by_employee": backdate_boundary_by_employee,
+        "backdate_boundary_by_employee": {employee: access[0] for employee, access in date_access.items()},
+        "rejection_unlocked_dates_by_employee": {employee: access[1] for employee, access in date_access.items()},
         "timesheet_map": timesheet_map,
         "emp_ts_by_start": emp_ts_by_start,
         "detail_by_parent": detail_by_parent,

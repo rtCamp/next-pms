@@ -8,6 +8,7 @@
   "allow_backdated_entries",
   "allow_backdated_entries_till_employee",
   "allow_backdated_entries_till_manager",
+  "allow_rejected_timesheet_edit_till",
   "ignored_role",
   "column_break_cypz",
   "allow_future_entries",
@@ -69,6 +70,14 @@
    "fieldname": "allow_backdated_entries_till_manager",
    "fieldtype": "Int",
    "label": "Allow Backdated Entries Till (Manager)"
+  },
+  {
+   "default": "3",
+   "description": "Working days after a rejection during which the employee can still correct and resubmit the rejected day, and the reviewer can still review it, even when the day is older than the backdated-entry limit. Holidays, weekly offs and leave are not counted. Set to 0 to apply only the backdated-entry limit.",
+   "fieldname": "allow_rejected_timesheet_edit_till",
+   "fieldtype": "Int",
+   "label": "Allow Rejected Timesheet Edit/Approval Till (Days)",
+   "non_negative": 1
   },
   {
    "fieldname": "reminder_setting_section",
@@ -256,7 +265,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-23 12:00:00.000000",
+ "modified": "2026-11-09 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Timesheet",
  "name": "Timesheet Settings",
