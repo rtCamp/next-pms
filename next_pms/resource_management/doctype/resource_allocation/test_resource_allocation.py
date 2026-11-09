@@ -330,7 +330,7 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         notif = notifications[0]
         project_name = frappe.db.get_value("Project", project, "project_name")
         self.assertEqual(notif.title, project_name)
-        self.assertEqual(notif.label, "You have Ai-generated allocations that need to be reviewed.")
+        self.assertEqual(notif.label, "You have AI-generated allocations that need to be reviewed.")
         self.assertEqual(notif.url, f"/next-pms/allocations/project?{urlencode({'search': project_name})}")
 
     def test_delivery_manager_can_approve_ai_allocation(self):
@@ -464,7 +464,7 @@ class TestResourceAllocationValidation(IntegrationTestCase):
             fields=["name", "label"],
         )
         self.assertEqual(len(notifications), 1)
-        self.assertEqual(notifications[0].label, "You have Ai-generated allocations that need to be reviewed.")
+        self.assertEqual(notifications[0].label, "You have AI-generated allocations that need to be reviewed.")
 
     def test_regular_allocation_does_not_notify_delivery_managers(self):
         project = self._make_project("Regular Alloc Project", self.customer)

@@ -90,7 +90,7 @@ class ResourceAllocation(Document):
         previous_doc = self.get_doc_before_save()
         if previous_doc and cint(previous_doc.is_ai_created) and not can_manage_ai_allocations():
             frappe.throw(
-                frappe._("Only Delivery Managers can edit Ai-created allocations."),
+                frappe._("Only Delivery Managers can edit AI-created allocations."),
                 exc=frappe.PermissionError,
             )
 
@@ -265,7 +265,7 @@ class ResourceAllocation(Document):
     def on_trash(self):
         if cint(self.is_ai_created) and not can_manage_ai_allocations():
             frappe.throw(
-                frappe._("Only Delivery Managers can delete Ai-created allocations."),
+                frappe._("Only Delivery Managers can delete AI-created allocations."),
                 exc=frappe.PermissionError,
             )
 
