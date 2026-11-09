@@ -16,6 +16,19 @@ import employeeTimesheetData from "../data/employee/timesheet";
 import managerTeamData from "../data/manager/team";
 import managerTaskData from "../data/manager/task";
 import managerProjectData from "../data/manager/project";
+import managerGrowthData from "../data/manager/growth";
+import managerNotesData from "../data/manager/notes";
+import managerTodoData from "../data/manager/todo";
+import managerTaskListData from "../data/manager/taskList";
+import managerCurrencyBillingData from "../data/manager/currencyBilling";
+import employeeTimesheetWeeksData from "../data/employee/timesheetWeeks";
+import managerProjectTimesheetData from "../data/manager/projectTimesheet";
+import managerTeamTimesheetData from "../data/manager/teamTimesheet";
+import managerAllocationsData from "../data/manager/allocations";
+import managerProjectsData from "../data/manager/projects";
+import managerSettingsData from "../data/manager/settings";
+import managerAccessData from "../data/manager/access";
+import managerDashboardData from "../data/manager/dashboard";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import {
   createProject,
@@ -34,9 +47,10 @@ import {
 import { getExchangeRate } from "../utils/api/erpNextRequests";
 import { getEmployeeDetails } from "../utils/api/employeeRequests";
 import { filterApi, shareProjectWithUser } from "../utils/api/frappeRequests";
+import { deleteSalesOrdersOfProject } from "./billingHelper";
 import { deleteLeave } from "../utils/api/leaveRequests";
 import { getWeekRange } from "../utils/dateUtils";
-import { deleteEmployeeByName } from "./employeeHelper";
+import { deleteEmployeeByName, deleteSeededUsers } from "./employeeHelper";
 import {
   getDocList,
   cancelDocument,
@@ -273,6 +287,45 @@ export const deleteTimeEntries = async (testCaseIDs = [], jsonDir) => {
       );
     }
   }
+};
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Puts a case's time back as global setup left it: removes the entries the test adds or
+ * edits (the `payloadFilterTimeEntry*` blocks match them), then books
+ * `payloadCreateTimesheet` again if the case seeds one and a failed attempt consumed it.
+ * A retry would otherwise add to the first attempt's entries. Returns true when it
+ * changed anything.
+ */
+export const resetTimeEntries = async (entry, actor = "employee") => {
+  let changed = false;
+  for (const [key, filter] of Object.entries(entry)) {
+    if (!key.startsWith("payloadFilterTimeEntry")) continue;
+    // A bounded loop: a delete that fails must not spin forever.
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const { parent, name } = await filterTimesheetEntry(filter);
+      if (!name) break;
+      await deleteTimesheet({ parent, name }, actor);
+      changed = true;
+    }
+  }
+
+  const seeded = entry.payloadCreateTimesheet;
+  if (seeded) {
+    const { name } = await filterTimesheetEntry({
+      subject: entry.payloadCreateTask.subject,
+      description: seeded.description,
+      project_name: entry.payloadCreateProject.project_name,
+      from_time: seeded.date,
+      employee: seeded.employee,
+      max_week: "1",
+    });
+    if (!name) {
+      await createTimesheet(seeded);
+      changed = true;
+    }
+  }
+  return changed;
 };
 // ------------------------------------------------------------------------------------------
 
@@ -826,7 +879,12 @@ export const cleanUpProjects = async (data) => {
           continue;
         }
         try {
-          const { deleted } = await deleteTimesheetbyID(timesheetId, "admin");
+          let { deleted } = await deleteTimesheetbyID(timesheetId, "admin");
+          if (!deleted) {
+            // A submitted (approved or pending) timesheet has to be cancelled first.
+            await cancelDocument("Timesheet", timesheetId).catch(() => {});
+            ({ deleted } = await deleteTimesheetbyID(timesheetId, "admin"));
+          }
           if (!deleted) failures.push(`Timesheet ${timesheetId}`);
         } catch (err) {
           failures.push(`Timesheet ${timesheetId}`);
@@ -863,6 +921,64 @@ export const cleanUpProjects = async (data) => {
             `Failed to delete resource allocation ${allocationId}:`,
             err.message,
           );
+        }
+      }
+
+      // A submitted Sales Order blocks the project's delete until it is cancelled.
+      if (projectId) {
+        try {
+          failures.push(...(await deleteSalesOrdersOfProject(projectId)));
+        } catch (err) {
+          failures.push(`Sales Orders of ${projectId}`);
+          console.error(
+            `Failed to delete the Sales Orders of ${projectId}:`,
+            err.message,
+          );
+        }
+      }
+
+      // Records that link to the project and would block its delete. ToDos go
+      // first: they reference the project, and deleting one unlinks it from its owner.
+      if (projectId) {
+        for (const [doctype, filters] of [
+          [
+            "ToDo",
+            [
+              ["reference_type", "=", "Project"],
+              ["reference_name", "=", projectId],
+            ],
+          ],
+          ...[
+            "PMS Growth Initiative",
+            "Project Timeline Item",
+            "Risk",
+            "Project Status Update",
+            "PMS Project Update Subscription",
+            // rtcamp only; the lists are empty where the doctypes are missing.
+            "Project RAG Trigger Log",
+            "Project RAG Status",
+          ].map((name) => [name, [["project", "=", projectId]]]),
+          [
+            "NextPMS Notifications",
+            [
+              ["linked_doctype", "=", "Project"],
+              ["linked_document", "=", projectId],
+            ],
+          ],
+        ]) {
+          try {
+            const linked = await getDocList(doctype, filters);
+            for (const { name } of linked) {
+              const { deleted } = await deleteDocument(doctype, name);
+              if (!deleted) failures.push(`${doctype} ${name}`);
+            }
+          } catch (err) {
+            failures.push(`${doctype} for ${projectId}`);
+            console.error(
+              `Failed to delete ${doctype} of ${projectId}:`,
+              err.message,
+            );
+          }
         }
       }
 
@@ -1056,10 +1172,24 @@ export const readAndCleanAllOrphanData = async () => {
     ...managerTaskData,
     ...managerTeamData,
     ...managerProjectData,
+    ...managerGrowthData,
+    ...managerNotesData,
+    ...managerTodoData,
+    ...managerTaskListData,
+    ...managerCurrencyBillingData,
+    ...employeeTimesheetWeeksData,
+    ...managerProjectTimesheetData,
+    ...managerTeamTimesheetData,
+    ...managerAllocationsData,
+    ...managerProjectsData,
+    ...managerDashboardData,
+    ...managerSettingsData,
+    ...managerAccessData,
   };
 
   await deleteLeaveOfEmployee();
   await deleteEmployeeByName();
+  await deleteSeededUsers();
   await cleanUpProjects(mergedData);
 };
 /**

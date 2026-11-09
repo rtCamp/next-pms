@@ -8,8 +8,8 @@
     "dev": "npm run dev:app",
     "dev:app": "npm run dev -w @next-pms/app",
     "build:app": "npm run build -w @next-pms/app",
-    "build:frappe-ui-react": "npm run corepack-enable && cd ../frappe-ui-react && pnpm install --frozen-lockfile && pnpm build",
-    "build": "npm install && npm run build:frappe-ui-react && npm run build:app",
+    "build:frappe-ui-react": "sh scripts/build-frappe-ui-react.sh",
+    "build": "sh scripts/ensure-deps.sh && npm run build:frappe-ui-react && npm run build:app",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "lint:precommit": "eslint --fix --config eslint.config.js",
@@ -46,8 +46,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.19",
     "eslint": "^10.8.0",
-    "eslint-import-resolver-node": "^0.3.9",
-    "eslint-plugin-import-x": "^4.17.1",
+    "eslint-plugin-perfectionist": "^5.13.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.14.0",
@@ -61,6 +60,12 @@
   },
   "overrides": {
     "ws": "^8.21.1",
-    "date-fns": "^3.6.0"
+    "date-fns": "^3.6.0",
+    "eslint": {
+      "minimatch": "^11.0.1"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.1"
+    }
   }
 }

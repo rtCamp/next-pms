@@ -69,6 +69,8 @@ export function useRisksData(filters: RiskFilters, sort: RiskSort | null) {
         "summary",
         "owner",
         "risk_owner",
+        "creation",
+        "mitigated_on",
       ],
       filters: frappeFilters as never,
       orderBy,

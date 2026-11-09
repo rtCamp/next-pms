@@ -5,13 +5,13 @@ import { Accordion } from "@base-ui/react/accordion";
 import { InfoHoverCard } from "@next-pms/design-system/components";
 import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
+import { GrowthCell } from "./cells";
 /**
  * Internal dependencies.
  */
 import { useGrowth } from "../context";
 import { GrowthRowActions } from "../rowActions";
 import type { GrowthInitiativeItem, GrowthListColumn } from "../types";
-import { GrowthCell } from "./cells";
 
 interface GrowthGroupProps {
   value: string;

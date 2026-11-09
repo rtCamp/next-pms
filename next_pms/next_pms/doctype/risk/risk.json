@@ -15,6 +15,7 @@
   "risk_category",
   "risk_level",
   "risk_owner",
+  "mitigated_on",
   "section_break_mfsy",
   "summary",
   "mitigation_plan",
@@ -113,6 +114,13 @@
    "options": "User"
   },
   {
+   "fieldname": "mitigated_on",
+   "fieldtype": "Datetime",
+   "label": "Mitigated On",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
    "fieldname": "details_tab",
    "fieldtype": "Tab Break",
    "label": "Details"
@@ -121,7 +129,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-07 12:30:00.000000",
+ "modified": "2026-11-04 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "Risk",

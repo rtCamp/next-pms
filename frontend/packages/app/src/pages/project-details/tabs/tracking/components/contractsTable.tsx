@@ -21,10 +21,10 @@ import { format, parseISO } from "date-fns";
  * Internal dependencies.
  */
 import { mergeClassNames } from "@/lib/utils";
-import { CONTRACT_COLUMNS } from "../constants";
-import { useTracking } from "../context";
 import { ActionsCell } from "./actionsCell";
 import { ContractModal } from "./contractModal";
+import { CONTRACT_COLUMNS } from "../constants";
+import { useTracking } from "../context";
 
 export function ContractsTable() {
   const rows = useTracking((state) => state.contracts);

@@ -2,7 +2,6 @@
  * External dependencies
  */
 import React from "react";
-import { Badge } from "@rtcamp/frappe-ui-react";
 import {
   TaskStatus,
   type TaskStatusType,
@@ -12,6 +11,7 @@ import {
   mergeClassNames as cn,
   floatToTime,
 } from "@next-pms/design-system/utils";
+import { Badge } from "@rtcamp/frappe-ui-react";
 
 type BadgeItem = {
   icon: React.ReactNode;

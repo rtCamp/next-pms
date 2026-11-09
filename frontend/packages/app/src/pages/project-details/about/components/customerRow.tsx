@@ -5,11 +5,11 @@ import { PreviewCard } from "@base-ui/react/preview-card";
 import { Avatar } from "@rtcamp/frappe-ui-react";
 import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 
+import { CustomerHoverCard } from "./customerHoverCard";
 /**
  * Internal dependencies.
  */
 import type { AboutCustomer } from "../types";
-import { CustomerHoverCard } from "./customerHoverCard";
 
 function handleLinkClick(
   event: React.MouseEvent<HTMLAnchorElement>,

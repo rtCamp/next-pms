@@ -55,6 +55,7 @@ repos:
       - id: prettier
         name: "JS/TS Formatter"
         language: node
+        language_version: system
         files: ^.*\.(jsx|tsx|ts|js)$
         types: [file]
         exclude: |

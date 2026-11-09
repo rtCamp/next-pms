@@ -3,11 +3,6 @@
  */
 import { Popover } from "@base-ui/react/popover";
 
-/**
- * Internal dependencies.
- */
-import { useGanttStore } from "../ganttStore";
-import type { MemberSummaryBar } from "../ganttStore";
 import { GanttAllocationPopover } from "./allocationPopover";
 import { GanttBar } from "./ganttBar";
 import { GanttTimeoffBar } from "./timeoffBar";
@@ -16,6 +11,11 @@ import { getCapacityStatus } from "./utils/getCapacityStatus";
 import { getOverlappingAllocations } from "./utils/getOverlappingAllocations";
 import { getTimeoffLabel } from "./utils/getTimeoffLabel";
 import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
+/**
+ * Internal dependencies.
+ */
+import { useGanttStore } from "../ganttStore";
+import type { MemberSummaryBar } from "../ganttStore";
 
 interface GanttMemberSummaryBarProps {
   summary: MemberSummaryBar;

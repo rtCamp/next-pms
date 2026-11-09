@@ -12,7 +12,7 @@ import {
   getDateForWeekday,
 } from "../../utils/dateUtils";
 import { readJSONFile } from "../../utils/fileUtils";
-import teamData from "../../data/manager/team";
+import { scaleTimeout } from "../../utils/timeouts";
 
 /** @type {TimelinePage} */ let timelinePage;
 /** @type {ProjectPage} */ let projectPage;
@@ -62,22 +62,36 @@ test.describe("Manager : Resource Management Tab", () => {
   test("TC57: The reporting manager filter", async ({ page }) => {
     allure.story("Resource Management");
     await teamPage.goto();
-    const before = await teamPage.getEmployeeNamesFromTable();
-    expect(before.length).toBeGreaterThan(0);
+    let before = [];
+    await expect
+      .poll(
+        async () =>
+          (before = await teamPage.getEmployeeNamesFromTable()).length,
+        { timeout: scaleTimeout(15000) },
+      )
+      .toBeGreaterThan(0);
 
     await teamPage.applyReportsTo(managerName);
-    const after = await teamPage.getEmployeeNamesFromTable();
 
     // Compare who is listed, not how many. The grid renders a fixed page of 10,
     // so once the manager has 10+ reports both counts are 10 and "fewer rows"
-    // stops meaning anything - which is exactly what happened once seeding
-    // started adding employees under this manager.
-    expect(after.length).toBeLessThanOrEqual(before.length);
-    const dropped = before.filter((name) => !after.includes(name));
-    expect(
-      dropped.length,
-      "filtering by reporting manager should drop members who do not report to them",
-    ).toBeGreaterThan(0);
+    // stops meaning anything. The list is re-read until the filter has applied,
+    // as a slow grid still shows the unfiltered page right after the click.
+    await expect
+      .poll(
+        async () => {
+          const after = await teamPage.getEmployeeNamesFromTable();
+          // An empty grid is still loading, not filtered: it would "drop" everyone.
+          if (!after.length) return 0;
+          return before.filter((name) => !after.includes(name)).length;
+        },
+        {
+          message:
+            "filtering by reporting manager should drop members who do not report to them",
+          timeout: scaleTimeout(15000),
+        },
+      )
+      .toBeGreaterThan(0);
 
     await expect(page.getByText(employeeName)).toBeVisible();
   });
@@ -171,7 +185,7 @@ test.describe("Manager : Resource Management Tab", () => {
     // no headroom under the 30s default - TC107 went over on a slow navigation while
     // TC104/TC109/TC110 were all sitting within seconds of the ceiling. Same budget
     // TC103 already carries.
-    test.setTimeout(120000);
+    test.setTimeout(scaleTimeout(60000));
     const stubPath = path.join(jsonDir, "TC60.json");
     const data = await readJSONFile(stubPath);
     const TC60data = data.TC60;
@@ -203,17 +217,6 @@ test.describe("Manager : Resource Management Tab", () => {
     const capacityAfter = await teamPage.getMemberRowText(employeeName);
 
     expect(capacityAfter).not.toEqual(capacityBefore);
-  });
-
-  test.skip("TC61: Validate the Combine Week Hours", async ({ page }) => {
-    allure.story("Resource Management");
-    const TC61 = teamData.TC61;
-    const weeklyTime = TC61.weeklyTime;
-    await teamPage.goto();
-    await teamPage.clickCombineWeekHoursCheckbox();
-    await expect(page.getByText(`${weeklyTime}`).first()).toBeVisible();
-    await teamPage.clickCombineWeekHoursCheckbox();
-    await expect(page.locator("body")).not.toContainText(`${weeklyTime}`);
   });
 
   // Scope changed: the grid steps by quarter rather than by week, so the marker
@@ -253,7 +256,7 @@ test.describe("Manager : Resource Management Tab", () => {
     // no headroom under the 30s default - TC107 went over on a slow navigation while
     // TC104/TC109/TC110 were all sitting within seconds of the ceiling. Same budget
     // TC103 already carries.
-    test.setTimeout(120000);
+    test.setTimeout(scaleTimeout(60000));
     const stubPath = path.join(jsonDir, "TC68.json");
     const data = await readJSONFile(stubPath);
     const TC68data = data.TC68;
@@ -274,7 +277,9 @@ test.describe("Manager : Resource Management Tab", () => {
     const ResourceAllocationRowIsVisible =
       await teamPage.checkIfExtendedResourceAllocationIsVisible();
     await expect(ResourceAllocationRowIsVisible).toBe(true);
-    await expect(page.getByText(projectName)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(projectName)).toBeVisible({
+      timeout: scaleTimeout(5000),
+    });
   });
 
   test("TC102: Verify add Allocation workflow by the Plus button", async ({
@@ -288,7 +293,7 @@ test.describe("Manager : Resource Management Tab", () => {
     // no headroom under the 30s default - TC107 went over on a slow navigation while
     // TC104/TC109/TC110 were all sitting within seconds of the ceiling. Same budget
     // TC103 already carries.
-    test.setTimeout(120000);
+    test.setTimeout(scaleTimeout(60000));
     const stubPath = path.join(jsonDir, "TC102.json");
     const data = await readJSONFile(stubPath);
 
@@ -331,7 +336,7 @@ test.describe("Manager : Resource Management Tab", () => {
     allure.story("Resource Management");
     // Project + customer + employee + date range + hours is a long dialog, and
     // slowMo:500 puts it past the 30s default.
-    test.setTimeout(120000);
+    test.setTimeout(scaleTimeout(60000));
     const stubPath = path.join(jsonDir, "TC103.json");
     const data = await readJSONFile(stubPath);
     const TC103data = data.TC103;
@@ -365,7 +370,7 @@ test.describe("Manager : Resource Management Tab", () => {
     // no headroom under the 30s default - TC107 went over on a slow navigation while
     // TC104/TC109/TC110 were all sitting within seconds of the ceiling. Same budget
     // TC103 already carries.
-    test.setTimeout(120000);
+    test.setTimeout(scaleTimeout(60000));
     const stubPath = path.join(jsonDir, "TC104.json");
     const data = await readJSONFile(stubPath);
     const TC104data = data.TC104;
@@ -405,7 +410,7 @@ test.describe("Manager : Resource Management Tab", () => {
     // no headroom under the 30s default - TC107 went over on a slow navigation while
     // TC104/TC109/TC110 were all sitting within seconds of the ceiling. Same budget
     // TC103 already carries.
-    test.setTimeout(120000);
+    test.setTimeout(scaleTimeout(60000));
     const stubPath = path.join(jsonDir, "TC107.json");
     const data = await readJSONFile(stubPath);
     const TC107data = data.TC107;
@@ -429,54 +434,6 @@ test.describe("Manager : Resource Management Tab", () => {
     await projectPage.filterByProject(projectName);
   });
 
-  // The copy/clipboard shortcut this case covers was removed in the redesign -
-  // confirmed with the team, not a selector that moved. Allocations are chips in
-  // the grid now, and a chip's popover offers only "Edit allocation" and
-  // "Delete allocation"; there is no duplicate control anywhere on the page, so
-  // there is nothing left to drive. The remaining actions are already covered
-  // (TC110 edits an allocation, TC109 changes its billable flag), so no rescope
-  // would add coverage. Skipped rather than deleted so the case is easy to
-  // restore if a duplicate action ever comes back. clickClipboardIcon() in
-  // resourceManagement/project.js still throws an explaining error for the same
-  // reason.
-  test.skip("TC108: Verify adding allocation from the clipboard icon", async ({
-    page,
-    jsonDir,
-  }) => {
-    allure.story("Resource Management");
-
-    const stubPath = path.join(jsonDir, "TC108.json");
-    const data = await readJSONFile(stubPath);
-    const TC108data = data.TC108;
-
-    const projectName = TC108data.infoPayloadCreateAllocation.project_name;
-    const employeeName = TC108data.infoPayloadCreateAllocation.employee;
-    const customerName = TC108data.infoPayloadCreateAllocation.customer;
-    const { date, day } = getFormattedDateNDaysFromToday(3);
-    await projectPage.goto();
-    const { allocationName } = await projectPage.addAllocationFromProjectTab(
-      projectName,
-      customerName,
-      employeeName,
-      date,
-      day,
-      "4",
-    );
-    createdAllocations.push(allocationName);
-    await expect(
-      page.getByText("Allocation created successfully"),
-    ).toBeVisible();
-    await projectPage.goto();
-    await projectPage.filterByProject(projectName);
-    await projectPage.clickClipboardIcon(projectName, date, day);
-    const { updatedAllocationName } =
-      await projectPage.addAllocationFromProjectTabFromClipboard("8");
-    createdAllocations.push(updatedAllocationName);
-    await expect(
-      page.getByText("Allocation created successfully"),
-    ).toBeVisible();
-  });
-
   test("TC109: Verify Changing/updating the billable/non billable on a project allocation", async ({
     page,
     jsonDir,
@@ -488,7 +445,7 @@ test.describe("Manager : Resource Management Tab", () => {
     // no headroom under the 30s default - TC107 went over on a slow navigation while
     // TC104/TC109/TC110 were all sitting within seconds of the ceiling. Same budget
     // TC103 already carries.
-    test.setTimeout(120000);
+    test.setTimeout(scaleTimeout(60000));
 
     const stubPath = path.join(jsonDir, "TC109.json");
     const data = await readJSONFile(stubPath);
@@ -508,8 +465,7 @@ test.describe("Manager : Resource Management Tab", () => {
       "4",
     );
     createdAllocations.push(allocationName);
-    await projectPage.goto();
-    await projectPage.filterByProject(projectName);
+    await projectPage.gotoProjectAllocations(projectName);
     await projectPage.clickEditIcon(projectName, date, day);
     await projectPage.clickOnBillableToggle();
     await projectPage.clickSaveButton();
@@ -526,7 +482,7 @@ test.describe("Manager : Resource Management Tab", () => {
     // no headroom under the 30s default - TC107 went over on a slow navigation while
     // TC104/TC109/TC110 were all sitting within seconds of the ceiling. Same budget
     // TC103 already carries.
-    test.setTimeout(120000);
+    test.setTimeout(scaleTimeout(60000));
 
     const stubPath = path.join(jsonDir, "TC110.json");
     const data = await readJSONFile(stubPath);
@@ -547,20 +503,26 @@ test.describe("Manager : Resource Management Tab", () => {
       "4",
     );
     createdAllocations.push(allocationName);
-    await projectPage.goto();
-    await projectPage.filterByProject(projectName);
+    await projectPage.gotoProjectAllocations(projectName);
     await projectPage.clickEditIcon(projectName, date, day);
     await projectPage.editAllocationFromProjectTab(updatedHours, updatedHours);
     await projectPage.clickSaveButton();
     await expect(
       page.getByText("Allocation updated successfully"),
     ).toBeVisible();
-    let allocationTime = await projectPage.getAllocationFromProjectTab(
-      projectName,
-      date,
-      day,
-    );
-    expect(allocationTime).toEqual(updatedHours);
+    await expect
+      .poll(
+        async () => {
+          await projectPage.gotoProjectAllocations(projectName);
+          return projectPage.getAllocationFromProjectTab(
+            projectName,
+            date,
+            day,
+          );
+        },
+        { timeout: scaleTimeout(45000), intervals: [2000] },
+      )
+      .toEqual(updatedHours);
   });
 
   test("TC111: Allocation for more than 8 hours per day / allocation of more than 24 hours per day.", async ({
@@ -573,7 +535,7 @@ test.describe("Manager : Resource Management Tab", () => {
     // no headroom under the 30s default - TC107 went over on a slow navigation while
     // TC104/TC109/TC110 were all sitting within seconds of the ceiling. Same budget
     // TC103 already carries.
-    test.setTimeout(120000);
+    test.setTimeout(scaleTimeout(60000));
 
     const stubPath = path.join(jsonDir, "TC111.json");
     const data = await readJSONFile(stubPath);

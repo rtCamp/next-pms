@@ -3,12 +3,12 @@
  */
 import { Accordion } from "@base-ui/react/accordion";
 
+import { GrowthGroup } from "./listViewGroup";
 /**
  * Internal dependencies.
  */
 import { CLOSED_GROWTH_COLUMNS, OPEN_GROWTH_COLUMNS } from "../constants";
 import { useGrowth } from "../context";
-import { GrowthGroup } from "./listViewGroup";
 
 export function GrowthListView() {
   const data = useGrowth((c) => c.state.data);

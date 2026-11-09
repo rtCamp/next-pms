@@ -1,5 +1,6 @@
 import { storeStorageState } from "../helpers/storageStateHelper";
 import { createJSONFile, populateJsonStubs } from "../utils/fileUtils";
+import { selectedTests, sharedFixtures } from "../utils/seedFilter";
 import path from "path";
 import fs from "fs";
 import { execSync } from "child_process";
@@ -23,6 +24,13 @@ import {
 } from "../helpers/employeeHelper";
 import { createUserGroupForEmployee } from "../helpers/teamTabHelper";
 import { createAllocationsForTestCases } from "../helpers/resourceManagementHelpers";
+import {
+  createBillingDataForTestCases,
+  ensureUsdCustomer,
+} from "../helpers/billingHelper";
+import { createWeekTimeForTestCases } from "../helpers/weekTimeHelper";
+
+const secondsSince = (start) => Math.round((Date.now() - start) / 1000);
 
 const globalSetup = async () => {
   console.log("🚀 Starting global setup...");
@@ -49,12 +57,14 @@ const globalSetup = async () => {
 
   const tcPattern = /TC(\d+):/g;
   const tcSet = new Set();
-  tests.forEach(({ title }) => {
+  const picked = selectedTests(tests);
+  picked.forEach(({ title }) => {
     let match;
     while ((match = tcPattern.exec(title)) !== null) {
       tcSet.add(`TC${match[1]}`);
     }
   });
+  sharedFixtures(picked).forEach((id) => tcSet.add(id));
   const allTCIds = Array.from(tcSet);
   console.log(`📑 Extracted TC IDs: ${allTCIds.join(", ")}`);
 
@@ -68,9 +78,19 @@ const globalSetup = async () => {
   // storm times out the authState fixture and kills the run.
   const roles = ["employee", "employee2", "employee3", "manager", "admin"];
   await Promise.all(roles.map((role) => storeStorageState(role, true)));
-  await Promise.all(
-    roles.map((role) => storeStorageState(role, false).catch(() => {})),
-  );
+  // One at a time, as each launches a browser. A role whose state cannot be built here is
+  // built by the worker that needs it, so say so instead of leaving the file silently missing.
+  for (const role of roles) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        await storeStorageState(role, false);
+        break;
+      } catch (err) {
+        console.warn(`⚠️ Session for ${role}, try ${attempt}: ${err.message}`);
+        await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
+      }
+    }
+  }
 
   // 2) Create and populate JSON stubs for each TC ID
   console.log("📁 Creating JSON stubs for each TC ID...");
@@ -102,13 +122,15 @@ const globalSetup = async () => {
     }
   }
 
-  // 3) Clean up orphan data
-  await readAndCleanAllOrphanData();
+  // 3) Clean up orphan data (a fresh CI site has none)
+  if (!process.env.E2E_FRESH_SITE) await readAndCleanAllOrphanData();
 
   // 4) Generate data for each TC in sequence
   console.log("🛠 Generating test data per TC ID...");
+  const seedStart = Date.now();
+  await ensureUsdCustomer();
   for (const tcId of allTCIds) {
-    console.log(`➡️ Processing ${tcId}`);
+    console.log(`➡️ Processing ${tcId} (+${secondsSince(seedStart)}s)`);
     await createEmployees([tcId], jsonDir);
     await updateTimeEntries([tcId], jsonDir);
     // AFTER updateTimeEntries, not before: that step rebuilds the stub from the
@@ -126,6 +148,9 @@ const globalSetup = async () => {
     // Must follow createTimeEntries - there is nothing to submit before it.
     await submitTimesheetForTestCases([tcId], jsonDir);
     await calculateHourlyBilling([tcId], jsonDir);
+    // After the project and its tasks exist: it logs time and bills what the project holds.
+    await createBillingDataForTestCases([tcId], jsonDir);
+    await createWeekTimeForTestCases([tcId], jsonDir);
     await updateLeaveEntries([tcId], jsonDir);
     await createUserGroupForEmployee([tcId], jsonDir);
   }
@@ -135,7 +160,7 @@ const globalSetup = async () => {
   await buildTeamRosterForTestCases(jsonDir);
 
   console.log(
-    "✅ Data generation completed for all TC IDs! Global setup done.",
+    `✅ Data generation completed for all TC IDs in ${secondsSince(seedStart)}s! Global setup done.`,
   );
 };
 
