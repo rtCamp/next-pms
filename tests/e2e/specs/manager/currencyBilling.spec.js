@@ -236,7 +236,7 @@ test.describe("Manager: Currency & Billing", () => {
       await expect(projectPage.sortMenuOption(column)).toBeDisabled();
     }
     await projectPage.sortMenuOption("Total budget").hover({ force: true });
-    await expect(page.getByText(SORT_HINT)).toBeVisible();
+    await expect(page.getByRole("tooltip", { name: SORT_HINT })).toBeVisible();
     await page.keyboard.press("Escape");
 
     // Picking a currency brings them back.
@@ -305,8 +305,9 @@ test.describe("Manager: Currency & Billing", () => {
       await test.step(project.custom_billing_type, async () => {
         await tracking.goto(await findProjectId(project));
         const hours = tracking.sidebarSection("Progress (hours)");
-        await expect(hours).toContainText(`${used} hours`);
-        await expect(hours).toContainText(`${total} hours`);
+        const hoursLabel = (count) => `${count} hour${count === 1 ? "" : "s"}`;
+        await expect(hours).toContainText(hoursLabel(used));
+        await expect(hours).toContainText(hoursLabel(total));
         const usage = tracking.card("Hours usage");
         await expect(
           tracking.valueOf("Total hours utilised", usage),
@@ -625,7 +626,7 @@ test.describe("Manager: Currency & Billing", () => {
       .click();
     await expect(tracking.toast("Contract added")).toBeVisible();
     await expect(tracking.contractRows).toHaveCount(1);
-    await expect(tracking.contractRows.first().locator("span")).toHaveText(
+    await expect(tracking.rowValues(tracking.contractRows.first())).toHaveText(
       cells(40),
     );
 
@@ -638,7 +639,7 @@ test.describe("Manager: Currency & Billing", () => {
       .getByRole("button", { name: "Save changes" })
       .click();
     await expect(tracking.toast("Contract updated")).toBeVisible();
-    await expect(tracking.contractRows.first().locator("span")).toHaveText(
+    await expect(tracking.rowValues(tracking.contractRows.first())).toHaveText(
       cells(50),
     );
 

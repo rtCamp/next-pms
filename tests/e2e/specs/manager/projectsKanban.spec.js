@@ -40,6 +40,13 @@ test.describe("Manager: Projects Kanban and Add project", () => {
     });
   });
 
+  // The drag case leaves the project in Kick Off, where the views cases filter by phase.
+  test.afterEach(async () => {
+    await updateDocument("Project", kanbanId, {
+      custom_project_phase: "Discovery",
+    });
+  });
+
   const COLOURED = {
     search: "E2E Prj",
     rag: JSON.stringify(["red", "amber", "green"]),
@@ -96,7 +103,9 @@ test.describe("Manager: Projects Kanban and Add project", () => {
     await board(COLOURED);
     await expect(list.kanbanColumn("Discovery")).toContainText(KANBAN);
 
-    await page.route(`**/api/resource/Project/${kanbanId}`, (route) =>
+    // Matches both /api/resource and the /api/v2/document route the Vue board saves through.
+    const projectDoc = `**/api/**/Project/${kanbanId}`;
+    await page.route(projectDoc, (route) =>
       route.request().method() === "PUT"
         ? route.fulfill({ status: 500, body: "{}" })
         : route.continue(),
@@ -106,7 +115,7 @@ test.describe("Manager: Projects Kanban and Add project", () => {
       page.getByText(`Error updating the phase for ${KANBAN}`).first(),
     ).toBeVisible();
     await expect(list.kanbanColumn("Discovery")).toContainText(KANBAN);
-    await page.unroute(`**/api/resource/Project/${kanbanId}`);
+    await page.unroute(projectDoc);
 
     await list.dragCard(KANBAN, "Kick Off");
     await expect(list.kanbanColumn("Kick Off")).toContainText(KANBAN);

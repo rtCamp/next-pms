@@ -1,10 +1,20 @@
 import { gotoWithRetry } from "../utils/navigation";
 import { escapeRegExp } from "../utils/stringUtils";
 import { scaleTimeout } from "../utils/timeouts";
+import {
+  dayCells,
+  nestedRows,
+  pickCalendarDay,
+  rowColumns,
+  rowsLabelled,
+  rowToggle,
+  weekHeader,
+  weekHeaders,
+  weekRegion,
+} from "./timesheetGrid";
 import { TimesheetTabPage } from "./timesheetTabPage";
 
-// A member row starts with the avatar (an initial, or "Avatar" for a photo), then the name.
-const memberName = (name) => new RegExp(`^\\S+ ${escapeRegExp(name)} `);
+const MEMBER_LEVEL = "pl-7.5";
 const DECIDED =
   /^(Approval pending|Approved|Rejected|Partially approved|Partially rejected)$/;
 const STATUS =
@@ -17,6 +27,14 @@ export const drawerDay = (isoDate) => {
   const month = date.toLocaleDateString("en-US", { month: "short" });
   return `${weekday}, ${month} ${date.getDate()}`;
 };
+
+/** How the dialogs' date fields show a date: "Oct 12, 2026". */
+export const fieldDate = (isoDate) =>
+  new Date(`${isoDate}T00:00:00`).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 
 /**
  * The Team tab of the Timesheet: each week lists members, each member opens onto
@@ -41,6 +59,16 @@ export class TeamTimesheetPage extends TimesheetTabPage {
     this.searchInput = page.getByPlaceholder("Search members");
     this.reportsTo = page.getByRole("combobox", { name: "Reports to" });
     this.noData = page.getByText("No data", { exact: true });
+    // frappe-ui's MultiSelect drops its aria-label, and its name is the selection.
+    this.approvalFilter = page.locator(
+      'button[aria-haspopup="listbox"][data-slot="trigger"]',
+    );
+    this.dateField = this.addTimeDialog.getByRole("combobox", {
+      name: /^Date/,
+    });
+    this.halfDayField = this.addTimeOffDialog.getByPlaceholder(
+      "Select half day date",
+    );
 
     this.drawer = page.getByRole("dialog").filter({
       has: page.getByRole("button", { name: "Approve", exact: true }),
@@ -64,6 +92,65 @@ export class TeamTimesheetPage extends TimesheetTabPage {
     this.rejectSubmit = this.rejectDialog.getByRole("button", {
       name: "Reject timesheet",
     });
+  }
+
+  get weekHeaders() {
+    return weekHeaders(this.page);
+  }
+
+  weekHeader(label) {
+    return weekHeader(this.page, label);
+  }
+
+  weekRegion(label) {
+    return weekRegion(this.page, label);
+  }
+
+  cells(row) {
+    return dayCells(row);
+  }
+
+  /** The seven days a row prints, Monday first. */
+  async rowDays(row) {
+    return (await rowColumns(row)).slice(0, 7);
+  }
+
+  async rowTotal(row) {
+    return (await rowColumns(row))[7];
+  }
+
+  async clickDay(isoDate) {
+    await pickCalendarDay(this.page, isoDate);
+  }
+
+  /** The time-off dialog's From and To fields. */
+  get dateFields() {
+    return this.addTimeOffDialog.getByRole("combobox", { name: /^(From|To)/ });
+  }
+
+  /** As in the base page, but the leave duration is a radio group. */
+  async fillTimeOff({ employee, from, to = from, duration, type, reason }) {
+    if (employee) {
+      await this.choose("Select employee", employee, this.addTimeOffDialog);
+    }
+    await this.pickDate(this.dateFields.nth(0), from);
+    await this.pickDate(this.dateFields.nth(1), to);
+    if (duration) {
+      await this.addTimeOffDialog
+        .getByRole("radio", { name: duration, exact: true })
+        .click();
+    }
+    if (type) {
+      await this.addTimeOffDialog
+        .getByRole("combobox", { name: /Leave type/ })
+        .click();
+      await this.page.getByRole("option", { name: type }).click();
+    }
+    if (reason) {
+      await this.addTimeOffDialog
+        .getByRole("textbox", { name: /Reason/ })
+        .fill(reason);
+    }
   }
 
   // --------------------------------------
@@ -122,10 +209,10 @@ export class TeamTimesheetPage extends TimesheetTabPage {
   }
 
   async expandWeek(label) {
-    const header = this.weekHeader(label);
-    await header.waitFor({ timeout: scaleTimeout(30000) });
-    if ((await header.getAttribute("aria-expanded")) === "false") {
-      await header.click();
+    const toggle = rowToggle(this.page, label);
+    await toggle.waitFor({ timeout: scaleTimeout(30000) });
+    if ((await toggle.getAttribute("aria-expanded")) === "false") {
+      await toggle.click();
     }
   }
 
@@ -135,23 +222,23 @@ export class TeamTimesheetPage extends TimesheetTabPage {
 
   /** The rows of a week's members whose names start with `prefix`. */
   memberRows(label, prefix) {
-    return this.weekRegion(label).getByRole("button", {
-      name: new RegExp(`^\\S+ ${escapeRegExp(prefix)}`),
-    });
+    return rowsLabelled(
+      this.weekRegion(label),
+      this.page,
+      new RegExp(escapeRegExp(prefix)),
+    );
   }
 
   /** A member's row in a week: avatar, name, status, the seven days, Total, then the review button. */
   memberRow(label, name) {
-    return this.weekRegion(label).getByRole("button", {
-      name: memberName(name),
-    });
+    return rowsLabelled(this.weekRegion(label), this.page, name);
   }
 
-  /** What a member row opens onto: the member's projects, tasks and time-off. */
+  /** The rows a member row opens onto: the member's projects, tasks and time-off. */
   memberPanel(label, name) {
-    return this.weekRegion(label).getByRole("region", {
-      name: memberName(name),
-    });
+    return nestedRows(this.weekRegion(label), [
+      { level: MEMBER_LEVEL, label: name },
+    ]);
   }
 
   /** The member's status as the row prints it, e.g. "Approval pending". */
@@ -168,37 +255,29 @@ export class TeamTimesheetPage extends TimesheetTabPage {
   }
 
   async expandMember(label, name) {
-    const row = this.memberRow(label, name);
-    if ((await row.getAttribute("aria-expanded")) !== "true") {
-      // The day cells in the middle of the row are buttons of their own.
-      await row.getByText(name, { exact: true }).click();
+    const toggle = rowToggle(this.memberRow(label, name), name);
+    if ((await toggle.getAttribute("aria-expanded")) !== "true") {
+      await toggle.click();
     }
-    await this.memberPanel(label, name).waitFor({
-      timeout: scaleTimeout(15000),
-    });
+    await this.memberPanel(label, name)
+      .first()
+      .waitFor({
+        timeout: scaleTimeout(15000),
+      });
   }
 
   /** A project's row under a member; its name is followed by the day cells. */
   projectRow(label, member, project) {
-    return this.memberPanel(label, member).getByRole("button", {
-      name: new RegExp(`^${escapeRegExp(project)} Add time`),
+    return this.memberPanel(label, member).filter({
+      has: rowToggle(this.page, project),
     });
   }
 
   /** A task or the Time-off row under a member, by the exact label it starts with. */
   detailRow(label, member, text) {
-    return this.memberPanel(label, member)
-      .locator("div.border-b.transition-colors")
-      .filter({ has: this.page.getByText(text, { exact: true }) });
-  }
-
-  /** The seven days a row prints, Monday first; the label comes before them and the total after. */
-  async rowDays(row) {
-    const lines = (await row.innerText())
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean);
-    return lines.slice(-8, -1);
+    return this.memberPanel(label, member).filter({
+      has: this.page.getByText(text, { exact: true }),
+    });
   }
 
   // --------------------------------------
@@ -226,15 +305,15 @@ export class TeamTimesheetPage extends TimesheetTabPage {
 
   /** A day's header in the drawer: "Mon, Oct 12 01:00", with "· First half off" (or "· Half day off") on a leave day. */
   dayHeader(isoDate) {
-    return this.drawer.getByRole("button", {
-      name: new RegExp(`^${escapeRegExp(drawerDay(isoDate))} `),
-    });
+    return this.dayPanel(isoDate).locator(":scope > div").first();
   }
 
-  /** The day's entries: task, project, comment and hours. */
+  /** A day in the drawer: its header, then its entries with task, project, comment and hours. */
   dayPanel(isoDate) {
-    return this.drawer.getByRole("region", {
-      name: new RegExp(`^${escapeRegExp(drawerDay(isoDate))} `),
+    return this.drawer.locator("section").filter({
+      has: this.page.getByRole("button", {
+        name: new RegExp(`^${escapeRegExp(drawerDay(isoDate))}(?: |$)`),
+      }),
     });
   }
 
@@ -246,19 +325,18 @@ export class TeamTimesheetPage extends TimesheetTabPage {
   async editFirstEntry(isoDate) {
     const panel = this.dayPanel(isoDate);
     const entry = panel
-      .locator("div")
+      .locator("div.group")
       .filter({
         has: this.page.getByRole("button", { name: "Edit time entry" }),
       })
-      .last();
+      .first();
     await entry.hover();
     await entry.getByRole("button", { name: "Edit time entry" }).click();
     return panel;
   }
 
-  /** Save is the first of the editor's two icon buttons, Cancel the second. */
   entrySave(panel) {
-    return panel.getByRole("button").first();
+    return panel.getByRole("button", { name: "Save entry" });
   }
 
   async approve(label, member) {

@@ -48,7 +48,12 @@ export class ProjectPage extends TimelinePage {
     this.filterValueInput = page.getByPlaceholder("Value");
     // Period and allocation-type selectors sit outside the filter panel.
     this.periodFilter = page.getByRole("combobox").first();
-    this.allocationTypeFilter = page.getByRole("combobox").last();
+    // A MultiSelect, whose trigger is a listbox button rather than a combobox.
+    this.allocationTypeFilter = page
+      .locator(
+        'button[data-slot="trigger"][aria-haspopup="listbox"]:not([role])',
+      )
+      .last();
     this.sheetViewFilter = page.getByRole("combobox");
     this.sheetViewFilterText = this.sheetViewFilter.locator("span");
 
@@ -65,11 +70,11 @@ export class ProjectPage extends TimelinePage {
       name: "Clear Selection",
     });
 
-    //table elements - names render as buttons ("View <name> details"), not title attributes
+    //table elements - a project row's header is a "Toggle <name>" button
     this.projectNameCell = (projectName) =>
       page
         .getByRole("button", {
-          name: `View ${projectName} details`,
+          name: `Toggle ${projectName}`,
           exact: true,
         })
         .first();
@@ -80,10 +85,10 @@ export class ProjectPage extends TimelinePage {
     this.editIcon = page.getByRole("img", { name: "Edit" }).first();
     this.clipboardIcon = page.getByRole("img", { name: "Copy" }).first();
 
-    // One "View <name> details" button per project row.
+    // One "Toggle <name>" button per project row.
     this.projectListItems = page
       .getByRole("table")
-      .getByRole("button", { name: /^View .* details$/ });
+      .getByRole("button", { name: /^Toggle / });
 
     //Locator targetting the total hours text field in the allocation modal
     this.projectNameWithDate = (projectName, startDate) => {
@@ -212,14 +217,15 @@ export class ProjectPage extends TimelinePage {
           response
             .url()
             .includes(
-              "/api/method/next_pms.resource_management.api.allocation.handle_allocation",
+              "next_pms.resource_management.api.allocation.handle_allocation",
             ) && response.status() === 200,
       ),
       this.clickCreateButton(),
     ]);
 
     const responseBody = await response.json();
-    const updatedAllocationName = responseBody.message.name;
+    const updatedAllocationName = (responseBody.data ?? responseBody.message)
+      .name;
     return { updatedAllocationName };
   }
 
@@ -269,8 +275,10 @@ export class ProjectPage extends TimelinePage {
     const count = await this.projectListItems.count();
 
     for (let i = 0; i < Math.min(count, 10); i++) {
-      const label = await this.projectListItems.nth(i).textContent();
-      titles.push(label.trim());
+      const label = await this.projectListItems
+        .nth(i)
+        .getAttribute("aria-label");
+      titles.push(label.replace(/^Toggle /, "").trim());
     }
 
     return {
@@ -327,6 +335,7 @@ export class ProjectPage extends TimelinePage {
           .getByRole("option", { name: rmExactly(optionLabel) })
           .first()
           .click();
+        await this.page.keyboard.press("Escape");
         await this.page
           .waitForLoadState("networkidle", { timeout: 5000 })
           .catch(() => {});
@@ -400,28 +409,17 @@ export class ProjectPage extends TimelinePage {
    * @param {string} view - "planned" or "actual_vs_planned"
    */
   /**
-   * Expands a project row to reveal the employees allocated to it. The row's
-   * name opens project details; the separate Expand control reveals the list.
+   * Expands a project row to reveal the employees allocated to it.
    */
   async expandProjectRow(projectName) {
-    // "Expand" sits as a sibling just before the project's name button, so
-    // anchor on the name and step back to it rather than relying on row roles.
-    const nameButton = this.page
-      .getByRole("button", { name: `View ${projectName} details`, exact: true })
-      .first();
-    await nameButton.waitFor({
+    const expand = this.projectNameCell(projectName);
+    await expand.waitFor({
       state: "visible",
       timeout: scaleTimeout(15000),
     });
-
-    const expand = nameButton
-      .locator("xpath=preceding-sibling::button[1]")
-      .first();
-    // A full-size transparent button ("absolute inset-0 z-10") covers the row
-    // and swallows the pointer event, so a normal click never reaches the
-    // chevron. Dispatching the event hits the chevron directly, and unlike
-    // click({force:true}) it does not also fire the overlay's own handler.
-    await expand.dispatchEvent("click");
+    if ((await expand.getAttribute("aria-expanded")) !== "true") {
+      await expand.click();
+    }
     await this.page
       .waitForLoadState("networkidle", { timeout: 5000 })
       .catch(() => {});

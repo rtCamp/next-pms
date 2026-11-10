@@ -6,7 +6,7 @@ import { NavigationPage } from "../../pageObjects/navigationPage";
 const EMPLOYEE_TARGETS = [
   "Timesheet - Personal",
   "Allocations - Team",
-  "Allocations - project",
+  "Allocations - Project",
   "Tasks",
 ];
 
@@ -31,8 +31,8 @@ test.describe("Employee: Global search", () => {
     );
 
     expect(sorted(await nav.searchFor("Allocations"))).toEqual([
+      "Allocations - Project",
       "Allocations - Team",
-      "Allocations - project",
     ]);
     await nav.searchFor("zzz-no-such-page");
     await expect(nav.noSearchResults).toBeVisible();
@@ -87,8 +87,8 @@ test.describe("Employee: Global search", () => {
         "Timesheet - Projects",
       ]);
       expect(await found("Allocations")).toEqual([
+        "Allocations - Project",
         "Allocations - Team",
-        "Allocations - project",
       ]);
     } finally {
       await context.close();
