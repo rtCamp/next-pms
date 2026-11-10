@@ -38,6 +38,7 @@ import { isWeekendEntryAllowed, parseFrappeErrorMsg } from "@/lib/utils";
 import { ALLOCATION_DIALOG_HELP } from "@/pages/allocations/help";
 import { useEmployeeAvailability } from "@/pages/allocations/useEmployeeAvailability";
 import { isLeaveOwnedOverride } from "@/pages/allocations/utils";
+import { AiRemark } from "./aiRemark";
 import {
   addAllocationDefaultValues,
   allocationRecurrenceLabels,
@@ -779,20 +780,6 @@ function AddAllocationModal({
                   <span className="text-ink-amber-4">Ai</span>
                 </span>
               )}
-              {initialValues?.isAiCreated &&
-                initialValues.aiAllocationReason && (
-                  <div
-                    className="mt-2 flex min-w-0 max-w-full items-start gap-1 text-ink-amber-4"
-                    title={initialValues.aiAllocationReason}
-                  >
-                    <span className="shrink-0 text-sm font-medium">
-                      Remark:
-                    </span>
-                    <p className="min-w-0 whitespace-pre-line break-words text-sm font-normal">
-                      {initialValues.aiAllocationReason}
-                    </p>
-                  </div>
-                )}
             </div>
           ),
         }}
@@ -863,6 +850,10 @@ function AddAllocationModal({
         }
       >
         <div className="space-y-4">
+          {initialValues?.isAiCreated && initialValues.aiAllocationReason && (
+            <AiRemark remark={initialValues.aiAllocationReason} />
+          )}
+
           {layoutVariant === "project" ? (
             <>
               {projectField}
