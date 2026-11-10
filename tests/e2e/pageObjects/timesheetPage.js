@@ -179,7 +179,11 @@ export class TimesheetPage {
    * Optional params: project, task.
    */
   async AddTime({ duration, project, task, desc }) {
-    await this.addTimeModal.getByPlaceholder("00:00").fill(duration);
+    const durationInput = this.addTimeModal.getByPlaceholder("00:00");
+    // The cell popover is a hover card: focus leaving the cell closes it unless the
+    // pointer went down inside it, and the typed duration only counts on blur.
+    await durationInput.click();
+    await durationInput.fill(duration);
     if (project) {
       await this.selectComboboxOption("Select project", project);
     }

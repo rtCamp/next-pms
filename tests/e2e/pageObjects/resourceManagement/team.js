@@ -401,6 +401,9 @@ export class TeamPage extends TimelinePage {
       .first()
       .click();
 
+    // The closed operator list leaves the pointer over a member name, whose hover
+    // card then covers the Value input.
+    await this.page.mouse.move(0, 0);
     const valueInput = this.page.getByPlaceholder("Value").last();
     await valueInput.click();
     await valueInput.fill(value).catch(() => {});
