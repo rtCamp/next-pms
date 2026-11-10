@@ -127,7 +127,7 @@ function AddAllocationModal({
     return {
       ...addAllocationDefaultValues,
       ...initialFormValues,
-      ...(initialValues?.isAiCreated ? { isTentative: false } : {}),
+      ...(initialValues?.isAiCreated ? { isTentative: true } : {}),
     };
   }, [initialValues]);
 
