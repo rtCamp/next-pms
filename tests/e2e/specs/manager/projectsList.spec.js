@@ -226,4 +226,28 @@ test.describe("Manager: Projects list", () => {
     await expect(page).not.toHaveURL(/sortField=/);
     await expect(list.sortButton).toContainText("Last Updated On");
   });
+
+  test("TC407: A column's options chevron shows only while its header is hovered or its menu is open", async ({
+    page,
+  }) => {
+    allure.story("Projects");
+    await list.open({ search: SEARCH });
+    // By label: an open menu hides the rest of the page from role queries.
+    const chevron = page.locator('[aria-label="Project name column options"]');
+    const opacity = () =>
+      chevron.evaluate((element) => getComputedStyle(element).opacity);
+
+    await page.mouse.move(0, 0);
+    await expect.poll(opacity).toBe("0");
+    await list.columnHeader("Project name").hover();
+    await expect.poll(opacity).toBe("1");
+
+    await chevron.click();
+    await expect(
+      page.getByRole("menuitem", { name: /^(Pin|Unpin) column/ }),
+    ).toBeVisible();
+    await page.mouse.move(0, 0);
+    await expect.poll(opacity).toBe("1");
+    await page.keyboard.press("Escape");
+  });
 });

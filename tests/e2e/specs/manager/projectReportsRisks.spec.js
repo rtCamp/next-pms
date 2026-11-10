@@ -25,6 +25,17 @@ const DUMMY_PDF = path.resolve(
   "../../data/upload-files/valid/dummy.pdf",
 );
 
+const MONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" ");
+
+/** A date-time as the risk list prints it: "Mar 10", with the year when it isn't this one. */
+const projectDate = (value, withYear = false) => {
+  const [year, month, day] = value.slice(0, 10).split("-").map(Number);
+  const short = `${MONTHS[month - 1]} ${day}`;
+  return withYear || year !== new Date().getFullYear()
+    ? `${short}, ${year}`
+    : short;
+};
+
 test.describe.configure({ mode: "serial" });
 
 test.describe("Manager: Project reports and risks", () => {
@@ -56,6 +67,21 @@ test.describe("Manager: Project reports and risks", () => {
     } finally {
       await deleteDocument("Risk", risk.name);
     }
+  };
+
+  // Created a year back, To-do then Mitigated a week later; mitigated_on is when that began.
+  const year = new Date().getFullYear() - 1;
+  const MITIGATED_AT = `${year}-03-10 10:00:00`;
+  const mitigatedLog = {
+    status: "Mitigated",
+    risk_update_log: [
+      {
+        status: "To-do",
+        risk_level: "Medium",
+        updated_at: `${year}-03-03 10:00:00`,
+      },
+      { status: "Mitigated", risk_level: "Medium", updated_at: MITIGATED_AT },
+    ],
   };
 
   // A summary typed in the dialog is stored as rich text: "<p>...</p>".
@@ -395,6 +421,87 @@ test.describe("Manager: Project reports and risks", () => {
       ])) {
         await deleteDocument("File", file);
       }
+    });
+  });
+
+  test("TC408: The risk list shows each risk's Created on date, and the Mitigated Risk group its Mitigated on date", async ({
+    page,
+  }) => {
+    allure.story("Projects");
+    const stamp = Date.now();
+    const open = `E2E Prj dated open risk ${stamp}`;
+    const mitigated = `E2E Prj dated mitigated risk ${stamp}`;
+    await withRisk(open, {}, async (openName) => {
+      await withRisk(mitigated, mitigatedLog, async (mitigatedName) => {
+        const created = projectDate(
+          (await getDocument("Risk", openName)).creation,
+        );
+        const saved = await getDocument("Risk", mitigatedName);
+        expect(saved.mitigated_on).toBe(MITIGATED_AT);
+
+        await risks.goto(project);
+        await expect(risks.listRow(open)).toBeVisible();
+        // Both groups have a Created on column; only Mitigated Risk has Mitigated on.
+        await expect(page.getByText("Created on", { exact: true })).toHaveCount(
+          2,
+        );
+        await expect(
+          page.getByText("Mitigated on", { exact: true }),
+        ).toHaveCount(1);
+
+        // The last cell holds the row menu.
+        const cells = (summary) =>
+          risks.listRow(summary).locator(":scope > div").allInnerTexts();
+        expect((await cells(open)).slice(-2, -1)).toEqual([created]);
+        expect((await cells(mitigated)).slice(-3, -1)).toEqual([
+          projectDate(saved.creation),
+          projectDate(MITIGATED_AT),
+        ]);
+      });
+    });
+  });
+
+  test("TC409: A risk's page shows when it was created and, once mitigated, when, and the list sorts by Created on", async ({
+    page,
+  }) => {
+    allure.story("Projects");
+    const stamp = Date.now();
+    const open = `E2E Prj dated open risk ${stamp}`;
+    const mitigated = `E2E Prj dated mitigated risk ${stamp}`;
+    await withRisk(open, {}, async (openName) => {
+      await withRisk(mitigated, mitigatedLog, async (mitigatedName) => {
+        const chip = (label) =>
+          page.locator("span.rounded-full").filter({
+            hasText: new RegExp(`^\\s*${label}\\s`),
+          });
+
+        await risks.goto(project, { risk: openName });
+        const created = projectDate(
+          (await getDocument("Risk", openName)).creation,
+        );
+        await expect(chip("Created")).toHaveText(
+          new RegExp(`^\\s*Created\\s+${created}\\s*$`),
+        );
+        await expect(chip("Mitigated")).toHaveCount(0);
+
+        await risks.goto(project, { risk: mitigatedName });
+        await expect(chip("Mitigated")).toHaveText(
+          new RegExp(`^\\s*Mitigated\\s+${projectDate(MITIGATED_AT)}\\s*$`),
+        );
+        await chip("Mitigated").hover();
+        await expect(page.getByRole("tooltip").last()).toHaveText(
+          `Mitigated on ${projectDate(MITIGATED_AT, true)} 10:00 AM`,
+        );
+
+        await risks.goto(project);
+        await risks.sortButton.click();
+        await page
+          .getByRole("button", { name: "Created on", exact: true })
+          .or(page.getByRole("option", { name: "Created on" }))
+          .first()
+          .click();
+        await expect(risks.sortButton).toContainText("Created on");
+      });
     });
   });
 });

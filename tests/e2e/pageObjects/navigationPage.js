@@ -38,6 +38,10 @@ export class NavigationPage {
       name: "Close notifications tray",
     });
 
+    this.helpButton = page.getByRole("button", { name: "Help", exact: true });
+    this.helpPanel = page.getByRole("dialog", { name: "Help", exact: true });
+    this.closeHelp = this.helpPanel.getByRole("button", { name: "Close help" });
+
     this.notFoundHeading = page.getByRole("heading", {
       name: "Page not found",
     });
@@ -132,5 +136,30 @@ export class NavigationPage {
   async chooseFromMenu(item) {
     await this.headerMenu.click();
     await this.page.getByRole("menuitem", { name: item, exact: true }).click();
+  }
+
+  // --------------------------------------
+  // Help panel
+  // --------------------------------------
+
+  async openHelp() {
+    await this.helpButton.click();
+    await this.helpPanel.waitFor({ timeout: scaleTimeout(15000) });
+  }
+
+  /** "On this page" or "Everywhere": the titles of the tips listed under it. */
+  helpTips(group) {
+    return this.helpPanel
+      .getByRole("group", { name: group, exact: true })
+      .getByRole("button");
+  }
+
+  helpTip(title) {
+    return this.helpPanel.getByRole("button", { name: title, exact: true });
+  }
+
+  /** An open tip's region: its body, steps, motion and wiki link. */
+  helpTipBody(title) {
+    return this.helpPanel.getByRole("region", { name: title, exact: true });
   }
 }
