@@ -47,9 +47,9 @@ export class TimelinePage {
     // The Project tab searches by project, the Team tab by member.
     this.searchProjectFilter = page.getByPlaceholder("Search project");
     // Allocation chips in the grid; opening one reveals Edit/Delete actions.
-    this.allocationChip = page.getByRole("button", {
-      name: "Allocation summary",
-    });
+    this.allocationChip = page
+      .getByRole("table")
+      .locator('[data-gantt-bar][role="button"]');
     this.deleteAllocationAction = page.getByRole("button", {
       name: "Delete allocation",
     });
@@ -122,9 +122,9 @@ export class TimelinePage {
       .locator("div")
       .filter({ hasText: /^End Date\*Today$/ })
       .getByRole("button");
-    // The dialog's fields carry stable ids, which survive restyling better than
-    // placeholder or role lookups.
-    this.totalHoursTextField = page.locator("#total-hours");
+    this.totalHoursTextField = page.getByRole("textbox", {
+      name: "Total hours",
+    });
     this.noteField = page.getByPlaceholder("Add a note");
     this.createButton = page.getByRole("button", {
       name: "Allocate",
@@ -135,27 +135,18 @@ export class TimelinePage {
       exact: true,
     });
 
-    // "Start and end date" is a read-only input that opens a one-month calendar.
-    this.dateRangeInput = page.locator("#date-range");
+    // "Start and end date" is frappe-ui's DateRangePicker: a text input that opens a
+    // calendar whose day cells carry their ISO date in data-value.
+    this.dateRangeInput = page.getByPlaceholder("Start Date - End Date");
+    this.calendarGrid = page.getByRole("grid", { name: "Calendar dates" });
     this.calendarPrevMonth = page.getByRole("button", {
-      name: "Previous month",
+      name: "previous",
+      exact: true,
     });
-    this.calendarNextMonth = page.getByRole("button", { name: "Next month" });
-    this.calendarCaption = page
-      .locator("span")
-      .filter({ hasText: /^[A-Z][a-z]{2} \d{4}$/ })
-      .first();
-    // The month grid spills the adjacent months, so days 1-3 and 28-31 can each
-    // appear twice. The leading spill is the previous month's tail and the
-    // trailing spill the next month's head, so an early day is the first match
-    // and a late day the last - no dependence on the muted-text styling.
-    this.calendarDayCell = (dayNumber) => {
-      const cells = page
-        .getByRole("grid")
-        .getByRole("gridcell", { name: String(dayNumber), exact: true });
-
-      return dayNumber <= 15 ? cells.first() : cells.last();
-    };
+    this.calendarNextMonth = page.getByRole("button", {
+      name: "next",
+      exact: true,
+    });
 
     // Checkboxes are unnamed inputs paired with a visible label.
     this.nonBillableCheckbox = page.getByLabel("Mark as non-billable");
@@ -258,43 +249,36 @@ export class TimelinePage {
       return;
     }
     await this.dateRangeInput.click();
-    await this.page
-      .getByRole("grid")
-      .waitFor({ state: "visible", timeout: scaleTimeout(10000) });
-
-    // Walk to the target month. Every caller allocates within a few days of
-    // today, so this usually does not iterate at all.
-    const wantedCaption = target.toLocaleDateString("en-US", {
-      month: "short",
-      year: "numeric",
-    });
-
-    for (let step = 0; step < 24; step++) {
-      const caption = (await this.calendarCaption.textContent())?.trim();
-
-      if (caption === wantedCaption) {
-        break;
-      }
-
-      const shownMonth = new Date(`${caption} 1`);
-      await (
-        shownMonth > target ? this.calendarPrevMonth : this.calendarNextMonth
-      ).click();
-      await this.page.waitForTimeout(300);
-    }
-
     // Clicking the same day twice sets an identical start and end, which is the
-    // single-day allocation every caller wants. The calendar dismisses itself
-    // once the range is complete - never press Escape here, as that closes the
-    // whole allocation dialog and the submit then has nothing to send.
-    const dayCell = this.calendarDayCell(target.getDate());
-    await dayCell.click();
-    await this.page.waitForTimeout(400);
-    await dayCell.click();
-    await this.page
-      .getByRole("grid")
+    // single-day allocation every caller wants.
+    const iso = `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, "0")}-${String(target.getDate()).padStart(2, "0")}`;
+    await this.pickCalendarDay(iso);
+    await this.pickCalendarDay(iso);
+    await this.calendarGrid
+      .first()
       .waitFor({ state: "hidden", timeout: scaleTimeout(5000) })
       .catch(() => {});
+  }
+
+  /** Clicks a day ("2026-11-09") in the open calendar, walking months as needed. */
+  async pickCalendarDay(iso) {
+    const grid = this.calendarGrid.first();
+    await grid.waitFor({ state: "visible", timeout: scaleTimeout(10000) });
+    for (let step = 0; step < 24; step++) {
+      const cell = this.calendarGrid.locator(`[data-value="${iso}"]`).first();
+      if (await cell.count()) {
+        await cell.click();
+        return;
+      }
+      const first = await grid
+        .locator("[data-value]")
+        .first()
+        .getAttribute("data-value");
+      await (
+        first > iso ? this.calendarPrevMonth : this.calendarNextMonth
+      ).click();
+    }
+    throw new Error(`pickCalendarDay: ${iso} not reached`);
   }
 
   /**
@@ -347,8 +331,27 @@ export class TimelinePage {
    * Filters the employee list by the given name.
    */
   async filterEmployeeByName(employeeName) {
+    // The search is debounced, so wait for the grid to refetch with it.
+    const searched = this.page
+      .waitForResponse(
+        (resp) =>
+          resp.url().includes("get_resource_management_team_view_data") &&
+          decodeURIComponent(
+            `${resp.url()} ${resp.request().postData() ?? ""}`.replace(
+              /\+/g,
+              " ",
+            ),
+          ).includes(employeeName),
+        { timeout: scaleTimeout(15000) },
+      )
+      .catch(() => {});
     await this.searchEmployeeFilter.fill(employeeName);
     await this.page.keyboard.press("Enter");
+    await searched;
+    await this.page
+      .getByRole("status", { name: "Loading allocations" })
+      .waitFor({ state: "hidden", timeout: scaleTimeout(15000) })
+      .catch(() => {});
   }
 
   /**
@@ -366,7 +369,8 @@ export class TimelinePage {
    */
   async openAllocationPopover() {
     await this.page.waitForTimeout(1000);
-    await this.allocationChip.first().click();
+    // A chip's card opens on hover or focus, not on click.
+    await this.allocationChip.first().focus();
     await this.page.waitForTimeout(1200);
   }
 
@@ -389,7 +393,7 @@ export class TimelinePage {
   async deleteAllocation(projectName) {
     // Allocations are chips in the grid; clicking one opens a popover whose
     // actions are labelled "Edit allocation" / "Delete allocation".
-    await this.allocationChip.first().click();
+    await this.allocationChip.first().focus();
     await this.page.waitForTimeout(1200);
     await this.deleteAllocationAction.first().click();
     await this.page.waitForTimeout(800);
@@ -432,14 +436,14 @@ export class TimelinePage {
           response
             .url()
             .includes(
-              "/api/method/next_pms.resource_management.api.allocation.handle_allocation",
+              "next_pms.resource_management.api.allocation.handle_allocation",
             ) && response.status() === 200,
       ),
       this.clickCreateButton(),
     ]);
 
     const responseBody = await response.json();
-    const allocationName = responseBody.message.name;
+    const allocationName = (responseBody.data ?? responseBody.message).name;
     return allocationName;
   }
 

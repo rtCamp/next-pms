@@ -265,12 +265,16 @@ test.describe("Manager: Allocations team", () => {
     )
       .getByRole("button", { name: "Edit allocation" })
       .click();
-    await expect(al.dialog.locator("#employee")).toHaveValue(member.AlDev);
-    await expect(al.dialog.locator("#project")).toHaveValue("E2E Alloc Alpha");
+    await expect(
+      al.dialog.getByRole("combobox", { name: /^Employee/ }),
+    ).toHaveValue(member.AlDev);
+    await expect(
+      al.dialog.getByRole("combobox", { name: /^Project/ }),
+    ).toHaveValue("E2E Alloc Alpha");
     await expect(al.dateRangeInput).toHaveValue(
-      `${AllocationsPage.day(dateInWeek(-2, "Mon"))} - ${AllocationsPage.day(dateInWeek(-2, "Fri"))}`,
+      `${AllocationsPage.rangeDay(dateInWeek(-2, "Mon"))} to ${AllocationsPage.rangeDay(dateInWeek(-2, "Fri"))}`,
     );
-    await expect(al.dialog.locator("#hours-per-day")).toHaveValue("04:00");
+    await expect(al.hoursPerDayField).toHaveValue("04:00");
     await expect(al.totalHoursTextField).toHaveValue("20");
     await expect(al.noteField).toHaveValue("TC265 seeded allocation");
     await expect(al.nonBillableCheckbox).not.toBeChecked();

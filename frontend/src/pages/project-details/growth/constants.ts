@@ -1,5 +1,6 @@
 import type { SortField, SortState } from "@/components/SortSelector";
 import type { GroupColumn } from "@/pages/project-details/shared/types";
+import { GROWTH_HELP } from "./help";
 
 export { GROWTH_DETAIL_PARAM as GROWTH_PARAM } from "@/pages/project-details/to-do/constants";
 
@@ -70,7 +71,13 @@ export const CLOSED_GROWTH_COLUMNS: GroupColumn<GrowthColumnKey>[] = [
   CATEGORY,
   OWNER,
   LAST_UPDATED,
-  { key: "closed_status", label: "Closed Status", width: "120px", flex: 1 },
+  {
+    key: "closed_status",
+    label: "Closed Status",
+    width: "120px",
+    flex: 1,
+    help: GROWTH_HELP.closedStatus,
+  },
 ];
 
 export const GROWTH_SORT_FIELDS: SortField[] = [

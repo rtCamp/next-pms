@@ -197,8 +197,9 @@ test.describe("Manager: Projects list", () => {
 
     await list.columnOptions("Client name").click();
     const fourth = page.getByRole("menuitem", { name: "Pin column" });
-    await fourth.hover();
-    await expect(page.getByText("You can pin up to 3 columns")).toBeVisible();
+    // Vue prints the limit under the disabled item instead of in a hover tooltip.
+    await expect(fourth).toBeDisabled();
+    await expect(fourth).toContainText("You can pin up to 3 columns");
     await fourth.click({ force: true });
     await page.keyboard.press("Escape");
     expect(new URL(page.url()).searchParams.get("pinned")).toBe(pinned);
@@ -224,5 +225,29 @@ test.describe("Manager: Projects list", () => {
     await list.sortPanel.getByRole("button", { name: "Clear sort" }).click();
     await expect(page).not.toHaveURL(/sortField=/);
     await expect(list.sortButton).toContainText("Last Updated On");
+  });
+
+  test("TC407: A column's options chevron shows only while its header is hovered or its menu is open", async ({
+    page,
+  }) => {
+    allure.story("Projects");
+    await list.open({ search: SEARCH });
+    // By label: an open menu hides the rest of the page from role queries.
+    const chevron = page.locator('[aria-label="Project name column options"]');
+    const opacity = () =>
+      chevron.evaluate((element) => getComputedStyle(element).opacity);
+
+    await page.mouse.move(0, 0);
+    await expect.poll(opacity).toBe("0");
+    await list.columnHeader("Project name").hover();
+    await expect.poll(opacity).toBe("1");
+
+    await chevron.click();
+    await expect(
+      page.getByRole("menuitem", { name: /^(Pin|Unpin) column/ }),
+    ).toBeVisible();
+    await page.mouse.move(0, 0);
+    await expect.poll(opacity).toBe("1");
+    await page.keyboard.press("Escape");
   });
 });

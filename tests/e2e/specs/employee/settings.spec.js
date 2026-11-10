@@ -22,11 +22,13 @@ test.describe("Employee: Settings", () => {
 
     await expect(settings.dialog).toBeVisible();
     await expect(settings.label(USER_CONFIGURATION)).toBeVisible();
-    const tabs = settings.section(USER_CONFIGURATION).getByRole("button");
-    await expect(tabs).toHaveText(["Profile", "Timesheets"]);
+    await expect(settings.tabs(USER_CONFIGURATION)).toHaveText([
+      "Profile",
+      "Timesheets",
+    ]);
     await expect(settings.tab(USER_CONFIGURATION, "Profile")).toHaveAttribute(
-      "aria-current",
-      "page",
+      "aria-selected",
+      "true",
     );
     await expect(
       settings.dialog.getByRole("heading", { level: 2, name: "Profile" }),
@@ -43,10 +45,11 @@ test.describe("Employee: Settings", () => {
       await own.open();
       await expect(own.label(USER_CONFIGURATION)).toBeVisible();
       await expect(own.label("System Configuration")).toHaveCount(0);
-      await expect(own.dialog.getByRole("navigation")).toHaveCount(1);
-      await expect(
-        own.section(USER_CONFIGURATION).getByRole("button"),
-      ).toHaveText(["Profile", "Timesheets"]);
+      await expect(own.sections).toHaveCount(1);
+      await expect(own.tabs(USER_CONFIGURATION)).toHaveText([
+        "Profile",
+        "Timesheets",
+      ]);
     };
 
     await only(settings.page);
@@ -77,7 +80,7 @@ test.describe("Employee: Settings", () => {
       settings.dialog.getByText(process.env.EMP_EMAIL, { exact: true }),
     ).toBeVisible();
     await expect(
-      settings.dialog.getByRole("button", { name: "Change Password" }),
+      settings.dialog.getByRole("link", { name: "Change Password" }),
     ).toBeVisible();
   });
 });

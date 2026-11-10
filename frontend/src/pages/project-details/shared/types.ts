@@ -1,3 +1,5 @@
+import type { FieldHelp } from "@/components/InfoHoverCard";
+
 /** A `User`'s display fields. */
 export interface UserDetails {
   /** The user ID (email). */
@@ -42,6 +44,8 @@ export interface GroupColumn<Key extends string = string> {
   /** CSS length, e.g. `"128px"`. */
   width: string;
   flex: number;
+  /** A hover card beside the column's label. */
+  help?: FieldHelp;
 }
 
 /** A collapsible group of a group list. */

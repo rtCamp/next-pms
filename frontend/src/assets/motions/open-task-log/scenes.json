@@ -1,0 +1,1 @@
+{"width":1920,"height":1080,"background":"#F4F4F5","fonts":{"sans":{"family":"Inter"}},"scenes":[{"id":"open-task-log","name":"Open a task's time log","dur":7.6,"desc":"On the Tasks list, the cursor selects the subject Chart legend behaviour fix across tabs. Its time log opens, showing 18:30 logged against 24:00 expected, who logged it and each time entry."}]}

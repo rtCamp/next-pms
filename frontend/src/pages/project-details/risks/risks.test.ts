@@ -33,6 +33,8 @@ const row = (overrides: Partial<RiskRow> = {}): RiskRow => ({
   summary: "<p>Late</p>",
   owner: "ann@example.com",
   risk_owner: "bob@example.com",
+  creation: "2026-09-30 09:00:00",
+  mitigated_on: null,
   ...overrides,
 });
 
@@ -139,6 +141,10 @@ describe("riskGroups", () => {
     const [open, mitigated] = riskGroups(items);
     expect(open.rows.map((item) => item.name)).toEqual(["a", "c"]);
     expect(mitigated.rows.map((item) => item.name)).toEqual(["b"]);
+    expect(open.columns.map((column) => column.key)).not.toContain(
+      "mitigated_on",
+    );
+    expect(mitigated.columns.at(-1)?.key).toBe("mitigated_on");
     expect(items[0].riskOwnerPerson).toEqual({
       userId: "bob@example.com",
       label: "Bob",

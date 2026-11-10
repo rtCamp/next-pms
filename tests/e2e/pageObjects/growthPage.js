@@ -106,7 +106,10 @@ export class GrowthPage {
   }
 
   async openDetail(activity) {
-    await this.item(activity).click();
+    // The row opens through a transparent button laid over it.
+    await this.page
+      .getByRole("button", { name: `Open ${activity}`, exact: true })
+      .click();
     await this.backButton.waitFor({
       state: "visible",
       timeout: scaleTimeout(15000),
@@ -205,8 +208,7 @@ export class GrowthPage {
   async openDetailMenu() {
     await this.backButton
       .locator("xpath=../..")
-      .locator("button")
-      .nth(1)
+      .getByRole("button", { name: /^Actions for / })
       .click();
   }
 

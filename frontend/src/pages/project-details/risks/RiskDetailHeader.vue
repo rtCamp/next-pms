@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Button } from "frappe-ui";
+import { Button, dayjs, Tooltip } from "frappe-ui";
 import FollowersBadge from "@/pages/project-details/shared/FollowersBadge.vue";
 import OwnerPill from "@/pages/project-details/shared/OwnerPill.vue";
 import { toPerson } from "@/pages/project-details/shared/permissions";
+import { formatProjectDate } from "@/utils/date";
 import type { Person, UserDetails } from "@/pages/project-details/shared/types";
+import { OWNER_TOOLTIP, RISK_OWNER_TOOLTIP } from "./help";
 import RiskActions from "./RiskActions.vue";
 import RiskLevelPill from "./RiskLevelPill.vue";
 import RiskStatusBadge from "./RiskStatusBadge.vue";
@@ -33,6 +35,23 @@ const owner = computed(() =>
     ? toPerson(props.risk.owner, props.users.get(props.risk.owner))
     : null,
 );
+
+const dateChips = computed(() =>
+  [
+    { label: "Created", value: props.risk.creation },
+    { label: "Mitigated", value: props.risk.mitigated_on },
+  ].flatMap(({ label, value }) =>
+    value
+      ? [
+          {
+            label,
+            date: formatProjectDate(value.slice(0, 10)),
+            tooltip: `${label} on ${dayjs(value).format("MMM D, YYYY h:mm A")}`,
+          },
+        ]
+      : [],
+  ),
+);
 </script>
 
 <template>
@@ -52,11 +71,21 @@ const owner = computed(() =>
     </div>
     <div class="flex flex-wrap items-center gap-1 text-sm text-ink-gray-7">
       <RiskLevelPill :level="risk.risk_level" />
-      <OwnerPill :person="riskOwner" title="Risk owner" />
-      <OwnerPill :person="owner" title="Owner" />
+      <OwnerPill
+        :person="riskOwner"
+        title="Risk owner"
+        :tooltip="RISK_OWNER_TOOLTIP"
+      />
+      <OwnerPill :person="owner" title="Owner" :tooltip="OWNER_TOOLTIP" />
       <span class="rounded-full bg-surface-gray-2 px-2 py-1">
         <RiskStatusBadge :status="risk.status" />
       </span>
+      <Tooltip v-for="chip in dateChips" :key="chip.label" :text="chip.tooltip">
+        <span class="rounded-full bg-surface-gray-2 px-2 py-1">
+          <span class="text-ink-gray-5">{{ chip.label }}</span>
+          {{ chip.date }}
+        </span>
+      </Tooltip>
       <FollowersBadge :followers="followers" />
       <RiskActions
         :risk="risk"

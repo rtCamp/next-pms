@@ -92,12 +92,14 @@ repos:
         entry: bash -c 'cd frontend && npx --no-install prettier --write "${@#frontend/}"' --
         language: system
         files: ^frontend/.*\.(vue|ts|css|js)$
+        exclude: ^frontend/src/assets/motions/
 
       - id: frontend-eslint
         name: "Frontend linter"
         entry: bash -c 'cd frontend && npx --no-install eslint "${@#frontend/}"' --
         language: system
         files: ^frontend/.*\.(vue|ts|js)$
+        exclude: ^frontend/src/assets/motions/
 
 ci:
     autoupdate_schedule: weekly

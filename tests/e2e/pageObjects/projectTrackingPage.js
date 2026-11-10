@@ -1,4 +1,5 @@
 import { expect } from "allure-playwright";
+import { dayOfThisMonth } from "../utils/dateUtils";
 import { gotoWithRetry } from "../utils/navigation";
 import { scaleTimeout } from "../utils/timeouts";
 
@@ -16,19 +17,16 @@ export class ProjectTrackingPage {
     this.heading = page.getByRole("heading", {
       name: "Tracking",
       exact: true,
-      level: 1,
+      level: 2,
     });
     this.tab = page.getByRole("tabpanel");
     this.sidebar = page.locator("section").filter({
       has: page.getByRole("heading", { name: "About this project" }),
     });
 
-    // A widget is a bordered card titled by its first line of text.
+    // A widget is a section named by its title.
     this.card = (title) =>
-      this.tab
-        .locator("div.rounded-xl")
-        .filter({ has: page.getByText(title, { exact: true }) })
-        .last();
+      this.tab.getByRole("region", { name: title, exact: true });
     this.contractsCard = this.card("Contracts");
     this.ratesCard = this.card("Project rates");
 
@@ -65,6 +63,7 @@ export class ProjectTrackingPage {
     });
 
     this.toastRegion = page.getByRole("region", { name: /notification/i });
+    this.toasts = this.toastRegion.locator("[data-sonner-toast]");
     // `.first()`: a previous toast with the same text can still be on screen.
     this.toast = (text) => this.toastRegion.getByText(text).first();
   }
@@ -87,7 +86,7 @@ export class ProjectTrackingPage {
 
   /** Waits until no toast is on screen. */
   async waitForToastsToClear() {
-    await expect(this.toastRegion.getByRole("dialog")).toHaveCount(0, {
+    await expect(this.toasts).toHaveCount(0, {
       timeout: scaleTimeout(15000),
     });
   }
@@ -115,7 +114,7 @@ export class ProjectTrackingPage {
   /** Hovers a sidebar label and returns the hint it reveals. */
   async hintOf(label, hint) {
     await this.sidebar.getByText(label, { exact: true }).hover();
-    return this.page.getByText(hint, { exact: true });
+    return this.page.getByRole("tooltip", { name: hint, exact: true });
   }
 
   /** Switches the Financials card between "Projected" and "Current". */
@@ -158,31 +157,41 @@ export class ProjectTrackingPage {
   // Contracts
   // --------------------------------------
 
-  // A row's own cells, in column order: dates, the three hour figures, the two links and the actions.
   get contractRows() {
-    return this.contractsCard
-      .getByTestId("dropdown-trigger")
-      .locator("xpath=../..");
+    return this.contractsCard.getByRole("row").filter({
+      has: this.page.getByRole("button", { name: "Contract actions" }),
+    });
+  }
+
+  /** A row's printed values in column order: dates, the three hour figures and the two links. */
+  rowValues(row) {
+    return row.getByRole("cell").locator("xpath=./span");
   }
 
   async openRowMenu(row, action) {
-    await row.getByTestId("dropdown-trigger").click();
+    await row.getByRole("button", { name: /actions/ }).click();
     await this.page.getByRole("menuitem", { name: action }).click();
   }
 
-  /** Picks a day of the month the picker opens on (days 5 to 24 appear once on its grid). */
-  async pickDay(trigger, day) {
-    await trigger.click();
-    await this.page
-      .getByRole("gridcell", { name: String(day), exact: true })
-      .click();
+  /** Types a day of this month into a date field and commits it. */
+  async pickDay(field, day) {
+    await field.fill(dayOfThisMonth(day));
+    await field.press("Enter");
   }
 
-  // Each date field is a button inside a button, so the printed date is what tells them apart.
   async fillContract(dialog, { startDay, endDay, hours }) {
-    const dates = dialog.getByText(/^\d{4}-\d{2}-\d{2}$/);
-    if (startDay) await this.pickDay(dates.nth(0), startDay);
-    if (endDay) await this.pickDay(dates.nth(1), endDay);
+    if (startDay) {
+      await this.pickDay(
+        dialog.getByRole("combobox", { name: /^Start date/ }),
+        startDay,
+      );
+    }
+    if (endDay) {
+      await this.pickDay(
+        dialog.getByRole("combobox", { name: /^End date/ }),
+        endDay,
+      );
+    }
     if (hours) await dialog.getByRole("spinbutton").fill(String(hours));
   }
 
@@ -192,20 +201,20 @@ export class ProjectTrackingPage {
 
   // One row per member rate; the flat rate row above them has no actions.
   get rateRows() {
-    return this.ratesCard
-      .getByTestId("dropdown-trigger")
-      .locator("xpath=../..");
+    return this.ratesCard.getByRole("row").filter({
+      has: this.page.getByRole("button", { name: /^Rate actions for / }),
+    });
   }
 
   async fillRate(dialog, { member, rate, day }) {
     if (member) {
-      await dialog.getByRole("combobox", { name: "Select member" }).click();
+      await dialog.getByRole("combobox", { name: /^Member/ }).click();
       await this.page.getByRole("option", { name: member }).click();
     }
     if (rate) await dialog.getByRole("spinbutton").fill(String(rate));
     if (day) {
       await this.pickDay(
-        dialog.getByRole("button", { name: /^\d{4}-\d{2}-\d{2}$/ }),
+        dialog.getByRole("combobox", { name: /^Valid from/ }),
         day,
       );
     }

@@ -50,7 +50,7 @@ export class ProjectPage {
     //Currency has its own combobox, outside the query-builder
     this.currencySearchBar = page.getByPlaceholder("Currency");
     this.currencyClearButton = page.getByRole("button", {
-      name: "Clear selection",
+      name: "Clear currency",
     });
     this.currencyOption = (code) =>
       page.getByRole("option", { name: code, exact: true });
@@ -88,9 +88,7 @@ export class ProjectPage {
     // one menu behind the active-view button, which is labelled "List view"
     // until a saved view is open and then shows that view's icon. The menu
     // lists the built-in views, every saved view, and "Create View".
-    this.viewMenuButton = page
-      .getByRole("button", { name: /^(List view|Kanban view|📋|📁)$/ })
-      .first();
+    this.viewMenuButton = page.getByRole("button", { name: /^View: / }).first();
     this.viewMenuItem = (viewName) =>
       page.getByRole("menuitem").filter({ hasText: viewName }).first();
 
@@ -113,8 +111,7 @@ export class ProjectPage {
         .getByRole("menuitem")
         .filter({ hasText: viewName })
         .first()
-        .locator("button[aria-haspopup='menu']")
-        .first();
+        .getByRole("button", { name: `${viewName} actions`, exact: true });
     this.deleteViewButton = page
       .getByRole("menuitem")
       .filter({ hasText: /^Delete$/ });
@@ -220,8 +217,12 @@ export class ProjectPage {
    * @param {string} query - The search query.
    */
   async searchProject(query) {
+    // The search is debounced, so the page can sit idle before the refetch goes out;
+    // wait for the request that carries the query, not one already in flight.
+    const refetched = this.waitForProjectList(query);
     await this.searchBar.fill(query);
     await this.searchBar.press("Enter"); // Simulate pressing Enter to trigger the search
+    await refetched;
     await this.page
       .waitForLoadState("networkidle", { timeout: 5000 })
       .catch(() => {}); // Wait for the search results to load
@@ -404,11 +405,20 @@ export class ProjectPage {
    * when the query is served from cache. Start it before the action that
    * triggers the refetch.
    */
-  waitForProjectList() {
+  waitForProjectList(query) {
+    const carries = (resp) => {
+      if (!query) return true;
+      const request = resp.request();
+      const sent = `${decodeURIComponent(request.url()).replace(/\+/g, " ")} ${request.postData() ?? ""}`;
+      return sent.includes(query);
+    };
     return this.page
-      .waitForResponse((resp) => resp.url().includes(PROJECTS_VIEW_METHOD), {
-        timeout: scaleTimeout(15000),
-      })
+      .waitForResponse(
+        (resp) => resp.url().includes(PROJECTS_VIEW_METHOD) && carries(resp),
+        {
+          timeout: scaleTimeout(15000),
+        },
+      )
       .catch(() => {});
   }
 

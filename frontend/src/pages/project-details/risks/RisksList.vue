@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Avatar } from "frappe-ui";
+import { formatProjectDate } from "@/utils/date";
 import GroupList from "@/pages/project-details/shared/GroupList.vue";
 import RiskActions from "./RiskActions.vue";
 import RiskStatusBadge from "./RiskStatusBadge.vue";
@@ -44,6 +45,15 @@ const { groups, openRisk } = useRisks();
       />
       <span v-else-if="column.key === 'risk_level'" class="truncate">
         {{ risk.risk_level ?? "—" }}
+      </span>
+      <span v-else-if="column.key === 'creation'" class="truncate">
+        {{ formatProjectDate(risk.creation.slice(0, 10)) }}
+      </span>
+      <span
+        v-else-if="column.key === 'mitigated_on' && risk.mitigated_on"
+        class="truncate"
+      >
+        {{ formatProjectDate(risk.mitigated_on.slice(0, 10)) }}
       </span>
       <span v-else>—</span>
     </template>

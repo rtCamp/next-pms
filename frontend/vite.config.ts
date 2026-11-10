@@ -3,6 +3,7 @@ import vue from "@vitejs/plugin-vue";
 import vueDevTools from "vite-plugin-vue-devtools";
 import frappeui from "frappe-ui/vite";
 import type { Plugin as EsbuildPlugin } from "esbuild";
+import motionPlugin from "./tools/vite-plugin-motion";
 
 // frappe-ui maps its `#molecules/*`-style imports to a list of fallbacks
 // (`./src/molecules/*`, then `*.ts`, then `*/index.ts`). Vite's resolver copes,
@@ -46,6 +47,7 @@ export default defineConfig({
       },
     }),
     vue(),
+    motionPlugin(),
     // Applies to the dev server only; Storybook and story tests drop it.
     vueDevTools(),
   ],
