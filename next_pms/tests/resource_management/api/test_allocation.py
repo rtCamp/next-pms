@@ -589,6 +589,12 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
         self.assertEqual(allocation.total_allocated_hours, 14 * DAILY_HOURS)
 
     def test_approving_ai_allocation_shares_project_with_employee(self):
+        self._assert_ai_approval_shares_project(approved_status="Confirmed")
+
+    def test_approving_ai_allocation_as_tentative_shares_project_with_employee(self):
+        self._assert_ai_approval_shares_project(approved_status="Tentative")
+
+    def _assert_ai_approval_shares_project(self, approved_status: str):
         user_email = "leave-aware-allocation-user@example.com"
         user = frappe.db.get_value("User", {"email": user_email}, "name")
         previous_user = frappe.db.get_value("Employee", self.employee, "user_id")
@@ -637,7 +643,7 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
                     allocation_end_date=FRI,
                     hours_allocated_per_day=DAILY_HOURS,
                     include_weekends=False,
-                    status="Confirmed",
+                    status=approved_status,
                     is_ai_created=0,
                 ),
             )

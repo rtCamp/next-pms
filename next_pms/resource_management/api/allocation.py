@@ -277,8 +277,8 @@ def update_allocation(allocation: AllocationPayload):
     return allocation_doc
 
 
-def _share_project_with_approved_ai_employee(allocation_doc, was_ai_created: bool, was_confirmed: bool):
-    if not was_ai_created or was_confirmed or allocation_doc.status != "Confirmed" or not allocation_doc.project:
+def _share_project_with_approved_ai_employee(allocation_doc, was_ai_created: bool):
+    if not was_ai_created or cint(allocation_doc.is_ai_created) or not allocation_doc.project:
         return
 
     import frappe.share
@@ -627,14 +627,14 @@ def edit_allocation(
             if doc_hours_changed:
                 series_doc.override = []
             series_doc.save()
-            _share_project_with_approved_ai_employee(series_doc, stored.is_ai_created, stored.status == "Confirmed")
+            _share_project_with_approved_ai_employee(series_doc, stored.is_ai_created)
 
         if edit_mode == "this_and_future":
             _propagate_day_overrides_to_series(series, day_overrides, deleted_day_overrides)
         return frappe.get_doc("Resource Allocation", name)
 
     result = update_allocation(allocation)
-    _share_project_with_approved_ai_employee(result, stored.is_ai_created, stored.status == "Confirmed")
+    _share_project_with_approved_ai_employee(result, stored.is_ai_created)
     if hours_changed:
         clear_day_overrides(name)
     apply_day_overrides(name, day_overrides, deleted_day_overrides)
