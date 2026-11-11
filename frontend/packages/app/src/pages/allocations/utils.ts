@@ -282,8 +282,9 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
  * Each segment is treated as its own visible allocation entry while still pointing at
  * the same underlying allocation document id.
  *
- * Without weekends, segments break at every weekend so a multi-week allocation renders as
- * the same Mon-Fri pieces the add flow saves, and no segment ends on a hidden weekend column.
+ * An Ai allocation without weekends breaks at every weekend, so the suggestion renders as the
+ * Mon-Fri pieces approval saves it as. Other allocations keep one bar per document: a bar that
+ * is only part of a multi-week document would open the edit dialog on that part's dates.
  *
  * An allocation reduced to zero hours still blocks overlapping ones, so it keeps a single
  * zero-hour segment to stay clickable. That reads the backend total, not the segments below,
@@ -303,7 +304,10 @@ export function mapResourceAllocationSegments<T extends AllocationApiRecord>(
     (allocation.override ?? []).map((entry) => [entry.date, entry]),
   );
 
-  if (!overrideByDate.size && baseAllocation.includeWeekends) {
+  const splitAtWeekends =
+    baseAllocation.isAiCreated && !baseAllocation.includeWeekends;
+
+  if (!overrideByDate.size && !splitAtWeekends) {
     return [baseAllocation];
   }
 
@@ -331,8 +335,7 @@ export function mapResourceAllocationSegments<T extends AllocationApiRecord>(
   while (currentDate <= baseAllocation.endDate) {
     const dateKey = format(currentDate, "yyyy-MM-dd");
     const dayOverride = overrideByDate.get(dateKey);
-    const isSkippedWeekend =
-      !baseAllocation.includeWeekends && isWeekend(currentDate);
+    const isSkippedWeekend = splitAtWeekends && isWeekend(currentDate);
     const dayHours =
       isSkippedWeekend || dayOverride?.cancelled === 1
         ? 0
