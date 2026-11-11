@@ -1,6 +1,6 @@
 import uuid
 from collections import defaultdict
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import date, timedelta
 
 import frappe
@@ -638,7 +638,51 @@ def edit_allocation(
     if hours_changed:
         clear_day_overrides(name)
     apply_day_overrides(name, day_overrides, deleted_day_overrides)
+    if cint(stored.is_ai_created) and allocation.is_ai_created is not None and not cint(allocation.is_ai_created):
+        return _split_approved_ai_allocation_into_weeks(allocation) or result
     return result
+
+
+def _split_approved_ai_allocation_into_weeks(allocation: AllocationPayload):
+    """Save an approved Ai allocation the way the add flow saves one: one document per week.
+
+    The Ai service sends a single multi-week document. Once approved it is an ordinary allocation,
+    so it is shrunk to its first week -- keeping its name and history -- and `add_allocation`
+    creates the rest from the approved payload. Leave and holiday rows are re-derived by each
+    document's own save; manual rows are carried to the week that contains them.
+
+    Returns the shrunk document, or None when the allocation fits in one week or books weekends.
+    """
+    if allocation.include_weekends:
+        return None
+
+    chunks = get_weekday_chunks(allocation.allocation_start_date, allocation.allocation_end_date)
+    if len(chunks) < 2:
+        return None
+
+    doc = frappe.get_doc("Resource Allocation", allocation.name)
+    manual_rows = [
+        {"date": getdate(row.date), **({"cancelled": 1} if cint(row.cancelled) else {"hours": row.hours})}
+        for row in doc.override
+        if row.source != LEAVE_SOURCE
+    ]
+    first_start, first_end = chunks[0]
+    doc.allocation_start_date = first_start
+    doc.allocation_end_date = first_end
+    doc.override = [row for row in doc.override if first_start <= getdate(row.date) <= first_end]
+    doc.save()
+
+    for week_start, week_end in chunks[1:]:
+        week_doc = add_allocation(
+            replace(allocation, name=None, allocation_start_date=str(week_start), allocation_end_date=str(week_end))
+        )
+        apply_day_overrides(
+            week_doc.name,
+            [row for row in manual_rows if week_start <= row["date"] <= week_end],
+            None,
+        )
+
+    return doc
 
 
 @frappe.whitelist(methods=["GET"])
