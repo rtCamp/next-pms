@@ -54,7 +54,7 @@ def _require_delivery_manager_for_ai_allocation(name: str) -> bool:
 
     if not can_manage_ai_allocations():
         frappe.throw(
-            frappe._("Only Delivery Managers can manage Ai-created allocations."),
+            frappe._("Only Delivery Managers can manage AI-created allocations."),
             exc=frappe.PermissionError,
         )
 

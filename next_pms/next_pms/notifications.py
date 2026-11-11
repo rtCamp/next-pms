@@ -602,7 +602,7 @@ def sync_ai_allocation_notifications(project=None, new_doc=None):
         project_name = frappe.db.get_value("Project", project, "project_name") or project
     title = project_name or _("Resource Allocation")
 
-    label = _("You have Ai-generated allocations that need to be reviewed.")
+    label = _("You have AI-generated allocations that need to be reviewed.")
 
     url = (
         f"/next-pms/allocations/project?{urlencode({'search': project_name})}"
