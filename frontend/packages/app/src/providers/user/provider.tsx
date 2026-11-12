@@ -1,8 +1,12 @@
 /**
  * External dependencies.
  */
-import { FC, PropsWithChildren, useEffect, useState } from "react";
-import { useFrappeAuth, useFrappeGetCall } from "frappe-react-sdk";
+import { FC, PropsWithChildren, useCallback, useEffect, useState } from "react";
+import {
+  useFrappeAuth,
+  useFrappeGetCall,
+  useFrappePostCall,
+} from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -47,6 +51,16 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
   >(window.frappe?.boot?.has_industry || false);
   const [backdateRestrictedBefore, setBackdateRestrictedBefore] =
     useState<UserContextProps["state"]["backdateRestrictedBefore"]>(null);
+  const hasReleaseNotes = window.frappe?.boot?.whats_new_available ?? false;
+  const [hasUnseenRelease, setHasUnseenRelease] = useState<
+    UserContextProps["state"]["hasUnseenRelease"]
+  >(window.frappe?.boot?.whats_new_unseen ?? false);
+  const [lastSeenRelease, setLastSeenRelease] = useState(
+    window.frappe?.boot?.whats_new_last_seen ?? null,
+  );
+  const { call: postReleaseNotesSeen } = useFrappePostCall(
+    "next_pms.api.whats_new.mark_release_notes_seen",
+  );
 
   const { logout, isLoading: isAuthLoading, currentUser } = useFrappeAuth();
   const isAuthenticated =
@@ -126,6 +140,21 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     setLocalStorage("next-pms:isSidebarCollapsed", state);
   };
 
+  const markReleaseNotesSeen = useCallback(
+    (version: string) => {
+      if (version === lastSeenRelease) {
+        return;
+      }
+      postReleaseNotesSeen({ version })
+        .then(() => {
+          setLastSeenRelease(version);
+          setHasUnseenRelease(false);
+        })
+        .catch(() => undefined);
+    },
+    [lastSeenRelease, postReleaseNotesSeen],
+  );
+
   /**
    * Handles user logout by calling the logout function and redirecting to the login page.
    */
@@ -157,10 +186,13 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
           hasIndustryField,
           backdateRestrictedBefore,
           currentUser,
+          hasReleaseNotes,
+          hasUnseenRelease,
         },
         actions: {
           logout: handleLogout,
           updateIsSidebarCollapsed,
+          markReleaseNotesSeen,
         },
       }}
     >

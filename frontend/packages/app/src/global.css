@@ -13,9 +13,88 @@
   height: 0;
 }
 
+.release-notes {
+  @apply text-p-base text-ink-gray-7 break-words;
+
+  & > :first-child {
+    @apply mt-0 border-t-0 pt-0;
+  }
+  & > :last-child {
+    @apply mb-0;
+  }
+  & h3 {
+    @apply mt-5 mb-2 border-t border-outline-gray-1 pt-4 text-lg font-semibold text-ink-gray-8;
+  }
+  & h4 {
+    @apply mt-4 mb-1 text-md font-medium text-ink-gray-8;
+  }
+  & :is(h5, h6) {
+    @apply mt-3 mb-1 text-base font-semibold text-ink-gray-8;
+  }
+  & p {
+    @apply my-2;
+  }
+  & :is(ul, ol) {
+    @apply my-2 pl-5;
+  }
+  & ul {
+    @apply list-disc;
+  }
+  & ol {
+    @apply list-decimal;
+  }
+  & li {
+    @apply my-1 pl-0.5;
+  }
+  & li > p {
+    @apply my-0;
+  }
+  & :is(ul, ol) :is(ul, ol) {
+    @apply my-1;
+  }
+  & ul ul {
+    @apply list-[circle];
+  }
+  & li::marker {
+    @apply text-ink-gray-4;
+  }
+  & strong {
+    @apply font-semibold text-ink-gray-8;
+  }
+  & a {
+    @apply text-ink-gray-8 underline decoration-outline-gray-3 underline-offset-2 hover:decoration-current;
+  }
+  & code {
+    @apply rounded bg-surface-gray-2 px-1 py-0.5 font-mono text-sm;
+  }
+  & pre {
+    @apply my-3 overflow-x-auto rounded bg-surface-gray-2 p-3;
+  }
+  & pre code {
+    @apply bg-transparent p-0;
+  }
+  & img {
+    @apply my-3 h-auto max-w-full rounded;
+  }
+  & blockquote {
+    @apply my-3 border-l-2 border-outline-gray-2 pl-3 text-ink-gray-6;
+  }
+  & hr {
+    @apply my-5 border-outline-gray-1;
+  }
+  & table {
+    @apply my-3 block max-w-full overflow-x-auto text-sm;
+  }
+  & :is(th, td) {
+    @apply border border-outline-gray-1 px-2 py-1 text-left;
+  }
+}
+
 @theme {
     --color-heatmap-red: #e75a5a;
     --color-ai-allocation: #fef7da;
+
+    --text-md: 15px;
 
     --animate-fade-in: fade-in 0.2s ease;
     --animate-fade-left: fade-left 0.2s ease;

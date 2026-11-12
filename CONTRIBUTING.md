@@ -25,6 +25,8 @@ pre-commit install
 
 3. Open Pull Request to the `develop` branch. For branch names and commit messages, follow the guidelines at: https://www.conventionalcommits.org/en/v1.0.0/
 
+4. The app's What's new page shows the notes of each published GitHub release that has a `**Release date:**` line. Releases without one, such as auto-generated changelogs, are left out. Sites fetch the notes during `bench migrate`, so publish the release on GitHub before updating sites.
+
 For local development, check out our dev-tool for seamlessly building Frappe apps: [frappe-manager](https://github.com/rtCamp/Frappe-Manager)
 
 ## Security Disclosures

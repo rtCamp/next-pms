@@ -51,12 +51,18 @@ export interface UserContextProps {
      * server-side (already accounts for holidays/leave/manager-vs-employee threshold).
      * `null` means not yet known (e.g. still loading) or no employee record. */
     backdateRestrictedBefore: string | null;
+    /** Whether release notes are available, so the What's new entry points show. */
+    hasReleaseNotes: boolean;
+    /** Whether a release exists that the user hasn't opened What's new for. */
+    hasUnseenRelease: boolean;
   };
   actions: {
     /** Logs out the current user and clears the active session. */
     logout: () => Promise<void>;
     /** Updates and persists the sidebar collapsed state. */
     updateIsSidebarCollapsed: (state: boolean) => void;
+    /** Records `version`, the newest release the What's new page shows, as seen and clears the dot once saved. */
+    markReleaseNotesSeen: (version: string) => void;
   };
 }
 
@@ -80,10 +86,13 @@ export const UserContext = createContext<UserContextProps>({
     hasBuField: window.frappe?.boot?.has_business_unit ?? false,
     hasIndustryField: window.frappe?.boot?.has_industry ?? false,
     backdateRestrictedBefore: null,
+    hasReleaseNotes: window.frappe?.boot?.whats_new_available ?? false,
+    hasUnseenRelease: window.frappe?.boot?.whats_new_unseen ?? false,
   },
   actions: {
     logout: () => Promise.resolve(),
     updateIsSidebarCollapsed: () => null,
+    markReleaseNotesSeen: () => null,
   },
 });
 

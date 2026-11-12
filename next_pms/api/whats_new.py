@@ -1,0 +1,285 @@
+from datetime import date
+
+import frappe
+import nh3
+import requests
+from bs4 import BeautifulSoup, NavigableString
+from frappe import _
+from semantic_version import Version
+
+from next_pms import __version__
+from next_pms.api.constant import (
+    DEVELOPER_SECTIONS,
+    FETCH_LOCK_KEY,
+    FETCH_RETRY_AFTER,
+    HEADING_TAGS,
+    RELEASES_CACHE_KEY,
+    RELEASES_PER_PAGE,
+    RELEASES_URL,
+    REQUEST_TIMEOUT,
+    VERSIONS_CACHE_KEY,
+)
+from next_pms.next_pms.doctype.pms_user_setting.pms_user_setting import _get_or_create_settings
+
+
+def parse_version(value) -> Version | None:
+    """Parse a version or release tag (`2.13.0` or `v2.13.0`), returning None when it isn't semver."""
+    if not isinstance(value, str):
+        return None
+    try:
+        return Version(value.removeprefix("v"))
+    except ValueError:
+        return None
+
+
+def section_content(heading) -> list:
+    """Everything under a heading, up to the next heading of the same or a higher level."""
+    level = int(heading.name[1])
+    content = []
+    for sibling in heading.next_siblings:
+        if sibling.name in HEADING_TAGS and int(sibling.name[1]) <= level:
+            break
+        content.append(sibling)
+    return content
+
+
+def is_hidden_section(heading) -> bool:
+    """Whether a section is for developers (contributors, references) or only says "None."."""
+    if heading.get_text(strip=True).lower() in DEVELOPER_SECTIONS:
+        return True
+    text = "".join(node.get_text() for node in section_content(heading))
+    return text.strip().rstrip(".").lower() == "none"
+
+
+def merge_adjacent_lists(soup: BeautifulSoup) -> None:
+    """Join lists that GitHub split apart, e.g. at an HTML comment between bullets."""
+    for listing in soup.find_all(["ul", "ol"]):
+        if listing.decomposed:
+            continue
+        sibling = listing.next_sibling
+        while isinstance(sibling, NavigableString) and not sibling.strip():
+            sibling = sibling.next_sibling
+        while sibling is not None and sibling.name == listing.name:
+            following = sibling.next_sibling
+            while isinstance(following, NavigableString) and not following.strip():
+                following = following.next_sibling
+            for item in list(sibling.children):
+                listing.append(item.extract())
+            sibling.decompose()
+            sibling = following
+
+
+def clean_release_html(html: str, version: str) -> str | None:
+    """Sanitize a release's GitHub-rendered notes for the What's new page.
+
+    Only notes written with the release template (a `**Release date:**` line) are shown,
+    so auto-generated changelogs of commits and pull requests are left out. The template's
+    version heading and release date line are removed because the page shows both, and so
+    are developer sections (contributors, references) and sections that only say "None.". Lists split by GitHub are joined again. Headings start at `h3` because each release sits
+    under the page's `h1` and its own `h2`.
+
+    Args:
+        html: The release's `body_html` from the GitHub API.
+        version: The release version, without the `v` prefix.
+
+    Returns:
+        str | None: Safe HTML, or None when the notes don't follow the release template.
+    """
+    safe_html = nh3.clean(html, set_tag_attribute_values={"a": {"target": "_blank"}})
+    soup = BeautifulSoup(safe_html, "html.parser")
+    release_date = next(
+        (paragraph for paragraph in soup.find_all("p") if paragraph.get_text(strip=True).startswith("Release date:")),
+        None,
+    )
+    if not release_date:
+        return None
+
+    release_date.decompose()
+    for heading in soup.find_all("h1"):
+        if parse_version(heading.get_text(strip=True)) == Version(version):
+            heading.decompose()
+    for heading in soup.find_all(["h2", "h3"]):
+        if not heading.decomposed and is_hidden_section(heading):
+            for node in section_content(heading):
+                node.extract()
+            heading.decompose()
+    merge_adjacent_lists(soup)
+    for heading in soup.find_all(HEADING_TAGS):
+        heading.name = f"h{min(max(int(heading.name[1]) + 1, 3), 6)}"
+    return str(soup).strip() or None
+
+
+def normalize_release(item) -> dict | None:
+    """Turn one GitHub release into `{version, date, html}`, or None if it can't be shown."""
+    if not isinstance(item, dict) or item.get("draft") or item.get("prerelease"):
+        return None
+
+    version = parse_version(item.get("tag_name"))
+    published_at = item.get("published_at")
+    html = item.get("body_html")
+    if not version or not isinstance(published_at, str) or not isinstance(html, str):
+        return None
+
+    try:
+        published_on = date.fromisoformat(published_at[:10])
+    except ValueError:
+        return None
+
+    notes = clean_release_html(html, str(version))
+    if not notes:
+        return None
+    return {"version": str(version), "date": published_on.isoformat(), "html": notes}
+
+
+def fetch_releases() -> list[dict]:
+    """Fetch the published release notes from GitHub, newest first.
+
+    Raises:
+        requests.RequestException: GitHub couldn't be reached or answered with an error.
+        ValueError: GitHub's response wasn't a list of releases.
+    """
+    response = requests.get(
+        RELEASES_URL,
+        params={"per_page": RELEASES_PER_PAGE},
+        headers={"Accept": "application/vnd.github.html+json", "X-GitHub-Api-Version": "2022-11-28"},
+        timeout=REQUEST_TIMEOUT,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    if not isinstance(payload, list):
+        raise ValueError("GitHub's releases response isn't a list")
+
+    releases = [release for item in payload if (release := normalize_release(item))]
+    return sorted(releases, key=lambda release: Version(release["version"]), reverse=True)
+
+
+def refresh_releases() -> list[dict] | None:
+    """Fetch release notes from GitHub and cache them with no expiry.
+
+    Runs after every `bench migrate`, so an updated site caches the notes of the
+    release it just installed. A failed fetch keeps the previously cached notes
+    and never fails the migration.
+
+    Returns:
+        list[dict] | None: The fetched releases, or None when the fetch failed.
+    """
+    try:
+        releases = fetch_releases()
+    except (requests.RequestException, ValueError) as error:
+        frappe.logger("next_pms").warning(f"Couldn't fetch release notes from GitHub: {error}")
+        return None
+    except Exception:
+        frappe.log_error(title="Couldn't refresh What's new release notes")
+        return None
+
+    frappe.cache.set_value(RELEASES_CACHE_KEY, releases)
+    frappe.cache.set_value(VERSIONS_CACHE_KEY, [release["version"] for release in releases])
+    return releases
+
+
+def fill_empty_cache() -> None:
+    """Fetch release notes when nothing is cached, e.g. before the first migrate or after Redis lost its data.
+
+    The fetch lock is taken atomically and expires after `FETCH_RETRY_AFTER`, so
+    only one request calls GitHub, and a failed fetch isn't retried by every
+    page load while GitHub is down.
+    """
+    if frappe.cache.get_value(VERSIONS_CACHE_KEY) is not None:
+        return
+    lock_key = frappe.cache.make_key(FETCH_LOCK_KEY)
+    # nosemgrep - site-scoped by make_key; set_value has no NX
+    if frappe.cache.set(lock_key, 1, nx=True, ex=FETCH_RETRY_AFTER):
+        refresh_releases()
+
+
+def is_installed(version: str) -> bool:
+    """Whether a release is part of the app installed on this site."""
+    parsed = parse_version(version)
+    return parsed is not None and parsed <= Version(__version__)
+
+
+def get_available_versions() -> list[str]:
+    """Versions of the cached release notes this site has installed, newest first."""
+    return [version for version in frappe.cache.get_value(VERSIONS_CACHE_KEY) or [] if is_installed(version)]
+
+
+def get_last_seen(user: str) -> str | None:
+    """The newest release the user has seen on the What's new page."""
+    return frappe.db.get_value("PMS User Setting", user, "whats_new_last_seen")
+
+
+def has_unseen_release(last_seen: str | None, latest_version: str) -> bool:
+    """Whether `latest_version` is newer than the last release the user saw."""
+    parsed = parse_version(last_seen)
+    return parsed is None or Version(latest_version) > parsed
+
+
+def get_whats_new_boot(user: str) -> dict:
+    """Boot flags for the What's new entry points.
+
+    Reads the cache, and fetches from GitHub only when nothing is cached (see
+    `fill_empty_cache`). Until release notes are cached, the entry points stay hidden.
+
+    Args:
+        user: User ID the boot data is built for.
+
+    Returns:
+        dict:
+            - whats_new_available: Whether there are release notes to show.
+            - whats_new_unseen: Whether to show the unread dot.
+            - whats_new_last_seen: The last release the user saw, so the page only
+              acknowledges a newer one.
+    """
+    if user == "Guest":
+        return {"whats_new_available": False, "whats_new_unseen": False, "whats_new_last_seen": None}
+
+    fill_empty_cache()
+    versions = get_available_versions()
+    last_seen = get_last_seen(user)
+    return {
+        "whats_new_available": bool(versions),
+        "whats_new_unseen": bool(versions) and has_unseen_release(last_seen, versions[0]),
+        "whats_new_last_seen": last_seen,
+    }
+
+
+@frappe.whitelist(methods=["GET"])
+def get_release_notes() -> dict:
+    """Return the release notes for the What's new page.
+
+    Serves the notes cached by the last `bench migrate`. With nothing cached yet,
+    fetches from GitHub while the user waits (see `fill_empty_cache`).
+
+    Returns:
+        dict:
+            - current_version: Version of the app installed on this site.
+            - releases: Installed releases as `{version, date, html}`, newest first.
+    """
+    fill_empty_cache()
+    releases = frappe.cache.get_value(RELEASES_CACHE_KEY)
+    if releases is None:
+        frappe.throw(_("Couldn't load release notes from GitHub. Try again in a few minutes."))
+
+    return {
+        "current_version": __version__,
+        "releases": [release for release in releases if is_installed(release["version"])],
+    }
+
+
+@frappe.whitelist(methods=["POST"])
+def mark_release_notes_seen(version: str) -> None:
+    """Record `version`, the newest release the page showed, as seen by the current user.
+
+    Ignores a version that isn't an installed release with cached notes, and never
+    moves the recorded version backwards, e.g. when an older tab acknowledges later.
+
+    Args:
+        version: The newest release the What's new page displayed.
+    """
+    shown = parse_version(version)
+    if shown is None or str(shown) not in get_available_versions():
+        return
+    last_seen = parse_version(get_last_seen(frappe.session.user))
+    if last_seen is not None and last_seen >= shown:
+        return
+    _get_or_create_settings().db_set("whats_new_last_seen", str(shown))

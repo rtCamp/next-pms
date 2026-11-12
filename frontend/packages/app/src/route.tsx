@@ -107,6 +107,11 @@ export const routeConfig: Record<
     allowedRoles: [],
     title: "Access Restricted",
   },
+  "whats-new": {
+    Component: ReactLazyPreload(() => import("@/pages/whats-new")),
+    allowedRoles: [],
+    title: "What's new",
+  },
 };
 
 export function Router() {
@@ -121,6 +126,7 @@ export function Router() {
   const TaskList = routeConfig["task"].Component;
   const NotFound = routeConfig["not-found"].Component;
   const NoEmployee = routeConfig["no-employee"].Component;
+  const WhatsNew = routeConfig["whats-new"].Component;
 
   return (
     <BaseRoute>
@@ -275,6 +281,22 @@ export function Router() {
               element={
                 <Route title={routeConfig["allocations-project"].title}>
                   <AllocationsProject />
+                </Route>
+              }
+            />
+          </BaseRoute>
+          <BaseRoute
+            element={
+              <RoleProtectedRoute
+                allowedRoles={routeConfig["whats-new"].allowedRoles}
+              />
+            }
+          >
+            <BaseRoute
+              path={ROUTES["whats-new"]}
+              element={
+                <Route title={routeConfig["whats-new"].title}>
+                  <WhatsNew />
                 </Route>
               }
             />
