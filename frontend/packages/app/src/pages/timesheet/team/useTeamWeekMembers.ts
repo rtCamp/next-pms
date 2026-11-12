@@ -46,6 +46,7 @@ const toTeamMember = (member: TeamMemberPayload): TeamMember => ({
   workingFrequency: member.working_frequency,
   status: member.status,
   backdateRestrictedBefore: member.backdate_restricted_before,
+  rejectionUnlockedDates: member.rejection_unlocked_dates,
 });
 
 export function useTeamWeekMembers({

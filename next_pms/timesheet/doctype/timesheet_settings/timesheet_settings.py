@@ -27,6 +27,7 @@ class TimesheetSettings(Document):
         allow_backdated_entries_till_employee: DF.Int
         allow_backdated_entries_till_manager: DF.Int
         allow_future_entries: DF.Check
+        allow_rejected_timesheet_edit_till: DF.Int
         allow_weekend_entries: DF.Check
         allowed_departments: DF.TableMultiSelect[TimesheetDepartment]
         approval_request_reminder_template: DF.Link | None

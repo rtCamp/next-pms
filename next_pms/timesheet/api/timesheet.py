@@ -322,7 +322,23 @@ def build_timesheet_data(
     res["leaves"] = leaves
     res["holidays"] = holidays
     res["data"], res["has_more"] = generate_week_data(start_date, max_week, employee, leaves, holidays)
+    _attach_rejection_unlocked_dates(employee, res["data"])
     return res
+
+
+def _attach_rejection_unlocked_dates(employee: str, weeks: dict):
+    """Set each week's rejection_unlocked_dates. Kept out of the week cache on purpose: the
+    window closes with the passing of days, not with a write that would flush the cache."""
+    from next_pms.timesheet.doc_events.timesheet import get_rejection_unlocked_dates
+
+    if not weeks:
+        return
+    start_date = min(getdate(week["start_date"]) for week in weeks.values())
+    end_date = max(getdate(week["end_date"]) for week in weeks.values())
+    unlocked_dates = get_rejection_unlocked_dates([employee], start_date, end_date).get(employee, [])
+    for week_key, week in weeks.items():
+        week_dates = {str(date) for date in week["dates"]}
+        weeks[week_key] = {**week, "rejection_unlocked_dates": [d for d in unlocked_dates if d in week_dates]}
 
 
 @frappe.whitelist(methods=["POST"])

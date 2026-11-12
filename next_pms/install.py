@@ -20,6 +20,7 @@ def after_install():
     setup_timesheet_rejection_reason_field()
     setup_timesheet_weekly_rejection_reason_field()
     setup_timesheet_rejected_hours_field()
+    setup_timesheet_rejected_on_field()
     setup_leave_rejection_reason_field()
     setup_task_permissions()
     setup_todo_permissions()
@@ -60,6 +61,26 @@ def setup_timesheet_rejected_hours_field():
                     "fieldtype": "Float",
                     "label": "Rejected Hours",
                     "insert_after": "hours",
+                    "read_only": 1,
+                    "no_copy": 1,
+                    "module": "Timesheet",
+                },
+            ]
+        }
+    )
+
+
+def setup_timesheet_rejected_on_field():
+    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+    create_custom_fields(
+        {
+            "Timesheet": [
+                {
+                    "fieldname": "custom_rejected_on",
+                    "fieldtype": "Date",
+                    "label": "Rejected On",
+                    "insert_after": "custom_weekly_approval_status",
                     "read_only": 1,
                     "no_copy": 1,
                     "module": "Timesheet",

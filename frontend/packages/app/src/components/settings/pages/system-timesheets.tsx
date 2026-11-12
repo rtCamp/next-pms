@@ -105,6 +105,27 @@ export function SystemTimesheetsPage({
               />
             </>
           )}
+          <div>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <FormLabel size="md" className="text-ink-gray-8!">
+                Rejected timesheet edit/approval window (working days)
+              </FormLabel>
+              <InfoHoverCard help={SETTINGS_HELP.rejectedTimesheetWindow} />
+            </div>
+            <TextInput
+              type="number"
+              min="0"
+              step="1"
+              value={String(form.allow_rejected_timesheet_edit_till ?? "")}
+              className="mt-2"
+              onChange={(event) =>
+                updateField(
+                  "allow_rejected_timesheet_edit_till",
+                  Number(event.target.value),
+                )
+              }
+            />
+          </div>
           <Checkbox
             label="Allow Future Entries"
             value={Boolean(form.allow_future_entries)}

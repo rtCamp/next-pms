@@ -38,6 +38,7 @@ export type ProjectMemberPayload = {
   holidays: HolidayProp[];
   leaves: LeaveProps[];
   backdate_restricted_before: string | null;
+  rejection_unlocked_dates: string[];
   working_hour: number;
   working_frequency: WorkingFrequency;
   status: ApprovalStatusLabelType;

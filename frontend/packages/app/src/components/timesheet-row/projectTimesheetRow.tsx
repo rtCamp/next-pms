@@ -37,6 +37,7 @@ export type ProjectTimesheetMember = {
   /** This project's own share of the week, as opposed to `status`, which is the whole week. */
   projectStatus: ApprovalStatusLabelType;
   backdateRestrictedBefore: string | null;
+  rejectionUnlockedDates: string[];
 };
 
 export type ProjectTimesheetProject = {
@@ -138,6 +139,7 @@ export const ProjectTimesheetRow = ({
                     collapsed={true}
                     disabled={member.status === "Approved"}
                     backdateRestrictedBefore={member.backdateRestrictedBefore}
+                    rejectionUnlockedDates={member.rejectionUnlockedDates}
                     onCellClick={(date) =>
                       openAddTimeDialog({
                         date,
@@ -168,6 +170,9 @@ export const ProjectTimesheetRow = ({
                             employee={member.employee}
                             backdateRestrictedBefore={
                               member.backdateRestrictedBefore
+                            }
+                            rejectionUnlockedDates={
+                              member.rejectionUnlockedDates
                             }
                             hideLikeButton={true}
                           />

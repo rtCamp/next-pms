@@ -58,11 +58,15 @@ export const formatTimesheetWeekLabel = (
 
 /**
  * Whether a date is beyond the backdated-entry limit. `restrictedBefore` is the boundary
- * date computed server-side (`timesheet.py::get_backdate_restriction_boundary`),
- * which already accounts for holidays/weekly-offs/leave and the employee-vs-manager
- * threshold.
+ * date computed server-side (`timesheet.py::get_date_access`), which already accounts for
+ * holidays/weekly-offs/leave and the employee-vs-manager threshold. `unlockedDates` are the
+ * days past that boundary that a recent rejection keeps open for correction and review.
  */
 export const isDateBackdateRestricted = (
   date: string,
   restrictedBefore: string | null | undefined,
-): boolean => Boolean(restrictedBefore) && date < restrictedBefore!;
+  unlockedDates: string[] = [],
+): boolean =>
+  Boolean(restrictedBefore) &&
+  date < restrictedBefore! &&
+  !unlockedDates.includes(date);
