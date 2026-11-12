@@ -650,17 +650,17 @@ def _split_approved_ai_allocation_into_weeks(allocation: AllocationPayload):
     so it is shrunk to its first week -- keeping its name and history -- and every later week is a
     copy of the saved document, so fields the approve request left out carry over too. Each copy
     keeps the override rows of its own week from its first save, so a manually cancelled day never
-    books hours and trips the overlap check; leave and holiday rows are re-derived on save.
+    books hours and trips the overlap check; leave and holiday rows are re-derived on save. A
+    single week is still trimmed to its weekdays, as the add flow does, so it never ends on a
+    weekend day it does not book.
 
-    Returns the shrunk document, or None when the allocation fits in one week or books weekends.
+    Returns the first-week document, or None when the allocation books weekends.
     """
     if allocation.include_weekends:
         return None
 
+    # update_allocation has already rejected a range without weekdays, so there is a first week.
     chunks = get_weekday_chunks(allocation.allocation_start_date, allocation.allocation_end_date)
-    if len(chunks) < 2:
-        return None
-
     doc = frappe.get_doc("Resource Allocation", allocation.name)
     later_weeks = [_narrow_to_week(frappe.copy_doc(doc), *chunk) for chunk in chunks[1:]]
     _narrow_to_week(doc, *chunks[0]).save()

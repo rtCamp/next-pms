@@ -772,6 +772,16 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
         # 15 weekdays, less the holiday, less the 6 hours the manual day gave up.
         self.assertEqual(total, 14 * DAILY_HOURS - 6)
 
+    def test_approving_a_single_week_ai_allocation_trims_it_to_weekdays(self):
+        """The add flow never saves a weekends-off allocation ending on a weekend day; nor may approval."""
+        allocation = self._approve_ai_allocation(MON, "2026-08-30")
+
+        weeks = self._weekly_allocations()
+        self.assertEqual(
+            [(week.name, str(week.allocation_start_date), str(week.allocation_end_date)) for week in weeks],
+            [(allocation.name, MON, FRI)],
+        )
+
     def test_approved_weeks_keep_fields_the_approve_request_left_out(self):
         allocation = self._ai_allocation(MON, HOLIDAY_FRI, is_billable=1, note="from the AI service")
 
