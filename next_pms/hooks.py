@@ -215,6 +215,10 @@ before_tests = "next_pms.tests.setup"
 
 after_install = "next_pms.install.after_install"
 
+after_migrate = ["next_pms.api.whats_new.refresh_releases"]
+
+persistent_cache_keys = ["next_pms:whats_new:*"]
+
 
 # Overriding Methods
 # ------------------------------

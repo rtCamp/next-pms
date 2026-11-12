@@ -8,20 +8,18 @@ from frappe import _
 from semantic_version import Version
 
 from next_pms import __version__
+from next_pms.api.constant import (
+    DEVELOPER_SECTIONS,
+    FETCH_LOCK_KEY,
+    FETCH_RETRY_AFTER,
+    HEADING_TAGS,
+    RELEASES_CACHE_KEY,
+    RELEASES_PER_PAGE,
+    RELEASES_URL,
+    REQUEST_TIMEOUT,
+    VERSIONS_CACHE_KEY,
+)
 from next_pms.next_pms.doctype.pms_user_setting.pms_user_setting import _get_or_create_settings
-
-RELEASES_URL = "https://api.github.com/repos/rtCamp/next-pms/releases"
-RELEASES_PER_PAGE = 30
-REQUEST_TIMEOUT = 5
-
-RELEASES_CACHE_KEY = "next_pms:whats_new:releases"
-VERSIONS_CACHE_KEY = "next_pms:whats_new:versions"
-CHECKED_CACHE_KEY = "next_pms:whats_new:checked"
-REFRESH_JOB_ID = "next_pms:whats_new:refresh"
-HEADING_TAGS = ["h1", "h2", "h3", "h4", "h5", "h6"]
-DEVELOPER_SECTIONS = {"contributors", "references"}
-FRESH_FOR = 6 * 60 * 60
-RETRY_AFTER = 15 * 60
 
 
 def parse_version(value) -> Version | None:
@@ -156,10 +154,11 @@ def fetch_releases() -> list[dict]:
 
 
 def refresh_releases() -> list[dict] | None:
-    """Fetch release notes from GitHub and cache them.
+    """Fetch release notes from GitHub and cache them with no expiry.
 
-    A failed fetch keeps the notes cached by the last successful one and waits
-    `RETRY_AFTER` seconds before the next background attempt.
+    Runs after every `bench migrate`, so an updated site caches the notes of the
+    release it just installed. A failed fetch keeps the previously cached notes
+    and never fails the migration.
 
     Returns:
         list[dict] | None: The fetched releases, or None when the fetch failed.
@@ -168,29 +167,29 @@ def refresh_releases() -> list[dict] | None:
         releases = fetch_releases()
     except (requests.RequestException, ValueError) as error:
         frappe.logger("next_pms").warning(f"Couldn't fetch release notes from GitHub: {error}")
-        releases = None
+        return None
     except Exception:
         frappe.log_error(title="Couldn't refresh What's new release notes")
-        releases = None
-
-    if releases is None:
-        frappe.cache.set_value(CHECKED_CACHE_KEY, True, expires_in_sec=RETRY_AFTER)
         return None
 
     frappe.cache.set_value(RELEASES_CACHE_KEY, releases)
     frappe.cache.set_value(VERSIONS_CACHE_KEY, [release["version"] for release in releases])
-    frappe.cache.set_value(CHECKED_CACHE_KEY, True, expires_in_sec=FRESH_FOR)
     return releases
 
 
-def refresh_releases_if_stale() -> None:
-    """Queue a background refresh when the cached release notes are due one."""
-    if frappe.cache.get_value(CHECKED_CACHE_KEY):
+def fill_empty_cache() -> None:
+    """Fetch release notes when nothing is cached, e.g. before the first migrate or after Redis lost its data.
+
+    The fetch lock is taken atomically and expires after `FETCH_RETRY_AFTER`, so
+    only one request calls GitHub, and a failed fetch isn't retried by every
+    page load while GitHub is down.
+    """
+    if frappe.cache.get_value(VERSIONS_CACHE_KEY) is not None:
         return
-    try:
-        frappe.enqueue(refresh_releases, queue="short", job_id=REFRESH_JOB_ID, deduplicate=True)
-    except Exception:
-        frappe.logger("next_pms").warning("Couldn't queue the What's new refresh", exc_info=True)
+    lock_key = frappe.cache.make_key(FETCH_LOCK_KEY)
+    # nosemgrep - site-scoped by make_key; set_value has no NX
+    if frappe.cache.set(lock_key, 1, nx=True, ex=FETCH_RETRY_AFTER):
+        refresh_releases()
 
 
 def is_installed(version: str) -> bool:
@@ -213,8 +212,8 @@ def has_unseen_release(user: str, latest_version: str) -> bool:
 def get_whats_new_boot(user: str) -> dict:
     """Boot flags for the What's new entry points.
 
-    Reads only the cache, so a slow or unreachable GitHub never delays page load.
-    Until release notes are cached, the entry points stay hidden.
+    Reads the cache, and fetches from GitHub only when nothing is cached (see
+    `fill_empty_cache`). Until release notes are cached, the entry points stay hidden.
 
     Args:
         user: User ID the boot data is built for.
@@ -227,7 +226,7 @@ def get_whats_new_boot(user: str) -> dict:
     if user == "Guest":
         return {"whats_new_available": False, "whats_new_unseen": False}
 
-    refresh_releases_if_stale()
+    fill_empty_cache()
     versions = get_available_versions()
     return {
         "whats_new_available": bool(versions),
@@ -239,21 +238,18 @@ def get_whats_new_boot(user: str) -> dict:
 def get_release_notes() -> dict:
     """Return the release notes for the What's new page.
 
-    Serves the cached notes and refreshes them in the background when stale.
-    With nothing cached yet, fetches from GitHub while the user waits.
+    Serves the notes cached by the last `bench migrate`. With nothing cached yet,
+    fetches from GitHub while the user waits (see `fill_empty_cache`).
 
     Returns:
         dict:
             - current_version: Version of the app installed on this site.
             - releases: Installed releases as `{version, date, html}`, newest first.
     """
+    fill_empty_cache()
     releases = frappe.cache.get_value(RELEASES_CACHE_KEY)
     if releases is None:
-        releases = refresh_releases()
-        if releases is None:
-            frappe.throw(_("Couldn't load release notes from GitHub. Try again in a few minutes."))
-    else:
-        refresh_releases_if_stale()
+        frappe.throw(_("Couldn't load release notes from GitHub. Try again in a few minutes."))
 
     return {
         "current_version": __version__,

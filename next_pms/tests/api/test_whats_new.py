@@ -8,10 +8,8 @@ import requests
 from frappe.tests import IntegrationTestCase
 
 from next_pms.api import whats_new
+from next_pms.api.constant import FETCH_LOCK_KEY, RELEASES_CACHE_KEY, VERSIONS_CACHE_KEY
 from next_pms.api.whats_new import (
-    CHECKED_CACHE_KEY,
-    RELEASES_CACHE_KEY,
-    VERSIONS_CACHE_KEY,
     clean_release_html,
     get_release_notes,
     get_whats_new_boot,
@@ -46,8 +44,12 @@ def _github_response(payload):
 
 
 def _clear_cache():
-    for key in (RELEASES_CACHE_KEY, VERSIONS_CACHE_KEY, CHECKED_CACHE_KEY):
+    for key in (RELEASES_CACHE_KEY, VERSIONS_CACHE_KEY, FETCH_LOCK_KEY):
         frappe.cache.delete_value(key)
+
+
+def _take_fetch_lock():
+    frappe.cache.set(frappe.cache.make_key(FETCH_LOCK_KEY), 1, ex=60)
 
 
 class TestCleanReleaseHtml(IntegrationTestCase):
@@ -159,21 +161,44 @@ class TestRefreshReleases(IntegrationTestCase):
 
         self.assertEqual([release["version"] for release in releases], ["2.13.0", "2.10.0", "2.9.0"])
         self.assertEqual(frappe.cache.get_value(VERSIONS_CACHE_KEY), ["2.13.0", "2.10.0", "2.9.0"])
-        self.assertTrue(frappe.cache.get_value(CHECKED_CACHE_KEY))
 
     @patch("next_pms.api.whats_new.requests.get")
     def test_failed_fetch_keeps_last_cached_notes(self, get):
         get.return_value = _github_response([_github_release("2.13.0")])
         refresh_releases()
-        frappe.cache.delete_value(CHECKED_CACHE_KEY)
 
-        for failure in (requests.ConnectionError("offline"), requests.HTTPError("403 rate limited")):
+        for failure in (
+            requests.ConnectionError("offline"),
+            requests.HTTPError("403 rate limited"),
+            RuntimeError("unexpected"),
+        ):
             with self.subTest(failure=failure):
                 get.side_effect = failure
 
                 self.assertIsNone(refresh_releases())
                 self.assertEqual(frappe.cache.get_value(VERSIONS_CACHE_KEY), ["2.13.0"])
-                self.assertTrue(frappe.cache.get_value(CHECKED_CACHE_KEY))
+
+    def test_runs_after_every_migrate(self):
+        self.assertIn("next_pms.api.whats_new.refresh_releases", frappe.get_hooks("after_migrate", app_name="next_pms"))
+
+    @patch("next_pms.api.whats_new.requests.get")
+    def test_migrate_refresh_ignores_the_fetch_lock(self, get):
+        get.return_value = _github_response([_github_release("2.13.0")])
+        _take_fetch_lock()
+
+        refresh_releases()
+
+        get.assert_called_once()
+
+    @patch("next_pms.api.whats_new.requests.get")
+    def test_cached_notes_survive_a_full_cache_clear(self, get):
+        get.return_value = _github_response([_github_release("2.13.0")])
+        refresh_releases()
+
+        frappe.clear_cache()
+
+        self.assertEqual(frappe.cache.get_value(VERSIONS_CACHE_KEY), ["2.13.0"])
+        self.assertIsNotNone(frappe.cache.get_value(RELEASES_CACHE_KEY))
 
     @patch("next_pms.api.whats_new.requests.get")
     def test_unexpected_response_is_a_failed_fetch(self, get):
@@ -187,14 +212,34 @@ class TestReleaseNotesApi(IntegrationTestCase):
     def setUp(self):
         _clear_cache()
         self.addCleanup(_clear_cache)
-        enqueue_patch = patch("next_pms.api.whats_new.frappe.enqueue")
-        self.enqueue = enqueue_patch.start()
-        self.addCleanup(enqueue_patch.stop)
 
     @patch("next_pms.api.whats_new.requests.get", side_effect=requests.ConnectionError("offline"))
     def test_errors_when_nothing_is_cached_and_github_is_unreachable(self, _get):
         with self.assertRaises(frappe.ValidationError):
             get_release_notes()
+
+    @patch("next_pms.api.whats_new.requests.get", side_effect=requests.ConnectionError("offline"))
+    def test_failed_fetch_is_not_retried_until_the_lock_expires(self, get):
+        for _attempt in range(3):
+            with self.assertRaises(frappe.ValidationError):
+                get_release_notes()
+
+        get.assert_called_once()
+
+    @patch("next_pms.api.whats_new.requests.get")
+    def test_fetches_again_once_the_lock_expires(self, get):
+        get.side_effect = requests.ConnectionError("offline")
+        with self.assertRaises(frappe.ValidationError):
+            get_release_notes()
+
+        frappe.cache.delete_value(FETCH_LOCK_KEY)
+        get.side_effect = None
+        get.return_value = _github_response([_github_release("2.13.0")])
+        with patch.object(whats_new, "__version__", "2.13.0"):
+            notes = get_release_notes()
+
+        self.assertEqual(get.call_count, 2)
+        self.assertEqual([release["version"] for release in notes["releases"]], ["2.13.0"])
 
     @patch("next_pms.api.whats_new.requests.get")
     def test_leaves_out_releases_newer_than_the_installed_app(self, get):
@@ -207,15 +252,26 @@ class TestReleaseNotesApi(IntegrationTestCase):
         self.assertEqual([release["version"] for release in notes["releases"]], ["2.13.0"])
 
     @patch("next_pms.api.whats_new.requests.get")
-    def test_serves_cached_notes_and_refreshes_in_the_background_when_stale(self, get):
+    def test_serves_cached_notes_without_calling_github(self, get):
         frappe.cache.set_value(RELEASES_CACHE_KEY, [{"version": "2.13.0", "date": "2026-11-02", "html": "<p>x</p>"}])
+        frappe.cache.set_value(VERSIONS_CACHE_KEY, ["2.13.0"])
 
         with patch.object(whats_new, "__version__", "2.13.0"):
             notes = get_release_notes()
 
         get.assert_not_called()
-        self.enqueue.assert_called_once()
         self.assertEqual(len(notes["releases"]), 1)
+
+    @patch("next_pms.api.whats_new.requests.get")
+    def test_fills_an_empty_cache_for_the_next_visit(self, get):
+        get.return_value = _github_response([_github_release("2.13.0")])
+
+        with patch.object(whats_new, "__version__", "2.13.0"):
+            get_release_notes()
+            get_release_notes()
+
+        get.assert_called_once()
+        self.assertEqual(frappe.cache.get_value(VERSIONS_CACHE_KEY), ["2.13.0"])
 
 
 class TestWhatsNewBoot(IntegrationTestCase):
@@ -229,7 +285,6 @@ class TestWhatsNewBoot(IntegrationTestCase):
         _clear_cache()
         self.addCleanup(_clear_cache)
         frappe.cache.set_value(VERSIONS_CACHE_KEY, ["2.14.0", "2.13.0", "2.12.0"])
-        frappe.cache.set_value(CHECKED_CACHE_KEY, True)
         version_patch = patch.object(whats_new, "__version__", "2.13.0")
         version_patch.start()
         self.addCleanup(version_patch.stop)
@@ -252,10 +307,31 @@ class TestWhatsNewBoot(IntegrationTestCase):
                 self._set_last_seen(last_seen)
                 self.assertEqual(get_whats_new_boot(TEST_USER)["whats_new_unseen"], unseen)
 
-    def test_hidden_when_no_notes_are_cached(self):
+    @patch("next_pms.api.whats_new.requests.get", side_effect=requests.ConnectionError("offline"))
+    def test_hidden_when_no_notes_are_cached_and_github_is_unreachable(self, _get):
         frappe.cache.delete_value(VERSIONS_CACHE_KEY)
 
         self.assertEqual(get_whats_new_boot(TEST_USER), {"whats_new_available": False, "whats_new_unseen": False})
+
+    @patch("next_pms.api.whats_new.requests.get")
+    def test_fills_an_empty_cache_and_shows_the_entry_points_right_away(self, get):
+        get.return_value = _github_response([_github_release("2.13.0")])
+        frappe.cache.delete_value(VERSIONS_CACHE_KEY)
+
+        first = get_whats_new_boot(TEST_USER)
+        second = get_whats_new_boot(TEST_USER)
+
+        self.assertEqual(first, {"whats_new_available": True, "whats_new_unseen": True})
+        self.assertEqual(second, first)
+        get.assert_called_once()
+
+    @patch("next_pms.api.whats_new.requests.get")
+    def test_skips_github_while_another_request_holds_the_fetch_lock(self, get):
+        frappe.cache.delete_value(VERSIONS_CACHE_KEY)
+        _take_fetch_lock()
+
+        self.assertFalse(get_whats_new_boot(TEST_USER)["whats_new_available"])
+        get.assert_not_called()
 
     def test_hidden_when_only_newer_releases_are_cached(self):
         frappe.cache.set_value(VERSIONS_CACHE_KEY, ["2.14.0"])
@@ -265,12 +341,14 @@ class TestWhatsNewBoot(IntegrationTestCase):
     def test_hidden_for_guest(self):
         self.assertFalse(get_whats_new_boot("Guest")["whats_new_available"])
 
-    @patch("next_pms.api.whats_new.frappe.enqueue", side_effect=ConnectionError("queue down"))
-    def test_boot_survives_a_failed_background_refresh(self, enqueue):
-        frappe.cache.delete_value(CHECKED_CACHE_KEY)
+    @patch("next_pms.api.whats_new.requests.get")
+    def test_boot_reads_only_the_cache_once_notes_are_cached(self, get):
+        for cached in (["2.13.0"], []):
+            with self.subTest(cached=cached):
+                frappe.cache.set_value(VERSIONS_CACHE_KEY, cached)
+                get_whats_new_boot(TEST_USER)
 
-        self.assertTrue(get_whats_new_boot(TEST_USER)["whats_new_available"])
-        enqueue.assert_called_once()
+        get.assert_not_called()
 
     def test_mark_seen_records_the_latest_installed_release(self):
         self._set_last_seen("2.12.0")
