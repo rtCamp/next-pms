@@ -61,8 +61,8 @@ export interface UserContextProps {
     logout: () => Promise<void>;
     /** Updates and persists the sidebar collapsed state. */
     updateIsSidebarCollapsed: (state: boolean) => void;
-    /** Clears the What's new dot and records the latest release as seen. */
-    markReleaseNotesSeen: () => void;
+    /** Records `version`, the newest release the What's new page shows, as seen and clears the dot once saved. */
+    markReleaseNotesSeen: (version: string) => void;
   };
 }
 

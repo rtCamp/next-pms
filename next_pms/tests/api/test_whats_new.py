@@ -298,7 +298,10 @@ class TestWhatsNewBoot(IntegrationTestCase):
         )
 
     def test_user_who_never_opened_the_page_sees_the_dot(self):
-        self.assertEqual(get_whats_new_boot(TEST_USER), {"whats_new_available": True, "whats_new_unseen": True})
+        self.assertEqual(
+            get_whats_new_boot(TEST_USER),
+            {"whats_new_available": True, "whats_new_unseen": True, "whats_new_last_seen": None},
+        )
 
     def test_dot_shows_until_the_latest_installed_release_is_seen(self):
         for last_seen, unseen in (("2.12.0", True), ("2.13.0", False), ("not-a-version", True)):
@@ -311,7 +314,10 @@ class TestWhatsNewBoot(IntegrationTestCase):
     def test_hidden_when_no_notes_are_cached_and_github_is_unreachable(self, _get):
         frappe.cache.delete_value(VERSIONS_CACHE_KEY)
 
-        self.assertEqual(get_whats_new_boot(TEST_USER), {"whats_new_available": False, "whats_new_unseen": False})
+        self.assertEqual(
+            get_whats_new_boot(TEST_USER),
+            {"whats_new_available": False, "whats_new_unseen": False, "whats_new_last_seen": None},
+        )
 
     @patch("next_pms.api.whats_new.requests.get")
     def test_fills_an_empty_cache_and_shows_the_entry_points_right_away(self, get):
@@ -321,7 +327,7 @@ class TestWhatsNewBoot(IntegrationTestCase):
         first = get_whats_new_boot(TEST_USER)
         second = get_whats_new_boot(TEST_USER)
 
-        self.assertEqual(first, {"whats_new_available": True, "whats_new_unseen": True})
+        self.assertEqual(first, {"whats_new_available": True, "whats_new_unseen": True, "whats_new_last_seen": None})
         self.assertEqual(second, first)
         get.assert_called_once()
 
@@ -350,11 +356,43 @@ class TestWhatsNewBoot(IntegrationTestCase):
 
         get.assert_not_called()
 
-    def test_mark_seen_records_the_latest_installed_release(self):
-        self._set_last_seen("2.12.0")
+    def _mark_seen_as_test_user(self, version):
         frappe.set_user(TEST_USER)
-        mark_release_notes_seen()
-        frappe.set_user("Administrator")
+        try:
+            mark_release_notes_seen(version)
+        finally:
+            frappe.set_user("Administrator")
+        return frappe.db.get_value("PMS User Setting", TEST_USER, "whats_new_last_seen")
 
-        self.assertEqual(frappe.db.get_value("PMS User Setting", TEST_USER, "whats_new_last_seen"), "2.13.0")
+    def test_boot_returns_the_last_seen_release(self):
+        self._set_last_seen("2.12.0")
+
+        self.assertEqual(get_whats_new_boot(TEST_USER)["whats_new_last_seen"], "2.12.0")
+
+    def test_mark_seen_records_the_version_the_page_showed(self):
+        self._set_last_seen("2.12.0")
+
+        self.assertEqual(self._mark_seen_as_test_user("2.13.0"), "2.13.0")
         self.assertFalse(get_whats_new_boot(TEST_USER)["whats_new_unseen"])
+
+    def test_mark_seen_keeps_the_dot_when_an_older_release_was_shown(self):
+        frappe.cache.set_value(VERSIONS_CACHE_KEY, ["2.13.0", "2.12.0", "2.11.0"])
+        self._set_last_seen("2.11.0")
+
+        self.assertEqual(self._mark_seen_as_test_user("2.12.0"), "2.12.0")
+        self.assertTrue(get_whats_new_boot(TEST_USER)["whats_new_unseen"])
+
+    def test_mark_seen_ignores_versions_without_installed_notes(self):
+        self._set_last_seen("2.12.0")
+
+        for version in ("2.14.0", "2.10.0", "not-a-version", ""):
+            with self.subTest(version=version):
+                self.assertEqual(self._mark_seen_as_test_user(version), "2.12.0")
+
+    def test_mark_seen_never_moves_backwards(self):
+        self._set_last_seen("2.13.0")
+
+        self.assertEqual(self._mark_seen_as_test_user("2.12.0"), "2.13.0")
+
+    def test_mark_seen_creates_the_settings_row_for_a_first_time_user(self):
+        self.assertEqual(self._mark_seen_as_test_user("v2.13.0"), "2.13.0")

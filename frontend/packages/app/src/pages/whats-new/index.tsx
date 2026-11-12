@@ -22,16 +22,17 @@ export default function WhatsNew() {
     message: ReleaseNotes;
   }>("next_pms.api.whats_new.get_release_notes");
   const notes = data?.message;
+  const shownVersion = notes?.releases[0]?.version;
 
   useEffect(() => {
     titleRef.current?.focus();
   }, []);
 
   useEffect(() => {
-    if (notes) {
-      markReleaseNotesSeen();
+    if (shownVersion) {
+      markReleaseNotesSeen(shownVersion);
     }
-  }, [notes, markReleaseNotesSeen]);
+  }, [shownVersion, markReleaseNotesSeen]);
 
   return (
     <>

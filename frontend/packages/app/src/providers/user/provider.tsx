@@ -55,6 +55,9 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
   const [hasUnseenRelease, setHasUnseenRelease] = useState<
     UserContextProps["state"]["hasUnseenRelease"]
   >(window.frappe?.boot?.whats_new_unseen ?? false);
+  const [lastSeenRelease, setLastSeenRelease] = useState(
+    window.frappe?.boot?.whats_new_last_seen ?? null,
+  );
   const { call: postReleaseNotesSeen } = useFrappePostCall(
     "next_pms.api.whats_new.mark_release_notes_seen",
   );
@@ -137,13 +140,20 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     setLocalStorage("next-pms:isSidebarCollapsed", state);
   };
 
-  const markReleaseNotesSeen = useCallback(() => {
-    if (hasReleaseNotes && !hasUnseenRelease) {
-      return;
-    }
-    setHasUnseenRelease(false);
-    postReleaseNotesSeen({}).catch(() => undefined);
-  }, [hasReleaseNotes, hasUnseenRelease, postReleaseNotesSeen]);
+  const markReleaseNotesSeen = useCallback(
+    (version: string) => {
+      if (version === lastSeenRelease) {
+        return;
+      }
+      postReleaseNotesSeen({ version })
+        .then(() => {
+          setLastSeenRelease(version);
+          setHasUnseenRelease(false);
+        })
+        .catch(() => undefined);
+    },
+    [lastSeenRelease, postReleaseNotesSeen],
+  );
 
   /**
    * Handles user logout by calling the logout function and redirecting to the login page.

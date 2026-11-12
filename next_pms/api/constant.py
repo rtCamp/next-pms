@@ -1,6 +1,6 @@
 # What's new release notes
 RELEASES_URL = "https://api.github.com/repos/rtCamp/next-pms/releases"
-RELEASES_PER_PAGE = 30
+RELEASES_PER_PAGE = 100
 REQUEST_TIMEOUT = 5
 
 RELEASES_CACHE_KEY = "next_pms:whats_new:releases"

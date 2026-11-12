@@ -203,10 +203,15 @@ def get_available_versions() -> list[str]:
     return [version for version in frappe.cache.get_value(VERSIONS_CACHE_KEY) or [] if is_installed(version)]
 
 
-def has_unseen_release(user: str, latest_version: str) -> bool:
-    """Whether the user hasn't opened What's new since `latest_version` was released."""
-    last_seen = parse_version(frappe.db.get_value("PMS User Setting", user, "whats_new_last_seen"))
-    return last_seen is None or Version(latest_version) > last_seen
+def get_last_seen(user: str) -> str | None:
+    """The newest release the user has seen on the What's new page."""
+    return frappe.db.get_value("PMS User Setting", user, "whats_new_last_seen")
+
+
+def has_unseen_release(last_seen: str | None, latest_version: str) -> bool:
+    """Whether `latest_version` is newer than the last release the user saw."""
+    parsed = parse_version(last_seen)
+    return parsed is None or Version(latest_version) > parsed
 
 
 def get_whats_new_boot(user: str) -> dict:
@@ -222,15 +227,19 @@ def get_whats_new_boot(user: str) -> dict:
         dict:
             - whats_new_available: Whether there are release notes to show.
             - whats_new_unseen: Whether to show the unread dot.
+            - whats_new_last_seen: The last release the user saw, so the page only
+              acknowledges a newer one.
     """
     if user == "Guest":
-        return {"whats_new_available": False, "whats_new_unseen": False}
+        return {"whats_new_available": False, "whats_new_unseen": False, "whats_new_last_seen": None}
 
     fill_empty_cache()
     versions = get_available_versions()
+    last_seen = get_last_seen(user)
     return {
         "whats_new_available": bool(versions),
-        "whats_new_unseen": bool(versions) and has_unseen_release(user, versions[0]),
+        "whats_new_unseen": bool(versions) and has_unseen_release(last_seen, versions[0]),
+        "whats_new_last_seen": last_seen,
     }
 
 
@@ -258,10 +267,19 @@ def get_release_notes() -> dict:
 
 
 @frappe.whitelist(methods=["POST"])
-def mark_release_notes_seen() -> None:
-    """Record the latest installed release as seen by the current user."""
-    versions = get_available_versions()
-    if not versions:
+def mark_release_notes_seen(version: str) -> None:
+    """Record `version`, the newest release the page showed, as seen by the current user.
+
+    Ignores a version that isn't an installed release with cached notes, and never
+    moves the recorded version backwards, e.g. when an older tab acknowledges later.
+
+    Args:
+        version: The newest release the What's new page displayed.
+    """
+    shown = parse_version(version)
+    if shown is None or str(shown) not in get_available_versions():
         return
-    settings = _get_or_create_settings()
-    settings.db_set("whats_new_last_seen", versions[0])
+    last_seen = parse_version(get_last_seen(frappe.session.user))
+    if last_seen is not None and last_seen >= shown:
+        return
+    _get_or_create_settings().db_set("whats_new_last_seen", str(shown))
