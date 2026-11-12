@@ -192,10 +192,3 @@ class ProjectOverwrite(EmployeeProject):
 
         if total_amount:
             self.custom_percentage_estimated_profit = (self.custom_estimated_profit / total_amount) * 100
-
-
-@frappe.whitelist()
-def recalculate_project_total_purchase_cost(project: str | None = None):
-    if project:
-        project = frappe.get_doc("Project", project)
-        project.update_purchase_costing()

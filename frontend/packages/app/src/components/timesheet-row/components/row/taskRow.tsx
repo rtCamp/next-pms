@@ -56,6 +56,7 @@ export const TaskRow = ({
   totalTimeEntriesInHours,
   employee,
   backdateRestrictedBefore,
+  rejectionUnlockedDates,
   hideLikeButton,
   setSelectedTask,
   ...rest
@@ -137,7 +138,11 @@ export const TaskRow = ({
         disabled:
           disabled ||
           isDayFullyApproved ||
-          isDateBackdateRestricted(date, backdateRestrictedBefore),
+          isDateBackdateRestricted(
+            date,
+            backdateRestrictedBefore,
+            rejectionUnlockedDates,
+          ),
         status: dayStatus,
         rejectionReason,
       };
@@ -146,7 +151,14 @@ export const TaskRow = ({
       total += currentTotal;
     }
     return { total, totalTimeEntries, tasksForDates };
-  }, [dates, taskKey, tasks, disabled, backdateRestrictedBefore]);
+  }, [
+    dates,
+    taskKey,
+    tasks,
+    disabled,
+    backdateRestrictedBefore,
+    rejectionUnlockedDates,
+  ]);
 
   const renderTaskHoverContent = useCallback(
     (taskKey: string) => {

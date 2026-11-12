@@ -277,8 +277,8 @@ def update_allocation(allocation: AllocationPayload):
     return allocation_doc
 
 
-def _share_project_with_approved_ai_employee(allocation_doc, was_ai_created: bool, was_confirmed: bool):
-    if not was_ai_created or was_confirmed or allocation_doc.status != "Confirmed" or not allocation_doc.project:
+def _share_project_with_approved_ai_employee(allocation_doc, was_ai_created: bool):
+    if not was_ai_created or cint(allocation_doc.is_ai_created) or not allocation_doc.project:
         return
 
     import frappe.share
@@ -627,18 +627,54 @@ def edit_allocation(
             if doc_hours_changed:
                 series_doc.override = []
             series_doc.save()
-            _share_project_with_approved_ai_employee(series_doc, stored.is_ai_created, stored.status == "Confirmed")
+            _share_project_with_approved_ai_employee(series_doc, stored.is_ai_created)
 
         if edit_mode == "this_and_future":
             _propagate_day_overrides_to_series(series, day_overrides, deleted_day_overrides)
         return frappe.get_doc("Resource Allocation", name)
 
     result = update_allocation(allocation)
-    _share_project_with_approved_ai_employee(result, stored.is_ai_created, stored.status == "Confirmed")
+    _share_project_with_approved_ai_employee(result, stored.is_ai_created)
     if hours_changed:
         clear_day_overrides(name)
     apply_day_overrides(name, day_overrides, deleted_day_overrides)
+    if cint(stored.is_ai_created) and allocation.is_ai_created is not None and not cint(allocation.is_ai_created):
+        return _split_approved_ai_allocation_into_weeks(allocation) or result
     return result
+
+
+def _split_approved_ai_allocation_into_weeks(allocation: AllocationPayload):
+    """Save an approved Ai allocation the way the add flow saves one: one document per week.
+
+    The Ai service sends a single multi-week document. Once approved it is an ordinary allocation,
+    so it is shrunk to its first week -- keeping its name and history -- and every later week is a
+    copy of the saved document, so fields the approve request left out carry over too. Each copy
+    keeps the override rows of its own week from its first save, so a manually cancelled day never
+    books hours and trips the overlap check; leave and holiday rows are re-derived on save. A
+    single week is still trimmed to its weekdays, as the add flow does, so it never ends on a
+    weekend day it does not book.
+
+    Returns the first-week document, or None when the allocation books weekends.
+    """
+    if allocation.include_weekends:
+        return None
+
+    # update_allocation has already rejected a range without weekdays, so there is a first week.
+    chunks = get_weekday_chunks(allocation.allocation_start_date, allocation.allocation_end_date)
+    doc = frappe.get_doc("Resource Allocation", allocation.name)
+    later_weeks = [_narrow_to_week(frappe.copy_doc(doc), *chunk) for chunk in chunks[1:]]
+    _narrow_to_week(doc, *chunks[0]).save()
+    for week in later_weeks:
+        week.insert()
+
+    return doc
+
+
+def _narrow_to_week(doc, week_start: date, week_end: date):
+    doc.allocation_start_date = week_start
+    doc.allocation_end_date = week_end
+    doc.set("override", [row for row in doc.override if week_start <= getdate(row.date) <= week_end])
+    return doc
 
 
 @frappe.whitelist(methods=["GET"])

@@ -75,6 +75,7 @@ def build_team_member_payload(employee, context, week, has_filters):
         "leaves": list(context["leaves_by_employee"].get(employee.name, [])),
         "holidays": list(context["holidays_by_employee"].get(employee.name, [])),
         "backdate_restricted_before": context["backdate_boundary_by_employee"].get(employee.name),
+        "rejection_unlocked_dates": context["rejection_unlocked_dates_by_employee"].get(employee.name, []),
     }
 
 

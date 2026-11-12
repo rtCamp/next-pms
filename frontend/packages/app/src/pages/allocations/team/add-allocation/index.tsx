@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { InfoHoverCard } from "@next-pms/design-system/components";
@@ -66,9 +66,7 @@ function AddAllocationModal({
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [projectSearch, setProjectSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [savingAsTentative, setSavingAsTentative] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const saveAsTentativeRef = useRef(false);
   const [teamAddConfirmOpen, setTeamAddConfirmOpen] = useState(false);
   const [pendingApprovalValues, setPendingApprovalValues] =
     useState<AddAllocationFormValues | null>(null);
@@ -129,7 +127,7 @@ function AddAllocationModal({
     return {
       ...addAllocationDefaultValues,
       ...initialFormValues,
-      ...(initialValues?.isAiCreated ? { isTentative: false } : {}),
+      ...(initialValues?.isAiCreated ? { isTentative: true } : {}),
     };
   }, [initialValues]);
 
@@ -139,17 +137,9 @@ function AddAllocationModal({
       onSubmit: addAllocationFormSchema,
     },
     onSubmit: async ({ value }) => {
-      const saveAsTentative = saveAsTentativeRef.current;
-      saveAsTentativeRef.current = false;
-      setSavingAsTentative(saveAsTentative);
       setSubmitting(true);
 
       try {
-        if (saveAsTentative) {
-          await submitAllocation(value, { saveAsTentative });
-          return;
-        }
-
         if (initialValues?.isAiCreated) {
           if (isProjectEmployeeAccessPending) {
             toast.error(
@@ -187,10 +177,7 @@ function AddAllocationModal({
   }, [form, mergedDefaultValues, onOpenChange]);
 
   const submitAllocation = useCallback(
-    async (
-      value: typeof mergedDefaultValues,
-      { saveAsTentative = false }: { saveAsTentative?: boolean } = {},
-    ) => {
+    async (value: typeof mergedDefaultValues) => {
       const payload = {
         allocation: {
           doctype: "Resource Allocation",
@@ -201,8 +188,7 @@ function AddAllocationModal({
           allocation_end_date: value.toDate,
           hours_allocated_per_day: value.hoursPerDay,
           is_billable: Number(value.isBillable),
-          status:
-            saveAsTentative || value.isTentative ? "Tentative" : "Confirmed",
+          status: value.isTentative ? "Tentative" : "Confirmed",
           ...(initialValues?.isAiCreated ? { is_ai_created: 0 } : {}),
           note: value.note ?? "",
           include_weekends: value.includeWeekends,
@@ -226,13 +212,11 @@ function AddAllocationModal({
       }
 
       toast.success(
-        saveAsTentative
-          ? "Allocation saved as tentative"
-          : initialValues?.isAiCreated
-            ? "Allocation approved successfully"
-            : variant === "edit"
-              ? "Allocation updated successfully"
-              : "Allocation created successfully",
+        initialValues?.isAiCreated
+          ? "Allocation approved successfully"
+          : variant === "edit"
+            ? "Allocation updated successfully"
+            : "Allocation created successfully",
       );
 
       closeModal();
@@ -839,18 +823,6 @@ function AddAllocationModal({
                   disabled={submitting || deleting}
                 />
               )}
-              {initialValues?.isAiCreated && (
-                <Button
-                  variant="outline"
-                  label="Save"
-                  onClick={() => {
-                    saveAsTentativeRef.current = true;
-                    void form.handleSubmit();
-                  }}
-                  disabled={submitting || deleting}
-                  loading={submitting && savingAsTentative}
-                />
-              )}
               <Button
                 variant="solid"
                 label={
@@ -860,10 +832,7 @@ function AddAllocationModal({
                       ? "Allocate"
                       : "Save Changes"
                 }
-                onClick={() => {
-                  saveAsTentativeRef.current = false;
-                  void form.handleSubmit();
-                }}
+                onClick={() => form.handleSubmit()}
                 disabled={
                   submitting ||
                   deleting ||
@@ -874,7 +843,7 @@ function AddAllocationModal({
                       !hasProjectEmployeeAccess)) ||
                   (isProjectEmployeeMismatch && !initialValues?.isAiCreated)
                 }
-                loading={submitting && !savingAsTentative}
+                loading={submitting}
               />
             </div>
           </div>

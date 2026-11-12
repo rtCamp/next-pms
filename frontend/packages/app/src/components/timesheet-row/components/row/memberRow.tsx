@@ -27,6 +27,7 @@ export const MemberRow = ({
   status,
   disabled,
   backdateRestrictedBefore,
+  rejectionUnlockedDates,
   onButtonClick,
   children,
   avatarUrl,
@@ -77,6 +78,7 @@ export const MemberRow = ({
                     isDateBackdateRestricted(
                       timeEntry.date,
                       backdateRestrictedBefore,
+                      rejectionUnlockedDates,
                     ),
                 }))}
                 onCellClick={

@@ -41,6 +41,7 @@ export type PersonalTimesheetRowProps = {
   onButtonClick?: () => void;
   status: ApprovalStatusLabelType;
   hideTotalRow: boolean;
+  rejectionUnlockedDates?: string[];
 };
 
 export const PersonalTimesheetRow = ({
@@ -59,6 +60,7 @@ export const PersonalTimesheetRow = ({
   hideTotalRow,
   setSelectedTask,
   hideLikeButton,
+  rejectionUnlockedDates,
 }: PersonalTimesheetRowProps) => {
   const { openAddTimeDialog } = useTimesheetOutletContext();
   const backdateRestrictedBefore = useUser(
@@ -117,6 +119,7 @@ export const PersonalTimesheetRow = ({
         triggerClassName="sticky top-7 z-10 bg-surface-white"
         onButtonClick={onButtonClick}
         collapsed={collapsed}
+        rejectionUnlockedDates={rejectionUnlockedDates}
       >
         {({
           totalHours,
@@ -158,6 +161,7 @@ export const PersonalTimesheetRow = ({
                 className="pl-7.5"
                 disabled={disabled}
                 backdateRestrictedBefore={backdateRestrictedBefore}
+                rejectionUnlockedDates={rejectionUnlockedDates}
                 onCellClick={(date) =>
                   openAddTimeDialog({
                     date,
@@ -180,6 +184,7 @@ export const PersonalTimesheetRow = ({
                     totalTimeEntriesInHours={totalTimeEntriesInHours}
                     employee={employee}
                     backdateRestrictedBefore={backdateRestrictedBefore}
+                    rejectionUnlockedDates={rejectionUnlockedDates}
                     setSelectedTask={setSelectedTask}
                     hideLikeButton={hideLikeButton}
                   />

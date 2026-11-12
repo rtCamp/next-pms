@@ -2,7 +2,7 @@ from collections import defaultdict
 
 import frappe
 from frappe import _, get_value, throw
-from frappe.utils import add_days, date_diff, flt, formatdate, get_link_to_form, getdate, today
+from frappe.utils import add_days, cint, date_diff, flt, formatdate, get_link_to_form, getdate, today
 
 ROLES = {
     "Projects Manager",
@@ -119,12 +119,17 @@ def validate_time(doc):
 
 def move_rejected_hours(doc):
     """Park the hours of a newly rejected timesheet in rejected_hours and zero hours, so the
-    rejected work stays on record without counting toward any total."""
+    rejected work stays on record without counting toward any total. Stamping the rejection date
+    opens the rejected-timesheet correction window (see get_date_access); validate_dates reads it
+    back from the database, so this save cannot unlock its own date. The window trusts the stored
+    date, so a value sent with the save is always replaced: read_only is enforced only in the UI."""
+    previous = doc.get_doc_before_save()
+    doc.custom_rejected_on = previous.custom_rejected_on if previous else None
     if doc.custom_approval_status != "Rejected":
         return
-    previous = doc.get_doc_before_save()
     if previous and previous.custom_approval_status == "Rejected":
         return
+    doc.custom_rejected_on = today()
     for row in doc.time_logs:
         if flt(row.hours):
             row.rejected_hours = row.hours
@@ -214,8 +219,8 @@ def get_date_restriction_message(employee: str, dates: list) -> str | None:
 
     #  Check if the backdated time entry falls within the allowed working-day window.
     if min(dates) < today_date:
-        boundary = get_backdate_restriction_boundary(employee)
-        if boundary and min(dates) < getdate(boundary):
+        boundary, unlocked_dates = get_date_access([employee], min(dates), max(dates))[employee]
+        if boundary and any(date < getdate(boundary) and str(date) not in unlocked_dates for date in dates):
             return _("Backdated time entries are not allowed. The earliest date you can log time for is {0}.").format(
                 formatdate(boundary)
             )
@@ -242,33 +247,129 @@ def get_backdate_restriction_boundary(employee: str) -> str | None:
     the current session user's perspective. Any date before the returned boundary is
     restricted. Returns None if the current session user is exempt entirely (see
     _is_exempt_from_backdate_validation) - meaning no date should be treated as restricted.
-    Single source of truth for the backdated-entry check: used both by the validation above
-    and by the frontend's disabled-cell precheck (exposed via API endpoints in api/app.py,
-    api/team.py, api/project.py). Thin single-employee wrapper over
-    get_backdate_restriction_boundaries - callers rendering many employees at once should
-    call that directly instead of looping this."""
+    Thin single-employee wrapper over get_date_access - callers rendering many employees at
+    once should call that directly instead of looping this."""
     return get_backdate_restriction_boundaries([employee]).get(employee)
 
 
 def get_backdate_restriction_boundaries(employees: list) -> dict:
-    """Batch form of get_backdate_restriction_boundary: computes the boundary for every
-    employee in `employees` using one round of queries regardless of list size, instead of
-    one round of holiday/leave queries per employee. Team/project timesheet pages render up
-    to a hundred employees per request - call this once for the whole page rather than
-    looping the single-employee wrapper above."""
+    """Batch form of get_backdate_restriction_boundary."""
+    return {employee: boundary for employee, (boundary, _unlocked) in get_date_access(employees).items()}
+
+
+def get_date_access(employees: list, start_date=None, end_date=None) -> dict:
+    """Single source of truth for which dates the current session user may write for each of
+    `employees`: {employee: (boundary, unlocked_dates)}. Used by validate_dates, the approval
+    pre-check, and for the boundary the team and project pages disable cells by. The pages take
+    their unlocked days from get_rejection_unlocked_dates instead, since those are broadcast.
+
+    `boundary` is the earliest date still inside the backdated-entry limit (None when exempt).
+    `unlocked_dates` are the days between start_date and end_date that sit before the boundary
+    but stay writable because a timesheet on that day was rejected within the last
+    allow_rejected_timesheet_edit_till working days - a reviewer who rejects late must not
+    leave the employee unable to correct the day, nor themselves unable to review the fix.
+
+    One round of holiday/leave queries and at most one Timesheet query, regardless of how many
+    employees are passed; the Timesheet query only runs when some requested day is past the
+    boundary, so a write inside the limit pays nothing extra."""
     if not employees:
         return {}
 
     if _is_exempt_from_backdate_validation():
-        return dict.fromkeys(employees)
+        return {employee: (None, []) for employee in employees}
 
     today_date = getdate(today())
 
-    if not frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries"):
-        return dict.fromkeys(employees, str(today_date))
+    if frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries"):
+        allowed_days_by_employee = _get_effective_backdated_allowed_days(employees)
+    else:
+        allowed_days_by_employee = dict.fromkeys(employees, 0)
 
-    allowed_days_by_employee = _get_effective_backdated_allowed_days(employees)
-    return _compute_backdate_boundaries(employees, allowed_days_by_employee, today_date)
+    non_working_days = _get_non_working_days(
+        [employee for employee in employees if allowed_days_by_employee[employee] > 0], today_date
+    )
+    boundaries = {
+        employee: _walk_back_working_days(
+            today_date, allowed_days_by_employee[employee], non_working_days.get(employee, set())
+        )
+        for employee in employees
+    }
+
+    unlocked_dates = {}
+    if start_date and end_date:
+        start_date = getdate(start_date)
+        restricted = {employee: boundary for employee, boundary in boundaries.items() if start_date < boundary}
+        if restricted:
+            open_days = get_rejection_unlocked_dates(
+                list(restricted), start_date, min(getdate(end_date), max(restricted.values())), non_working_days
+            )
+            unlocked_dates = {
+                employee: [day for day in days if getdate(day) < restricted[employee]]
+                for employee, days in open_days.items()
+            }
+
+    return {employee: (str(boundaries[employee]), unlocked_dates.get(employee, [])) for employee in employees}
+
+
+def get_rejection_unlocked_dates(employees: list, start_date, end_date, non_working_days: dict | None = None) -> dict:
+    """{employee: sorted days between start_date and end_date holding a timesheet rejected within
+    the last allow_rejected_timesheet_edit_till working days}. It ignores the backdate boundary and
+    exemptions, so the answer is the same for every viewer: a payload built while the reviewer
+    saves is broadcast to the employee's page too. get_date_access applies the boundary. Approved
+    documents still count, so approving one project of a rejected day does not lock the rest of it
+    mid-review."""
+    window_days = cint(frappe.db.get_single_value("Timesheet Settings", "allow_rejected_timesheet_edit_till"))
+    if not employees or window_days <= 0:
+        return {}
+
+    rows = frappe.get_all(
+        "Timesheet",
+        filters={
+            "employee": ["in", employees],
+            "start_date": ["between", [getdate(start_date), getdate(end_date)]],
+            "docstatus": ["<", 2],
+            "custom_rejected_on": ["is", "set"],
+        },
+        fields=["employee", "start_date", "custom_rejected_on"],
+    )
+    if not rows:
+        return {}
+
+    rejected_on_by_employee = defaultdict(dict)
+    for row in rows:
+        day = str(getdate(row.start_date))
+        rejected_on = getdate(row.custom_rejected_on)
+        days = rejected_on_by_employee[row.employee]
+        days[day] = max(rejected_on, days.get(day, rejected_on))
+
+    today_date = getdate(today())
+    non_working_days = dict(non_working_days or {})
+    missing = [employee for employee in rejected_on_by_employee if employee not in non_working_days]
+    non_working_days.update(_get_non_working_days(missing, today_date))
+
+    unlocked_dates = {}
+    for employee, rejected_on_by_day in rejected_on_by_employee.items():
+        window_start = _rejection_window_start(today_date, window_days, non_working_days.get(employee, set()))
+        unlocked_dates[employee] = sorted(
+            day for day, rejected_on in rejected_on_by_day.items() if rejected_on >= window_start
+        )
+    return unlocked_dates
+
+
+def _rejection_window_start(today_date, window_days: int, non_working_days: set):
+    """The earliest rejection date whose window is still open: at most `window_days` working days
+    lie after it, up to and including today. The rejection day itself never counts, so rejecting
+    on a holiday or weekly-off buys no extra day, and a non-working today uses none up."""
+    search_start = add_days(today_date, -WORKING_DAY_SEARCH_DAYS)
+    working_days_counted = 0
+    current_date = today_date
+    while current_date > search_start:
+        if str(current_date) not in non_working_days:
+            if working_days_counted == window_days:
+                break
+            working_days_counted += 1
+        current_date = add_days(current_date, -1)
+    return current_date
 
 
 def _get_effective_backdated_allowed_days(employees: list) -> dict:
@@ -294,62 +395,61 @@ def _get_effective_backdated_allowed_days(employees: list) -> dict:
     }
 
 
-def _compute_backdate_boundaries(employees: list, allowed_days_by_employee: dict, today_date) -> dict:
-    """Walks backward from today, per employee, counting only working days (skipping
-    holidays, weekly-offs, and approved/open leave) until that employee's allowed_days have
-    been counted; the date it stops on is the boundary - extended further back to absorb any
-    holiday/leave plateau immediately preceding it (see below). Fetches holidays and leave
-    for every employee in one round of queries instead of one round per employee."""
+# A generous, fixed search window - realistically far wider than any configured threshold
+# would ever need, so the walk below always terminates within it.
+WORKING_DAY_SEARCH_DAYS = 365
+
+
+def _get_non_working_days(employees: list, today_date) -> dict:
+    """{employee: set of date strings} holding every holiday, weekly-off and approved/open
+    leave day inside the search window, for all `employees` in one round of queries."""
     from next_pms.resource_management.api.utils.query import get_employee_leaves
     from next_pms.timesheet.api.utils import get_holiday_dates_by_employee
 
-    boundaries = {employee: str(today_date) for employee, days in allowed_days_by_employee.items() if days <= 0}
-    pending = [employee for employee in employees if employee not in boundaries]
-    if not pending:
-        return boundaries
+    if not employees:
+        return {}
 
-    # A generous, fixed search window - realistically far wider than any configured
-    # threshold would ever need, so the loop below always terminates within it.
-    search_start = add_days(today_date, -365)
+    search_start = add_days(today_date, -WORKING_DAY_SEARCH_DAYS)
+    holidays_by_employee = get_holiday_dates_by_employee(employees, search_start, today_date)
+    non_working_days = {employee: set(holidays_by_employee.get(employee, [])) for employee in employees}
 
-    holidays_by_employee = get_holiday_dates_by_employee(pending, search_start, today_date)
-    leaves_by_employee = defaultdict(list)
     for leave in get_employee_leaves(
-        employee=tuple(pending), start_date=add_days(search_start, -28), end_date=add_days(today_date, 28)
+        employee=tuple(employees), start_date=add_days(search_start, -28), end_date=add_days(today_date, 28)
     ):
-        leaves_by_employee[leave.employee].append(leave)
+        current_date = getdate(leave.from_date)
+        leave_to_date = getdate(leave.to_date)
+        while current_date <= leave_to_date:
+            non_working_days.setdefault(leave.employee, set()).add(str(current_date))
+            current_date = add_days(current_date, 1)
 
-    for employee in pending:
-        non_working_days = set(holidays_by_employee.get(employee, []))
-        for leave in leaves_by_employee.get(employee, []):
-            current_date = getdate(leave.from_date)
-            leave_to_date = getdate(leave.to_date)
-            while current_date <= leave_to_date:
-                non_working_days.add(str(current_date))
-                current_date = add_days(current_date, 1)
+    return non_working_days
 
-        working_days_counted = 0
-        current_date = today_date
-        while working_days_counted < allowed_days_by_employee[employee]:
-            current_date = add_days(current_date, -1)
-            if current_date < search_start:
-                break
-            if str(current_date) not in non_working_days:
-                working_days_counted += 1
 
-        # Absorb any holiday/leave days immediately preceding the counted boundary day too -
-        # matches the old per-submission check, which never penalized a date that was itself
-        # a non-working day (a date that is its own holiday/leave day never cost a working
-        # day, so it was always at least as permissive as the working day right after it).
-        while True:
-            previous_date = add_days(current_date, -1)
-            if previous_date < search_start or str(previous_date) not in non_working_days:
-                break
-            current_date = previous_date
+def _walk_back_working_days(today_date, working_days: int, non_working_days: set):
+    """Walks backward from today counting only working days until `working_days` have been
+    counted; the date it stops on is the boundary - extended further back to absorb any
+    holiday/leave plateau immediately preceding it. That matches the old per-submission check,
+    which never penalized a date that was itself a non-working day."""
+    if working_days <= 0:
+        return today_date
 
-        boundaries[employee] = str(current_date)
+    search_start = add_days(today_date, -WORKING_DAY_SEARCH_DAYS)
+    working_days_counted = 0
+    current_date = today_date
+    while working_days_counted < working_days:
+        current_date = add_days(current_date, -1)
+        if current_date < search_start:
+            break
+        if str(current_date) not in non_working_days:
+            working_days_counted += 1
 
-    return boundaries
+    while True:
+        previous_date = add_days(current_date, -1)
+        if previous_date < search_start or str(previous_date) not in non_working_days:
+            break
+        current_date = previous_date
+
+    return current_date
 
 
 def validate_existing_timesheet(doc, method=None):

@@ -178,13 +178,12 @@ fixtures = [
 
 # DocType Class
 # ---------------
-# Override standard doctype classes
+# Extend standard doctype classes
 
-override_doctype_class = {  # nosemgrep - existing legacy overrides; migration tracked separately
-    "Project": "next_pms.project_currency.overrides.project.ProjectOverwrite",
-    "Customize Form": "next_pms.project_currency.overrides.customize_form.CustomizeFormOverride",
-    "Timesheet": "next_pms.project_currency.overrides.timesheet.TimesheetOverwrite",
-    "Task": "next_pms.project_currency.overrides.task.TaskOverride",
+extend_doctype_class = {
+    "Project": ["next_pms.project_currency.overrides.project.ProjectOverwrite"],
+    "Timesheet": ["next_pms.project_currency.overrides.timesheet.TimesheetOverwrite"],
+    "Task": ["next_pms.project_currency.overrides.task.TaskOverride"],
 }
 
 
@@ -218,14 +217,6 @@ after_install = "next_pms.install.after_install"
 after_migrate = ["next_pms.api.whats_new.refresh_releases"]
 
 persistent_cache_keys = ["next_pms:whats_new:*"]
-
-
-# Overriding Methods
-# ------------------------------
-#
-override_whitelisted_methods = {
-    "erpnext.projects.doctype.project.project.recalculate_project_total_purchase_cost": "next_pms.project_currency.overrides.project.recalculate_project_total_purchase_cost"
-}
 
 doc_events = {
     "Timesheet": {
