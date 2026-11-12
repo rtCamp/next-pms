@@ -1355,9 +1355,12 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
 
     has_search_or_task_filters = bool(parsed_filters.get("Task"))
 
-    from next_pms.timesheet.doc_events.timesheet import get_date_access
+    from next_pms.timesheet.doc_events.timesheet import (
+        get_backdate_restriction_boundaries,
+        get_rejection_unlocked_dates,
+    )
 
-    date_access = get_date_access(
+    rejection_unlocked_dates = get_rejection_unlocked_dates(
         employee_names,
         min(week["start_date"] for week in dates),
         max(week["end_date"] for week in dates),
@@ -1368,8 +1371,8 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
         "daily_norm_map": daily_norm_map,
         "leaves_by_employee": leaves_by_employee,
         "holidays_by_employee": holidays_by_employee,
-        "backdate_boundary_by_employee": {employee: access[0] for employee, access in date_access.items()},
-        "rejection_unlocked_dates_by_employee": {employee: access[1] for employee, access in date_access.items()},
+        "backdate_boundary_by_employee": get_backdate_restriction_boundaries(employee_names),
+        "rejection_unlocked_dates_by_employee": rejection_unlocked_dates,
         "timesheet_map": timesheet_map,
         "emp_ts_by_start": emp_ts_by_start,
         "detail_by_parent": detail_by_parent,

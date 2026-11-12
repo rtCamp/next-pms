@@ -248,6 +248,23 @@ class TestRejectedTimesheetWindow(IntegrationTestCase):
         self.reject(self.old_day)
         self.assertEqual(self.parent(self.old_day).custom_rejected_on, self.today)
 
+    def test_a_rejection_date_sent_with_a_save_is_ignored(self):
+        recent_day = add_days(self.today, -1)
+        self.log(recent_day, self.task_a1, 1, "Inside the limit")
+        forged = add_days(self.today, 365)
+
+        frappe.set_user(EMPLOYEE_USER)
+        try:
+            for day in (recent_day, self.old_day):
+                doc = frappe.get_doc("Timesheet", self.parent(day).name)
+                doc.custom_rejected_on = forged
+                doc.save(ignore_permissions=True)
+        finally:
+            frappe.set_user("Administrator")
+
+        self.assertIsNone(self.parent(recent_day).custom_rejected_on)
+        self.assertEqual(self.parent(self.old_day).custom_rejected_on, self.today)
+
     # -- employee corrections -------------------------------------------------
 
     def test_employee_can_log_a_correction_on_a_rejected_day_past_the_limit(self):
@@ -313,6 +330,12 @@ class TestRejectedTimesheetWindow(IntegrationTestCase):
         )
         self.rejected_on(self.old_day, WINDOW_DAYS + 2)
         self.log_as_employee(self.old_day, self.task_a2)
+
+    def test_rejecting_on_a_holiday_adds_no_day(self):
+        self.holidays[self.employee] = [str(add_days(self.today, -(WINDOW_DAYS + 1)))]
+        self.rejected_on(self.old_day, WINDOW_DAYS + 1)
+        with self.assertRaisesRegex(frappe.ValidationError, "Backdated time entries are not allowed"):
+            self.log_as_employee(self.old_day, self.task_a2)
 
     def test_zero_turns_the_window_off(self):
         self.set_settings(allow_rejected_timesheet_edit_till=0)
@@ -420,6 +443,24 @@ class TestRejectedTimesheetWindow(IntegrationTestCase):
         members = {member["employee"]: member for member in res["members"]}
 
         self.assertEqual(members[self.employee]["rejection_unlocked_dates"], [str(self.old_day)])
+
+    def test_unlocked_days_do_not_depend_on_the_viewer(self):
+        """Pages built while the reviewer saves are broadcast to the employee, so a writer who is
+        exempt, or whose own limit still covers the day, must still send the employee's unlock."""
+        recent_day = add_days(self.today, -(EMPLOYEE_DAYS + 2))
+        self.log(recent_day, self.task_a1, 1, "Past the employee's limit only")
+        self.reject(recent_day)
+
+        weeks = get_timesheet_data(employee=self.employee, start_date=str(recent_day), max_week=1)["data"]
+        frappe.set_user(MANAGER_USER)
+        try:
+            res = get_team_timesheet_data(start_date=str(recent_day), reports_to=self.manager)
+        finally:
+            frappe.set_user("Administrator")
+        member = next(member for member in res["members"] if member["employee"] == self.employee)
+
+        self.assertIn(str(recent_day), next(iter(weeks.values()))["rejection_unlocked_dates"])
+        self.assertIn(str(recent_day), member["rejection_unlocked_dates"])
 
     def test_project_member_lists_unlocked_days(self):
         frappe.set_user(MANAGER_USER)

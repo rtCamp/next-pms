@@ -121,10 +121,12 @@ def move_rejected_hours(doc):
     """Park the hours of a newly rejected timesheet in rejected_hours and zero hours, so the
     rejected work stays on record without counting toward any total. Stamping the rejection date
     opens the rejected-timesheet correction window (see get_date_access); validate_dates reads it
-    back from the database, so this save cannot unlock its own date."""
+    back from the database, so this save cannot unlock its own date. The window trusts the stored
+    date, so a value sent with the save is always replaced: read_only is enforced only in the UI."""
+    previous = doc.get_doc_before_save()
+    doc.custom_rejected_on = previous.custom_rejected_on if previous else None
     if doc.custom_approval_status != "Rejected":
         return
-    previous = doc.get_doc_before_save()
     if previous and previous.custom_approval_status == "Rejected":
         return
     doc.custom_rejected_on = today()
@@ -258,8 +260,8 @@ def get_backdate_restriction_boundaries(employees: list) -> dict:
 def get_date_access(employees: list, start_date=None, end_date=None) -> dict:
     """Single source of truth for which dates the current session user may write for each of
     `employees`: {employee: (boundary, unlocked_dates)}. Used by validate_dates, the approval
-    pre-check, and the frontend's disabled-cell precheck (api/timesheet.py, api/team.py,
-    api/project.py).
+    pre-check, and for the boundary the team and project pages disable cells by. The pages take
+    their unlocked days from get_rejection_unlocked_dates instead, since those are broadcast.
 
     `boundary` is the earliest date still inside the backdated-entry limit (None when exempt).
     `unlocked_dates` are the days between start_date and end_date that sit before the boundary
@@ -294,48 +296,80 @@ def get_date_access(employees: list, start_date=None, end_date=None) -> dict:
     }
 
     unlocked_dates = {}
-    window_days = cint(frappe.db.get_single_value("Timesheet Settings", "allow_rejected_timesheet_edit_till"))
-    if start_date and end_date and window_days > 0:
-        rejected_on_by_employee = _get_rejected_days(boundaries, getdate(start_date), getdate(end_date))
-        missing = [employee for employee in rejected_on_by_employee if employee not in non_working_days]
-        non_working_days.update(_get_non_working_days(missing, today_date))
-        for employee, rejected_on_by_day in rejected_on_by_employee.items():
-            window_start = _walk_back_working_days(today_date, window_days, non_working_days.get(employee, set()))
-            unlocked_dates[employee] = sorted(
-                day for day, rejected_on in rejected_on_by_day.items() if rejected_on >= window_start
+    if start_date and end_date:
+        start_date = getdate(start_date)
+        restricted = {employee: boundary for employee, boundary in boundaries.items() if start_date < boundary}
+        if restricted:
+            open_days = get_rejection_unlocked_dates(
+                list(restricted), start_date, min(getdate(end_date), max(restricted.values())), non_working_days
             )
+            unlocked_dates = {
+                employee: [day for day in days if getdate(day) < restricted[employee]]
+                for employee, days in open_days.items()
+            }
 
     return {employee: (str(boundaries[employee]), unlocked_dates.get(employee, [])) for employee in employees}
 
 
-def _get_rejected_days(boundaries: dict, start_date, end_date) -> dict:
-    """{employee: {day: latest rejected_on}} for the days between start_date and end_date that
-    sit before that employee's boundary and hold a rejected timesheet. Approved documents still
-    count, so approving one project of a rejected day does not lock the rest of it mid-review."""
-    employees = [employee for employee, boundary in boundaries.items() if start_date < boundary]
-    if not employees:
+def get_rejection_unlocked_dates(employees: list, start_date, end_date, non_working_days: dict | None = None) -> dict:
+    """{employee: sorted days between start_date and end_date holding a timesheet rejected within
+    the last allow_rejected_timesheet_edit_till working days}. It ignores the backdate boundary and
+    exemptions, so the answer is the same for every viewer: a payload built while the reviewer
+    saves is broadcast to the employee's page too. get_date_access applies the boundary. Approved
+    documents still count, so approving one project of a rejected day does not lock the rest of it
+    mid-review."""
+    window_days = cint(frappe.db.get_single_value("Timesheet Settings", "allow_rejected_timesheet_edit_till"))
+    if not employees or window_days <= 0:
         return {}
 
     rows = frappe.get_all(
         "Timesheet",
         filters={
             "employee": ["in", employees],
-            "start_date": ["between", [start_date, min(end_date, max(boundaries[e] for e in employees))]],
+            "start_date": ["between", [getdate(start_date), getdate(end_date)]],
             "docstatus": ["<", 2],
             "custom_rejected_on": ["is", "set"],
         },
         fields=["employee", "start_date", "custom_rejected_on"],
     )
+    if not rows:
+        return {}
 
     rejected_on_by_employee = defaultdict(dict)
     for row in rows:
-        day = getdate(row.start_date)
-        if day >= boundaries[row.employee]:
-            continue
+        day = str(getdate(row.start_date))
         rejected_on = getdate(row.custom_rejected_on)
         days = rejected_on_by_employee[row.employee]
-        days[str(day)] = max(rejected_on, days.get(str(day), rejected_on))
-    return rejected_on_by_employee
+        days[day] = max(rejected_on, days.get(day, rejected_on))
+
+    today_date = getdate(today())
+    non_working_days = dict(non_working_days or {})
+    missing = [employee for employee in rejected_on_by_employee if employee not in non_working_days]
+    non_working_days.update(_get_non_working_days(missing, today_date))
+
+    unlocked_dates = {}
+    for employee, rejected_on_by_day in rejected_on_by_employee.items():
+        window_start = _rejection_window_start(today_date, window_days, non_working_days.get(employee, set()))
+        unlocked_dates[employee] = sorted(
+            day for day, rejected_on in rejected_on_by_day.items() if rejected_on >= window_start
+        )
+    return unlocked_dates
+
+
+def _rejection_window_start(today_date, window_days: int, non_working_days: set):
+    """The earliest rejection date whose window is still open: at most `window_days` working days
+    lie after it, up to and including today. The rejection day itself never counts, so rejecting
+    on a holiday or weekly-off buys no extra day, and a non-working today uses none up."""
+    search_start = add_days(today_date, -WORKING_DAY_SEARCH_DAYS)
+    working_days_counted = 0
+    current_date = today_date
+    while current_date > search_start:
+        if str(current_date) not in non_working_days:
+            if working_days_counted == window_days:
+                break
+            working_days_counted += 1
+        current_date = add_days(current_date, -1)
+    return current_date
 
 
 def _get_effective_backdated_allowed_days(employees: list) -> dict:
