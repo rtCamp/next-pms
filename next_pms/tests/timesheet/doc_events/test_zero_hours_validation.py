@@ -3,8 +3,8 @@ from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
 from frappe.utils import flt
 
-from next_pms.install import setup_timesheet_rejected_hours_field
 from next_pms.project_currency.overrides.timesheet import TimesheetOverwrite
+from next_pms.setup import install_custom_fields
 from next_pms.tests.utils import make_employee
 
 EMPLOYEE_USER = "zero-hours-test-employee@example.com"
@@ -24,7 +24,7 @@ class TestZeroHoursValidation(IntegrationTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        setup_timesheet_rejected_hours_field()
+        install_custom_fields()
         company = get_default_company()
         cls.employee = make_employee(EMPLOYEE_USER, company=company, leave_approver="Administrator")
 

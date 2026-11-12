@@ -1,6 +1,6 @@
 import frappe
 
-from next_pms.install import setup_timesheet_rejection_reason_field
+from next_pms.setup import install_custom_fields
 
 
 def execute():
@@ -10,7 +10,7 @@ def execute():
     all of its rows, deletes the parent-level custom field, and re-anchors the
     weekly rejection reason field that used to sit after it.
     """
-    setup_timesheet_rejection_reason_field()
+    install_custom_fields()
     parent_field = frappe.db.get_value("Custom Field", {"dt": "Timesheet", "fieldname": "custom_rejection_reason"})
     if parent_field and frappe.db.has_column("Timesheet", "custom_rejection_reason"):
         timesheets = frappe.get_all(
