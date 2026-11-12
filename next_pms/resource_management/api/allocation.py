@@ -1,6 +1,6 @@
 import uuid
 from collections import defaultdict
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, dataclass
 from datetime import date, timedelta
 
 import frappe
@@ -647,9 +647,10 @@ def _split_approved_ai_allocation_into_weeks(allocation: AllocationPayload):
     """Save an approved Ai allocation the way the add flow saves one: one document per week.
 
     The Ai service sends a single multi-week document. Once approved it is an ordinary allocation,
-    so it is shrunk to its first week -- keeping its name and history -- and `add_allocation`
-    creates the rest from the approved payload. Leave and holiday rows are re-derived by each
-    document's own save; manual rows are carried to the week that contains them.
+    so it is shrunk to its first week -- keeping its name and history -- and every later week is a
+    copy of the saved document, so fields the approve request left out carry over too. Each copy
+    keeps the override rows of its own week from its first save, so a manually cancelled day never
+    books hours and trips the overlap check; leave and holiday rows are re-derived on save.
 
     Returns the shrunk document, or None when the allocation fits in one week or books weekends.
     """
@@ -661,27 +662,18 @@ def _split_approved_ai_allocation_into_weeks(allocation: AllocationPayload):
         return None
 
     doc = frappe.get_doc("Resource Allocation", allocation.name)
-    manual_rows = [
-        {"date": getdate(row.date), **({"cancelled": 1} if cint(row.cancelled) else {"hours": row.hours})}
-        for row in doc.override
-        if row.source != LEAVE_SOURCE
-    ]
-    first_start, first_end = chunks[0]
-    doc.allocation_start_date = first_start
-    doc.allocation_end_date = first_end
-    doc.override = [row for row in doc.override if first_start <= getdate(row.date) <= first_end]
-    doc.save()
+    later_weeks = [_narrow_to_week(frappe.copy_doc(doc), *chunk) for chunk in chunks[1:]]
+    _narrow_to_week(doc, *chunks[0]).save()
+    for week in later_weeks:
+        week.insert()
 
-    for week_start, week_end in chunks[1:]:
-        week_doc = add_allocation(
-            replace(allocation, name=None, allocation_start_date=str(week_start), allocation_end_date=str(week_end))
-        )
-        apply_day_overrides(
-            week_doc.name,
-            [row for row in manual_rows if week_start <= row["date"] <= week_end],
-            None,
-        )
+    return doc
 
+
+def _narrow_to_week(doc, week_start: date, week_end: date):
+    doc.allocation_start_date = week_start
+    doc.allocation_end_date = week_end
+    doc.set("override", [row for row in doc.override if week_start <= getdate(row.date) <= week_end])
     return doc
 
 

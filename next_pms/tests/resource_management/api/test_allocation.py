@@ -5,6 +5,7 @@ from frappe.utils import add_days, getdate
 
 from next_pms.resource_management.api.allocation import (
     AllocationPayload,
+    apply_day_overrides,
     delete_day_override,
     edit_allocation,
     get_over_allocated_dates,
@@ -694,8 +695,8 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
         self.assertEqual(allocation.total_allocated_hours, 4 * DAILY_HOURS)
         self.assertEqual(frappe.db.count("Resource Allocation", {"employee": self.employee}), 1)
 
-    def _approve_ai_allocation(self, start, end, status="Tentative", manual_override=None):
-        allocation = frappe.get_doc(
+    def _ai_allocation(self, start, end, **fields):
+        return frappe.get_doc(
             {
                 "doctype": "Resource Allocation",
                 "employee": self.employee,
@@ -707,9 +708,11 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
                 "include_weekends": 0,
                 "status": "Tentative",
                 "is_ai_created": 1,
+                **fields,
             }
         ).insert(ignore_permissions=True)
 
+    def _approve(self, allocation, day_overrides=None, **payload_fields):
         edit_allocation(
             name=allocation.name,
             edit_mode="only_this",
@@ -717,15 +720,23 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
                 doctype="Resource Allocation",
                 employee=self.employee,
                 customer=self.customer,
-                project=self.project,
-                allocation_start_date=start,
-                allocation_end_date=end,
+                allocation_start_date=str(allocation.allocation_start_date),
+                allocation_end_date=str(allocation.allocation_end_date),
                 hours_allocated_per_day=DAILY_HOURS,
                 include_weekends=False,
-                status=status,
                 is_ai_created=0,
+                **payload_fields,
             ),
+            day_overrides=day_overrides,
+        )
+
+    def _approve_ai_allocation(self, start, end, status="Tentative", manual_override=None):
+        allocation = self._ai_allocation(start, end)
+        self._approve(
+            allocation,
             day_overrides=[manual_override] if manual_override else None,
+            project=self.project,
+            status=status,
         )
         return allocation
 
@@ -760,6 +771,39 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
         total = sum(frappe.db.get_value("Resource Allocation", week.name, "total_allocated_hours") for week in weeks)
         # 15 weekdays, less the holiday, less the 6 hours the manual day gave up.
         self.assertEqual(total, 14 * DAILY_HOURS - 6)
+
+    def test_approved_weeks_keep_fields_the_approve_request_left_out(self):
+        allocation = self._ai_allocation(MON, HOLIDAY_FRI, is_billable=1, note="from the AI service")
+
+        self._approve(allocation)
+
+        weeks = frappe.get_all(
+            "Resource Allocation",
+            filters={"employee": self.employee},
+            fields=["project", "status", "is_billable", "note"],
+        )
+        self.assertEqual(len(weeks), 3)
+        for week in weeks:
+            self.assertEqual(
+                (week.project, week.status, week.is_billable, week.note),
+                (self.project, "Tentative", 1, "from the AI service"),
+            )
+
+    def test_approving_keeps_a_cancelled_day_free_for_another_allocation(self):
+        """A day the manager cancelled may already hold another allocation on the same project."""
+        cancelled_day = "2026-09-01"
+        allocation = self._ai_allocation(MON, HOLIDAY_FRI)
+        apply_day_overrides(allocation.name, [{"date": cancelled_day, "cancelled": 1}], None)
+        other = self._allocate(start=cancelled_day, end=cancelled_day)
+
+        self._approve(allocation, project=self.project)
+
+        second_week = frappe.get_doc(
+            "Resource Allocation",
+            {"employee": self.employee, "allocation_start_date": "2026-08-31"},
+        )
+        self.assertEqual(self._overrides(second_week)[cancelled_day].cancelled, 1)
+        self.assertTrue(frappe.db.exists("Resource Allocation", other.name))
 
     def test_editing_without_approving_keeps_an_ai_allocation_whole(self):
         allocation = frappe.get_doc(
