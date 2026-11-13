@@ -2,9 +2,9 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe import _, only_for
+from frappe import _
 
-from next_pms.next_projects.api.constant import ALLOWED_ROLES
+from next_pms.permissions.capabilities import require_capability
 
 _COMMUNICATION_FIELDS = [
     "name",
@@ -29,7 +29,7 @@ def get_project_emails(project: str) -> list[dict]:
     Combines native Frappe ``Communication`` records (reference_doctype="Project")
     with any Gmail threads linked to the project via ``frappe_gmail_thread``.
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
     frappe.has_permission("Project", doc=project, ptype="read", throw=True)
     if not project:
         frappe.throw(_("Project is required"))

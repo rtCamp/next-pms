@@ -1,10 +1,9 @@
 import frappe
 import requests
-from frappe import _, only_for
+from frappe import _
 
 from next_pms.api.generate_pm_report import get_api_key
-
-ALLOWED_ROLES = ["System Manager", "Projects Manager", "Delivery Manager"]
+from next_pms.permissions.capabilities import require_capability
 
 
 def get_audit_url() -> str | None:
@@ -24,7 +23,7 @@ def trigger_audit_report() -> dict:
     Trigger bulk Audit Report for all open billable projects via the LLM microservice.
     Pings POST /api/audit/run-all endpoint.
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("project_admin")
 
     audit_url = get_audit_url()
     if not audit_url:

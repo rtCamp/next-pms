@@ -37,7 +37,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-22 11:16:49.769658",
+ "modified": "2026-11-13 17:27:22.282226",
  "modified_by": "Administrator",
  "module": "Next Projects",
  "name": "Project Phase",
@@ -76,7 +76,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Delivery Manager",
+   "role": "PMS Leadership",
    "share": 1,
    "write": 1
   }

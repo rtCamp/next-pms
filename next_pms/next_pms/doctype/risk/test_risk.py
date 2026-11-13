@@ -11,13 +11,12 @@ IGNORE_TEST_RECORD_DEPENDENCIES = ["User", "Project"]
 
 OWNER_USER = "test.risk.gated.owner@example.com"
 OTHER_GATED_USER = "test.risk.other.gated@example.com"
-TIMESHEET_MANAGER_USER = "test.risk.tm@example.com"
 PROJECTS_USER = "test.risk.pu@example.com"
 PROJECTS_MANAGER_USER = "test.risk.pm@example.com"
-DELIVERY_MANAGER_USER = "test.risk.dm@example.com"
-DELIVERY_USER_USER = "test.risk.du@example.com"
+LEADERSHIP_USER = "test.risk.pl@example.com"
+SYSTEM_MANAGER_USER = "test.risk.sm@example.com"
 
-UNRESTRICTED_USERS = (PROJECTS_MANAGER_USER, DELIVERY_MANAGER_USER, DELIVERY_USER_USER, TIMESHEET_MANAGER_USER)
+UNRESTRICTED_USERS = (PROJECTS_MANAGER_USER, LEADERSHIP_USER, SYSTEM_MANAGER_USER)
 
 
 class IntegrationTestRisk(IntegrationTestCase):
@@ -27,11 +26,10 @@ class IntegrationTestRisk(IntegrationTestCase):
         create_default_risk_masters()
         cls._make_user(OWNER_USER, ["Projects User"])
         cls._make_user(OTHER_GATED_USER, ["Projects User"])
-        cls._make_user(TIMESHEET_MANAGER_USER, ["Timesheet Manager"])
         cls._make_user(PROJECTS_USER, ["Projects User"])
         cls._make_user(PROJECTS_MANAGER_USER, ["Projects Manager"])
-        cls._make_user(DELIVERY_MANAGER_USER, ["Delivery Manager"])
-        cls._make_user(DELIVERY_USER_USER, ["Delivery User"])
+        cls._make_user(LEADERSHIP_USER, ["PMS Leadership"])
+        cls._make_user(SYSTEM_MANAGER_USER, ["System Manager"])
         frappe.clear_cache()
 
         cls.project = frappe.get_doc(

@@ -14,15 +14,6 @@ import { TextCell } from "./textCell";
 import type { ListViewColumn } from "../../types";
 import type { TaskListItem } from "../types";
 
-const MANAGER_ROLES = ["Projects Manager", "Delivery Manager", "Delivery User"];
-
-function canUserDelete(row: TaskListItem, userId?: string, roles?: string[]) {
-  return (
-    roles &&
-    (MANAGER_ROLES.some((r) => roles.includes(r)) || row.owner === userId)
-  );
-}
-
 export function TaskListCell({
   row,
   column,
@@ -31,7 +22,7 @@ export function TaskListCell({
   onEditTask,
   onDeleteTask,
   userId,
-  roles,
+  canDeleteAnyTask = false,
 }: {
   row: TaskListItem;
   column: ListViewColumn;
@@ -40,7 +31,7 @@ export function TaskListCell({
   onEditTask?: (task: TaskListItem) => void;
   onDeleteTask?: (name: string) => void;
   userId?: string;
-  roles?: string[];
+  canDeleteAnyTask?: boolean;
 }) {
   switch (column.key) {
     case "subject":
@@ -71,7 +62,7 @@ export function TaskListCell({
           name={row.name}
           onEdit={() => onEditTask?.(row)}
           onDelete={onDeleteTask}
-          canDelete={canUserDelete(row, userId, roles)}
+          canDelete={canDeleteAnyTask || row.owner === userId}
         />
       );
     default:

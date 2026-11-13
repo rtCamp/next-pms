@@ -14,13 +14,12 @@ STATUS_DOCTYPE = "PMS Growth Initiative Status"
 
 OWNER_USER = "test.growth.gated.owner@example.com"
 OTHER_GATED_USER = "test.growth.other.gated@example.com"
-TIMESHEET_MANAGER_USER = "test.growth.tm@example.com"
 PROJECTS_USER = "test.growth.pu@example.com"
 PROJECTS_MANAGER_USER = "test.growth.pm@example.com"
-DELIVERY_MANAGER_USER = "test.growth.dm@example.com"
-DELIVERY_USER_USER = "test.growth.du@example.com"
+LEADERSHIP_USER = "test.growth.pl@example.com"
+SYSTEM_MANAGER_USER = "test.growth.sm@example.com"
 
-UNRESTRICTED_USERS = (PROJECTS_MANAGER_USER, DELIVERY_MANAGER_USER, DELIVERY_USER_USER, TIMESHEET_MANAGER_USER)
+UNRESTRICTED_USERS = (PROJECTS_MANAGER_USER, LEADERSHIP_USER, SYSTEM_MANAGER_USER)
 
 
 class IntegrationTestPMSGrowthInitiative(IntegrationTestCase):
@@ -30,11 +29,10 @@ class IntegrationTestPMSGrowthInitiative(IntegrationTestCase):
         create_default_growth_masters()
         cls._make_user(OWNER_USER, ["Projects User"])
         cls._make_user(OTHER_GATED_USER, ["Projects User"])
-        cls._make_user(TIMESHEET_MANAGER_USER, ["Timesheet Manager"])
         cls._make_user(PROJECTS_USER, ["Projects User"])
         cls._make_user(PROJECTS_MANAGER_USER, ["Projects Manager"])
-        cls._make_user(DELIVERY_MANAGER_USER, ["Delivery Manager"])
-        cls._make_user(DELIVERY_USER_USER, ["Delivery User"])
+        cls._make_user(LEADERSHIP_USER, ["PMS Leadership"])
+        cls._make_user(SYSTEM_MANAGER_USER, ["System Manager"])
         frappe.clear_cache()
 
         cls.project = frappe.get_doc(
@@ -202,7 +200,7 @@ class IntegrationTestPMSGrowthInitiative(IntegrationTestCase):
         doc.append("update_log", {"status": "In Progress", "note": "PM note"})
         doc.save()
 
-        frappe.set_user(DELIVERY_MANAGER_USER)
+        frappe.set_user(LEADERSHIP_USER)
         doc = frappe.get_doc(DOCTYPE, initiative.name)
         doc.update_log[-1].note = "Rewritten"
         with self.assertRaises(frappe.PermissionError):

@@ -45,9 +45,41 @@ PMS_SET_KEYS: dict[str, tuple[PermKey, ...]] = {
         PermKey("Accounts User", 1),
         PermKey("HR User"),
     ),
+    "Project": (
+        PermKey(EMPLOYEE, if_owner=1),
+        PermKey("Desk User", 1),
+        *(
+            PermKey(role, level)
+            for role in (PROJECTS_USER, "Timesheet User", "Timesheet Manager")
+            for level in (0, 1, 2)
+        ),
+        *(
+            PermKey(role, level)
+            for role in (PROJECTS_MANAGER, "Delivery Manager", SYSTEM_MANAGER)
+            for level in (0, 1, 2, 3)
+        ),
+    ),
+    "Task": (
+        PermKey(EMPLOYEE),
+        PermKey(EMPLOYEE, if_owner=1),
+        PermKey(PROJECTS_MANAGER),
+        PermKey(PROJECTS_MANAGER, 1),
+        PermKey(PROJECTS_USER),
+        PermKey(PROJECTS_USER, 1),
+        PermKey("Delivery Manager"),
+        PermKey("Delivery User"),
+    ),
+    "Customer": (PermKey(PROJECTS_MANAGER), PermKey("Delivery Manager"), PermKey(SYSTEM_MANAGER)),
+    "Role": (PermKey("Delivery Manager"),),
+    "Designation": (PermKey(PROJECTS_MANAGER),),
+    "ToDo": (PermKey(SYSTEM_MANAGER),),
 }
 
 _TIMESHEET_REVIEWER = "read write create delete submit cancel amend report export share print email"
+_FULL = "select read write create delete report export import share print email"
+_PROJECT_ADMIN_FIELDS = tuple(
+    rule(role, "read write export", permlevel=level) for role in (PMS_LEADERSHIP, SYSTEM_MANAGER) for level in (1, 2, 3)
+)
 
 # Rows next_pms grants on doctypes it does not own. Timesheet rows are narrowed further by
 # next_pms.timesheet.permission (own / reports / own projects; nobody but System Manager
@@ -66,11 +98,60 @@ PERMISSION_MAP: dict[str, tuple[PermRule, ...]] = {
         rule("Accounts User", "read write", permlevel=1),
         rule("HR User", "read write create delete submit cancel amend report export share print email"),
     ),
+    # Projects User keeps permlevel 2 (project financials); cost and invoice burn are hidden
+    # in the app by the view_cost_and_invoice_burn capability instead.
+    "Project": (
+        rule(EMPLOYEE, "select read", if_owner=1),
+        rule("Desk User", "read", permlevel=1),
+        rule(PROJECTS_USER, "read write create delete report export share print email"),
+        rule(PROJECTS_USER, "read export", permlevel=1),
+        rule(PROJECTS_USER, "read write export", permlevel=2),
+        rule(PROJECTS_MANAGER, _FULL),
+        rule(PROJECTS_MANAGER, "read write export", permlevel=1),
+        rule(PROJECTS_MANAGER, "read write export", permlevel=2),
+        rule(PROJECTS_MANAGER, "read export", permlevel=3),
+        rule(PMS_LEADERSHIP, _FULL),
+        rule(SYSTEM_MANAGER, _FULL),
+        *_PROJECT_ADMIN_FIELDS,
+    ),
+    "Task": (
+        rule(EMPLOYEE, "read write create"),
+        rule(PROJECTS_USER, "select read write create delete report share print email"),
+        rule(PROJECTS_USER, "read write export", permlevel=1),
+        *(rule(role, _FULL) for role in (PROJECTS_MANAGER, PMS_LEADERSHIP, SYSTEM_MANAGER)),
+        *(rule(role, "read write export", permlevel=1) for role in (PROJECTS_MANAGER, PMS_LEADERSHIP, SYSTEM_MANAGER)),
+    ),
+    "Customer": (
+        rule(PROJECTS_MANAGER, "select read export"),
+        rule(PMS_LEADERSHIP, "select"),
+        rule(SYSTEM_MANAGER, "select"),
+    ),
+    "Role": (rule(PMS_LEADERSHIP, "select"),),
+    "Designation": (rule(PROJECTS_MANAGER, "select read"),),
+    "Department": (rule(PMS_LEADERSHIP, "select"),),
+    "Project Type": (rule(PMS_LEADERSHIP, "select"),),
+    "ToDo": (rule(SYSTEM_MANAGER, "read write create delete report export share print email"),),
 }
 
 # Doctypes next_pms owns: their JSON is the source for PMS roles, so Custom DocPerm rows for
 # those roles are removed while rows other apps or admins added for other roles are kept.
-OWNED_DOCTYPES: tuple[str, ...] = ()
+OWNED_DOCTYPES: tuple[str, ...] = (
+    "PMS Growth Initiative",
+    "PMS Growth Initiative Category",
+    "PMS Growth Initiative Status",
+    "Project Status Update",
+    "Project Status Update Template",
+    "Project Status Update Template Category",
+    "Project Time Report Frequency",
+    "Risk",
+    "Risk Category",
+    "Risk Level",
+    "Risk Status",
+    "Project Phase",
+    "Project Timeline Item",
+    "Project Timeline Item Category",
+    "Technology",
+)
 
 
 def create_pms_roles() -> None:

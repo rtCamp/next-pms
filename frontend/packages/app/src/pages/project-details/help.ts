@@ -8,7 +8,6 @@ import type { FieldHelp, HelpTip } from "@next-pms/design-system/components";
  */
 import { PROJECT_LIST_HELP } from "@/pages/projects/help";
 import type { TabKey } from "./tabs";
-import { CUSTOMIZATION_ROLES } from "./tabs/tracking/constants";
 
 export const PROJECT_ABOUT_HELP = {
   budget: {
@@ -92,7 +91,7 @@ export const PROJECT_DETAIL_TIPS: Partial<Record<TabKey, HelpTip[]>> = {
         "Select Done.",
       ],
       wiki: "Project-Detail#hide-or-restore-a-tracking-card",
-      roles: CUSTOMIZATION_ROLES,
+      roles: ["Projects Manager", "PMS Leadership", "System Manager"],
       motion: () =>
         import("@/assets/motions/hide-restore-tracking-cards?motion"),
     },

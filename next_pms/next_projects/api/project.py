@@ -7,13 +7,12 @@ from typing import Literal
 
 import frappe
 from erpnext.setup.utils import get_exchange_rate
-from frappe import get_list, only_for, whitelist
+from frappe import get_list, whitelist
 from frappe.query_builder.functions import Coalesce, Count, Sum
 from frappe.utils import cint, flt, getdate, today
 
 from next_pms.api.utils import error_logger
 from next_pms.next_projects.api.constant import (
-    ALLOWED_ROLES,
     COMPUTED_SORT_FIELDS,
     KANBAN_VIEW_FIELDS,
     LIST_VIEW_FIELDS,
@@ -30,6 +29,7 @@ from next_pms.next_projects.api.utils import (
     get_user_image_map,
     resolve_tag_filters,
 )
+from next_pms.permissions.capabilities import has_capability, require_capability
 from next_pms.project_currency.billing_rate import get_billing_rate_context, resolve_billing_rate
 from next_pms.timesheet.api import get_count
 from next_pms.utils.employee import (
@@ -611,7 +611,7 @@ def get_projects_view(
         For kanban view: {"columns": [...], "data": {...}, "total_count": int}
     """
     # Permission check
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
 
     # Parse filters if string
     if isinstance(filters, str):
@@ -629,6 +629,9 @@ def get_projects_view(
     fields = LIST_VIEW_FIELDS if view == "list" else KANBAN_VIEW_FIELDS
 
     sort_field, sort_direction = parse_order_by(order_by)
+    can_view_burn = has_capability("view_cost_and_invoice_burn")
+    if sort_field == "cost_burn_percent" and not can_view_burn:
+        sort_field, order_by = "", "modified desc"
     use_computed_sort = view == "list" and sort_field in COMPUTED_SORT_FIELDS
     if sort_field in COMPUTED_SORT_FIELDS and not use_computed_sort:
         order_by = "modified desc"
@@ -690,6 +693,9 @@ def get_projects_view(
             enrich_project_with_calculated_fields(p, cost_forecasted_map, user_image_map, contact_name_map)
             for p in projects
         ]
+        if not can_view_burn:
+            for project in enriched_projects:
+                project["cost_burn"] = None
 
         if currency:
             _apply_currency_conversion(enriched_projects, currency)
@@ -1128,7 +1134,7 @@ def get_project_tracking(project: str):
             Subsequent elements are per-member rows. hourly_billing_rate and
             valid_from fall back to the flat-rate values when blank.
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
 
     if not project:
         frappe.throw(frappe._("Project is required"), frappe.MandatoryError)
@@ -1163,7 +1169,8 @@ def get_project_tracking(project: str):
     is_billable = bool(billing_type) and billing_type != "Non-Billable"
     shows_billing_tables = billing_type in ("Fixed Cost", "Retainer", "Time and Material")
 
-    invoice_burn = _get_invoice_burn(project) if is_billable else None
+    can_view_burn = has_capability("view_cost_and_invoice_burn")
+    invoice_burn = _get_invoice_burn(project) if is_billable and can_view_burn else None
     task_counts = _get_task_counts(project)
     actual_cost_incurred = flt(p.total_costing_amount)
     forecast = get_project_forecast(project, p)
@@ -1266,9 +1273,9 @@ def get_project_tracking(project: str):
         "current_project_value": current_project_value if is_billable else None,
         "current_profit": current_profit if is_billable else None,
         "current_profit_margin": current_profit_margin if is_billable else None,
-        "actual_cost_incurred": actual_cost_incurred,
-        "forecasted_cost_to_completion": forecasted_cost_to_completion,
-        "expected_total_cost": flt(p.custom_target_cost),
+        "actual_cost_incurred": actual_cost_incurred if can_view_burn else None,
+        "forecasted_cost_to_completion": forecasted_cost_to_completion if can_view_burn else None,
+        "expected_total_cost": flt(p.custom_target_cost) if can_view_burn else None,
         "hours_utilised": hours_utilised,
         "hours_utilised_billable": hours_utilised_billable,
         "hours_utilised_non_billable": hours_utilised_non_billable,
@@ -1276,7 +1283,7 @@ def get_project_tracking(project: str):
         "tasks": task_counts,
         "invoice_burn": {
             **(invoice_burn or {}),
-            "total_project_amount": flt(p.total_sales_amount) if is_billable else None,
+            "total_project_amount": flt(p.total_sales_amount) if is_billable and can_view_burn else None,
         },
         "budget_burn": {
             "actual": get_budget_burn_accrued(p),
@@ -1309,7 +1316,7 @@ def get_project_sidebar(project: str):
         billing_team  - billing team members (name, employee_id, user_id);
                         empty unless billing type is Time and Material
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
 
     if not project:
         frappe.throw(frappe._("Project is required"), frappe.MandatoryError)
