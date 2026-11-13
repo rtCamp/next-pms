@@ -4,7 +4,14 @@ import frappe
 from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
 from frappe.permissions import setup_custom_perms, std_rights
 
-from next_pms.permissions.capabilities import PMS_LEADERSHIP, PMS_ROLES
+from next_pms.permissions.capabilities import (
+    EMPLOYEE,
+    PMS_LEADERSHIP,
+    PMS_ROLES,
+    PROJECTS_MANAGER,
+    PROJECTS_USER,
+    SYSTEM_MANAGER,
+)
 
 LEGACY_PMS_ROLES = ("Timesheet Manager", "Timesheet User", "Delivery Manager", "Delivery User")
 
@@ -27,10 +34,39 @@ def rule(role: str, rights: str, permlevel: int = 0, if_owner: int = 0) -> PermR
 
 # Custom DocPerm rows that earlier next_pms code wrote on doctypes it does not own. These are
 # removed; the doctype's standard row for the same key comes back unless PERMISSION_MAP replaces it.
-PMS_SET_KEYS: dict[str, tuple[PermKey, ...]] = {}
+PMS_SET_KEYS: dict[str, tuple[PermKey, ...]] = {
+    "Timesheet": (
+        PermKey(EMPLOYEE),
+        PermKey(PROJECTS_USER),
+        PermKey(PROJECTS_USER, 1),
+        PermKey(PROJECTS_MANAGER),
+        PermKey(PROJECTS_MANAGER, 1),
+        PermKey("Accounts User"),
+        PermKey("Accounts User", 1),
+        PermKey("HR User"),
+    ),
+}
 
-# Rows next_pms grants on doctypes it does not own.
-PERMISSION_MAP: dict[str, tuple[PermRule, ...]] = {}
+_TIMESHEET_REVIEWER = "read write create delete submit cancel amend report export share print email"
+
+# Rows next_pms grants on doctypes it does not own. Timesheet rows are narrowed further by
+# next_pms.timesheet.permission (own / reports / own projects; nobody but System Manager
+# writes someone else's timesheet).
+PERMISSION_MAP: dict[str, tuple[PermRule, ...]] = {
+    "Timesheet": (
+        rule(EMPLOYEE, "read write create delete"),
+        rule(PROJECTS_USER, "read write create delete submit cancel amend report share print email"),
+        rule(PROJECTS_MANAGER, _TIMESHEET_REVIEWER),
+        rule(PROJECTS_MANAGER, "read write export", permlevel=1),
+        rule(PMS_LEADERSHIP, _TIMESHEET_REVIEWER),
+        rule(PMS_LEADERSHIP, "read write export", permlevel=1),
+        rule(SYSTEM_MANAGER, f"select import {_TIMESHEET_REVIEWER}"),
+        rule(SYSTEM_MANAGER, "read write export", permlevel=1),
+        rule("Accounts User", "read write create delete submit cancel amend report email"),
+        rule("Accounts User", "read write", permlevel=1),
+        rule("HR User", "read write create delete submit cancel amend report export share print email"),
+    ),
+}
 
 # Doctypes next_pms owns: their JSON is the source for PMS roles, so Custom DocPerm rows for
 # those roles are removed while rows other apps or admins added for other roles are kept.
@@ -62,7 +98,7 @@ def apply_doctype_permissions(doctype: str) -> None:
         if key.role not in existing_roles:
             continue
         if key in rules:
-            _insert_custom_perm(doctype, key, dict.fromkeys(rules[key], 1))
+            _insert_custom_perm(doctype, key, {**dict.fromkeys(std_rights, 0), **dict.fromkeys(rules[key], 1)})
         elif standard := _standard_rights(doctype, key):
             _insert_custom_perm(doctype, key, standard)
 

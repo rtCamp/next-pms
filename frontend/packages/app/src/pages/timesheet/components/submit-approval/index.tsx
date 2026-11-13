@@ -20,8 +20,9 @@ import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 /**
  * Internal Dependencies
  */
-import useApproverOptions, {
+import {
   type ApproverOption,
+  useTimesheetApproverOptions,
 } from "@/hooks/useApproverOptions";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
@@ -60,7 +61,7 @@ const SubmitApproval = ({
   const { call: submitForApproval } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.submit_for_approval",
   );
-  const approverOptions = useApproverOptions();
+  const approverOptions = useTimesheetApproverOptions();
 
   const approverComboboxOptions = useMemo(
     () => approverOptions.map(withApproverAvatar),

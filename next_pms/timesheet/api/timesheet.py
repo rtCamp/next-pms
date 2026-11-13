@@ -9,12 +9,12 @@ from frappe.utils import (
 )
 
 from next_pms.api.utils import error_logger
+from next_pms.permissions.capabilities import has_capability
 from next_pms.resource_management.api.utils.query import get_employee_leaves
 from next_pms.timesheet.utils.constant import (
     ALLOWED_FILTER_FIELDS,
     EMP_TIMESHEET,
     FILTER_LOOKBACK_WEEKS,
-    TIMESHEET_REVIEWER_ROLES,
 )
 
 from .employee import (
@@ -24,12 +24,11 @@ from .employee import (
     validate_current_employee,
 )
 from .utils import (
-    apply_role_permission_for_doctype,
     build_filters,
     employee_has_higher_access,
     get_holidays,
+    get_timesheet_approver_users,
     get_week_dates,
-    has_write_access,
     normalize_status_filter,
     parse_filters,
     update_weekly_status_of_timesheet,
@@ -170,9 +169,8 @@ def get_timesheet_data(
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
         employee = get_employee_from_user(throw_exception=frappe.session.user != "Administrator")
-    # Every role that opens the Team or Project timesheet reaches this endpoint from there to
-    # review a week, so gating it behind a narrower set would break that review.
-    apply_role_permission_for_doctype(TIMESHEET_REVIEWER_ROLES, "Employee", "read", employee)
+    if not employee_has_higher_access(employee, ptype="read"):
+        throw(_("You are not authorized to view this employee's timesheets."), frappe.PermissionError)
     return build_timesheet_data(
         employee=employee,
         start_date=start_date,
@@ -421,6 +419,8 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
 
     if not employee:
         employee = get_employee_from_user()
+    elif not employee_has_higher_access(employee, ptype="write"):
+        frappe.throw(_("You are not authorized to submit this employee's timesheet."), frappe.PermissionError)
 
     if not approver:
         reporting_manager = frappe.get_value("Employee", employee, "reports_to")
@@ -435,10 +435,8 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
 
         reporting_manager = frappe.get_value("Employee", employee, "reports_to")
         if approver != reporting_manager:
-            allowed_approver_roles = {"Projects Manager", "Timesheet Manager", "Timesheet User", "System Manager"}
             approver_user = frappe.get_value("Employee", approver, "user_id")
-            approver_roles = set(frappe.get_roles(approver_user)) if approver_user else set()
-            if not (approver_roles & allowed_approver_roles) and approver_user != "Administrator":
+            if approver_user != "Administrator" and approver_user not in get_timesheet_approver_users(employee):
                 frappe.throw(_("Selected approver is not authorized to approve timesheets."), frappe.PermissionError)
         reporting_manager = approver
 
@@ -523,7 +521,7 @@ def update_timesheet_detail(
         log.description = description
         log.task = task
         # Only update value of billable if user has write access
-        if has_write_access() and is_billable is not None:
+        if has_capability("edit_project_billing") and is_billable is not None:
             log.is_billable = is_billable
         if getdate(log.from_time) != getdate(date):
             logs_to_remove.append(log)
@@ -550,7 +548,7 @@ def update_timesheet_detail(
                 "to_time": getdate(date),
                 "project": task_project,
             }
-            if has_write_access() and is_billable is not None:
+            if has_capability("edit_project_billing") and is_billable is not None:
                 log["is_billable"] = is_billable
             else:
                 log["is_billable"] = frappe.get_value("Task", task, "custom_is_billable")

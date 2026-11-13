@@ -5,6 +5,8 @@ from functools import wraps
 import frappe
 from frappe.utils import flt
 
+from next_pms.permissions.capabilities import ALL
+from next_pms.permissions.scope import EmployeeScope, get_employee_scope
 from next_pms.timesheet.utils.constant import (
     DEFAULT_DAILY_WORKING_HOURS,
     DEFAULT_WORKING_FREQUENCY,
@@ -115,20 +117,7 @@ def get_employee_working_hours(employee: str | None = None) -> dict:
         # daily hours = 40.0 / 5 = 8.0
         ```
     """
-    roles = set(frappe.get_roles(frappe.session.user))
-    manager_roles = {
-        "Projects Manager",
-        "Timesheet Manager",
-        "Timesheet User",
-        "Delivery Manager",
-        "Delivery User",
-        "HR Manager",
-        "HR User",
-        "System Manager",
-    }
-    if not (manager_roles & roles) and frappe.session.user != "Administrator":
-        employee = get_employee_from_user()
-    elif not employee:
+    if not employee or not get_employee_detail_scope().allows(employee):
         employee = get_employee_from_user()
 
     if not employee:
@@ -238,6 +227,18 @@ def get_workable_days_for_employee(employee: str, start_date: str | datetime.dat
         "total_working_days": date_diff(end_date, start_date) + 1 - total_leave_hours - len(holidays),
         "leave_days": total_leave_hours + len(holidays),
     }
+
+
+HR_ROLES = frozenset({"HR Manager", "HR User"})
+
+
+def get_employee_detail_scope() -> EmployeeScope:
+    """Whose working hours and task time logs the session user may see. HR roles keep
+    seeing everyone, as they did before the PMS roles moved to capabilities."""
+    scope = get_employee_scope("view_employee_details")
+    if HR_ROLES & set(frappe.get_roles()):
+        return EmployeeScope(scope=ALL, employee=scope.employee)
+    return scope
 
 
 def validate_current_employee(ptype: str = "read"):

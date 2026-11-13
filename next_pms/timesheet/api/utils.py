@@ -8,29 +8,22 @@ from frappe import get_all
 from frappe.utils import add_days, get_first_day_of_week, get_last_day_of_week, getdate
 from frappe.utils.caching import redis_cache
 
+from next_pms.permissions.capabilities import ALL, CAPABILITIES, REPORTS_AND_OWN_PROJECTS, has_capability
+from next_pms.permissions.scope import get_employee_scope
 from next_pms.resource_management.api.utils.query import get_employee_leaves
 from next_pms.timesheet.utils.constant import (
     ALLOWED_FILTER_FIELDS,
     ALLOWED_TIMESHET_DETAIL_FIELDS,
     FILTER_LOOKBACK_WEEKS,
-    GLOBAL_TIMESHEET_ROLES,
     NOT_SUBMITTED_STATUS,
     WORK_FILTER_DOCTYPES,
 )
 
 from . import filter_employees
 
-READ_ONLY_ROLE = ["Projects User"]
-READ_WRITE_ROLE = [*GLOBAL_TIMESHEET_ROLES, "Projects Manager"]
-
 # Stands in for a day whose projects do not agree on one status. Never stored - it only
 # keeps such a day out of the whole-week totals in update_weekly_status_of_timesheet.
 MIXED_DAY_STATUS = "Mixed"
-
-
-def has_write_access():
-    roles = frappe.get_roles()
-    return set(roles).intersection(READ_WRITE_ROLE)
 
 
 @redis_cache()
@@ -263,100 +256,75 @@ def get_holidays(employee: str, start_date: str, end_date: str):
     return holidays
 
 
-def apply_role_permission_for_doctype(roles: list[str], doctype: str, ptype: str = "read", doc=None):
-    if frappe.session.user == "Administrator":
-        return
-
-    user_roles = frappe.get_roles()
-
-    if not set(roles).intersection(user_roles):
-        frappe.has_permission(doctype, ptype, doc, throw=True)
-
-
 def employee_has_higher_access(employee: str, ptype: str = "read") -> bool:
-    """Whether the session user may `ptype` the timesheets of `employee` (the target
-    record, never the caller's own: that would return True for everyone)."""
+    """Whether the session user may `ptype` the timesheets of `employee`. Reading follows
+    `view_others_timesheets`; writing someone else's entries needs `edit_others_time`."""
     from .employee import get_employee_from_user
 
     if frappe.session.user == "Administrator":
         return True
-    roles = frappe.get_roles()
-    session_employee = get_employee_from_user()
-    if (
-        set(roles).intersection(["Projects Manager", "Projects User"])
-        and ptype == "write"
-        and not set(roles).intersection(GLOBAL_TIMESHEET_ROLES)
-    ):
-        if employee == session_employee:
-            return True
-        else:
-            reports_to = frappe.db.get_value("Employee", employee, "reports_to")
-            if reports_to == session_employee:
-                return True
-            else:
-                return False
-    if set(roles).intersection(READ_ONLY_ROLE + READ_WRITE_ROLE) and ptype == "read":
-        return True
-    if set(roles).intersection(READ_WRITE_ROLE) and ptype == "write":
-        return True
-
-    return employee == session_employee
+    if ptype == "write":
+        return employee == get_employee_from_user() or has_capability("edit_others_time")
+    return get_employee_scope("view_others_timesheets").allows(employee)
 
 
-# Roles that may decide any project's timesheets, regardless of who manages the project.
-GLOBAL_APPROVER_ROLES = (*GLOBAL_TIMESHEET_ROLES, "Projects Manager")
+def get_timesheet_approver_users(employee: str) -> set[str]:
+    """Users `employee` may send a week to: anyone holding `be_timesheet_approver` for
+    everyone, plus scoped holders who are the employee's reporting manager or manage one of
+    the employee's projects. Feeds both the approver picker and the submit validation."""
+    grants = CAPABILITIES["be_timesheet_approver"]
+
+    def holders(scope):
+        roles = [role for role, granted in grants.items() if granted == scope]
+        return set(
+            get_all(
+                "Has Role",
+                filters={"role": ["in", roles], "parenttype": "User", "parent": ["!=", "Administrator"]},
+                pluck="parent",
+            )
+        )
+
+    user_id, reports_to = frappe.db.get_value("Employee", employee, ["user_id", "reports_to"]) or (None, None)
+    projects = set(get_all("Timesheet", filters={"employee": employee}, pluck="parent_project", distinct=True))
+    if user_id:
+        projects |= set(
+            get_all(
+                "DocShare", filters={"share_doctype": "Project", "user": user_id, "everyone": 0}, pluck="share_name"
+            )
+        )
+    projects.discard(None)
+    related = set(
+        get_all("Project", filters={"name": ["in", list(projects)]}, pluck="custom_project_manager") if projects else []
+    )
+    if reports_to:
+        related.add(frappe.db.get_value("Employee", reports_to, "user_id"))
+
+    return (holders(ALL) | (holders(REPORTS_AND_OWN_PROJECTS) & related)) - {user_id, None}
+
+
+def can_approve_week(employee: str) -> bool:
+    return get_employee_scope("approve_week").allows(employee)
 
 
 def can_approve_project_timesheets(project: str, employee: str) -> bool:
-    """Whether the session user may decide `employee`'s timesheets for `project`.
-
-    Three personas qualify: a global approver, the project's own manager - the persona the
-    project-wise flow exists for - and the employee's reporting manager, who keeps the
-    authority they already hold over the whole week.
-    """
-    if frappe.session.user == "Administrator":
-        return True
-    if set(frappe.get_roles()).intersection(GLOBAL_APPROVER_ROLES):
-        return True
-    if frappe.db.get_value("Project", project, "custom_project_manager") == frappe.session.user:
-        return True
-
-    from .employee import get_employee_from_user
-
-    session_employee = get_employee_from_user()
-    return bool(session_employee) and frappe.db.get_value("Employee", employee, "reports_to") == session_employee
+    """Whether the session user may decide `employee`'s timesheets for `project`: a global
+    approver, the project's own manager, or the employee's reporting manager."""
+    return get_employee_scope("approve_project_timesheets").allows(employee, project)
 
 
 def get_project_approvable_employees(employee_by_project: dict) -> dict:
     """`{project: [employee, ...]}` naming, per project, whose timesheets the session user may decide.
 
     Asked once per rendered page so a row never offers an action the endpoint would refuse.
-    Resolved per member rather than per project because the reporting-manager persona is
-    settled by the employee and not by the project: a manager with one direct report on a
-    project may decide that report's week and nobody else's on it.
+    Resolved per member because the reporting-manager persona is settled by the employee and
+    not by the project: a manager with one direct report on a project may decide that
+    report's week and nobody else's on it.
     """
-    if not employee_by_project:
-        return {}
-
-    from .employee import get_employee_from_user
-
-    session_employee = get_employee_from_user()
-    if frappe.session.user == "Administrator" or set(frappe.get_roles()).intersection(GLOBAL_APPROVER_ROLES):
-        return {project: sorted(employees - {session_employee}) for project, employees in employee_by_project.items()}
-
-    managed = set(
-        get_all(
-            "Project",
-            filters={"name": ["in", list(employee_by_project)], "custom_project_manager": frappe.session.user},
-            pluck="name",
-        )
-    )
-    reports = (
-        set(get_all("Employee", filters={"reports_to": session_employee}, pluck="name")) if session_employee else set()
-    )
-
+    scope = get_employee_scope("approve_project_timesheets")
     return {
-        project: sorted((employees if project in managed else employees & reports) - {session_employee})
+        project: sorted(
+            employee for employee in employees if employee != scope.employee and scope.allows(employee, project)
+        )
         for project, employees in employee_by_project.items()
     }
 
@@ -711,6 +679,11 @@ def resolve_team_employee_scope(
         timesheet_status=status_filter,
         employee_conditions=employee_conditions,
     )
+    visible_ids = get_employee_scope("team_timesheet_pages").employee_ids()
+    if visible_ids is not None:
+        candidate_employee_ids = sorted(
+            visible_ids if candidate_employee_ids is None else visible_ids.intersection(candidate_employee_ids)
+        )
 
     return TeamEmployeeScope(
         dates=dates,
@@ -1065,9 +1038,12 @@ def resolve_project_participation(scope: ProjectTimesheetScope, weeks: list) -> 
         if not matched_projects:
             return participation
 
+    visibility = get_employee_scope("team_timesheet_pages")
     for detail in details:
         project = project_by_task.get(detail.task)
         if project is None or project not in matched_projects:
+            continue
+        if not visibility.allows(detail.employee, project):
             continue
         # The rendered payload puts an entry in a week only when the parent timesheet's
         # start_date AND the entry's own from_time both fall in it

@@ -2,14 +2,14 @@ import json
 
 import frappe
 from erpnext.setup.utils import get_exchange_rate
-from frappe import get_all, get_list, get_meta, get_value, only_for, whitelist
+from frappe import get_all, get_list, get_meta, get_value, whitelist
 from frappe.utils import add_days, flt, getdate
 
 from next_pms.api.utils import error_logger
+from next_pms.permissions.capabilities import require_capability
 from next_pms.timesheet.utils.constant import (
     MAX_PROJECT_TIMESHEET_PAGE_LENGTH,
     PROJECT_TIMESHEET_PAGE_LENGTH,
-    TIMESHEET_REVIEWER_ROLES,
 )
 
 from . import filter_employees, get_count
@@ -279,7 +279,7 @@ def get_project_timesheet_data(
     counts. Both derive membership from `resolve_project_participation`, so this endpoint's
     `total_count` and that endpoint's `project_count` cannot drift.
     """
-    only_for(TIMESHEET_REVIEWER_ROLES, message=True)
+    require_capability("team_timesheet_pages")
 
     start = max(0, int(start))
     page_length = max(0, min(int(page_length), MAX_PROJECT_TIMESHEET_PAGE_LENGTH))
@@ -356,7 +356,7 @@ def get_project_timesheet_data(
         members = [
             _build_project_member_payload(employee, employee_data, employee_data["project_tasks"][project.name])
             for employee, employee_data in employee_data_map.items()
-            if project.name in employee_data["project_tasks"]
+            if project.name in employee_data["project_tasks"] and employee in employees_by_project.get(project.name, ())
         ]
         if members:
             projects.append({"project": project.name, "project_name": project.project_name, "members": members})
@@ -391,7 +391,7 @@ def get_project_timesheet_weeks(
     Pairs with that endpoint - both derive membership from `resolve_project_participation`,
     so this endpoint's `project_count` and its `total_count` cannot drift apart.
     """
-    only_for(TIMESHEET_REVIEWER_ROLES, message=True)
+    require_capability("team_timesheet_pages")
 
     max_week = int(max_week)
     approval_status = normalize_status_filter(approval_status, coerce_non_list=True)
@@ -460,7 +460,7 @@ def get_project_timesheet_member_week(employee: str, start_date: str, by_pass_ac
     Each `member` is exactly one element of `get_project_timesheet_data`'s `members`.
     """
     if not by_pass_access_check:
-        only_for(TIMESHEET_REVIEWER_ROLES, message=True)
+        require_capability("team_timesheet_pages")
 
     week = get_week_dates(date=start_date)
     employee_rows, _ = filter_employees(page_length=1, start=0, ids=[employee], ignore_default_filters=True)

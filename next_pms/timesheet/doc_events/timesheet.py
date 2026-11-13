@@ -4,12 +4,7 @@ import frappe
 from frappe import _, get_value, throw
 from frappe.utils import add_days, cint, date_diff, flt, formatdate, get_link_to_form, getdate, today
 
-ROLES = {
-    "Projects Manager",
-    "HR User",
-    "HR Manager",
-    "Projects User",
-}
+HR_ROLES = {"HR User", "HR Manager"}
 
 
 #  Doc Events for Timesheet DocType
@@ -375,15 +370,15 @@ def _rejection_window_start(today_date, window_days: int, non_working_days: set)
 def _get_effective_backdated_allowed_days(employees: list) -> dict:
     """Resolves the 'allow backdated entries till' day threshold for every employee in
     `employees`, from the current session user's perspective: the manager threshold applies
-    if they hold a manager-ish role (see ROLES) and are looking at someone else's record, the
+    if they review others' timesheets (or hold an HR role) and are looking at someone else's record, the
     employee threshold otherwise. Reads the viewer's roles/employee record and both settings
     once, no matter how many employees are passed."""
     from frappe import get_roles
 
+    from next_pms.permissions.capabilities import has_capability
     from next_pms.timesheet.api.employee import get_employee_from_user
 
-    frappe_roles = set(get_roles())
-    has_access = ROLES.intersection(frappe_roles)
+    has_access = has_capability("view_others_timesheets") or HR_ROLES.intersection(get_roles())
     viewer_employee = get_employee_from_user()
 
     employee_days = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_employee") or 0

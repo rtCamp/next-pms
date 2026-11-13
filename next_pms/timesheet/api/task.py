@@ -346,7 +346,7 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
 @frappe.whitelist(methods=["GET"])
 def get_task_log(task: str, start_date: str = None, end_date: str = None, employee: str = None):
     """API to get the time log details for a task between the given start date and end date. with an optional parameter of passing in employee"""
-    from next_pms.timesheet.api.employee import get_employee_from_user
+    from next_pms.timesheet.api.employee import get_employee_detail_scope, get_employee_from_user
 
     project = frappe.db.get_value("Task", task, "project")
 
@@ -355,19 +355,10 @@ def get_task_log(task: str, start_date: str = None, end_date: str = None, employ
     else:
         frappe.has_permission("Task", doc=task, ptype="read", throw=True)
 
-    roles = set(frappe.get_roles(frappe.session.user))
-    manager_roles = {
-        "Projects Manager",
-        "Timesheet Manager",
-        "Timesheet User",
-        "Delivery Manager",
-        "Delivery User",
-        "HR Manager",
-        "HR User",
-        "System Manager",
-    }
-    if not (manager_roles & roles) and frappe.session.user != "Administrator":
+    detail_scope = get_employee_detail_scope()
+    if employee and not detail_scope.allows(employee):
         employee = get_employee_from_user()
+    visible_employees = None if employee else detail_scope.employee_ids()
 
     timesheet = DocType("Timesheet")
     timesheet_detail = DocType("Timesheet Detail")
@@ -393,6 +384,8 @@ def get_task_log(task: str, start_date: str = None, end_date: str = None, employ
 
     if employee:
         query = query.where(timesheet.employee == employee)
+    elif visible_employees is not None:
+        query = query.where(timesheet.employee.isin(list(visible_employees) or [""]))
 
     result = query.run(as_dict=True)
 

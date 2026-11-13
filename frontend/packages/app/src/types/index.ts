@@ -169,7 +169,7 @@ export type LazyView = PreloadableComponent<ComponentType<any>>;
 
 export type RouteConfig = {
   Component: LazyView;
-  allowedRoles: Role[];
+  capability?: Capability;
   layout?: ReactNode;
   title: string;
 };

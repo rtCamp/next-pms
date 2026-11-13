@@ -133,7 +133,12 @@ after_app_install = "next_pms.install.after_app_install"
 # Permissions evaluated in scripted ways
 
 
+permission_query_conditions = {
+    "Timesheet": "next_pms.timesheet.permission.get_permission_query_conditions",
+}
+
 has_permission = {
+    "Timesheet": "next_pms.timesheet.permission.has_permission",
     "Risk": "next_pms.next_pms.doctype.risk.risk.has_permission",
     "Resource Allocation": "next_pms.resource_management.doctype.resource_allocation.resource_allocation.has_permission",
     "PMS Growth Initiative": "next_pms.next_pms.doctype.pms_growth_initiative.pms_growth_initiative.has_permission",

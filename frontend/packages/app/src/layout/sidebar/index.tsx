@@ -40,7 +40,7 @@ import {
 import LinkWithPreload from "@/components/linkWithPreload";
 import { SettingsModal } from "@/components/settings";
 import { ROLE_ACCESS, ROUTES } from "@/lib/constant";
-import { hasAnyRole, mergeClassNames as cn } from "@/lib/utils";
+import { hasAnyRole, hasCapability, mergeClassNames as cn } from "@/lib/utils";
 import logo from "@/logo.svg";
 import { useNotifications } from "@/providers/notifications";
 import { useTheme } from "@/providers/theme/hook";
@@ -76,6 +76,7 @@ const Sidebar = () => {
     employeeId,
     employeeName,
     roles,
+    capabilities,
     hasReleaseNotes,
     hasUnseenRelease,
     updateIsSidebarCollapsed,
@@ -85,6 +86,7 @@ const Sidebar = () => {
     employeeId: state.employeeId,
     employeeName: state.employeeName,
     roles: state.roles,
+    capabilities: state.capabilities,
     hasReleaseNotes: state.hasReleaseNotes,
     hasUnseenRelease: state.hasUnseenRelease,
     updateIsSidebarCollapsed: actions.updateIsSidebarCollapsed,
@@ -120,10 +122,10 @@ const Sidebar = () => {
 
   const dashboardItems: SidebarSectionType["items"] = [];
 
-  if (hasAnyRole(roles, ROLE_ACCESS.leadershipDashboard)) {
+  if (hasCapability(capabilities, "leadership_dashboard")) {
     dashboardItems.push(leadershipDashboard);
   }
-  if (hasAnyRole(roles, ROLE_ACCESS.managerDashboard)) {
+  if (hasCapability(capabilities, "manager_dashboard")) {
     dashboardItems.push(managerDashbaord);
   }
 
@@ -157,7 +159,7 @@ const Sidebar = () => {
 
   const timesheetItems: SidebarSectionType["items"] = [personalTimesheet];
 
-  if (hasAnyRole(roles, ROLE_ACCESS.reviewTimesheets)) {
+  if (hasCapability(capabilities, "team_timesheet_pages")) {
     timesheetItems[0].label = "Personal";
     timesheetItems.push(teamTimesheet);
     timesheetItems.push(projectTimesheet);
@@ -173,7 +175,7 @@ const Sidebar = () => {
 
   const projectItems: SidebarSectionType["items"] = [];
 
-  if (hasAnyRole(roles, ROLE_ACCESS.projects)) {
+  if (hasCapability(capabilities, "projects_page")) {
     projectItems.push(projects);
   }
 
@@ -249,28 +251,28 @@ const Sidebar = () => {
     });
   }
 
-  if (hasAnyRole(roles, ROLE_ACCESS.leadershipDashboard)) {
+  if (hasCapability(capabilities, "leadership_dashboard")) {
     searchItems.push({
       label: "Dashboard - Leadership",
       action: () => navigate(ROUTES["dashboard-leadership"]),
     });
   }
 
-  if (hasAnyRole(roles, ROLE_ACCESS.managerDashboard)) {
+  if (hasCapability(capabilities, "manager_dashboard")) {
     searchItems.push({
       label: "Dashboard - Manager",
       action: () => navigate(ROUTES["dashboard-manager"]),
     });
   }
 
-  if (hasAnyRole(roles, ROLE_ACCESS.projects)) {
+  if (hasCapability(capabilities, "projects_page")) {
     searchItems.push({
       label: "Projects",
       action: () => navigate(ROUTES["project"]),
     });
   }
 
-  if (hasAnyRole(roles, ROLE_ACCESS.reviewTimesheets)) {
+  if (hasCapability(capabilities, "team_timesheet_pages")) {
     searchItems.push({
       label: "Timesheet - Team",
       action: () =>

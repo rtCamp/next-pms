@@ -7,7 +7,6 @@ from next_pms.permissions.docperms import apply_permissions
 
 def after_install():
     create_roles()
-    add_project_manager_perm()
     setup_email_template()
     setup_project_threshold_reminder_template()
     create_default_project_phases()
@@ -419,45 +418,6 @@ CUSTOM_DOCPERMS: tuple[tuple[str, str, int, int, tuple[str, ...]], ...] = (
         ("select", "read", "write", "create", "delete", "report", "share", "print", "email"),
     ),
     ("Task", "Projects User", 1, 0, ("read", "write", "export")),
-    (
-        "Timesheet",
-        "Accounts User",
-        0,
-        0,
-        ("read", "write", "create", "delete", "submit", "cancel", "amend", "report", "email"),
-    ),
-    ("Timesheet", "Accounts User", 1, 0, ("read", "write")),
-    ("Timesheet", "Employee", 0, 0, ("read", "write", "create", "delete")),
-    (
-        "Timesheet",
-        "HR User",
-        0,
-        0,
-        (
-            "read",
-            "write",
-            "create",
-            "delete",
-            "submit",
-            "cancel",
-            "amend",
-            "report",
-            "export",
-            "share",
-            "print",
-            "email",
-        ),
-    ),
-    ("Timesheet", "Projects Manager", 0, 0, ("submit",)),
-    ("Timesheet", "Projects Manager", 1, 0, ("read", "write", "export")),
-    (
-        "Timesheet",
-        "Projects User",
-        0,
-        0,
-        ("read", "write", "create", "delete", "submit", "cancel", "amend", "report", "share", "print", "email"),
-    ),
-    ("Timesheet", "Projects User", 1, 0, ("read", "write", "export")),
 )
 
 
@@ -512,27 +472,6 @@ def is_standard_copy(custom_perm, rule, std_rights) -> bool:
 
     standard = frappe.db.get_value("DocPerm", rule, std_rights, as_dict=True)
     return bool(standard) and all(cint(custom_perm[r]) == cint(standard[r]) for r in std_rights)
-
-
-def add_project_manager_perm():
-    from frappe.permissions import add_permission, update_permission_property
-
-    role = "Projects Manager"
-    doctype = "Timesheet"
-    perm_level = 0
-    permissions = {
-        perm_level: {
-            "create": 0,
-            "read": 0,
-            "delete": 0,
-            "write": 0,
-            "export": 0,
-            "submit": 1,
-        }
-    }
-    add_permission(doctype, role, perm_level)
-    for perm_key, perm_val in permissions[perm_level].items():
-        update_permission_property(doctype, role, perm_level, perm_key, perm_val)
 
 
 def setup_email_template():

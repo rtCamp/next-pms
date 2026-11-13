@@ -1,29 +1,44 @@
 import frappe
 from frappe import get_all, get_list, get_value, whitelist
 
-from next_pms.timesheet.utils.constant import GLOBAL_TIMESHEET_ROLES
+from next_pms.permissions.capabilities import ALL, capability_scope
 
 
 @whitelist(methods=["GET"])
 def get_approver_details():
-    """returns a list of approver details"""
-    roles = ["Projects Manager", "Projects User", "Timesheet User"]
+    """Employees whose roles let them approve timesheets for at least some employees."""
+    from next_pms.permissions.capabilities import CAPABILITIES
 
     user_ids = get_all(
         "Has Role",
         filters={
-            "role": ["in", roles],
+            "role": ["in", list(CAPABILITIES["be_timesheet_approver"])],
             "parenttype": "User",
             "parent": ["!=", "Administrator"],
         },
         pluck="parent",
     )
-    employees = get_all(
+    return _active_employees_for_users(user_ids)
+
+
+@whitelist(methods=["GET"])
+def get_timesheet_approvers():
+    """Employees the session user may send their own week to for approval."""
+    from .employee import get_employee_from_user
+    from .utils import get_timesheet_approver_users
+
+    employee = get_employee_from_user()
+    if not employee:
+        return []
+    return _active_employees_for_users(list(get_timesheet_approver_users(employee)))
+
+
+def _active_employees_for_users(user_ids: list[str]) -> list[dict]:
+    return get_all(
         "Employee",
         filters={"user_id": ["in", user_ids], "status": "Active"},
         fields=["name", "employee_name", "image"],
     )
-    return employees
 
 
 def filter_employees(
@@ -68,8 +83,9 @@ def filter_employees(
             employee IDs via Has Role. Defaults to None.
         ignore_default_filters (bool): When True, removes the default status filter.
             Defaults to False.
-        ignore_permissions (bool): Passed to `get_list`; auto-set to True for
-            Timesheet User / Timesheet Manager roles. Defaults to False.
+        ignore_permissions (bool): Passed to `get_list`; auto-set to True when the user
+            may view every employee's timesheets, or any scope of them with a membership
+            filter. Defaults to False.
         extra_fields (list[str] | None): Additional Employee fields to include beyond
             the default set [name, image, employee_name, department, designation].
             Defaults to None.
@@ -116,12 +132,9 @@ def filter_employees(
     filters = {"status": ["in", ["Active"]]}
     or_filters = {}
 
-    user_roles = frappe.get_roles()
     if not ignore_permissions:
-        if set(user_roles).intersection([*GLOBAL_TIMESHEET_ROLES, "Projects Manager"]):
-            ignore_permissions = True
-        elif has_membership_filter and "Projects User" in user_roles:
-            ignore_permissions = True
+        timesheet_scope = capability_scope("view_others_timesheets")
+        ignore_permissions = timesheet_scope == ALL or (has_membership_filter and timesheet_scope is not None)
 
     if reports_to:
         if isinstance(reports_to, str):
