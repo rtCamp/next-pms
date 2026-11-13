@@ -151,6 +151,7 @@ OWNED_DOCTYPES: tuple[str, ...] = (
     "Project Timeline Item",
     "Project Timeline Item Category",
     "Technology",
+    "Resource Allocation",
 )
 
 

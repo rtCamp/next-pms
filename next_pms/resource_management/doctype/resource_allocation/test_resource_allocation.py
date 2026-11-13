@@ -29,7 +29,7 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         cls.customer = cls._make_customer("Globex")
         cls.project = cls._make_project("Active Project", cls.customer)
         cls.projects_user = cls._make_user("meera.iyer@example.com", roles=["Projects User"])
-        cls.delivery_manager = cls._make_user("dm.resource.alloc@example.com", roles=["Delivery Manager"])
+        cls.leadership_user = cls._make_user("pl.resource.alloc@example.com", roles=["PMS Leadership"])
 
     @classmethod
     def _make_user(cls, email, roles=None):
@@ -123,10 +123,10 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         for allocation in frappe.get_all(
             "Resource Allocation", filters={"project": self.project}, fields=["name", "is_ai_created"]
         ):
-            frappe.set_user(self.delivery_manager if allocation.is_ai_created else "Administrator")
+            frappe.set_user(self.leadership_user if allocation.is_ai_created else "Administrator")
             frappe.delete_doc("Resource Allocation", allocation.name, force=1, ignore_permissions=True)
         frappe.set_user("Administrator")
-        for notif in frappe.get_all("NextPMS Notifications", filters={"user": self.delivery_manager}, pluck="name"):
+        for notif in frappe.get_all("NextPMS Notifications", filters={"user": self.leadership_user}, pluck="name"):
             frappe.delete_doc("NextPMS Notifications", notif, force=1, ignore_permissions=True)
 
     def test_active_project_and_enabled_customer_saves(self):
@@ -302,7 +302,7 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         doc.insert(ignore_permissions=True)
         self.assertEqual(doc.currency, "INR")
 
-    def test_ai_allocation_notifies_delivery_managers(self):
+    def test_ai_allocation_notifies_leadership(self):
         project = self._make_project("AI Notif Project", self.customer)
         ai_reason = "Selected for relevant experience and availability."
         doc = self._make_allocation_doc(
@@ -319,7 +319,7 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         notifications = frappe.get_all(
             "NextPMS Notifications",
             filters={
-                "user": self.delivery_manager,
+                "user": self.leadership_user,
                 "linked_doctype": "Project",
                 "linked_document": project,
                 "viewed": 0,
@@ -333,7 +333,7 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         self.assertEqual(notif.label, "You have Ai-generated allocations that need to be reviewed.")
         self.assertEqual(notif.url, f"/next-pms/allocations/project?{urlencode({'search': project_name})}")
 
-    def test_delivery_manager_can_approve_ai_allocation(self):
+    def test_leadership_can_approve_ai_allocation(self):
         doc = self._make_allocation_doc(
             project=self.project,
             is_ai_created=1,
@@ -341,7 +341,7 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         )
         doc.insert(ignore_permissions=True)
 
-        frappe.set_user(self.delivery_manager)
+        frappe.set_user(self.leadership_user)
         edit_allocation(
             name=doc.name,
             edit_mode="only_this",
@@ -365,7 +365,7 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         self.assertEqual(frappe.db.get_value("Resource Allocation", doc.name, "is_ai_created"), 0)
         self.assertEqual(frappe.db.get_value("Resource Allocation", doc.name, "status"), "Confirmed")
 
-    def test_delivery_manager_can_delete_ai_allocation(self):
+    def test_leadership_can_delete_ai_allocation(self):
         doc = self._make_allocation_doc(
             project=self.project,
             is_ai_created=1,
@@ -373,12 +373,12 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         )
         doc.insert(ignore_permissions=True)
 
-        frappe.set_user(self.delivery_manager)
+        frappe.set_user(self.leadership_user)
         delete_allocation(name=doc.name, delete_mode="only_this")
 
         self.assertFalse(frappe.db.exists("Resource Allocation", doc.name))
 
-    def test_only_delivery_managers_can_manage_ai_allocations(self):
+    def test_only_leadership_can_manage_ai_allocations(self):
         ai_doc = self._make_allocation_doc(project=self.project, is_ai_created=1, status="Tentative")
         ai_doc.insert(ignore_permissions=True)
         regular_doc = self._make_allocation_doc(
@@ -390,9 +390,9 @@ class TestResourceAllocationValidation(IntegrationTestCase):
 
         self.assertFalse(has_permission(ai_doc, ptype="write", user=self.projects_user))
         self.assertFalse(has_permission(ai_doc, ptype="delete", user=self.projects_user))
-        self.assertTrue(has_permission(ai_doc, ptype="write", user=self.delivery_manager))
-        self.assertTrue(has_permission(regular_doc, ptype="write", user=self.delivery_manager))
-        self.assertTrue(has_permission(regular_doc, ptype="delete", user=self.delivery_manager))
+        self.assertTrue(has_permission(ai_doc, ptype="write", user=self.leadership_user))
+        self.assertTrue(has_permission(regular_doc, ptype="write", user=self.leadership_user))
+        self.assertTrue(has_permission(regular_doc, ptype="delete", user=self.leadership_user))
 
     def test_administrator_can_approve_and_delete_ai_allocations(self):
         doc = self._make_allocation_doc(
@@ -456,7 +456,7 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         notifications = frappe.get_all(
             "NextPMS Notifications",
             filters={
-                "user": self.delivery_manager,
+                "user": self.leadership_user,
                 "linked_doctype": "Project",
                 "linked_document": project,
                 "viewed": 0,
@@ -466,7 +466,7 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         self.assertEqual(len(notifications), 1)
         self.assertEqual(notifications[0].label, "You have Ai-generated allocations that need to be reviewed.")
 
-    def test_regular_allocation_does_not_notify_delivery_managers(self):
+    def test_regular_allocation_does_not_notify_leadership(self):
         project = self._make_project("Regular Alloc Project", self.customer)
         doc = self._make_allocation_doc(
             project=project,
@@ -477,6 +477,6 @@ class TestResourceAllocationValidation(IntegrationTestCase):
 
         notif_count = frappe.db.count(
             "NextPMS Notifications",
-            filters={"user": self.delivery_manager, "linked_document": project},
+            filters={"user": self.leadership_user, "linked_document": project},
         )
         self.assertEqual(notif_count, 0)

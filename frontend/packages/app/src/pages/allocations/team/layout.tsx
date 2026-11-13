@@ -9,24 +9,21 @@ import { SWRConfig } from "swr";
 /**
  * Internal dependencies.
  */
+import { useCapability } from "@/hooks/useCapability";
 import { Header } from "@/layout/header";
-import { ROLE_ACCESS } from "@/lib/constant";
-import { hasAnyRole } from "@/lib/utils";
 import { AllocationsBreadcrumbs } from "@/pages/allocations/components/allocationsBreadcrumbs";
 import AddAllocationModal from "@/pages/allocations/team/add-allocation";
 import EditScheduleModal from "@/pages/allocations/team/edit-schedule";
 import { AllocationsTeamProvider } from "@/pages/allocations/team/provider";
 import { UnsavedChangesProvider } from "@/pages/allocations/unsavedChanges/UnsavedChangesProvider";
 import { useAllocationModal } from "@/pages/allocations/useAllocationModal";
-import { useUser } from "@/providers/user";
 import { useAllocationsTeam } from "./context";
 
 function AllocationsTeamLayoutContent() {
   const refresh = useAllocationsTeam(({ actions }) => actions.refresh);
   const { openAddDialog, outletContext, modalProps, editScheduleModalProps } =
     useAllocationModal(refresh);
-  const roles = useUser(({ state }) => state.roles);
-  const canManageAllocations = hasAnyRole(roles, ROLE_ACCESS.manageAllocations);
+  const canManageAllocations = useCapability("manage_allocations");
 
   return (
     <>

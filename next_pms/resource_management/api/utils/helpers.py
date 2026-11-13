@@ -5,16 +5,11 @@ import frappe
 from frappe.utils import cint, flt
 from frappe.utils.data import add_days, getdate
 
+from next_pms.permissions.capabilities import has_capability, require_capability
 from next_pms.timesheet.api.team import get_week_dates
 
-# Roles that resource_api_permissions_check grants full read/write/delete on allocations.
-# Anything gating allocation access by role must use this set, so a role that can write an
-# allocation is never blocked from the data the write depends on.
-RESOURCE_MANAGER_ROLES = frozenset(
-    {"Projects Manager", "Projects User", "Delivery Manager", "Delivery User", "System Manager"}
-)
-
-AI_ALLOCATION_MANAGER_ROLES = frozenset({"Delivery Manager"})
+# Roles outside PMS that keep seeing employee compensation in allocation views.
+COMPENSATION_ROLES = frozenset({"HR Manager", "HR User", "Accounts Manager"})
 
 DEFAULT_ALLOCATION_RATE_CURRENCY = "USD"
 
@@ -544,18 +539,25 @@ def resource_api_permissions_check():
             frappe._("You don't have permission to access this resource"),
             frappe.PermissionError,
         )
-    frappe.only_for(
-        ["Projects Manager", "Projects User", "Delivery Manager", "Delivery User", "Employee", "System Manager"],
-        message=True,
-    )
-
-    roles = set(frappe.get_roles())
-
-    if (RESOURCE_MANAGER_ROLES & roles) or (frappe.session.user == "Administrator"):
-        return {"read": True, "write": True, "delete": True}
-
-    return {"read": False, "write": False, "delete": False}
+    require_capability("view_allocations")
+    can_manage = has_capability("manage_allocations")
+    # view_cost is part of the dict the allocation views key their caches on, so callers
+    # who may and may not see employee cost never share a cached payload.
+    return {"read": can_manage, "write": can_manage, "delete": can_manage, "view_cost": can_see_resource_cost()}
 
 
 def can_manage_ai_allocations(user: str | None = None) -> bool:
-    return bool(AI_ALLOCATION_MANAGER_ROLES & set(frappe.get_roles(user)))
+    return has_capability("manage_ai_allocations", user)
+
+
+def can_see_resource_cost() -> bool:
+    """Whether employee CTC and other per-person cost may be returned to the session user."""
+    return has_capability("view_resource_cost") or bool(COMPENSATION_ROLES & set(frappe.get_roles()))
+
+
+def readable_allocation(result):
+    """Clear the fields the session user may not read (cost at permlevel 2) before a saved
+    allocation is returned to the client."""
+    if isinstance(result, frappe.model.document.Document):
+        result.apply_fieldlevel_read_permissions()
+    return result

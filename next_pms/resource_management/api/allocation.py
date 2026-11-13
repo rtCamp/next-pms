@@ -7,11 +7,12 @@ import frappe
 from frappe.automation.doctype.auto_repeat.auto_repeat import add_days
 from frappe.utils import cint, flt, getdate, strip_html_tags
 
+from next_pms.permissions.capabilities import has_capability
 from next_pms.resource_management.api.utils.helpers import (
-    RESOURCE_MANAGER_ROLES,
     can_manage_ai_allocations,
     is_on_leave,
     override_hours_by_date,
+    readable_allocation,
     resource_api_permissions_check,
 )
 from next_pms.resource_management.api.utils.leave_sync import (
@@ -47,14 +48,14 @@ VALID_DELETE_MODES = frozenset({"only_this", "this_and_future", "all_in_series"}
 VALID_EDIT_MODES = frozenset({"only_this", "whole_series", "this_and_future"})
 
 
-def _require_delivery_manager_for_ai_allocation(name: str) -> bool:
+def _require_ai_allocation_manager(name: str) -> bool:
     is_ai_created = cint(frappe.db.get_value("Resource Allocation", name, "is_ai_created"))
     if not is_ai_created:
         return False
 
     if not can_manage_ai_allocations():
         frappe.throw(
-            frappe._("Only Delivery Managers can manage Ai-created allocations."),
+            frappe._("Only PMS Leadership can manage Ai-created allocations."),
             exc=frappe.PermissionError,
         )
 
@@ -189,7 +190,7 @@ def handle_allocation(allocation: AllocationPayload, repeat_till_week_count: int
             exc=frappe.ValidationError,
         )
 
-    return add_allocation(allocation, repeat_till_week_count)
+    return readable_allocation(add_allocation(allocation, repeat_till_week_count))
 
 
 def add_allocation(allocation: AllocationPayload, repeat_till_week_count: int = 0):
@@ -541,7 +542,7 @@ def edit_allocation(
     if not permission["write"]:
         frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
 
-    is_ai_created = _require_delivery_manager_for_ai_allocation(name)
+    is_ai_created = _require_ai_allocation_manager(name)
     existing_project = frappe.db.get_value("Resource Allocation", name, "project")
     target_project = getattr(allocation, "project", None) or frappe.db.get_value("Resource Allocation", name, "project")
     if target_project and (not is_ai_created or target_project != existing_project):
@@ -631,7 +632,7 @@ def edit_allocation(
 
         if edit_mode == "this_and_future":
             _propagate_day_overrides_to_series(series, day_overrides, deleted_day_overrides)
-        return frappe.get_doc("Resource Allocation", name)
+        return readable_allocation(frappe.get_doc("Resource Allocation", name))
 
     result = update_allocation(allocation)
     _share_project_with_approved_ai_employee(result, stored.is_ai_created)
@@ -639,8 +640,8 @@ def edit_allocation(
         clear_day_overrides(name)
     apply_day_overrides(name, day_overrides, deleted_day_overrides)
     if cint(stored.is_ai_created) and allocation.is_ai_created is not None and not cint(allocation.is_ai_created):
-        return _split_approved_ai_allocation_into_weeks(allocation) or result
-    return result
+        return readable_allocation(_split_approved_ai_allocation_into_weeks(allocation) or result)
+    return readable_allocation(result)
 
 
 def _split_approved_ai_allocation_into_weeks(allocation: AllocationPayload):
@@ -768,7 +769,7 @@ def delete_allocation(name: str, delete_mode: str):
     if not permission["write"]:
         frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
 
-    is_ai_created = _require_delivery_manager_for_ai_allocation(name)
+    is_ai_created = _require_ai_allocation_manager(name)
     target_project = frappe.db.get_value("Resource Allocation", name, "project")
     if target_project and not is_ai_created:
         frappe.has_permission("Project", doc=target_project, ptype="write", user=frappe.session.user, throw=True)
@@ -875,8 +876,7 @@ def get_over_allocated_dates(
     # Every allocation-writing role may check any employee here: the add-allocation dialog runs
     # this for the team member being allocated, so a narrower set would block that flow before
     # submission. Roles without allocation access are already rejected by the read check above.
-    roles = set(frappe.get_roles(frappe.session.user))
-    if not (RESOURCE_MANAGER_ROLES & roles) and frappe.session.user != "Administrator":
+    if not has_capability("manage_allocations"):
         own_employee = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
         if not own_employee or own_employee != employee:
             frappe.throw(

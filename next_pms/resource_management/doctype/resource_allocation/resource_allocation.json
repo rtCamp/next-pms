@@ -217,7 +217,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-30 13:50:38.935009",
+ "modified": "2026-11-13 18:04:39.242369",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "Resource Allocation",
@@ -298,7 +298,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Delivery Manager",
+   "role": "PMS Leadership",
    "select": 1,
    "share": 1,
    "write": 1
@@ -311,7 +311,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Delivery Manager",
+   "role": "PMS Leadership",
    "share": 1,
    "write": 1
   }
