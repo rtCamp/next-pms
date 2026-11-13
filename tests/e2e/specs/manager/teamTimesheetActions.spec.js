@@ -7,6 +7,7 @@ import {
 } from "../../helpers/storageStateHelper";
 import { reseedWeek, weekStatuses } from "../../helpers/weekTimeHelper";
 import { TeamTimesheetPage } from "../../pageObjects/teamTimesheetPage";
+import { onlyWeek } from "../../pageObjects/timesheetTabPage";
 import { TimesheetWeeksPage } from "../../pageObjects/timesheetWeeksPage";
 import {
   cancelDocument,
@@ -24,19 +25,6 @@ const ALPHA = "TM Alpha";
 const ALPHA_TASK = "TM Alpha task";
 const QUEUED = "Timesheet approval or rejection has been queued";
 const lastWeek = (weekday) => dateInWeek(1, weekday);
-
-// A Date range shows only that week, opened; the tab otherwise opens just its first four.
-const onlyWeek = (weeksAgo) => ({
-  compositeFilters: JSON.stringify([
-    {
-      id: "filter-1",
-      field: "date",
-      operator: "between",
-      value: [dateInWeek(weeksAgo, "Mon"), dateInWeek(weeksAgo, "Sun")],
-      fieldCategory: "",
-    },
-  ]),
-});
 
 // Every case here changes what it acts on; each brings its week back first when a retry
 // finds it already changed, and removes what it adds.

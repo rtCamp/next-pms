@@ -53,4 +53,9 @@ module.exports = {
       url: "/next-pms/tasks",
     })),
   },
+
+  // What's new (TC411 to TC413): a user of its own, whose last seen release the cases set.
+  TC411: {
+    payloadCreateWeekEmployees: { WnReader: persona([]) },
+  },
 };
