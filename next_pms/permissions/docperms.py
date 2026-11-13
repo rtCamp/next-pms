@@ -152,6 +152,12 @@ OWNED_DOCTYPES: tuple[str, ...] = (
     "Project Timeline Item Category",
     "Technology",
     "Resource Allocation",
+    "NextPMS Notifications",
+    "PMS View Setting",
+    "PMS User Setting",
+    "PMS Project Update Subscription",
+    "Timesheet Settings",
+    "Host",
 )
 
 

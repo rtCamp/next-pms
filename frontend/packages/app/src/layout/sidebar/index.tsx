@@ -39,8 +39,8 @@ import {
  */
 import LinkWithPreload from "@/components/linkWithPreload";
 import { SettingsModal } from "@/components/settings";
-import { ROLE_ACCESS, ROUTES } from "@/lib/constant";
-import { hasAnyRole, hasCapability, mergeClassNames as cn } from "@/lib/utils";
+import { ROUTES } from "@/lib/constant";
+import { hasCapability, mergeClassNames as cn } from "@/lib/utils";
 import logo from "@/logo.svg";
 import { useNotifications } from "@/providers/notifications";
 import { useTheme } from "@/providers/theme/hook";
@@ -199,7 +199,7 @@ const Sidebar = () => {
 
   const notificationItems = [];
 
-  const hasNotificationAccess = hasAnyRole(roles, ROLE_ACCESS.notifications);
+  const hasNotificationAccess = hasCapability(capabilities, "notifications");
 
   if (hasNotificationAccess) {
     notificationItems.push(notificationsOption);

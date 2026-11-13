@@ -10,7 +10,7 @@
  "is_standard": "Yes",
  "letter_head": "",
  "letterhead": null,
- "modified": "2025-02-03 15:45:26.684274",
+ "modified": "2026-11-13 21:01:51.152983",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "Employee Billability",
@@ -21,7 +21,10 @@
  "report_type": "Script Report",
  "roles": [
   {
-   "role": "Delivery Manager"
+   "role": "PMS Leadership"
+  },
+  {
+   "role": "System Manager"
   }
  ],
  "timeout": 3600

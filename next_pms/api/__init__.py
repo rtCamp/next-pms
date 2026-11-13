@@ -7,20 +7,11 @@ from frappe.integrations.doctype.google_calendar.google_calendar import (
 )
 
 from next_pms.api.utils import transform_google_events
+from next_pms.permissions.capabilities import has_capability
 
 
 def check_app_permission():
-    if frappe.session.user == "Administrator":
-        return True
-
-    roles = frappe.get_roles()
-    if any(
-        role in ["Projects User", "Projects Manager", "Timesheet User", "Timesheet Manager", "Desk User", "Employee"]
-        for role in roles
-    ):
-        return True
-
-    return False
+    return has_capability("open_app")
 
 
 class GoogleBadRequest(Exception):

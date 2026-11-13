@@ -16,6 +16,11 @@ class PMSViewSetting(Document):
             self.user = None
 
 
+def check_public_view_permission():
+    if not has_capability("public_views"):
+        frappe.throw(frappe._("Not permitted to share views with everyone"), frappe.PermissionError)
+
+
 def check_tracking_layout_permission(project: str):
     if not has_capability("project_admin"):
         frappe.throw(frappe._("Not permitted to customize the tracking page"), frappe.PermissionError)
@@ -110,6 +115,9 @@ def create_view(view: dict):
         if existing:
             return update_view({"name": existing, "rows": view.rows})
 
+    if view.public and view.type != TRACKING_VIEW_TYPE:
+        check_public_view_permission()
+
     view.filters = parse_json(view.filters) or {}
     view.order_by = parse_json(view.order_by or "[]")
     view.rows = parse_json(view.rows or "[]")
@@ -168,6 +176,8 @@ def update_view(view: dict):
             frappe._("Only Administrator or Owner can update public view"),
             frappe.PermissionError,
         )
+    if view.public and not doc.public:
+        check_public_view_permission()
     view.filters = parse_json(view.filters) or {}
     view.order_by = parse_json(view.order_by or "[]")
     view.rows = parse_json(view.rows or "[]")

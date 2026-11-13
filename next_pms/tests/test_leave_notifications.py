@@ -38,7 +38,7 @@ PUBLISH_REALTIME = "next_pms.next_pms.notifications.frappe.publish_realtime"
 ROLES_BY_USER = {
     MANAGER_USER: ("Projects Manager", "Leave Approver"),
     APPROVER_USER: ("Projects User",),
-    NOTIFIED_USER: ("Delivery Manager",),
+    NOTIFIED_USER: ("PMS Leadership",),
     TRAY_ONLY_USER: ("Delivery User",),
     NO_TRAY_ROLE_USER: ("Leave Approver",),
     TIMESHEET_MANAGER_USER: ("Timesheet Manager",),
@@ -73,6 +73,10 @@ class LeaveNotificationTestCase(IntegrationTestCase):
 
         for user, roles in ROLES_BY_USER.items():
             frappe.get_doc("User", user).add_roles(*roles)
+        # Every PMS role, Employee included, gets the tray, so the users that must be
+        # skipped hold no PMS role at all.
+        for user in (NO_TRAY_ROLE_USER, TIMESHEET_MANAGER_USER):
+            frappe.get_doc("User", user).remove_roles("Employee")
 
         frappe.db.set_value("User", DISABLED_USER, "enabled", 0)
 

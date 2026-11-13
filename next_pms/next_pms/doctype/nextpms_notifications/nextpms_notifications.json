@@ -90,7 +90,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-16 17:05:00.000000",
+ "modified": "2026-11-13 18:25:27.636479",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "NextPMS Notifications",
@@ -166,17 +166,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Delivery Manager",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Delivery User",
+   "role": "PMS Leadership",
    "share": 1,
    "write": 1
   },
@@ -187,17 +177,27 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Delivery Manager",
+   "role": "PMS Leadership",
    "share": 1
   },
   {
    "email": 1,
    "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Employee",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
    "permlevel": 1,
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Delivery User",
+   "role": "Employee",
    "share": 1
   }
  ],

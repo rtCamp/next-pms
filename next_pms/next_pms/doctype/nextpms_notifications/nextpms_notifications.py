@@ -137,3 +137,14 @@ def insert_notification(record):
     Permissions are ignored because the job runs as whoever triggered it, not as the recipient.
     """
     frappe.get_doc({"doctype": "NextPMS Notifications", **record}).insert(ignore_permissions=True)
+
+
+def get_permission_query_conditions(user: str | None = None) -> str:
+    user = user or frappe.session.user
+    if user == "Administrator":
+        return ""
+    return f"`tabNextPMS Notifications`.`user` = {frappe.db.escape(user)}"
+
+
+def has_permission(doc, ptype: str | None = None, user: str | None = None, debug: bool = False) -> bool:
+    return doc.user == (user or frappe.session.user)
