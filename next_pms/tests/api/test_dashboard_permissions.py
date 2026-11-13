@@ -28,8 +28,6 @@ USERS = {
     "test.sm.dashboard@example.com": ["System Manager"],
     "test.dm.dashboard@example.com": ["Delivery Manager"],
     "test.du.dashboard@example.com": ["Delivery User"],
-    "test.tm.dashboard@example.com": ["Timesheet Manager"],
-    "test.tu.dashboard@example.com": ["Timesheet User"],
     "test.norole.dashboard@example.com": [],
 }
 LEADERSHIP_USERS = {"test.pl.dashboard@example.com", "test.sm.dashboard@example.com"}

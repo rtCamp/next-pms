@@ -444,7 +444,7 @@ const Sidebar = () => {
         onOpenChange={setIsHelpOpen}
         pageTips={tipsForPath(pathname, search)}
         generalTips={GENERAL_TIPS}
-        roles={roles}
+        roles={[...roles, ...Object.keys(capabilities)]}
         className={cn(
           "max-w-[calc(100vw-4rem)]",
           isSidebarCollapsed ? "left-12" : "left-60 max-sm:left-12",

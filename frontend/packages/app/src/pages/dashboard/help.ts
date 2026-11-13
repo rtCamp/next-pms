@@ -6,7 +6,6 @@ import type { FieldHelp, HelpTip } from "@next-pms/design-system/components";
 /**
  * Internal dependencies.
  */
-import { ROLE_ACCESS } from "@/lib/constant";
 import { STATUS_ICONS } from "./widget/timesheet-summary/statusIcon";
 
 const KPI_WIKI = "Leadership-Dashboard#key-performance-indicators";
@@ -319,7 +318,7 @@ export const MANAGER_DASHBOARD_TIPS: HelpTip[] = [
     title: "Review a member's timesheet",
     body: "Select a name in Timesheets to review and approve that member's time in Team Timesheet.",
     wiki: `${MANAGER_WIKI}#follow-up-on-notifications-and-reviews`,
-    roles: ROLE_ACCESS.reviewTimesheets,
+    roles: ["team_timesheet_pages"],
   },
 ];
 
@@ -333,7 +332,7 @@ export const LEADERSHIP_DASHBOARD_TIPS: HelpTip[] = [
     title: "Leadership and Manager dashboards",
     body: "Leadership shows money and capacity across the organisation. Manager shows your direct reports and the projects you manage.",
     wiki: "Roles-and-Access#who-can-see-what",
-    roles: ROLE_ACCESS.managerDashboard,
+    roles: ["manager_dashboard"],
   },
   {
     ...HEATMAP_ROLES_TIP,

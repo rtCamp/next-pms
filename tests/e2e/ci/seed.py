@@ -23,7 +23,7 @@ PASSWORD = os.environ.get("E2E_PASSWORD", "")
 
 # Names must not be substrings of each other: TC38 expects a search for one name to return one row.
 PERSONAS = {
-    "REP_MAN": {"first": "Marcus", "last": "Thorne", "roles": ["Projects Manager", "Timesheet Manager"]},
+    "REP_MAN": {"first": "Marcus", "last": "Thorne", "roles": ["Projects Manager"]},
     "EMP": {"first": "Priya", "last": "Raman", "roles": []},
     "EMP2": {"first": "Daniel", "last": "Okafor", "roles": []},
     "EMP3": {"first": "Lena", "last": "Fischer", "roles": [], "business_unit": "Polaris"},

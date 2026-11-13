@@ -41,7 +41,7 @@ ROLES_BY_USER = {
     NOTIFIED_USER: ("PMS Leadership",),
     TRAY_ONLY_USER: ("Delivery User",),
     NO_TRAY_ROLE_USER: ("Leave Approver",),
-    TIMESHEET_MANAGER_USER: ("Timesheet Manager",),
+    TIMESHEET_MANAGER_USER: ("Delivery Manager",),
     DISABLED_USER: ("Projects User",),
 }
 

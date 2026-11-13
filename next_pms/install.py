@@ -6,7 +6,6 @@ from next_pms.permissions.docperms import apply_permissions
 
 
 def after_install():
-    create_roles()
     setup_email_template()
     setup_project_threshold_reminder_template()
     create_default_project_phases()
@@ -354,16 +353,6 @@ def setup_project_threshold_reminder_template():
 def create_docs(records: list):
     for doc in records:
         get_doc(doc).insert(ignore_permissions=True, ignore_mandatory=True, ignore_if_duplicate=True)
-
-
-def create_roles():
-    import frappe
-
-    roles = ["Timesheet Manager", "Timesheet User"]
-
-    for role in roles:
-        role = frappe.get_doc({"doctype": "Role", "role_name": role, "is_custom": 1})
-        role.insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 
 def create_default_project_phases():

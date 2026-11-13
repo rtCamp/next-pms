@@ -91,7 +91,7 @@ export const PROJECT_DETAIL_TIPS: Partial<Record<TabKey, HelpTip[]>> = {
         "Select Done.",
       ],
       wiki: "Project-Detail#hide-or-restore-a-tracking-card",
-      roles: ["Projects Manager", "PMS Leadership", "System Manager"],
+      roles: ["project_admin"],
       motion: () =>
         import("@/assets/motions/hide-restore-tracking-cards?motion"),
     },

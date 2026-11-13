@@ -66,7 +66,7 @@ test.describe("Employee: Global search", () => {
       "Timesheet - Personal",
     ]);
 
-    // The manager holds Projects Manager and Timesheet Manager.
+    // The manager holds Projects Manager.
     const context = await signedInAsRole(browser, "manager");
     try {
       const manager = new NavigationPage(await context.newPage());

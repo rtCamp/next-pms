@@ -24,7 +24,7 @@ EMPLOYEE_USER = "backdated-guard-test-employee@example.com"
 PROJECT_NAME = "Backdated Guard Test Project"
 TASK_SUBJECT = "Backdated Guard Test Task"
 
-MANAGER_ROLES = ["Projects Manager", "Timesheet Manager"]
+MANAGER_ROLES = ["Projects Manager"]
 EXEMPT_ROLE = "Backdated Guard Test Exempt Role"
 BACKDATED_DAYS_ALLOWED = 5
 
@@ -337,7 +337,7 @@ class TestSelfApprovalGuard(IntegrationTestCase):
         cls.reviewer = make_employee(
             SELF_APPROVAL_REVIEWER, company=cls.company, reports_to=cls.peer, leave_approver="Administrator"
         )
-        frappe.get_doc("User", SELF_APPROVAL_REVIEWER).add_roles("Projects Manager", "Timesheet Manager")
+        frappe.get_doc("User", SELF_APPROVAL_REVIEWER).add_roles("Projects Manager")
 
         if not frappe.db.exists("Project", {"project_name": SELF_APPROVAL_PROJECT}):
             frappe.get_doc(
@@ -511,7 +511,7 @@ class TestWeekParkingGuards(IntegrationTestCase):
         cls.employee = make_employee(
             PARKING_EMPLOYEE, company=cls.company, reports_to=cls.manager, leave_approver="Administrator"
         )
-        frappe.get_doc("User", PARKING_MANAGER).add_roles("Projects Manager", "Timesheet Manager")
+        frappe.get_doc("User", PARKING_MANAGER).add_roles("Projects Manager")
 
         if not frappe.db.exists("Project", {"project_name": PARKING_PROJECT}):
             frappe.get_doc(

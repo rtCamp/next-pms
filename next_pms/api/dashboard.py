@@ -873,7 +873,7 @@ def get_forecast_breakdown(days: int = 7) -> dict:
         days.
 
     Raises:
-        frappe.PermissionError: If the caller lacks Delivery Manager or Delivery User role.
+        frappe.PermissionError: If the caller lacks the leadership_dashboard capability.
         frappe.ValidationError: If days is less than 1.
     """
     require_capability("leadership_dashboard")
