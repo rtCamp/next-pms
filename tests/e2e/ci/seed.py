@@ -57,6 +57,7 @@ def run():
     masters()
     business_unit_customization()
     permission_patches()
+    release_notes()
     personas = create_personas()
     write_env(personas)
     frappe.db.commit()
@@ -109,6 +110,8 @@ def site_settings():
     ts.allow_backdated_entries = 1
     ts.allow_backdated_entries_till_employee = 30
     ts.allow_backdated_entries_till_manager = 30
+    # The shipped default; a fresh install marks the patch that stores it as done without running it.
+    ts.allow_rejected_timesheet_edit_till = 3
     ts.save()
 
     # The Add Leave dialog posts no leave_approver, so HRMS must not demand one.
@@ -290,6 +293,23 @@ def permission_patches():
         except Exception:
             frappe.log_error(title=f"e2e seed: {path}")
             print(f"WARN: {path} failed")
+
+
+def release_notes():
+    """Cache two releases for the What's new page, so the site never asks GitHub for them."""
+    from next_pms import __version__
+    from next_pms.api.constant import RELEASES_CACHE_KEY, VERSIONS_CACHE_KEY
+
+    releases = [
+        {
+            "version": version,
+            "date": today(),
+            "html": f"<h3>Features</h3><ul><li>E2E release note for v{version}</li></ul>",
+        }
+        for version in (__version__, "0.1.0")
+    ]
+    frappe.cache.set_value(RELEASES_CACHE_KEY, releases)
+    frappe.cache.set_value(VERSIONS_CACHE_KEY, [release["version"] for release in releases])
 
 
 def create_user(email, first, last, roles):

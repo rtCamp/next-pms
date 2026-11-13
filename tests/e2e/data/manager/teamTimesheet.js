@@ -142,4 +142,38 @@ module.exports = {
       { employee: "EMP", weeksAgo: 4, status: "pending" },
     ],
   },
+
+  // The rejected-day correction window (TC407 to TC409): a week past the backdate limit
+  // whose Monday is rejected today, which reopens Monday alone. Projects User lets the
+  // employee see the task to log against.
+  TC407: {
+    ...project("Reopen"),
+    payloadCreateWeekEmployees: {
+      RwEmployee: {
+        managed: false,
+        weekendsOff: true,
+        user: { roles: ["Projects User"] },
+      },
+    },
+    payloadCreateWeekTime: [
+      {
+        employee: "RwEmployee",
+        project: "",
+        subject: "TM Reopen task",
+        weeksAgo: "pastBackdateLimit",
+        days: ["Mon", "Tue"],
+        hours: 1,
+        role: "admin",
+      },
+    ],
+    payloadWeekStatus: [
+      {
+        employee: "RwEmployee",
+        weeksAgo: "pastBackdateLimit",
+        status: "rejected",
+        days: ["Mon"],
+        note: "TC407 - Monday needs a clearer comment",
+      },
+    ],
+  },
 };

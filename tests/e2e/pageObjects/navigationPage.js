@@ -38,6 +38,11 @@ export class NavigationPage {
       name: "Close notifications tray",
     });
 
+    // The unread dot on the sidebar logo carries this screen-reader text.
+    this.newReleaseDot = this.headerMenu.getByText("New release", {
+      exact: true,
+    });
+
     this.notFoundHeading = page.getByRole("heading", { name: "404" });
     this.noEmployeeHeading = page.getByRole("heading", {
       name: "Access Restricted",
@@ -127,8 +132,12 @@ export class NavigationPage {
     return this.trayItems.filter({ hasText: title });
   }
 
+  menuItem(name) {
+    return this.page.getByRole("menuitem", { name, exact: true });
+  }
+
   async chooseFromMenu(item) {
     await this.headerMenu.click();
-    await this.page.getByRole("menuitem", { name: item, exact: true }).click();
+    await this.menuItem(item).click();
   }
 }
