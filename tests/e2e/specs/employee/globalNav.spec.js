@@ -8,6 +8,8 @@ const EMPLOYEE_TARGETS = [
   "Allocations - Team",
   "Allocations - project",
   "Tasks",
+  // Listed once the site has release notes cached.
+  "What's new",
 ];
 
 const sorted = (list) => [...list].sort();
@@ -48,7 +50,7 @@ test.describe("Employee: Global search", () => {
     await expect(nav.searchInput).toBeHidden();
   });
 
-  test("TC401: Global search lists only the destinations the role can open: an employee gets four, the manager also gets Dashboards, Projects, Team and Project timesheets", async ({
+  test("TC401: Global search lists only the destinations the role can open: an employee gets five, the manager also gets Dashboards, Projects, Team and Project timesheets", async ({
     browser,
   }) => {
     allure.story("Global & Navigation");

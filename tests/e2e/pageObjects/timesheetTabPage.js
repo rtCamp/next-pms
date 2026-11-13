@@ -1,9 +1,26 @@
 import { expect } from "allure-playwright";
+import { dateInWeek } from "../utils/dateUtils";
 import { escapeRegExp } from "../utils/stringUtils";
 import { scaleTimeout } from "../utils/timeouts";
 
 // A day cell prints its hours, or a dash.
 const DAY_CELL = /^(\d{2}:\d{2}|-)$/;
+
+/**
+ * URL state for a tab's goto() that shows only the week `weeksAgo`, opened: a Date range
+ * filter. Without one the tabs open just their first four weeks.
+ */
+export const onlyWeek = (weeksAgo) => ({
+  compositeFilters: JSON.stringify([
+    {
+      id: "filter-1",
+      field: "date",
+      operator: "between",
+      value: [dateInWeek(weeksAgo, "Mon"), dateInWeek(weeksAgo, "Sun")],
+      fieldCategory: "",
+    },
+  ]),
+});
 
 // A week with no timesheet has nothing after its label, so the name may end there.
 const weekName = (label) => new RegExp(`^${escapeRegExp(label)}(?: |$)`);
