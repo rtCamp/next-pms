@@ -6,6 +6,7 @@ from frappe.utils import cint
 
 from next_pms.api.whats_new import get_whats_new_boot
 from next_pms.next_projects.api.feedback import is_customer_feedback_available
+from next_pms.permissions.capabilities import get_user_capabilities
 from next_pms.timesheet.api.app import has_bu_field, has_industry_field
 from next_pms.timesheet.api.project import get_project_filter_for_contractor
 from next_pms.timesheet.doctype.pms_view_setting.pms_view_setting import get_views
@@ -38,6 +39,7 @@ def get_context(context):
         enabled = True
     boot["server_script_enabled"] = enabled
     boot["views"] = get_views()
+    boot["capabilities"] = get_user_capabilities()
     boot["currencies"] = frappe.get_all("Currency", pluck="name", filters={"enabled": 1})
     boot["has_business_unit"] = has_bu_field()
     boot["has_industry"] = has_industry_field()

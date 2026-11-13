@@ -2,6 +2,8 @@ import os
 
 from frappe import _, get_app_path, get_doc, read_file
 
+from next_pms.permissions.docperms import apply_permissions
+
 
 def after_install():
     create_roles()
@@ -28,6 +30,7 @@ def after_install():
     setup_project_permissions_for_managers()
     setup_time_report_frequency()
     setup_custom_docperms()
+    apply_permissions()
 
 
 def setup_timesheet_rejection_reason_field():
