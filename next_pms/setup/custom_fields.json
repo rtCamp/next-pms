@@ -1,0 +1,628 @@
+{
+  "Customer": [
+    {
+      "fieldname": "custom_abbr",
+      "fieldtype": "Data",
+      "label": "Abbr",
+      "insert_after": "customer_name",
+      "allow_in_quick_entry": 1,
+      "no_copy": 1,
+      "module": "Resource Management"
+    }
+  ],
+  "Project": [
+    {
+      "fieldname": "custom_host",
+      "fieldtype": "Link",
+      "label": "Host",
+      "options": "Host",
+      "insert_after": "priority",
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_project_phase",
+      "fieldtype": "Link",
+      "label": "Project Phase",
+      "options": "Project Phase",
+      "insert_after": "status",
+      "default": "Delivery Prep",
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "no_copy": 1,
+      "reqd": 1,
+      "module": "Next Projects"
+    },
+    {
+      "fieldname": "custom_key_account",
+      "fieldtype": "Select",
+      "label": "Key Account",
+      "options": "\nYes\nNo",
+      "insert_after": "custom_project_phase",
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_complexity",
+      "fieldtype": "Select",
+      "label": "Complexity",
+      "options": "\nC1\nC2\nC3",
+      "insert_after": "costing_tab",
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_client_poc_information",
+      "fieldtype": "HTML",
+      "label": "Client POC Information",
+      "insert_after": "custom_territory",
+      "read_only": 1,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_customer_contacts",
+      "fieldtype": "Table",
+      "label": "Customer Contacts",
+      "options": "Project Contact",
+      "insert_after": "custom_client_poc_information",
+      "module": "Next Projects"
+    },
+    {
+      "fieldname": "custom_client_point_of_contact",
+      "fieldtype": "Link",
+      "label": "Client Point of Contact",
+      "options": "Contact",
+      "insert_after": "custom_column_break_wwyxg",
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_testimonial_contact",
+      "fieldtype": "Link",
+      "label": "Testimonial Contact",
+      "options": "Contact",
+      "insert_after": "custom_permission_for_case_study",
+      "depends_on": "eval:doc.custom_permission_for_testimonial",
+      "module": "Next Projects"
+    },
+    {
+      "fieldname": "custom_project_rag_status",
+      "fieldtype": "Select",
+      "label": "Project RAG Status",
+      "options": "\nRed\nAmber\nGreen",
+      "insert_after": "custom_project_health_and_progress",
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_next_milestone",
+      "fieldtype": "Date",
+      "label": "Next Milestone",
+      "insert_after": "custom_column_break_vhhhb",
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_next_milestone_details",
+      "fieldtype": "Small Text",
+      "label": "Next Milestone Details",
+      "insert_after": "custom_next_milestone",
+      "translatable": 1,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_3rd_parties",
+      "fieldtype": "Small Text",
+      "label": "3rd Parties?",
+      "insert_after": "custom_project_documents_url",
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_project_detail",
+      "fieldtype": "Text Editor",
+      "label": "Project Detail",
+      "insert_after": "custom_3rd_parties",
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_project_manager",
+      "fieldtype": "Link",
+      "label": "Project Manager",
+      "options": "User",
+      "insert_after": "custom_business_unit",
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_project_manager_name",
+      "fieldtype": "Data",
+      "label": "Project Manager Name",
+      "insert_after": "custom_project_manager",
+      "fetch_from": "custom_project_manager.full_name",
+      "read_only": 1,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_engineering_manager",
+      "fieldtype": "Link",
+      "label": "Engineering Manager",
+      "options": "User",
+      "insert_after": "custom_column_break_q1p3v",
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_engineering_manager_name",
+      "fieldtype": "Data",
+      "label": "Engineering Manager Name",
+      "insert_after": "custom_engineering_manager",
+      "fetch_from": "custom_engineering_manager.full_name",
+      "read_only": 1,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_costing__billing",
+      "fieldtype": "Tab Break",
+      "label": "Costing & Billing",
+      "insert_after": "more_info_tab",
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_billing_type",
+      "fieldtype": "Select",
+      "label": "Billing Type",
+      "options": "Non-Billable\nFixed Cost\nRetainer\nTime and Material",
+      "insert_after": "project_details",
+      "default": "Non-Billable",
+      "permlevel": 2,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_currency",
+      "fieldtype": "Link",
+      "label": "Currency",
+      "options": "Currency",
+      "insert_after": "column_break_28",
+      "fetch_from": "company.default_currency",
+      "fetch_if_empty": 1,
+      "permlevel": 1,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_percentage_estimated_cost",
+      "fieldtype": "Percent",
+      "label": "% Estimated Cost",
+      "insert_after": "custom_section_break_ngas7",
+      "depends_on": "eval:doc.custom_billing_type==\"Fixed Cost\"",
+      "permlevel": 2,
+      "precision": "2",
+      "read_only": 1,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_percentage_estimated_profit",
+      "fieldtype": "Percent",
+      "label": "% Estimated Profit",
+      "insert_after": "custom_percentage_estimated_cost",
+      "permlevel": 2,
+      "read_only": 1,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "total_expense_claim",
+      "fieldtype": "Currency",
+      "label": "Total Expense Claim (via Expense Claims)",
+      "insert_after": "total_costing_amount",
+      "read_only": 1,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_target_cost",
+      "fieldtype": "Currency",
+      "label": "Target Cost",
+      "options": "custom_currency",
+      "insert_after": "estimated_costing",
+      "permlevel": 2,
+      "module": "Next Projects"
+    },
+    {
+      "fieldname": "custom_estimated_profit",
+      "fieldtype": "Currency",
+      "label": "Estimated Profit",
+      "options": "custom_currency",
+      "insert_after": "custom_target_cost",
+      "permlevel": 2,
+      "read_only": 1,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_default_hourly_billing_rate",
+      "fieldtype": "Currency",
+      "label": "Default Hourly Billing Rate",
+      "options": "custom_currency",
+      "insert_after": "custom_estimated_profit",
+      "depends_on": "eval:doc.custom_billing_type==\"Fixed Cost\" || doc.custom_billing_type==\"Retainer\" || doc.custom_billing_type==\"Time and Material\"",
+      "permlevel": 2,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_section_break_ca8jh",
+      "fieldtype": "Section Break",
+      "label": "Project Hours By Contract",
+      "insert_after": "monitor_progress_tab",
+      "depends_on": "eval:doc.custom_billing_type==\"Time and Material\" || doc.custom_billing_type==\"Retainer\" || doc.custom_billing_type==\"Fixed Cost\"",
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_project_billing_team",
+      "fieldtype": "Table",
+      "label": "Project Billing Team",
+      "options": "Project Billing Team",
+      "insert_after": "custom_section_break_ca8jh",
+      "depends_on": "eval:doc.custom_billing_type==\"Fixed Cost\" || doc.custom_billing_type==\"Retainer\" || doc.custom_billing_type==\"Time and Material\"",
+      "permlevel": 2,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_project_budget_hours",
+      "fieldtype": "Table",
+      "label": "Project Budget Hours",
+      "options": "Project Budget",
+      "insert_after": "custom_project_billing_team",
+      "depends_on": "eval:doc.custom_billing_type==\"Fixed Cost\" || doc.custom_billing_type==\"Retainer\" || doc.custom_billing_type==\"Time and Material\"",
+      "permlevel": 2,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_send_reminder_when_approaching_project_threshold_limit",
+      "fieldtype": "Check",
+      "label": "Send Reminder When Approaching Project Threshold Limit",
+      "insert_after": "custom_project_budget_hours",
+      "depends_on": "eval:doc.custom_billing_type==\"Time and Material\" || doc.custom_billing_type==\"Retainer\"",
+      "permlevel": 2,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_reminder_threshold_percentage",
+      "fieldtype": "Percent",
+      "label": "Reminder Threshold Percentage",
+      "insert_after": "custom_send_reminder_when_approaching_project_threshold_limit",
+      "depends_on": "eval:(doc.custom_billing_type==\"Time and Material\" || doc.custom_billing_type==\"Retainer\") & doc.custom_send_reminder_when_approaching_project_threshold_limit",
+      "mandatory_depends_on": "eval:(doc.custom_billing_type==\"Time and Material\" || doc.custom_billing_type==\"Retainer\") & doc.custom_send_reminder_when_approaching_project_threshold_limit",
+      "permlevel": 2,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_email_template",
+      "fieldtype": "Link",
+      "label": "Email Template",
+      "options": "Email Template",
+      "insert_after": "custom_reminder_threshold_percentage",
+      "depends_on": "eval:(doc.custom_billing_type==\"Time and Material\" || doc.custom_billing_type==\"Retainer\") & doc.custom_send_reminder_when_approaching_project_threshold_limit",
+      "mandatory_depends_on": "eval:(doc.custom_billing_type==\"Time and Material\" || doc.custom_billing_type==\"Retainer\") & doc.custom_send_reminder_when_approaching_project_threshold_limit",
+      "permlevel": 2,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_project_details",
+      "fieldtype": "Tab Break",
+      "label": "Project Tracking",
+      "insert_after": "cost_center",
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_total_hours_remaining",
+      "fieldtype": "Float",
+      "label": "Total Hours Remaining",
+      "insert_after": "actual_time",
+      "depends_on": "eval:doc.custom_billing_type==\"Retainer\" || doc.custom_billing_type==\"Fixed Cost\"",
+      "read_only": 1,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_total_hours_purchased",
+      "fieldtype": "Float",
+      "label": "Total Hours Purchased",
+      "insert_after": "custom_total_hours_remaining",
+      "depends_on": "eval:doc.custom_billing_type==\"Retainer\" || doc.custom_billing_type==\"Fixed Cost\"",
+      "read_only": 1,
+      "module": "Project Currency"
+    },
+    {
+      "fieldname": "custom_section_break_wpro2",
+      "fieldtype": "Section Break",
+      "insert_after": "custom_opportunity",
+      "module": "Next PMS"
+    },
+    {
+      "fieldname": "custom_enable_project_report_generation",
+      "fieldtype": "Check",
+      "label": "Enable Project Report Generation",
+      "insert_after": "custom_section_break_wpro2",
+      "default": "0",
+      "description": "Enable to activate report generation for this project.",
+      "permlevel": 3,
+      "module": "Next PMS"
+    },
+    {
+      "fieldname": "custom_overview",
+      "fieldtype": "Tab Break",
+      "label": "Additional Information",
+      "insert_after": "custom_enable_project_report_generation",
+      "module": "Next Projects"
+    },
+    {
+      "fieldname": "custom_short_summary",
+      "fieldtype": "Data",
+      "label": "Short Summary",
+      "insert_after": "custom_overview",
+      "translatable": 1,
+      "module": "Next Projects"
+    },
+    {
+      "fieldname": "custom_executive_summary",
+      "fieldtype": "Small Text",
+      "label": "Executive Summary",
+      "insert_after": "custom_short_summary",
+      "translatable": 1,
+      "module": "Next Projects"
+    },
+    {
+      "fieldname": "custom_key_goals",
+      "fieldtype": "Text Editor",
+      "label": "Key Goals",
+      "insert_after": "custom_executive_summary",
+      "translatable": 1,
+      "module": "Next Projects"
+    },
+    {
+      "fieldname": "custom_urls",
+      "fieldtype": "Section Break",
+      "label": "Urls",
+      "insert_after": "custom_key_goals",
+      "module": "Next Projects"
+    },
+    {
+      "fieldname": "custom_internal_slack_channel",
+      "fieldtype": "Data",
+      "label": "Internal Slack Channel",
+      "options": "URL",
+      "insert_after": "custom_urls",
+      "translatable": 1,
+      "module": "Next Projects"
+    },
+    {
+      "fieldname": "custom_google_drive_folder",
+      "fieldtype": "Data",
+      "label": "Google Drive Folder",
+      "options": "URL",
+      "insert_after": "custom_internal_slack_channel",
+      "translatable": 1,
+      "module": "Next Projects"
+    },
+    {
+      "fieldname": "custom_website",
+      "fieldtype": "Data",
+      "label": "Website",
+      "options": "URL",
+      "insert_after": "custom_google_drive_folder",
+      "translatable": 1,
+      "module": "Next Projects"
+    },
+    {
+      "fieldname": "custom_slack_channel_slug",
+      "fieldtype": "Link",
+      "label": "Slack Channel Slug",
+      "options": "Slack Channel",
+      "insert_after": "custom_column_break_ynbyc",
+      "description": "The Slack channel to get the data for Report generation",
+      "module": "Next PMS"
+    },
+    {
+      "fieldname": "custom_section_break_ujwjz",
+      "fieldtype": "Section Break",
+      "insert_after": "custom_slack_channel_slug",
+      "module": "Next PMS"
+    },
+    {
+      "fieldname": "custom_project_reports",
+      "fieldtype": "Table",
+      "label": "Generated Reports",
+      "options": "Project Report",
+      "insert_after": "custom_section_break_ujwjz",
+      "description": "Auto-generated reports for this project",
+      "module": "Next PMS"
+    },
+    {
+      "fieldname": "custom_reporting",
+      "fieldtype": "Tab Break",
+      "label": "Project Report",
+      "insert_after": "custom_opportunity",
+      "depends_on": "eval:doc.custom_enable_project_report_generation == 1",
+      "module": "Next PMS"
+    },
+    {
+      "fieldname": "custom_section_break_evwtn",
+      "fieldtype": "Section Break",
+      "label": "Project Report",
+      "insert_after": "custom_reporting",
+      "module": "Next PMS"
+    },
+    {
+      "fieldname": "custom_project_drive_link",
+      "fieldtype": "Data",
+      "label": "Google Drive Folder Link",
+      "insert_after": "custom_section_break_evwtn",
+      "description": "Link to the Google Drive folder where generated reports are stored",
+      "translatable": 1,
+      "module": "Next PMS"
+    },
+    {
+      "fieldname": "custom_column_break_ynbyc",
+      "fieldtype": "Column Break",
+      "insert_after": "custom_project_drive_link",
+      "module": "Next PMS"
+    },
+    {
+      "fieldname": "custom_lifetime_value_to_date",
+      "fieldtype": "Currency",
+      "label": "Lifetime Value To Date",
+      "options": "custom_currency",
+      "insert_after": "gross_margin",
+      "depends_on": "eval:doc.custom_billing_type==\"Fixed Cost\" || doc.custom_billing_type==\"Retainer\" || doc.custom_billing_type==\"Time and Material\"",
+      "permlevel": 2,
+      "module": "Next Projects"
+    },
+    {
+      "fieldname": "custom_expected_lifetime_value",
+      "fieldtype": "Currency",
+      "label": "Expected Lifetime Value",
+      "options": "custom_currency",
+      "insert_after": "custom_lifetime_value_to_date",
+      "depends_on": "eval:doc.custom_billing_type==\"Fixed Cost\" || doc.custom_billing_type==\"Retainer\" || doc.custom_billing_type==\"Time and Material\"",
+      "permlevel": 2,
+      "module": "Next Projects"
+    },
+    {
+      "fieldname": "custom_lifetime_value_vs_billed_amount",
+      "fieldtype": "Currency",
+      "label": "Lifetime Value vs Billed Amount",
+      "options": "custom_currency",
+      "insert_after": "custom_expected_lifetime_value",
+      "depends_on": "eval:doc.custom_billing_type==\"Fixed Cost\" || doc.custom_billing_type==\"Retainer\" || doc.custom_billing_type==\"Time and Material\"",
+      "permlevel": 2,
+      "module": "Next Projects"
+    },
+    {
+      "fieldname": "custom_target_hours",
+      "fieldtype": "Float",
+      "label": "Target Hours",
+      "insert_after": "percent_complete",
+      "module": "Next Projects"
+    },
+    {
+      "fieldname": "tech_stack",
+      "fieldtype": "Table MultiSelect",
+      "label": "Tech Stack",
+      "options": "Tech Stack Item",
+      "insert_after": "custom_host",
+      "mandatory_depends_on": "eval:doc.__islocal && doc.custom_billing_type !== \"Non-Billable\"",
+      "module": "Next Projects"
+    },
+    {
+      "fieldname": "custom_time_report_frequency",
+      "fieldtype": "Link",
+      "label": "Time Report Frequency",
+      "options": "Project Time Report Frequency",
+      "insert_after": "custom_duration",
+      "module": "Next PMS"
+    }
+  ],
+  "Timesheet": [
+    {
+      "fieldname": "custom_approval_status",
+      "fieldtype": "Select",
+      "label": "Approval Status",
+      "options": "Not Submitted\nApproval Pending\nApproved\nRejected\nProcessing Timesheet",
+      "insert_after": "parent_project",
+      "default": "Not Submitted",
+      "no_copy": 1,
+      "read_only": 1,
+      "module": "Timesheet"
+    },
+    {
+      "fieldname": "custom_weekly_approval_status",
+      "fieldtype": "Select",
+      "label": "Weekly Approval Status",
+      "options": "Not Submitted\nApproval Pending\nApproved\nPartially Approved\nPartially Rejected\nRejected\nProcessing Timesheet",
+      "insert_after": "custom_approval_status",
+      "default": "Not Submitted",
+      "in_list_view": 1,
+      "no_copy": 1,
+      "read_only": 1,
+      "module": "Timesheet"
+    },
+    {
+      "fieldname": "custom_weekly_rejection_reason",
+      "fieldtype": "Text Editor",
+      "label": "Weekly Rejection Reason",
+      "insert_after": "note",
+      "depends_on": "eval:doc.custom_weekly_approval_status==\"Rejected\"",
+      "no_copy": 1,
+      "read_only": 1,
+      "module": "Timesheet"
+    },
+    {
+      "fieldname": "custom_rejected_on",
+      "fieldtype": "Date",
+      "label": "Rejected On",
+      "insert_after": "custom_weekly_approval_status",
+      "no_copy": 1,
+      "read_only": 1,
+      "module": "Timesheet"
+    }
+  ],
+  "Task": [
+    {
+      "fieldname": "custom_is_billable",
+      "fieldtype": "Check",
+      "label": "Is Billable",
+      "insert_after": "is_template",
+      "permlevel": 1,
+      "module": "Timesheet"
+    }
+  ],
+  "Employee": [
+    {
+      "fieldname": "custom_work_schedule",
+      "fieldtype": "Select",
+      "label": "Work schedule",
+      "options": "\nPer Day\nPer Week",
+      "insert_after": "attendance_device_id",
+      "description": "This will override Standard Working Hours from HR Settings",
+      "module": "Timesheet"
+    },
+    {
+      "fieldname": "custom_working_hours",
+      "fieldtype": "Int",
+      "label": "Working Hours",
+      "insert_after": "custom_work_schedule",
+      "mandatory_depends_on": "eval:doc.custom_work_schedule",
+      "module": "Timesheet"
+    }
+  ],
+  "CRM Deal": [
+    {
+      "fieldname": "tech_stack",
+      "fieldtype": "Table MultiSelect",
+      "label": "Tech Stack",
+      "options": "Tech Stack Item",
+      "insert_after": "custom_current_host",
+      "module": "Next Projects"
+    }
+  ],
+  "Timesheet Detail": [
+    {
+      "fieldname": "custom_rejection_reason",
+      "fieldtype": "Text Editor",
+      "label": "Rejection Reason",
+      "insert_after": "description",
+      "no_copy": 1,
+      "read_only": 1,
+      "module": "Timesheet"
+    },
+    {
+      "fieldname": "rejected_hours",
+      "fieldtype": "Float",
+      "label": "Rejected Hours",
+      "insert_after": "hours",
+      "no_copy": 1,
+      "read_only": 1,
+      "module": "Timesheet"
+    }
+  ],
+  "Leave Application": [
+    {
+      "fieldname": "custom_rejection_reason",
+      "fieldtype": "Small Text",
+      "label": "Rejection Reason",
+      "insert_after": "description",
+      "depends_on": "eval:doc.status==\"Rejected\"",
+      "no_copy": 1,
+      "read_only": 1,
+      "module": "Next PMS"
+    }
+  ]
+}

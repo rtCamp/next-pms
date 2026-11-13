@@ -1,7 +1,7 @@
 import frappe
 from frappe.utils import add_days, add_months, getdate, today
-from frappe.utils.fixtures import sync_fixtures
 
+from next_pms.setup import install_custom_fields
 from next_pms.timesheet.api.utils import update_weekly_status_of_timesheet
 
 
@@ -9,7 +9,7 @@ def execute():
     timesheet_meta = frappe.get_meta("Timesheet")
 
     if not timesheet_meta.has_field("custom_weekly_approval_status"):
-        sync_fixtures()
+        install_custom_fields()
     today_date = getdate(today())
     base_date = add_months(getdate(today_date), -2)
     employees = frappe.get_all("Employee", filters={"status": "Active"}, pluck="name")

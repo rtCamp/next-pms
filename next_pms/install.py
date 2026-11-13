@@ -2,8 +2,11 @@ import os
 
 from frappe import _, get_app_path, get_doc, read_file
 
+from next_pms.setup import install, install_custom_fields
+
 
 def after_install():
+    install()
     create_roles()
     add_project_manager_perm()
     setup_email_template()
@@ -13,15 +16,7 @@ def after_install():
     create_default_timeline_item_categories()
     create_default_growth_masters()
     create_default_technologies()
-    setup_project_custom_fields()
-    setup_project_target_hours_field()
-    setup_project_tech_stack_field()
-    setup_crm_deal_tech_stack_field()
-    setup_timesheet_rejection_reason_field()
-    setup_timesheet_weekly_rejection_reason_field()
-    setup_timesheet_rejected_hours_field()
-    setup_timesheet_rejected_on_field()
-    setup_leave_rejection_reason_field()
+    add_tech_stack_to_crm_deal_layout()
     setup_task_permissions()
     setup_todo_permissions()
     setup_role_permissions()
@@ -30,173 +25,16 @@ def after_install():
     setup_custom_docperms()
 
 
-def setup_timesheet_rejection_reason_field():
-    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
-
-    create_custom_fields(
-        {
-            "Timesheet Detail": [
-                {
-                    "fieldname": "custom_rejection_reason",
-                    "fieldtype": "Text Editor",
-                    "label": "Rejection Reason",
-                    "insert_after": "description",
-                    "read_only": 1,
-                    "no_copy": 1,
-                    "module": "Timesheet",
-                },
-            ]
-        }
-    )
-
-
-def setup_timesheet_rejected_hours_field():
-    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
-
-    create_custom_fields(
-        {
-            "Timesheet Detail": [
-                {
-                    "fieldname": "rejected_hours",
-                    "fieldtype": "Float",
-                    "label": "Rejected Hours",
-                    "insert_after": "hours",
-                    "read_only": 1,
-                    "no_copy": 1,
-                    "module": "Timesheet",
-                },
-            ]
-        }
-    )
-
-
-def setup_timesheet_rejected_on_field():
-    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
-
-    create_custom_fields(
-        {
-            "Timesheet": [
-                {
-                    "fieldname": "custom_rejected_on",
-                    "fieldtype": "Date",
-                    "label": "Rejected On",
-                    "insert_after": "custom_weekly_approval_status",
-                    "read_only": 1,
-                    "no_copy": 1,
-                    "module": "Timesheet",
-                },
-            ]
-        }
-    )
-
-
-def setup_leave_rejection_reason_field():
-    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
-
-    create_custom_fields(
-        {
-            "Leave Application": [
-                {
-                    "fieldname": "custom_rejection_reason",
-                    "fieldtype": "Small Text",
-                    "label": "Rejection Reason",
-                    "insert_after": "description",
-                    "depends_on": 'eval:doc.status=="Rejected"',
-                    "read_only": 1,
-                    "no_copy": 1,
-                    "module": "Next PMS",
-                },
-            ]
-        }
-    )
-
-
-def setup_timesheet_weekly_rejection_reason_field():
-    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
-
-    create_custom_fields(
-        {
-            "Timesheet": [
-                {
-                    "fieldname": "custom_weekly_rejection_reason",
-                    "fieldtype": "Text Editor",
-                    "label": "Weekly Rejection Reason",
-                    "insert_after": "note",
-                    "depends_on": 'eval:doc.custom_weekly_approval_status=="Rejected"',
-                    "read_only": 1,
-                    "no_copy": 1,
-                    "module": "Timesheet",
-                },
-            ]
-        }
-    )
-
-
-def setup_project_target_hours_field():
-    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
-
-    create_custom_fields(
-        {
-            "Project": [
-                {
-                    "fieldname": "custom_target_hours",
-                    "fieldtype": "Float",
-                    "label": "Target Hours",
-                    "insert_after": "percent_complete",
-                },
-            ]
-        }
-    )
-
-
-def setup_project_tech_stack_field():
-    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
-
-    create_custom_fields(
-        {
-            "Project": [
-                {
-                    "fieldname": "tech_stack",
-                    "fieldtype": "Table MultiSelect",
-                    "label": "Tech Stack",
-                    "options": "Tech Stack Item",
-                    "insert_after": "custom_host",
-                    "mandatory_depends_on": 'eval:doc.__islocal && doc.custom_billing_type !== "Non-Billable"',
-                    "module": "Next Projects",
-                },
-            ]
-        }
-    )
-
-
 def after_app_install(app_name):
     if app_name in ("crm", "frappe_crm_xt"):
-        setup_crm_deal_tech_stack_field()
+        install_custom_fields()
+        add_tech_stack_to_crm_deal_layout()
 
 
-def setup_crm_deal_tech_stack_field():
+def add_tech_stack_to_crm_deal_layout():
     import json
 
     import frappe
-    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
-
-    if not frappe.db.exists("DocType", "CRM Deal"):
-        return
-
-    create_custom_fields(
-        {
-            "CRM Deal": [
-                {
-                    "fieldname": "tech_stack",
-                    "fieldtype": "Table MultiSelect",
-                    "label": "Tech Stack",
-                    "options": "Tech Stack Item",
-                    "insert_after": "custom_current_host",
-                    "module": "Next Projects",
-                },
-            ]
-        }
-    )
 
     layout_name = "CRM Deal-Data Fields"
     if not frappe.db.exists("CRM Fields Layout", layout_name):
@@ -219,71 +57,12 @@ def setup_crm_deal_tech_stack_field():
 
 def setup_time_report_frequency():
     import frappe
-    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
-    from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-
-    create_custom_fields(
-        {
-            "Project": [
-                {
-                    "fieldname": "custom_time_report_frequency",
-                    "fieldtype": "Link",
-                    "label": "Time Report Frequency",
-                    "options": "Project Time Report Frequency",
-                    "insert_after": "custom_duration",
-                },
-            ]
-        }
-    )
 
     for frequency in ("Weekly", "Bi-weekly", "Monthly"):
         if not frappe.db.exists("Project Time Report Frequency", frequency):
             frappe.get_doc({"doctype": "Project Time Report Frequency", "name": frequency}).insert(
                 ignore_permissions=True
             )
-
-    make_property_setter("Project", "collect_progress", "hidden", 1, "Check")
-
-
-def setup_project_custom_fields():
-    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
-
-    create_custom_fields(
-        {
-            "Project": [
-                {
-                    "fieldname": "custom_lifetime_value_to_date",
-                    "fieldtype": "Currency",
-                    "label": "Lifetime Value To Date",
-                    "insert_after": "gross_margin",
-                    "depends_on": 'eval:doc.custom_billing_type=="Fixed Cost" || doc.custom_billing_type=="Retainer" || doc.custom_billing_type=="Time and Material"',
-                    "options": "custom_currency",
-                    "permlevel": 2,
-                    "read_only": 0,
-                },
-                {
-                    "fieldname": "custom_expected_lifetime_value",
-                    "fieldtype": "Currency",
-                    "label": "Expected Lifetime Value",
-                    "insert_after": "custom_lifetime_value_to_date",
-                    "depends_on": 'eval:doc.custom_billing_type=="Fixed Cost" || doc.custom_billing_type=="Retainer" || doc.custom_billing_type=="Time and Material"',
-                    "options": "custom_currency",
-                    "permlevel": 2,
-                    "read_only": 0,
-                },
-                {
-                    "fieldname": "custom_lifetime_value_vs_billed_amount",
-                    "fieldtype": "Currency",
-                    "label": "Lifetime Value vs Billed Amount",
-                    "insert_after": "custom_expected_lifetime_value",
-                    "depends_on": 'eval:doc.custom_billing_type=="Fixed Cost" || doc.custom_billing_type=="Retainer" || doc.custom_billing_type=="Time and Material"',
-                    "options": "custom_currency",
-                    "permlevel": 2,
-                    "read_only": 0,
-                },
-            ]
-        }
-    )
 
 
 def setup_task_permissions():
