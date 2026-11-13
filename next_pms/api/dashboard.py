@@ -6,7 +6,7 @@ from datetime import timedelta
 
 import frappe
 from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
-from frappe import _, only_for, whitelist
+from frappe import _, whitelist
 from frappe.core.doctype.recorder.recorder import redis_cache
 from frappe.model.workflow import apply_workflow, get_workflow_name
 from frappe.query_builder import DocType
@@ -27,16 +27,15 @@ from next_pms.api.utils import (
 )
 from next_pms.next_projects.api.constant import TIMELINE_ITEM_FIELDS
 from next_pms.next_projects.api.project_timeline_item import enrich_timeline_item
+from next_pms.permissions.capabilities import ALL, require_capability
+from next_pms.permissions.scope import get_employee_scope
 from next_pms.resource_management.api.utils.query import attach_extra_entries, get_employee_leaves
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm, get_employee_from_user
-
-DELIVERY_ROLES = ["Delivery Manager", "Delivery User", "Timesheet Manager", "System Manager"]
-ALL_ROLES = [*DELIVERY_ROLES, "Projects Manager", "Projects User"]
 
 
 @whitelist(methods=["GET"])
 def get_active_projects_count(client: str | None = None, project: str | None = None) -> int:
-    only_for(DELIVERY_ROLES, message=True)
+    require_capability("leadership_dashboard")
 
     filters = {"is_active": "Yes", "custom_billing_type": ["!=", "Non-Billable"]}
     if client:
@@ -48,12 +47,14 @@ def get_active_projects_count(client: str | None = None, project: str | None = N
 
 @whitelist(methods=["GET"])
 def get_at_risk_projects_count(client: str | None = None, project: str | None = None) -> int:
-    only_for(ALL_ROLES, message=True)
+    scope = require_capability("allocation_widgets")
 
     filters = {
         "is_active": "Yes",
         "custom_project_rag_status": ["in", ["Red", "Amber"]],
     }
+    if scope != ALL:
+        filters["custom_project_manager"] = frappe.session.user
     if client:
         filters["customer"] = client
     if project:
@@ -81,7 +82,7 @@ def get_timesheets_to_review(
         custom_approval_status.
         Empty list if the user has no employee record or no direct reports.
     """
-    only_for(ALL_ROLES, message=True)
+    require_capability("manager_dashboard")
 
     manager_employee = get_employee_from_user()
     if not manager_employee:
@@ -135,7 +136,7 @@ def get_non_billable_hours(
         Sum of hours from Timesheet Detail rows where is_billable = 0
         within the window.
     """
-    only_for(DELIVERY_ROLES, message=True)
+    require_capability("leadership_dashboard")
     return _get_non_billable_hours(days, client, project)
 
 
@@ -182,16 +183,20 @@ def get_members_without_allocation(days: int = 7) -> dict:
         Each gap_dates item has date, allocated_hours, and missing_hours.
 
     Raises:
-        frappe.PermissionError: If the caller lacks Delivery Manager, Delivery User,
-            Projects Manager, or Projects User role.
+        frappe.PermissionError: If the caller lacks the allocation_widgets capability.
         frappe.ValidationError: If days is less than 1.
     """
-    only_for(ALL_ROLES, message=True)
+    scope = require_capability("allocation_widgets")
 
     if days < 1:
         frappe.throw(frappe._("days must be at least 1"))
 
-    return _get_members_without_allocation(days)
+    result = _get_members_without_allocation(days)
+    if scope == ALL:
+        return result
+    visible = get_employee_scope("allocation_widgets").employee_ids()
+    members = [member for member in result["members"] if member["employee"] in visible]
+    return {**result, "members": members, "count": len(members)}
 
 
 @redis_cache(ttl=21600)
@@ -316,11 +321,10 @@ def get_outstanding_timesheets(
         direct reports.
 
     Raises:
-        frappe.PermissionError: If the caller lacks Delivery Manager, Delivery User,
-            Projects Manager, or Projects User role.
+        frappe.PermissionError: If the caller lacks the allocation_widgets capability.
         frappe.ValidationError: If days is less than 1.
     """
-    only_for(ALL_ROLES, message=True)
+    require_capability("manager_dashboard")
 
     if days < 1:
         frappe.throw(frappe._("days must be at least 1"))
@@ -483,7 +487,7 @@ def get_my_projects_summary(days: int = 7, customer: str | None = None) -> list:
             billable_hours, non_billable_hours  (both summed over the window).
         Empty list if the user manages no projects.
     """
-    only_for(ALL_ROLES, message=True)
+    require_capability("manager_dashboard")
     return _get_my_projects_summary(frappe.session.user, days, customer)
 
 
@@ -593,7 +597,7 @@ def get_leadership_kpis(
             "profit_margin": {"current": 20, "previous": 10, "change_pct": 100, "trend": "up"}
             }
     """
-    only_for(DELIVERY_ROLES, message=True)
+    require_capability("leadership_dashboard")
 
     cur_start = getdate(cur_start)
     cur_end = getdate(cur_end)
@@ -773,7 +777,7 @@ def get_time_utilisation(days: int = 30) -> dict:
         roles : list of dicts, each with designation, billable_hours,
                 non_billable_hours, total_hours
     """
-    only_for(DELIVERY_ROLES, message=True)
+    require_capability("leadership_dashboard")
 
     if days < 1:
         frappe.throw(frappe._("days must be at least 1"))
@@ -872,7 +876,7 @@ def get_forecast_breakdown(days: int = 7) -> dict:
         frappe.PermissionError: If the caller lacks Delivery Manager or Delivery User role.
         frappe.ValidationError: If days is less than 1.
     """
-    only_for(DELIVERY_ROLES, message=True)
+    require_capability("leadership_dashboard")
 
     if days < 1:
         frappe.throw(frappe._("days must be at least 1"))
@@ -1007,7 +1011,7 @@ def get_employees_on_leave() -> list:
         Empty list if the user has no employee record or nothing to show.
         Ordered by from_date ascending.
     """
-    only_for(ALL_ROLES, message=True)
+    require_capability("manager_dashboard")
 
     manager_employee = get_employee_from_user()
     if not manager_employee:
@@ -1102,7 +1106,7 @@ def approve_leave_application(name: str) -> None:
     permissions so HRMS's leave-approver validation applies. Uses the active Leave
     Application workflow when one exists; otherwise marks the document Approved and submits it.
     """
-    only_for(ALL_ROLES, message=True)
+    require_capability("approve_leaves")
 
     leave = _get_open_leave_application(name, _("approved"))
     _finalize_leave_application(leave, workflow_action="Approve", status="Approved")
@@ -1116,7 +1120,7 @@ def reject_leave_application(name: str, reason: str) -> None:
     ``custom_rejection_reason`` before the status transition, then follows the same
     workflow-or-submit path as approval.
     """
-    only_for(ALL_ROLES, message=True)
+    require_capability("approve_leaves")
 
     reason = (reason or "").strip()
     if not reason:
@@ -1178,11 +1182,10 @@ def get_team_timesheets(days: int = 7) -> list:
         caller has no linked Employee record or no active direct reports.
 
     Raises:
-        frappe.PermissionError: If the caller lacks Delivery Manager, Delivery User,
-            Projects Manager, or Projects User role.
+        frappe.PermissionError: If the caller lacks the allocation_widgets capability.
         frappe.ValidationError: If days is less than 1.
     """
-    only_for(ALL_ROLES, message=True)
+    require_capability("manager_dashboard")
 
     if days < 1:
         frappe.throw(frappe._("days must be at least 1"))
@@ -1325,11 +1328,10 @@ def get_allocation_heatmap(
         entry adds capacity_hours and allocated_hours.
 
     Raises:
-        frappe.PermissionError: If the caller lacks Delivery Manager, Delivery User,
-            Projects Manager, or Projects User role.
+        frappe.PermissionError: If the caller lacks the allocation_widgets capability.
         frappe.ValidationError: If from_date is after to_date.
     """
-    only_for(ALL_ROLES, message=True)
+    scope = require_capability("allocation_widgets")
 
     start_date = getdate(from_date)
     end_date = getdate(to_date)
@@ -1343,11 +1345,12 @@ def get_allocation_heatmap(
     range_start = start_date - timedelta(days=start_date.weekday())
     range_end = end_date + timedelta(days=6 - end_date.weekday())
 
-    return _get_allocation_heatmap(range_start, range_end, business_units)
+    employees = None if scope == ALL else tuple(sorted(get_employee_scope("allocation_widgets").employee_ids()))
+    return _get_allocation_heatmap(range_start, range_end, business_units, employees)
 
 
 @redis_cache(ttl=86400)
-def _get_allocation_heatmap(start_date, end_date, business_units: tuple | None) -> dict:
+def _get_allocation_heatmap(start_date, end_date, business_units: tuple | None, employees: tuple | None = None) -> dict:
     week_starts = []
     week = start_date
     while week + timedelta(days=6) <= end_date:
@@ -1370,6 +1373,8 @@ def _get_allocation_heatmap(start_date, end_date, business_units: tuple | None) 
     employee_filters = {"status": "Active"}
     if business_units and frappe.get_meta("Employee").has_field("custom_business_unit"):
         employee_filters["custom_business_unit"] = ["in", list(business_units)]
+    if employees is not None:
+        employee_filters["name"] = ["in", list(employees)]
 
     employees = frappe.get_all(
         "Employee",
@@ -1488,7 +1493,7 @@ def get_calendar_timeline_items(
         frappe.ValidationError: If from_date or to_date is missing, or from_date is
             after to_date.
     """
-    only_for(ALL_ROLES, message=True)
+    scope = require_capability("allocation_widgets")
 
     if not from_date or not to_date:
         frappe.throw(frappe._("from_date and to_date are required"))
@@ -1498,13 +1503,29 @@ def get_calendar_timeline_items(
     if range_start > range_end:
         frappe.throw(frappe._("from_date must be on or before to_date"))
 
-    return _get_calendar_timeline_items(range_start, range_end, project)
+    return _get_calendar_timeline_items(range_start, range_end, project, scope == ALL)
+
+
+def _get_scoped_calendar_projects() -> list[str]:
+    """Projects the session user manages, plus projects their reports are allocated to."""
+    employees = get_employee_scope("allocation_widgets").employee_ids() or set()
+    managed = frappe.get_all("Project", filters={"custom_project_manager": frappe.session.user}, pluck="name")
+    allocated = (
+        frappe.get_all(
+            "Resource Allocation", filters={"employee": ["in", list(employees)]}, pluck="project", distinct=True
+        )
+        if employees
+        else []
+    )
+    return list({*managed, *allocated} - {None})
 
 
 @redis_cache(user=True, ttl=21600)
-def _get_calendar_timeline_items(range_start, range_end, project: str | None) -> dict:
+def _get_calendar_timeline_items(range_start, range_end, project: str | None, unrestricted: bool = True) -> dict:
     # User Permissions are applied by get_list — this is the access boundary.
-    project_filters = [["name", "=", project]] if project else None
+    project_filters = [["name", "=", project]] if project else []
+    if not unrestricted:
+        project_filters.append(["name", "in", _get_scoped_calendar_projects()])
     accessible_projects = frappe.get_list(
         "Project",
         filters=project_filters,
