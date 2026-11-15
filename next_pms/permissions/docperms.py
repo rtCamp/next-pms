@@ -116,6 +116,7 @@ PERMISSION_MAP: dict[str, tuple[PermRule, ...]] = {
     ),
     "Task": (
         rule(EMPLOYEE, "read write create"),
+        rule(EMPLOYEE, "read write create delete", if_owner=1),
         rule(PROJECTS_USER, "select read write create delete report share print email"),
         rule(PROJECTS_USER, "read write export", permlevel=1),
         *(rule(role, _FULL) for role in (PROJECTS_MANAGER, PMS_LEADERSHIP, SYSTEM_MANAGER)),

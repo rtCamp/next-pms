@@ -63,3 +63,11 @@ class TestApplyPermissions(IntegrationTestCase):
         rows = _rows("Project", role="Employee", permlevel=0, if_owner=1)
         self.assertEqual(len(rows), 1)
         self.assertFalse(rows[0].create)
+
+    def test_employee_can_delete_only_own_tasks(self):
+        any_task = _rows("Task", role="Employee", permlevel=0, if_owner=0)
+        own_task = _rows("Task", role="Employee", permlevel=0, if_owner=1)
+        self.assertEqual(len(any_task), 1)
+        self.assertEqual(len(own_task), 1)
+        self.assertFalse(any_task[0].delete)
+        self.assertTrue(own_task[0].delete)
