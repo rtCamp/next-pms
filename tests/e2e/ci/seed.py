@@ -56,7 +56,6 @@ def run():
     holiday_list()
     masters()
     business_unit_customization()
-    permission_patches()
     personas = create_personas()
     write_env(personas)
     frappe.db.commit()
@@ -276,20 +275,6 @@ def todo_statuses():
 
     if not frappe.db.exists("Property Setter", {"doc_type": "ToDo", "field_name": "status", "property": "options"}):
         make_property_setter("ToDo", "status", "options", "Open\nBacklog\nIn Progress\nClosed\nCancelled", "Text")
-
-
-def permission_patches():
-    # Patches are marked done on a fresh install without running; the suite needs their permissions.
-    for path in (
-        "next_pms.next_projects.patches.add_customer_permissions_for_projects_manager.execute",
-        "next_pms.next_projects.patches.add_designation_permissions_for_pm.execute",
-        "next_pms.timesheet.patches.add_project_report_permissions.execute",
-    ):
-        try:
-            frappe.get_attr(path)()
-        except Exception:
-            frappe.log_error(title=f"e2e seed: {path}")
-            print(f"WARN: {path} failed")
 
 
 def create_user(email, first, last, roles):

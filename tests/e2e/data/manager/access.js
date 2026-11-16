@@ -21,13 +21,11 @@ module.exports = {
     },
     payloadCreateWeekEmployees: {
       AcSysMgr: persona(["System Manager"]),
-      AcDelMgr: persona(["Delivery Manager"]),
-      AcTsMgr: persona(["Timesheet Manager"]),
-      AcTsUser: persona(["Timesheet User"]),
+      AcLeader: persona(["PMS Leadership"]),
       AcProjMgr: persona(["Projects Manager"]),
       AcProjUser: persona(["Projects User"]),
-      // Has a week for the Timesheet User to approve.
-      AcMember: { managed: false, weekendsOff: true },
+      // Reports to the Projects User, with a week for them to approve.
+      AcMember: { managed: false, weekendsOff: true, reportsTo: "AcProjUser" },
     },
     // A user with no Employee record behind it.
     payloadCreateUsers: { AcNoEmployee: { roles: ["Employee"] } },

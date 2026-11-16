@@ -177,7 +177,10 @@ test.describe("Manager: Project details", () => {
       .catch(() => null);
     await details.openInDesk.click();
     const opened = (await popup) ?? page;
-    await expect(opened).toHaveURL(new RegExp(`/desk/project/${project}`));
+    // Desk may put the workspace in the path: /desk/projects/project/<name>.
+    await expect(opened).toHaveURL(
+      new RegExp(`/desk/(?:[\\w-]+/)?project/${project}`),
+    );
   });
 
   test("TC329: The Project Manager and Lead Engineer chosen in the sidebar show on the project and in the Projects list", async ({

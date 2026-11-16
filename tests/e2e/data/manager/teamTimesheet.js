@@ -80,6 +80,8 @@ module.exports = {
       // A manager may only book leave for someone who reports to them; no days off, so
       // today is always a working day for it.
       TmTimeOff: { holidayList: "E2E No Weekly Off" },
+      // Only a System Manager adds or edits another member's time.
+      TsAdmin: { managed: false, user: { roles: ["System Manager"] } },
     },
     // Week statuses count working days, and some sites have no weekend off.
     payloadWeekendsOff: ["EMP"],

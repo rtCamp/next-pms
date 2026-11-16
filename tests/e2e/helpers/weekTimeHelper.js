@@ -227,11 +227,12 @@ const createLoginUser = async (employee, roles) => {
 
 /**
  * Creates the throwaway employees a case lists in `payloadCreateWeekEmployees`
- * ({ <name>: { managed, holidayList, weekendsOff, designation, department, skills, user } })
+ * ({ <name>: { managed, reportsTo, holidayList, weekendsOff, designation, department, skills, user } })
  * and records their ids on the stub.
  * They report to the manager unless `managed` is false (the manager stays their leave
  * approver either way); `holidayList` replaces the company's (created empty when missing),
  * and `weekendsOff` replaces it with one that has every Saturday and Sunday off.
+ * `reportsTo` names another employee of the case to report to instead.
  * `user: { roles }` also creates a user to sign in as, kept in the stub as `user`.
  */
 const createEmployees = async (entry) => {
@@ -277,6 +278,14 @@ const createEmployees = async (entry) => {
       name: `${SEEDED_EMPLOYEE.first_name} ${lastName}`,
       ...(user && { user }),
     };
+  }
+  for (const [name, options] of Object.entries(
+    entry.payloadCreateWeekEmployees ?? {},
+  )) {
+    if (!options?.reportsTo) continue;
+    await updateDocument("Employee", entry.employees[name].id, {
+      reports_to: entry.employees[options.reportsTo].id,
+    });
   }
 };
 
@@ -372,8 +381,7 @@ const bookTime = async (entry, specs, taskOf) => {
           date,
           employee,
         },
-        // A week past the backdate limit can only be booked by an admin.
-        spec.role ?? "manager",
+        spec.role ?? "admin",
       );
       (booked[`${spec.employee}|${spec.weeksAgo}`] ??= []).push(date);
     }

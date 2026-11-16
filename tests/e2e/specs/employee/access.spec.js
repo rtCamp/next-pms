@@ -26,7 +26,7 @@ test.describe("Employee: Access", () => {
     nav = new NavigationPage(page);
   });
 
-  test("TC388: The employee sidebar shows only Timesheet, Tasks and Allocations", async () => {
+  test("TC388: The employee sidebar shows only Timesheet, Tasks, Allocations and Notifications", async () => {
     allure.story("Access & Roles");
     await nav.goto("/timesheet");
 
@@ -46,7 +46,7 @@ test.describe("Employee: Access", () => {
     ]) {
       await expect(nav.link(route), route).toHaveCount(0);
     }
-    await expect(nav.notificationsButton).toHaveCount(0);
+    await expect(nav.notificationsButton).toBeVisible();
 
     await nav.sectionHeading("Allocations").click();
     await expect(nav.link("/allocations/team")).toBeVisible();

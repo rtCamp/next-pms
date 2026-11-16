@@ -1,6 +1,7 @@
 const { test, expect } = require("../../playwright.fixture.cjs");
 import * as allure from "allure-js-commons";
 import path from "path";
+import { signedInContext } from "../../helpers/storageStateHelper";
 import { TeamTimesheetPage } from "../../pageObjects/teamTimesheetPage";
 import { dateInWeek, getFormattedDate, weekLabel } from "../../utils/dateUtils";
 import { readJSONFile } from "../../utils/fileUtils";
@@ -27,17 +28,31 @@ const day = (offset) =>
 
 test.describe("Manager: Team timesheet", () => {
   /** @type {TeamTimesheetPage} */ let team;
+  let data;
   let member;
 
   test.beforeEach(async ({ page, jsonDir }) => {
     team = new TeamTimesheetPage(page);
-    const data = (await readJSONFile(path.join(jsonDir, `${FIXTURE}.json`)))[
-      FIXTURE
-    ];
+    data = (await readJSONFile(path.join(jsonDir, `${FIXTURE}.json`)))[FIXTURE];
     member = Object.fromEntries(
       Object.entries(data.employees).map(([key, { name }]) => [key, name]),
     );
   });
+
+  /** Runs `body` with `team` on a page of the seeded System Manager, the only role that adds or edits another member's time. */
+  const asSystemManager = async (browser, body) => {
+    const context = await signedInContext(
+      browser,
+      data.employees.TsAdmin.user,
+      "team-sysmgr",
+    );
+    try {
+      team = new TeamTimesheetPage(await context.newPage());
+      await body();
+    } finally {
+      await context.close();
+    }
+  };
 
   test("TC231: The Timesheets breadcrumb menu switches between the Personal, Team and Project tabs", async ({
     page,
@@ -287,98 +302,108 @@ test.describe("Manager: Team timesheet", () => {
     ).toHaveCount(0);
   });
 
-  test("TC243: Clicking a day on a member's row opens Add time for that member and day", async () => {
-    allure.story("Team Timesheet");
-    await team.goto({ search: member.TmDraft });
-    await team.cells(team.memberRow(LAST, member.TmDraft)).nth(2).click();
+  test("TC243: Clicking a day on a member's row opens Add time for that member and day", async ({
+    browser,
+  }) =>
+    asSystemManager(browser, async () => {
+      allure.story("Team Timesheet");
+      await team.goto({ search: member.TmDraft });
+      await team.cells(team.memberRow(LAST, member.TmDraft)).nth(2).click();
 
-    await expect(team.addTimeDialog).toBeVisible();
-    await expect(
-      team.addTimeDialog.getByPlaceholder("Select employee"),
-    ).toHaveValue(member.TmDraft);
-    await expect(
-      team.addTimeDialog.getByRole("textbox", { name: "Date (required)" }),
-    ).toHaveValue(lastWeek("Wed"));
-    await expect(
-      team.addTimeDialog.getByPlaceholder("Select project"),
-    ).toHaveValue("");
-    await expect(
-      team.addTimeDialog.getByPlaceholder("Select task"),
-    ).toHaveValue("");
-  });
+      await expect(team.addTimeDialog).toBeVisible();
+      await expect(
+        team.addTimeDialog.getByPlaceholder("Select employee"),
+      ).toHaveValue(member.TmDraft);
+      await expect(
+        team.addTimeDialog.getByRole("textbox", { name: "Date (required)" }),
+      ).toHaveValue(lastWeek("Wed"));
+      await expect(
+        team.addTimeDialog.getByPlaceholder("Select project"),
+      ).toHaveValue("");
+      await expect(
+        team.addTimeDialog.getByPlaceholder("Select task"),
+      ).toHaveValue("");
+    }));
 
-  test("TC244: The days of an Approved week cannot be clicked to add time", async () => {
-    allure.story("Team Timesheet");
-    await team.goto({ search: SEARCH });
-    const cells = team.cells(team.memberRow(LAST, member.TmApproved));
-    await expect(cells).toHaveCount(7);
-    for (const index of [0, 1, 2, 3, 4, 5, 6]) {
-      await expect(cells.nth(index)).toBeDisabled();
-    }
-    await cells.nth(0).click({ force: true });
-    // A late re-render can put another member's open cell under the pointer, so only
-    // a dialog for this member counts.
-    const opened = (await team.addTimeDialog.count())
-      ? await team.addTimeDialog
-          .getByPlaceholder("Select employee")
-          .inputValue()
-      : "";
-    expect(opened).not.toBe(member.TmApproved);
-    // A week still to submit stays open for time.
-    await expect(
-      team.cells(team.memberRow(LAST, member.TmDraft)).nth(0),
-    ).toBeEnabled();
-  });
+  test("TC244: The days of an Approved week cannot be clicked to add time", async ({
+    browser,
+  }) =>
+    asSystemManager(browser, async () => {
+      allure.story("Team Timesheet");
+      await team.goto({ search: SEARCH });
+      const cells = team.cells(team.memberRow(LAST, member.TmApproved));
+      await expect(cells).toHaveCount(7);
+      for (const index of [0, 1, 2, 3, 4, 5, 6]) {
+        await expect(cells.nth(index)).toBeDisabled();
+      }
+      await cells.nth(0).click({ force: true });
+      // A late re-render can put another member's open cell under the pointer, so only
+      // a dialog for this member counts.
+      const opened = (await team.addTimeDialog.count())
+        ? await team.addTimeDialog
+            .getByPlaceholder("Select employee")
+            .inputValue()
+        : "";
+      expect(opened).not.toBe(member.TmApproved);
+      // A week still to submit stays open for time.
+      await expect(
+        team.cells(team.memberRow(LAST, member.TmDraft)).nth(0),
+      ).toBeEnabled();
+    }));
 
   test("TC245: Add time with empty fields shows a message under each and creates nothing", async ({
-    page,
-  }) => {
-    allure.story("Team Timesheet");
-    const saves = [];
-    page.on("request", (request) => {
-      if (
-        request.method() === "POST" &&
-        /timesheet\.save/.test(request.url())
-      ) {
-        saves.push(request.url());
+    browser,
+  }) =>
+    asSystemManager(browser, async () => {
+      allure.story("Team Timesheet");
+      const saves = [];
+      team.page.on("request", (request) => {
+        if (
+          request.method() === "POST" &&
+          /timesheet\.save/.test(request.url())
+        ) {
+          saves.push(request.url());
+        }
+      });
+
+      await team.goto({ search: SEARCH });
+      await team.addTimeButton.click();
+      await team.addTimeDialog
+        .getByRole("button", { name: "Save and close" })
+        .click();
+      for (const message of [
+        "Please select an employee.",
+        "Select Project",
+        "Select Task",
+        "Select Duration",
+        "Please enter a comment.",
+      ]) {
+        await expect(team.addTimeDialog.getByText(message)).toBeVisible();
       }
-    });
+      expect(saves).toHaveLength(0);
+    }));
 
-    await team.goto({ search: SEARCH });
-    await team.addTimeButton.click();
-    await team.addTimeDialog
-      .getByRole("button", { name: "Save and close" })
-      .click();
-    for (const message of [
-      "Please select an employee.",
-      "Select Project",
-      "Select Task",
-      "Select Duration",
-      "Please enter a comment.",
-    ]) {
-      await expect(team.addTimeDialog.getByText(message)).toBeVisible();
-    }
-    expect(saves).toHaveLength(0);
-  });
+  test("TC248: In Add time a duration longer than the hours left in the day is capped at the hours left", async ({
+    browser,
+  }) =>
+    asSystemManager(browser, async () => {
+      allure.story("Team Timesheet");
+      await team.goto({ search: member.TmAddTime });
+      // Tuesday of last week holds nothing, so the whole working day is left.
+      await team.cells(team.memberRow(LAST, member.TmAddTime)).nth(1).click();
+      await team.addTimeDialog.waitFor();
+      await team.choose("Select project", ALPHA);
+      await team.choose("Select task", ALPHA_TASK);
+      const hint = team.addTimeDialog.getByText(/^\d+(\.\d+)?h left$/);
+      const left = parseFloat(await hint.innerText());
+      expect(left).toBeGreaterThan(0);
 
-  test("TC248: In Add time a duration longer than the hours left in the day is capped at the hours left", async () => {
-    allure.story("Team Timesheet");
-    await team.goto({ search: member.TmAddTime });
-    // Tuesday of last week holds nothing, so the whole working day is left.
-    await team.cells(team.memberRow(LAST, member.TmAddTime)).nth(1).click();
-    await team.addTimeDialog.waitFor();
-    await team.choose("Select project", ALPHA);
-    await team.choose("Select task", ALPHA_TASK);
-    const hint = team.addTimeDialog.getByText(/^\d+(\.\d+)?h left$/);
-    const left = parseFloat(await hint.innerText());
-    expect(left).toBeGreaterThan(0);
-
-    const duration = team.addTimeDialog.getByPlaceholder("00:00");
-    await duration.fill(`${Math.ceil(left) + 2}:00`);
-    await duration.press("Tab");
-    await expect(duration).toHaveValue(`${String(left).padStart(2, "0")}:00`);
-    await expect(team.addTimeDialog.getByText("0h left")).toBeVisible();
-  });
+      const duration = team.addTimeDialog.getByPlaceholder("00:00");
+      await duration.fill(`${Math.ceil(left) + 2}:00`);
+      await duration.press("Tab");
+      await expect(duration).toHaveValue(`${String(left).padStart(2, "0")}:00`);
+      await expect(team.addTimeDialog.getByText("0h left")).toBeVisible();
+    }));
 
   test("TC250: Add time-off with empty fields asks for an employee, a leave type and a reason, and a multi-day half day asks for its date", async ({
     page,
@@ -472,24 +497,25 @@ test.describe("Manager: Team timesheet", () => {
   });
 
   test("TC253: Saving an entry in the drawer without a comment asks for one and sends nothing", async ({
-    page,
-  }) => {
-    allure.story("Team Timesheet");
-    const updates = [];
-    page.on("request", (request) => {
-      if (/update_timesheet_detail/.test(request.url())) {
-        updates.push(request.url());
-      }
-    });
+    browser,
+  }) =>
+    asSystemManager(browser, async () => {
+      allure.story("Team Timesheet");
+      const updates = [];
+      team.page.on("request", (request) => {
+        if (/update_timesheet_detail/.test(request.url())) {
+          updates.push(request.url());
+        }
+      });
 
-    await team.goto({ search: member.TmPending });
-    await team.openDrawer(LAST, member.TmPending);
-    const panel = await team.editFirstEntry(lastWeek("Mon"));
-    await panel.locator("[contenteditable]").first().fill("");
-    await team.entrySave(panel).click();
-    await expect(panel.getByText("Please enter a comment.")).toBeVisible();
-    expect(updates).toHaveLength(0);
-  });
+      await team.goto({ search: member.TmPending });
+      await team.openDrawer(LAST, member.TmPending);
+      const panel = await team.editFirstEntry(lastWeek("Mon"));
+      await panel.locator("[contenteditable]").first().fill("");
+      await team.entrySave(panel).click();
+      await expect(panel.getByText("Please enter a comment.")).toBeVisible();
+      expect(updates).toHaveLength(0);
+    }));
 
   test("TC254: Rejecting without a reason asks for one and sends nothing", async ({
     page,

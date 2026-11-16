@@ -8,6 +8,7 @@ const EMPLOYEE_TARGETS = [
   "Allocations - Team",
   "Allocations - project",
   "Tasks",
+  "What's new",
 ];
 
 const sorted = (list) => [...list].sort();
@@ -73,10 +74,7 @@ test.describe("Employee: Global search", () => {
       await manager.goto("/timesheet");
       await manager.openSearch();
       const found = async (query) => sorted(await manager.searchFor(query));
-      expect(await found("Dashboard")).toEqual([
-        "Dashboard - Leadership",
-        "Dashboard - Manager",
-      ]);
+      expect(await found("Dashboard")).toEqual(["Dashboard - Manager"]);
       expect(await found("Timesheet")).toEqual([
         "Timesheet - Personal",
         "Timesheet - Projects",

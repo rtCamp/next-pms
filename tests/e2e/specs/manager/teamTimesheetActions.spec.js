@@ -1,7 +1,10 @@
 const { test, expect } = require("../../playwright.fixture.cjs");
 import * as allure from "allure-js-commons";
 import path from "path";
-import { signedInAsRole } from "../../helpers/storageStateHelper";
+import {
+  signedInAsRole,
+  signedInContext,
+} from "../../helpers/storageStateHelper";
 import { reseedWeek, weekStatuses } from "../../helpers/weekTimeHelper";
 import { TeamTimesheetPage } from "../../pageObjects/teamTimesheetPage";
 import { TimesheetWeeksPage } from "../../pageObjects/timesheetWeeksPage";
@@ -50,6 +53,21 @@ test.describe("Manager: Team timesheet actions", () => {
     );
   });
 
+  /** Runs `body` with `team` on a page of the seeded System Manager, the only role that adds or edits another member's time. */
+  const asSystemManager = async (browser, body) => {
+    const context = await signedInContext(
+      browser,
+      data.employees.TsAdmin.user,
+      "team-sysmgr",
+    );
+    try {
+      team = new TeamTimesheetPage(await context.newPage());
+      await body();
+    } finally {
+      await context.close();
+    }
+  };
+
   /** Puts a seeded week back when it no longer reads `status` on every timesheet. */
   const ensureWeek = async (who, weeksAgo, status) => {
     const statuses = await weekStatuses(data, who, weeksAgo);
@@ -85,98 +103,106 @@ test.describe("Manager: Team timesheet actions", () => {
     return { context, page: await context.newPage() };
   };
 
-  test("TC246: The manager adds time for a member from the Team tab", async () => {
-    allure.story("Team Timesheet");
-    test.setTimeout(180000);
-    const employee = data.employees.TmAddTime.id;
-    const wednesday = lastWeek("Wed");
-    await clearDay(employee, wednesday);
-    try {
-      await team.goto({ search: member.TmAddTime });
-      await team.addTimeButton.click();
-      await team.fillAddTime({
-        employee: member.TmAddTime,
-        project: ALPHA,
-        task: ALPHA_TASK,
-        date: wednesday,
-        duration: "02:00",
-        comment: "TC246 - added by the manager",
-      });
-      await team.addTimeDialog
-        .getByRole("button", { name: "Save and close" })
-        .click();
-      await expect(
-        team.toast("Time Entry submitted successfully"),
-      ).toBeVisible();
-      await expect(team.addTimeDialog).toBeHidden();
-
-      await team.reload();
-      await expect(
-        team.cells(team.memberRow(LAST, member.TmAddTime)).nth(2),
-      ).toHaveText("02:00");
-    } finally {
+  test("TC246: A System Manager adds time for a member from the Team tab", async ({
+    browser,
+  }) =>
+    asSystemManager(browser, async () => {
+      allure.story("Team Timesheet");
+      test.setTimeout(180000);
+      const employee = data.employees.TmAddTime.id;
+      const wednesday = lastWeek("Wed");
       await clearDay(employee, wednesday);
-    }
-  });
+      try {
+        await team.goto({ search: member.TmAddTime });
+        await team.addTimeButton.click();
+        await team.fillAddTime({
+          employee: member.TmAddTime,
+          project: ALPHA,
+          task: ALPHA_TASK,
+          date: wednesday,
+          duration: "02:00",
+          comment: "TC246 - added by a System Manager",
+        });
+        await team.addTimeDialog
+          .getByRole("button", { name: "Save and close" })
+          .click();
+        await expect(
+          team.toast("Time Entry submitted successfully"),
+        ).toBeVisible();
+        await expect(team.addTimeDialog).toBeHidden();
 
-  test("TC247: Save and add another keeps the member and date and clears the entry; Save and close closes the dialog", async () => {
-    allure.story("Team Timesheet");
-    test.setTimeout(scaleTimeout(80000));
-    const employee = data.employees.TmAddTime.id;
-    const thursday = lastWeek("Thu");
-    await clearDay(employee, thursday);
-    try {
-      await team.goto({ search: member.TmAddTime });
-      await team.addTimeButton.click();
-      await team.fillAddTime({
-        employee: member.TmAddTime,
-        project: ALPHA,
-        task: ALPHA_TASK,
-        date: thursday,
-        duration: "01:00",
-        comment: "TC247 - first entry",
-      });
-      const dialog = team.addTimeDialog;
-      await dialog
-        .getByRole("button", { name: "Save and add another" })
-        .click();
-      await expect(team.toast("Time Entry submitted successfully")).toBeVisible(
-        {
-          timeout: scaleTimeout(15000),
-        },
-      );
+        await team.reload();
+        await expect(
+          team.cells(team.memberRow(LAST, member.TmAddTime)).nth(2),
+        ).toHaveText("02:00");
+      } finally {
+        await clearDay(employee, wednesday);
+      }
+    }));
 
-      // Still open on the same member and day, with the entry itself cleared.
-      await expect(dialog).toBeVisible();
-      await expect(dialog.getByPlaceholder("Select employee")).toHaveValue(
-        member.TmAddTime,
-      );
-      await expect(
-        dialog.getByRole("textbox", { name: "Date (required)" }),
-      ).toHaveValue(thursday);
-      await expect(dialog.getByPlaceholder("Select project")).toHaveValue("");
-      await expect(dialog.getByPlaceholder("Select task")).toHaveValue("");
-      await expect(dialog.getByPlaceholder("00:00")).toHaveValue("00:00");
-      await expect(dialog.locator("[contenteditable]").first()).toHaveText("");
-
-      await team.choose("Select project", ALPHA);
-      await team.choose("Select task", ALPHA_TASK);
-      await dialog.getByPlaceholder("00:00").fill("02:00");
-      await dialog
-        .locator("[contenteditable]")
-        .first()
-        .fill("TC247 - second entry");
-      await dialog.getByRole("button", { name: "Save and close" }).click();
-      await expect(dialog).toBeHidden({ timeout: scaleTimeout(15000) });
-
-      await team.reload();
-      await expect(
-        team.cells(team.memberRow(LAST, member.TmAddTime)).nth(3),
-      ).toHaveText("03:00");
-    } finally {
+  test("TC247: Save and add another keeps the member and date and clears the entry; Save and close closes the dialog", async ({
+    browser,
+  }) =>
+    asSystemManager(browser, async () => {
+      allure.story("Team Timesheet");
+      test.setTimeout(scaleTimeout(80000));
+      const employee = data.employees.TmAddTime.id;
+      const thursday = lastWeek("Thu");
       await clearDay(employee, thursday);
-    }
-  });
+      try {
+        await team.goto({ search: member.TmAddTime });
+        await team.addTimeButton.click();
+        await team.fillAddTime({
+          employee: member.TmAddTime,
+          project: ALPHA,
+          task: ALPHA_TASK,
+          date: thursday,
+          duration: "01:00",
+          comment: "TC247 - first entry",
+        });
+        const dialog = team.addTimeDialog;
+        await dialog
+          .getByRole("button", { name: "Save and add another" })
+          .click();
+        await expect(
+          team.toast("Time Entry submitted successfully"),
+        ).toBeVisible({
+          timeout: scaleTimeout(15000),
+        });
+
+        // Still open on the same member and day, with the entry itself cleared.
+        await expect(dialog).toBeVisible();
+        await expect(dialog.getByPlaceholder("Select employee")).toHaveValue(
+          member.TmAddTime,
+        );
+        await expect(
+          dialog.getByRole("textbox", { name: "Date (required)" }),
+        ).toHaveValue(thursday);
+        await expect(dialog.getByPlaceholder("Select project")).toHaveValue("");
+        await expect(dialog.getByPlaceholder("Select task")).toHaveValue("");
+        await expect(dialog.getByPlaceholder("00:00")).toHaveValue("00:00");
+        await expect(dialog.locator("[contenteditable]").first()).toHaveText(
+          "",
+        );
+
+        await team.choose("Select project", ALPHA);
+        await team.choose("Select task", ALPHA_TASK);
+        await dialog.getByPlaceholder("00:00").fill("02:00");
+        await dialog
+          .locator("[contenteditable]")
+          .first()
+          .fill("TC247 - second entry");
+        await dialog.getByRole("button", { name: "Save and close" }).click();
+        await expect(dialog).toBeHidden({ timeout: scaleTimeout(15000) });
+
+        await team.reload();
+        await expect(
+          team.cells(team.memberRow(LAST, member.TmAddTime)).nth(3),
+        ).toHaveText("03:00");
+      } finally {
+        await clearDay(employee, thursday);
+      }
+    }));
 
   test("TC249: The manager adds time-off for a member from the Team tab", async () => {
     allure.story("Team Timesheet");

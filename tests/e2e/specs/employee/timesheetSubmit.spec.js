@@ -65,7 +65,7 @@ test.describe("Employee: Submit a week for approval", () => {
           date: dateInWeek(3, day),
           employee: process.env.EMP_ID,
         },
-        "manager",
+        "admin",
       );
     }
 
