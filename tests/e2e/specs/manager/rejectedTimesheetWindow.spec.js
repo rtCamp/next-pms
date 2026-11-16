@@ -76,18 +76,27 @@ test.describe("Timesheet: rejected-day correction window", () => {
     if (!seeded) await reseedWeek(data, FIXTURE, WHO, weeksAgo);
   };
 
-  test("TC407: The Team tab keeps a day rejected past the backdate limit open for review while the next old day stays locked", async ({
-    page,
+  test("TC407: For a System Manager, the Team tab keeps a day rejected past the backdate limit open while the next old day stays locked", async ({
+    browser,
   }) => {
     allure.story("Team Timesheet");
     await ensureSeeded();
-    const team = new TeamTimesheetPage(page);
-    await team.goto({ search: employee.name, ...onlyWeek(weeksAgo) });
-    await team.expandWeek(week);
+    const context = await signedInContext(
+      browser,
+      data.employees.RwEditor.user,
+      "rejected-window-editor",
+    );
+    try {
+      const team = new TeamTimesheetPage(await context.newPage());
+      await team.goto({ search: employee.name, ...onlyWeek(weeksAgo) });
+      await team.expandWeek(week);
 
-    const days = team.cells(team.memberRow(week, employee.name));
-    await expect(days.nth(0)).toBeEnabled();
-    await expect(days.nth(1)).toBeDisabled();
+      const days = team.cells(team.memberRow(week, employee.name));
+      await expect(days.nth(0)).toBeEnabled();
+      await expect(days.nth(1)).toBeDisabled();
+    } finally {
+      await context.close();
+    }
   });
 
   test("TC408: The employee logs the correction on a day rejected past the backdate limit, and the next old day is still refused", async ({

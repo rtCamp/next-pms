@@ -156,6 +156,8 @@ module.exports = {
         weekendsOff: true,
         user: { roles: ["Projects User"] },
       },
+      // Only a System Manager adds time to another member's day.
+      RwEditor: { managed: false, user: { roles: ["System Manager"] } },
     },
     payloadCreateWeekTime: [
       {
