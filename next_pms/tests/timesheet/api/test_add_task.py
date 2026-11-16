@@ -2,10 +2,13 @@ import frappe
 from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
 
+from next_pms.tests.utils import make_employee
 from next_pms.timesheet.api.task import add_task
 
 CUSTOMER_NAME = "Add Task Test Customer"
 PROJECT_NAME = "Add Task Test Project"
+OTHER_PROJECT_NAME = "Add Task Test Unshared Project"
+EMPLOYEE_USER = "add-task-employee@example.com"
 
 
 class TestAddTask(IntegrationTestCase):
@@ -15,6 +18,14 @@ class TestAddTask(IntegrationTestCase):
         cls.company = get_default_company()
         cls.customer = cls._make_customer(CUSTOMER_NAME)
         cls.project = cls._make_project(PROJECT_NAME, cls.customer)
+        cls.other_project = cls._make_project(OTHER_PROJECT_NAME, cls.customer)
+        make_employee(EMPLOYEE_USER, company=cls.company, leave_approver="Administrator")
+        frappe.share.add_docshare(
+            "Project", cls.project, EMPLOYEE_USER, read=1, flags={"ignore_share_permission": True}
+        )
+
+    def tearDown(self):
+        frappe.set_user("Administrator")
 
     @classmethod
     def _make_customer(cls, customer_name):
@@ -141,3 +152,24 @@ class TestAddTask(IntegrationTestCase):
         task = self._get_task("Omitted optional fields task")
         self.assertEqual(task.priority, "Low")
         self.assertFalse(task.exp_end_date)
+
+    def test_employee_adds_a_task_to_a_project_shared_with_them(self):
+        frappe.set_user(EMPLOYEE_USER)
+        add_task(subject="Employee shared task", expected_time="1", project=self.project, description="")
+        frappe.set_user("Administrator")
+        self.assertEqual(self._get_task("Employee shared task").owner, EMPLOYEE_USER)
+
+    def test_employee_cannot_add_a_task_to_a_project_not_shared_with_them(self):
+        frappe.set_user(EMPLOYEE_USER)
+        with self.assertRaises(frappe.PermissionError):
+            add_task(subject="Employee unshared task", expected_time="1", project=self.other_project, description="")
+        frappe.set_user("Administrator")
+        self.assertFalse(frappe.db.exists("Task", {"subject": "Employee unshared task"}))
+
+    def test_employee_cannot_move_a_task_to_a_project_not_shared_with_them(self):
+        frappe.set_user(EMPLOYEE_USER)
+        add_task(subject="Employee task to move", expected_time="1", project=self.project, description="")
+        task = self._get_task("Employee task to move")
+        task.project = self.other_project
+        with self.assertRaises(frappe.PermissionError):
+            task.save()
