@@ -5,7 +5,7 @@ from functools import wraps
 import frappe
 from frappe.utils import flt
 
-from next_pms.permissions.capabilities import ALL
+from next_pms.permissions.capabilities import ALL, has_capability
 from next_pms.permissions.scope import EmployeeScope, get_employee_scope
 from next_pms.timesheet.utils.constant import (
     DEFAULT_DAILY_WORKING_HOURS,
@@ -165,7 +165,9 @@ def get_employee_list(
     roles: str | list[str] | None = None,
     ignore_default_filters: bool = False,
 ):
-    """Get a paginated list of employees for the employee dropdown in the timesheet entry form, respecting user permissions."""
+    """Paginated employees for the app's employee pickers. Holders of `filter_lookups` get
+    the whole directory: HRMS limits each user to their own Employee record, which would
+    otherwise empty every picker. Everyone else follows their Employee permissions."""
     from . import filter_employees
 
     if roles and isinstance(roles, str):
@@ -183,7 +185,7 @@ def get_employee_list(
         user_group=user_group,
         reports_to=reports_to,
         roles=roles,
-        ignore_permissions=False,
+        ignore_permissions=has_capability("filter_lookups"),
         ignore_default_filters=ignore_default_filters,
         extra_fields=["user_id"],
     )

@@ -6,7 +6,7 @@ from frappe import get_all, get_list, get_meta, get_value, whitelist
 from frappe.utils import add_days, flt, getdate
 
 from next_pms.api.utils import error_logger
-from next_pms.permissions.capabilities import require_capability
+from next_pms.permissions.capabilities import has_capability, require_capability
 from next_pms.timesheet.utils.constant import (
     MAX_PROJECT_TIMESHEET_PAGE_LENGTH,
     PROJECT_TIMESHEET_PAGE_LENGTH,
@@ -124,13 +124,19 @@ def get_project_filter_for_contractor(only_list=False):
     return []
 
 
+def _can_view_employee_projects(employee: str) -> bool:
+    """Project membership is what the allocation dialog needs for any employee, so managing
+    allocations is enough; everyone else follows the timesheet read scope."""
+    return has_capability("manage_allocations") or employee_has_higher_access(employee, ptype="read")
+
+
 @whitelist(methods=["GET"])
 @error_logger
 def get_employee_project_ids(employee: str):
     """Return every Project name the given employee can access — individually shared, or via "everyone"."""
     if not employee:
         return []
-    if not employee_has_higher_access(employee, ptype="read"):
+    if not _can_view_employee_projects(employee):
         frappe.throw(frappe._("You are not authorized to view this employee's projects."), frappe.PermissionError)
 
     everyone_projects = get_all("DocShare", filters={"share_doctype": "Project", "everyone": 1}, pluck="share_name")
@@ -157,7 +163,7 @@ def get_project_filter_for_employee(employee: str | None):
 @error_logger
 def get_project_employee_access(project: str | None = None, employee: str | None = None):
     """Whether `project` has any member, whether `employee` has any project, and whether this pair is valid together."""
-    if employee and not employee_has_higher_access(employee, ptype="read"):
+    if employee and not _can_view_employee_projects(employee):
         frappe.throw(frappe._("You are not authorized to view this employee's project access."), frappe.PermissionError)
 
     def is_shared(share_filter):

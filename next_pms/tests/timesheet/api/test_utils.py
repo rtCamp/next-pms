@@ -1,8 +1,11 @@
 import frappe
 from erpnext import get_default_company
+from frappe.permissions import add_user_permission
 from frappe.tests import IntegrationTestCase
 
 from next_pms.tests.utils import make_employee
+from next_pms.timesheet.api.employee import get_employee_list
+from next_pms.timesheet.api.project import get_employee_project_ids, get_project_employee_access
 from next_pms.timesheet.api.utils import (
     can_approve_project_timesheets,
     can_approve_week,
@@ -91,6 +94,36 @@ class TestTimesheetAccess(IntegrationTestCase):
         self.assertFalse(employee_has_higher_access(self.other_employee, ptype="read"))
         self.assertFalse(can_approve_week(self.other_employee))
         self.assertFalse(can_approve_project_timesheets(self.other_project, self.other_employee))
+
+    def test_projects_user_looks_up_project_membership_of_any_employee(self):
+        frappe.set_user(REVIEWER_USER)
+        self.assertIsInstance(get_employee_project_ids(self.other_employee), list)
+        self.assertIn("is_valid", get_project_employee_access(employee=self.other_employee))
+
+    def test_plain_employee_cannot_look_up_another_employees_project_membership(self):
+        frappe.set_user(PLAIN_EMPLOYEE_USER)
+        with self.assertRaises(frappe.PermissionError):
+            get_employee_project_ids(self.other_employee)
+        with self.assertRaises(frappe.PermissionError):
+            get_project_employee_access(employee=self.other_employee)
+
+    def _picker_as(self, user, **kwargs):
+        """Employee names the picker returns to `user`, who is limited to their own
+        Employee record the way HRMS limits every user."""
+        add_user_permission("Employee", frappe.db.get_value("Employee", {"user_id": user}), user, True)
+        frappe.set_user(user)
+        return [row.name for row in get_employee_list(**kwargs)["data"]]
+
+    def test_employee_picker_lists_the_directory_for_projects_user(self):
+        self.assertEqual(self._picker_as(REVIEWER_USER, employee_name=OTHER_EMPLOYEE_USER), [self.other_employee])
+
+    def test_employee_picker_role_filter_works_for_projects_user(self):
+        manager = frappe.db.get_value("Employee", {"user_id": MANAGER_USER})
+        picked = self._picker_as(REVIEWER_USER, employee_name=MANAGER_USER, roles=["Projects Manager"])
+        self.assertEqual(picked, [manager])
+
+    def test_employee_picker_stays_limited_for_plain_employee(self):
+        self.assertEqual(self._picker_as(PLAIN_EMPLOYEE_USER, employee_name=OTHER_EMPLOYEE_USER), [])
 
     def test_approver_list_offers_reporting_manager_but_not_unrelated_projects_user(self):
         self.assertIn(REVIEWER_USER, get_timesheet_approver_users(self.report))
