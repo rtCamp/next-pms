@@ -31,6 +31,7 @@ from next_pms.next_projects.api.utils import (
 )
 from next_pms.permissions.capabilities import has_capability, require_capability
 from next_pms.project_currency.billing_rate import get_billing_rate_context, resolve_billing_rate
+from next_pms.resource_management.api.utils.helpers import can_see_resource_cost
 from next_pms.timesheet.api import get_count
 from next_pms.utils.employee import (
     get_employee_salary,
@@ -823,8 +824,10 @@ def _get_project_members(
 
     logged_hours_map = _get_member_logged_hours(project_name, [e.name for e in employees])
 
+    can_view_cost = can_see_resource_cost()
+
     def _hourly_rate(employee_name: str | None) -> float | None:
-        if not employee_name or not currency:
+        if not can_view_cost or not employee_name or not currency:
             return None
         try:
             salary = get_employee_salary(employee_name, currency, throw=False)
