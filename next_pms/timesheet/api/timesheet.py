@@ -434,7 +434,7 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
             frappe.throw(_("You cannot select yourself as the approver."), frappe.PermissionError)
 
         reporting_manager = frappe.get_value("Employee", employee, "reports_to")
-        if approver != reporting_manager:
+        if approver not in (reporting_manager, employee):
             approver_user = frappe.get_value("Employee", approver, "user_id")
             if approver_user != "Administrator" and approver_user not in get_timesheet_approver_users(employee):
                 frappe.throw(_("Selected approver is not authorized to approve timesheets."), frappe.PermissionError)
