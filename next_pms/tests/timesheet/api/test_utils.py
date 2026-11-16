@@ -44,8 +44,16 @@ class TestTimesheetAccess(IntegrationTestCase):
 
         cls.managed_project = cls._project(MANAGED_PROJECT_NAME, company)
         cls.other_project = cls._project(OTHER_PROJECT_NAME, company)
-        frappe.db.set_value("Project", cls.managed_project, "custom_project_manager", REVIEWER_USER)
-        frappe.db.set_value("Project", cls.other_project, "custom_project_manager", None)
+        frappe.db.set_value(
+            "Project",
+            cls.managed_project,
+            {"custom_engineering_manager": REVIEWER_USER, "custom_project_manager": None},
+        )
+        frappe.db.set_value(
+            "Project",
+            cls.other_project,
+            {"custom_engineering_manager": None, "custom_project_manager": REVIEWER_USER},
+        )
 
     @staticmethod
     def _project(name, company):

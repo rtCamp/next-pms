@@ -57,7 +57,7 @@ def get_employee_scope(capability: str, user: str | None = None) -> EmployeeScop
     if scope == REPORTS:
         return EmployeeScope(scope=scope, employee=employee, reports=reports)
 
-    managed_projects = frozenset(frappe.get_all("Project", filters={"custom_project_manager": user}, pluck="name"))
+    managed_projects = frozenset(frappe.get_all("Project", filters={"custom_engineering_manager": user}, pluck="name"))
     return EmployeeScope(
         scope=scope,
         employee=employee,

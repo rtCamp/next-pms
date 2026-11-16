@@ -294,7 +294,9 @@ def get_timesheet_approver_users(employee: str) -> set[str]:
         )
     projects.discard(None)
     related = set(
-        get_all("Project", filters={"name": ["in", list(projects)]}, pluck="custom_project_manager") if projects else []
+        get_all("Project", filters={"name": ["in", list(projects)]}, pluck="custom_engineering_manager")
+        if projects
+        else []
     )
     if reports_to:
         related.add(frappe.db.get_value("Employee", reports_to, "user_id"))
