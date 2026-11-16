@@ -98,14 +98,14 @@ PERMISSION_MAP: dict[str, tuple[PermRule, ...]] = {
         rule("Accounts User", "read write", permlevel=1),
         rule("HR User", "read write create delete submit cancel amend report export share print email"),
     ),
-    # Projects User keeps permlevel 2 (project financials); cost and invoice burn are hidden
-    # in the app by the view_cost_and_invoice_burn capability instead.
+    # Projects User reads permlevel 2 (project financials) but cannot edit it; cost and invoice
+    # burn are hidden in the app by the view_cost_and_invoice_burn capability instead.
     "Project": (
         rule(EMPLOYEE, "select read", if_owner=1),
         rule("Desk User", "read", permlevel=1),
         rule(PROJECTS_USER, "read write create delete report export share print email"),
         rule(PROJECTS_USER, "read export", permlevel=1),
-        rule(PROJECTS_USER, "read write export", permlevel=2),
+        rule(PROJECTS_USER, "read export", permlevel=2),
         rule(PROJECTS_MANAGER, _FULL),
         rule(PROJECTS_MANAGER, "read write export", permlevel=1),
         rule(PROJECTS_MANAGER, "read write export", permlevel=2),

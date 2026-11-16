@@ -43,6 +43,11 @@ class TestApplyPermissions(IntegrationTestCase):
         self.assertFalse(_rows("Project", role="Delivery Manager", permlevel=2))
         self.assertFalse(_rows("Project", role="Timesheet Manager"))
 
+    def test_projects_user_reads_project_financials_but_cannot_edit_them(self):
+        [row] = _rows("Project", role="Projects User", permlevel=2)
+        self.assertTrue(row.read)
+        self.assertFalse(row.write)
+
     def test_rows_of_other_roles_are_left_alone(self):
         frappe.db.delete("Custom DocPerm", {"parent": "Project", "role": "Accounts Manager", "permlevel": 1})
         frappe.get_doc(
