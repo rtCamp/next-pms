@@ -28,6 +28,17 @@ export const SETTINGS_HELP = {
     ],
     wiki: SYSTEM_TIMESHEETS_WIKI,
   },
+  rejectedTimesheetWindow: {
+    title: "Rejected Timesheet Edit/Approval Window",
+    summary:
+      "Working days after a rejection during which the employee can correct that day and the reviewer can approve it, even past the backdate limit.",
+    details: [
+      "The whole rejected day opens. Rejected entries stay read-only, so corrections are added as new entries.",
+      "Holidays, weekly offs and leave aren't counted. A new rejection restarts the window.",
+      "0 turns it off, so only the backdate limit applies.",
+    ],
+    wiki: SYSTEM_TIMESHEETS_WIKI,
+  },
   allowedDepartments: {
     title: "Allowed Departments",
     summary:

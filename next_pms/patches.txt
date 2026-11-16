@@ -56,3 +56,4 @@ next_pms.next_projects.patches.setup_project_tech_stack_field
 next_pms.next_projects.patches.setup_crm_deal_tech_stack_field
 next_pms.next_pms.patches.setup_custom_docperms
 next_pms.next_pms.patches.backfill_risk_mitigated_on
+next_pms.timesheet.patches.setup_timesheet_rejected_on_field

@@ -49,6 +49,7 @@ export const WeekRow = ({
   collapsed: initialCollapsed,
   isReadOnlyWeek,
   approvalPendingCount,
+  rejectionUnlockedDates,
   onCollapsedChange,
   triggerClassName,
   ...rest
@@ -182,6 +183,7 @@ export const WeekRow = ({
                     isDateBackdateRestricted(
                       entry.date,
                       backdateRestrictedBefore,
+                      rejectionUnlockedDates,
                     ),
                 })),
                 totalTimeEntriesInHours: weekData.totalTimeEntriesInHours,

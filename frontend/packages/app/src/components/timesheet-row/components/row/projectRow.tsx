@@ -30,6 +30,7 @@ export const ProjectRow = ({
   disabled,
   lockApproved = true,
   backdateRestrictedBefore,
+  rejectionUnlockedDates,
   onCellClick,
   children,
   ...rest
@@ -51,7 +52,11 @@ export const ProjectRow = ({
         disabled:
           Boolean(disabled) ||
           (lockApproved && hasApprovedTimeEntry(tasks, date)) ||
-          isDateBackdateRestricted(date, backdateRestrictedBefore),
+          isDateBackdateRestricted(
+            date,
+            backdateRestrictedBefore,
+            rejectionUnlockedDates,
+          ),
       });
       total += currentTotal;
     }
@@ -63,6 +68,7 @@ export const ProjectRow = ({
     disabled,
     lockApproved,
     backdateRestrictedBefore,
+    rejectionUnlockedDates,
   ]);
 
   return (

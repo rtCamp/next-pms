@@ -51,6 +51,8 @@ import {
   NOTIFICATIONS_HELP,
   tipsForPath,
 } from "./help";
+import { UnreadDot } from "./unreadDot";
+import { WhatsNewMenuItem } from "./whatsNewMenuItem";
 
 const Sidebar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -74,6 +76,8 @@ const Sidebar = () => {
     employeeId,
     employeeName,
     roles,
+    hasReleaseNotes,
+    hasUnseenRelease,
     updateIsSidebarCollapsed,
     logout,
   } = useUser(({ state, actions }) => ({
@@ -81,6 +85,8 @@ const Sidebar = () => {
     employeeId: state.employeeId,
     employeeName: state.employeeName,
     roles: state.roles,
+    hasReleaseNotes: state.hasReleaseNotes,
+    hasUnseenRelease: state.hasUnseenRelease,
     updateIsSidebarCollapsed: actions.updateIsSidebarCollapsed,
     logout: actions.logout,
   }));
@@ -236,6 +242,13 @@ const Sidebar = () => {
     },
   ];
 
+  if (hasReleaseNotes) {
+    searchItems.push({
+      label: "What's new",
+      action: () => navigate(ROUTES["whats-new"]),
+    });
+  }
+
   if (hasAnyRole(roles, ROLE_ACCESS.leadershipDashboard)) {
     searchItems.push({
       label: "Dashboard - Leadership",
@@ -283,7 +296,17 @@ const Sidebar = () => {
         header={{
           title: "Next PMS",
           subtitle: employeeName,
-          logo,
+          logo: (
+            <span className="relative block size-full">
+              <img src={logo} alt="Logo" className="size-full object-cover" />
+              {hasUnseenRelease && (
+                <>
+                  <UnreadDot placement="logo" />
+                  <span className="sr-only">New release</span>
+                </>
+              )}
+            </span>
+          ),
           menuItems: [
             {
               label: "Apps",
@@ -306,6 +329,15 @@ const Sidebar = () => {
               icon: <Settings size={16} className="text-ink-gray-6 mr-2" />,
               onClick: () => setIsSettingsOpen(true),
             },
+            ...(hasReleaseNotes
+              ? [
+                  {
+                    label: "What's new",
+                    component: WhatsNewMenuItem,
+                    onClick: () => navigate(ROUTES["whats-new"]),
+                  },
+                ]
+              : []),
             {
               label: "Toggle Theme",
               icon:

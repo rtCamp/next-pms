@@ -73,6 +73,7 @@ export const toProjectMember = (
   status: member.status,
   projectStatus: resolveProjectApprovalStatus(member.tasks),
   backdateRestrictedBefore: member.backdate_restricted_before,
+  rejectionUnlockedDates: member.rejection_unlocked_dates,
 });
 
 /**

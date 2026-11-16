@@ -82,6 +82,7 @@ export interface timesheet {
   total_hours: number;
   tasks: TaskProps;
   status: ApprovalStatusLabelType;
+  rejection_unlocked_dates?: string[];
 }
 
 export interface NewTimesheetProps {

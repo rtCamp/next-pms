@@ -4,6 +4,7 @@ import re
 import frappe
 from frappe.utils import cint
 
+from next_pms.api.whats_new import get_whats_new_boot
 from next_pms.next_projects.api.feedback import is_customer_feedback_available
 from next_pms.timesheet.api.app import has_bu_field, has_industry_field
 from next_pms.timesheet.api.project import get_project_filter_for_contractor
@@ -51,6 +52,7 @@ def get_context(context):
     boot["allow_weekend_entries"] = bool(
         cint(frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries"))
     )
+    boot.update(get_whats_new_boot(frappe.session.user))
     boot_json = frappe.as_json(boot, indent=None, separators=(",", ":"))
     boot_json = re.sub(
         r"<script\b[^>]*>.*?</script\s*>",
@@ -99,6 +101,7 @@ def get_boot():
     boot["allow_weekend_entries"] = bool(
         cint(frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries"))
     )
+    boot.update(get_whats_new_boot(frappe.session.user))
     boot_json = frappe.as_json(boot, indent=None, separators=(",", ":"))
     boot_json = re.sub(
         r"<script\b[^>]*>.*?</script\s*>",

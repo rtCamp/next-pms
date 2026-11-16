@@ -45,6 +45,7 @@ export type TeamMemberPayload = {
   leaves: LeaveProps[];
   holidays: HolidayProp[];
   backdate_restricted_before: string | null;
+  rejection_unlocked_dates: string[];
 };
 
 export type TeamMembersPayload = {

@@ -26,6 +26,7 @@ export type TimesheetSettings = {
   allow_backdated_entries_till_employee?: number;
   allow_backdated_entries_till_manager?: number;
   ignored_role?: Array<{ role?: string }>;
+  allow_rejected_timesheet_edit_till?: number;
   allow_future_entries?: 0 | 1;
   allow_weekend_entries?: 0 | 1;
   auto_expand_weeks_by_default?: number;

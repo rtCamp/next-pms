@@ -9,7 +9,8 @@
   "user",
   "section_break_qddn",
   "use_system_auto_expand_weeks",
-  "auto_expand_weeks_by_default"
+  "auto_expand_weeks_by_default",
+  "whats_new_last_seen"
  ],
  "fields": [
   {
@@ -37,12 +38,19 @@
    "fieldname": "use_system_auto_expand_weeks",
    "fieldtype": "Check",
    "label": "Use System Auto Expand Weeks"
+  },
+  {
+   "fieldname": "whats_new_last_seen",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "What's New Last Seen",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-02 13:46:21.588496",
+ "modified": "2026-11-05 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "PMS User Setting",
