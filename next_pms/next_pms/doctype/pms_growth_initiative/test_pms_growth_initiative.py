@@ -18,6 +18,7 @@ PROJECTS_USER = "test.growth.pu@example.com"
 PROJECTS_MANAGER_USER = "test.growth.pm@example.com"
 LEADERSHIP_USER = "test.growth.pl@example.com"
 SYSTEM_MANAGER_USER = "test.growth.sm@example.com"
+EMPLOYEE_USER = "test.growth.employee@example.com"
 
 UNRESTRICTED_USERS = (PROJECTS_MANAGER_USER, LEADERSHIP_USER, SYSTEM_MANAGER_USER)
 
@@ -289,6 +290,24 @@ class IntegrationTestPMSGrowthInitiative(IntegrationTestCase):
         initiative.append("update_log", {"billable_outcome": -1})
         with self.assertRaises(frappe.NonNegativeError):
             initiative.save(ignore_permissions=True)
+
+    def test_projects_user_can_create_an_initiative(self):
+        frappe.set_user(PROJECTS_USER)
+        initiative = frappe.get_doc(
+            {
+                "doctype": DOCTYPE,
+                "project": self.project.name,
+                "activity": "Expand to mobile app",
+                "status": "Ideation",
+                "activity_owner": PROJECTS_USER,
+            }
+        ).insert()
+        self.addCleanup(frappe.delete_doc, DOCTYPE, initiative.name, force=True, ignore_permissions=True)
+        self.assertEqual(initiative.owner, PROJECTS_USER)
+
+    def test_employee_cannot_create_an_initiative(self):
+        self._make_user(EMPLOYEE_USER, ["Employee"])
+        self.assertFalse(frappe.has_permission(DOCTYPE, "create", user=EMPLOYEE_USER))
 
     def test_gated_roles_can_read_any_initiative(self):
         initiative = self._make_initiative()
