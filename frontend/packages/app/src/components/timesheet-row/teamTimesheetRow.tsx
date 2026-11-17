@@ -37,6 +37,7 @@ export type TeamMember = {
   status: ApprovalStatusLabelType;
   backdateRestrictedBefore: string | null;
   rejectionUnlockedDates: string[];
+  canApprove: boolean;
 };
 
 type TeamTimesheetRowProps = {
@@ -106,7 +107,9 @@ export const TeamTimesheetRow = ({
                 workingHour={member.workingHour}
                 workingFrequency={member.workingFrequency}
                 status={member.status}
-                hideAction={member.status === "Not Submitted"}
+                hideAction={
+                  member.status === "Not Submitted" || !member.canApprove
+                }
                 className="pl-7.5 animate-fade-in"
                 collapsed={true}
                 disabled={member.status === "Approved"}

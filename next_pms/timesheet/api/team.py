@@ -20,6 +20,7 @@ from frappe.utils.data import add_days, flt, getdate
 
 from next_pms.api.utils import error_logger
 from next_pms.permissions.capabilities import require_capability
+from next_pms.permissions.scope import get_employee_scope
 from next_pms.timesheet.doc_events.timesheet import (
     flush_cache,
     get_date_restriction_message,
@@ -144,8 +145,15 @@ def get_team_timesheet_data(
     )
 
     context = build_chunk_context(page_employees, [week], scope.parsed_filters)
+    approver = get_employee_scope("approve_week")
+    # Per viewer, so it stays out of build_team_member_payload: the realtime publisher reuses
+    # that payload for every viewer.
     response["members"] = [
-        build_team_member_payload(employee, context, week, scope.has_filters) for employee in page_employees
+        {
+            **build_team_member_payload(employee, context, week, scope.has_filters),
+            "can_approve": employee.name != approver.employee and approver.allows(employee.name),
+        }
+        for employee in page_employees
     ]
     response["has_more"] = start + page_length < total_count
     return response

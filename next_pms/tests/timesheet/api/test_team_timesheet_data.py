@@ -357,6 +357,30 @@ class TestTeamTimesheetDataReportsToScoped(_TeamTimesheetDataBase):
         self.assertEqual([member["employee"] for member in res["members"]], [self.r3, self.r1, self.r2])
 
 
+class TestTeamTimesheetDataCanApprove(_TeamTimesheetDataBase):
+    """A Projects User sees project members on the Team page but approves only reports' weeks."""
+
+    REVIEWER = "team.timesheet.reviewer@example.com"
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._make_user(cls.REVIEWER)
+        frappe.get_doc("User", cls.REVIEWER).add_roles("Projects User")
+        frappe.db.set_value("Employee", cls.mgr, "user_id", cls.REVIEWER)
+        frappe.db.set_value("Project", cls.project_beta, "custom_engineering_manager", cls.REVIEWER)
+        frappe.clear_cache()
+
+    def test_week_action_follows_approve_week(self):
+        members = self._members_by_employee(self._call(user=self.REVIEWER, start_date=W2_MON))
+        self.assertTrue(members[self.r1]["can_approve"])
+        self.assertFalse(members[self.e1]["can_approve"])
+
+    def test_global_approver_can_approve_everyone(self):
+        members = self._members_by_employee(self._call(start_date=W2_MON))
+        self.assertTrue(all(member["can_approve"] for member in members.values()))
+
+
 class TestTeamTimesheetDataAllEmployees(_TeamTimesheetDataBase):
     """reports_to=None ("All") — the pagination path this refactor targets."""
 
@@ -845,6 +869,8 @@ class TestTeamTimesheetMemberWeek(_TeamTimesheetDataBase):
     def test_matches_the_element_the_page_endpoint_returns(self):
         page = self._call(reports_to=self.mgr, start_date=W1_MON)
         expected = self._members_by_employee(page)[self.r1]
+        # The realtime row is shared by every viewer, so it leaves out the viewer's can_approve.
+        expected.pop("can_approve")
 
         frappe.set_user(WRITE_USER)
         single = get_team_timesheet_member_week(employee=self.r1, start_date=W1_MON)
