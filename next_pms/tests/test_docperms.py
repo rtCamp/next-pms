@@ -43,6 +43,11 @@ class TestApplyPermissions(IntegrationTestCase):
         self.assertFalse(_rows("Project", role="Delivery Manager", permlevel=2))
         self.assertFalse(_rows("Project", role="Timesheet Manager"))
 
+    def test_projects_user_reads_the_report_generation_flag_but_cannot_edit_it(self):
+        [row] = _rows("Project", role="Projects User", permlevel=3)
+        self.assertTrue(row.read)
+        self.assertFalse(row.write)
+
     def test_projects_user_reads_project_financials_but_cannot_edit_them(self):
         [row] = _rows("Project", role="Projects User", permlevel=2)
         self.assertTrue(row.read)

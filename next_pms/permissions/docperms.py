@@ -106,6 +106,7 @@ PERMISSION_MAP: dict[str, tuple[PermRule, ...]] = {
         rule(PROJECTS_USER, "read write create delete report export share print email"),
         rule(PROJECTS_USER, "read export", permlevel=1),
         rule(PROJECTS_USER, "read export", permlevel=2),
+        rule(PROJECTS_USER, "read", permlevel=3),
         rule(PROJECTS_MANAGER, _FULL),
         rule(PROJECTS_MANAGER, "read write export", permlevel=1),
         rule(PROJECTS_MANAGER, "read write export", permlevel=2),
