@@ -349,6 +349,8 @@ class TestSelfApprovalGuard(IntegrationTestCase):
                 }
             ).insert(ignore_permissions=True)
         cls.project = frappe.db.get_value("Project", {"project_name": SELF_APPROVAL_PROJECT})
+        # The peer may only send their week to a manager of a project they logged time on.
+        frappe.db.set_value("Project", cls.project, "custom_project_manager", SELF_APPROVAL_REVIEWER)
 
         if not frappe.db.exists("Task", {"subject": SELF_APPROVAL_TASK}):
             frappe.get_doc({"doctype": "Task", "subject": SELF_APPROVAL_TASK, "project": cls.project}).insert(
