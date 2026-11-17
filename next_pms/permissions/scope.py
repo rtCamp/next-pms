@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import frappe
+from frappe.utils.caching import request_cache
 
 from next_pms.permissions.capabilities import (
     ALL,
@@ -48,7 +49,11 @@ class EmployeeScope:
 
 
 def get_employee_scope(capability: str, user: str | None = None) -> EmployeeScope:
-    user = user or frappe.session.user
+    return _get_employee_scope(capability, user or frappe.session.user)
+
+
+@request_cache
+def _get_employee_scope(capability: str, user: str) -> EmployeeScope:
     scope = capability_scope(capability, user)
     employee = frappe.db.get_value("Employee", {"user_id": user})
     if scope == ALL or not employee or scope not in (REPORTS, REPORTS_AND_OWN_PROJECTS):
