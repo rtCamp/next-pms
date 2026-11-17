@@ -43,6 +43,23 @@ class TestApplyPermissions(IntegrationTestCase):
         self.assertFalse(_rows("Project", role="Delivery Manager", permlevel=2))
         self.assertFalse(_rows("Project", role="Timesheet Manager"))
 
+    def test_territory_is_readable_below_leadership_and_editable_by_leadership(self):
+        for role in ("Projects User", "Projects Manager"):
+            [row] = _rows("Territory", role=role, permlevel=0)
+            self.assertTrue(row.read, role)
+            self.assertFalse(row.write, role)
+        [row] = _rows("Territory", role="PMS Leadership", permlevel=0)
+        self.assertTrue(row.read)
+        self.assertTrue(row.write)
+
+    def test_host_is_readable_below_leadership_and_editable_by_leadership(self):
+        perms = {perm.role: perm for perm in frappe.get_meta("Host").permissions}
+        for role in ("Projects User", "Projects Manager"):
+            self.assertTrue(perms[role].read, role)
+            self.assertFalse(perms[role].write, role)
+        self.assertTrue(perms["PMS Leadership"].read)
+        self.assertTrue(perms["PMS Leadership"].write)
+
     def test_projects_user_reads_the_report_generation_flag_but_cannot_edit_it(self):
         [row] = _rows("Project", role="Projects User", permlevel=3)
         self.assertTrue(row.read)

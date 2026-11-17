@@ -132,6 +132,11 @@ PERMISSION_MAP: dict[str, tuple[PermRule, ...]] = {
     "Designation": (rule(PROJECTS_MANAGER, "select read"),),
     "Department": (rule(PMS_LEADERSHIP, "select"),),
     "Project Type": (rule(PMS_LEADERSHIP, "select"),),
+    "Territory": (
+        rule(PROJECTS_USER, "select read"),
+        rule(PROJECTS_MANAGER, "select read"),
+        rule(PMS_LEADERSHIP, "select read write"),
+    ),
     "ToDo": (rule(SYSTEM_MANAGER, "read write create delete report export share print email"),),
 }
 
