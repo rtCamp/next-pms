@@ -29,7 +29,12 @@ from next_pms.next_projects.api.utils import (
     get_user_image_map,
     resolve_tag_filters,
 )
-from next_pms.permissions.capabilities import has_capability, require_capability
+from next_pms.permissions.capabilities import (
+    MANAGER_FIELD_ROLES,
+    get_missing_manager_role,
+    has_capability,
+    require_capability,
+)
 from next_pms.project_currency.billing_rate import get_billing_rate_context, resolve_billing_rate
 from next_pms.resource_management.api.utils.helpers import can_see_resource_cost
 from next_pms.timesheet.api import get_count
@@ -1301,6 +1306,11 @@ def get_project_tracking(project: str):
     }
 
 
+def _get_missing_manager_role(project_doc, fieldname: str) -> str | None:
+    user = project_doc.get(fieldname)
+    return get_missing_manager_role(fieldname, user) if user else None
+
+
 @whitelist(methods=["GET"])
 @error_logger
 def get_project_sidebar(project: str):
@@ -1318,6 +1328,8 @@ def get_project_sidebar(project: str):
         customers     - contacts from custom_customer_contacts
         billing_team  - billing team members (name, employee_id, user_id);
                         empty unless billing type is Time and Material
+        manager_roles - per manager, the roles that qualify someone for it
+        missing_manager_roles - per manager, the role the current one lacks, or None
     """
     require_capability("projects_page")
 
@@ -1377,6 +1389,14 @@ def get_project_sidebar(project: str):
         "billing_team": (
             _get_project_billing_team(project) if project_doc.get("custom_billing_type") == "Time and Material" else []
         ),
+        "manager_roles": {
+            "project_manager": list(MANAGER_FIELD_ROLES["custom_project_manager"]),
+            "engineering_manager": list(MANAGER_FIELD_ROLES["custom_engineering_manager"]),
+        },
+        "missing_manager_roles": {
+            "project_manager": _get_missing_manager_role(project_doc, "custom_project_manager"),
+            "engineering_manager": _get_missing_manager_role(project_doc, "custom_engineering_manager"),
+        },
         "is_shared_with_everyone": bool(
             frappe.db.exists(
                 "DocShare",

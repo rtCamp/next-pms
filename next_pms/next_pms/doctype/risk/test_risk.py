@@ -33,13 +33,10 @@ class IntegrationTestRisk(IntegrationTestCase):
         cls._make_user(SYSTEM_MANAGER_USER, ["System Manager"])
         frappe.clear_cache()
 
-        cls.project = frappe.get_doc(
-            {
-                "doctype": "Project",
-                "project_name": "Risk Permission Test Project",
-                "custom_project_manager": OWNER_USER,
-            }
-        ).insert(ignore_permissions=True)
+        cls.project = frappe.get_doc({"doctype": "Project", "project_name": "Risk Permission Test Project"}).insert(
+            ignore_permissions=True
+        )
+        cls.project.db_set("custom_project_manager", OWNER_USER)
 
     @classmethod
     def tearDownClass(cls):

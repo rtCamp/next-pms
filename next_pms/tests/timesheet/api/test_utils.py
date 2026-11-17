@@ -2,10 +2,12 @@ import frappe
 from erpnext import get_default_company
 from frappe.permissions import add_user_permission
 from frappe.tests import IntegrationTestCase
+from frappe.utils import add_days, get_first_day_of_week, get_last_day_of_week, nowdate
 
 from next_pms.tests.utils import make_employee
 from next_pms.timesheet.api.employee import get_employee_list
 from next_pms.timesheet.api.project import get_employee_project_ids, get_project_employee_access
+from next_pms.timesheet.api.timesheet import submit_for_approval
 from next_pms.timesheet.api.utils import (
     can_approve_project_timesheets,
     can_approve_week,
@@ -22,6 +24,7 @@ REPORT_USER = "ts-utils-report@example.com"
 OTHER_EMPLOYEE_USER = "ts-utils-other-employee@example.com"
 MANAGED_PROJECT_NAME = "Timesheet Utils Managed Project"
 OTHER_PROJECT_NAME = "Timesheet Utils Other Project"
+APPROVER_PROJECT_NAME = "Timesheet Utils Approver Project"
 
 
 class TestTimesheetAccess(IntegrationTestCase):
@@ -44,6 +47,8 @@ class TestTimesheetAccess(IntegrationTestCase):
 
         cls.managed_project = cls._project(MANAGED_PROJECT_NAME, company)
         cls.other_project = cls._project(OTHER_PROJECT_NAME, company)
+        cls.approver_project = cls._project(APPROVER_PROJECT_NAME, company)
+        cls.company = company
         frappe.db.set_value(
             "Project",
             cls.managed_project,
@@ -53,6 +58,11 @@ class TestTimesheetAccess(IntegrationTestCase):
             "Project",
             cls.other_project,
             {"custom_engineering_manager": None, "custom_project_manager": REVIEWER_USER},
+        )
+        frappe.db.set_value(
+            "Project",
+            cls.approver_project,
+            {"custom_engineering_manager": PLAIN_EMPLOYEE_USER, "custom_project_manager": MANAGER_USER},
         )
 
     @staticmethod
@@ -133,11 +143,49 @@ class TestTimesheetAccess(IntegrationTestCase):
     def test_employee_picker_stays_limited_for_plain_employee(self):
         self.assertEqual(self._picker_as(PLAIN_EMPLOYEE_USER, employee_name=OTHER_EMPLOYEE_USER), [])
 
-    def test_approver_list_offers_reporting_manager_but_not_unrelated_projects_user(self):
-        self.assertIn(REVIEWER_USER, get_timesheet_approver_users(self.report))
-        self.assertNotIn(REVIEWER_USER, get_timesheet_approver_users(self.other_employee))
-        self.assertIn(MANAGER_USER, get_timesheet_approver_users(self.other_employee))
-        self.assertNotIn(PLAIN_EMPLOYEE_USER, get_timesheet_approver_users(self.other_employee))
+    def _log_week(self, employee, project, start_date):
+        week_start = get_first_day_of_week(start_date)
+        frappe.get_doc(
+            {
+                "doctype": "Timesheet",
+                "name": frappe.generate_hash(length=10),
+                "employee": employee,
+                "company": self.company,
+                "parent_project": project,
+                "start_date": week_start,
+                "end_date": get_last_day_of_week(week_start),
+            }
+        ).db_insert()
+
+    def setUp(self):
+        frappe.db.delete("Timesheet", {"employee": ["in", [self.report, self.other_employee]]})
+
+    def test_approver_list_offers_only_the_reporting_manager_without_project_time(self):
+        self.assertEqual(get_timesheet_approver_users(self.report, nowdate()), {REVIEWER_USER})
+        self.assertEqual(get_timesheet_approver_users(self.other_employee, nowdate()), set())
+
+    def test_approver_list_offers_managers_of_the_weeks_projects_who_hold_the_role(self):
+        self._log_week(self.other_employee, self.managed_project, nowdate())
+        self._log_week(self.other_employee, self.approver_project, nowdate())
+        self._log_week(self.other_employee, self.other_project, nowdate())
+
+        self.assertEqual(get_timesheet_approver_users(self.other_employee, nowdate()), {REVIEWER_USER, MANAGER_USER})
+
+    def test_approver_list_ignores_projects_from_other_weeks(self):
+        self._log_week(self.other_employee, self.approver_project, add_days(nowdate(), -7))
+        self.assertNotIn(MANAGER_USER, get_timesheet_approver_users(self.other_employee, nowdate()))
+
+    def test_approver_list_never_offers_the_employee_themselves(self):
+        reviewer = frappe.db.get_value("Employee", {"user_id": REVIEWER_USER})
+        frappe.db.delete("Timesheet", {"employee": reviewer})
+        self._log_week(reviewer, self.managed_project, nowdate())
+        self.assertNotIn(REVIEWER_USER, get_timesheet_approver_users(reviewer, nowdate()))
+
+    def test_submit_rejects_an_approver_outside_the_list(self):
+        admin_employee = frappe.db.get_value("Employee", {"user_id": ADMIN_USER})
+        frappe.set_user(OTHER_EMPLOYEE_USER)
+        with self.assertRaises(frappe.PermissionError):
+            submit_for_approval(start_date=nowdate(), approver=admin_employee)
 
     def _timesheet(self, employee, project=None):
         return frappe._dict(doctype="Timesheet", employee=employee, parent_project=project)

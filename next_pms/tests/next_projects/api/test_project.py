@@ -813,18 +813,11 @@ class TestSidebarMemberCostGate(IntegrationTestCase):
         super().setUpClass()
         cls.member = "sidebar-cost-member@example.com"
         make_employee(cls.member)
-        cls.project = (
-            frappe.get_doc(
-                {
-                    "doctype": "Project",
-                    "project_name": "SidebarCost Project",
-                    "company": get_default_company(),
-                    "custom_project_manager": cls.member,
-                }
-            )
-            .insert(ignore_permissions=True)
-            .name
-        )
+        project = frappe.get_doc(
+            {"doctype": "Project", "project_name": "SidebarCost Project", "company": get_default_company()}
+        ).insert(ignore_permissions=True)
+        project.db_set("custom_project_manager", cls.member)
+        cls.project = project.name
         frappe.set_user("Administrator")
 
     def _member_rate(self, can_view_cost):

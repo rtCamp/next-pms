@@ -20,9 +20,16 @@ type UseApproverOptionsOptions = {
   revalidateOnFocus?: boolean;
 };
 
+type UseTimesheetApproverOptions = UseApproverOptionsOptions & {
+  /** Skips the request, e.g. while the dialog is closed. */
+  shouldFetch?: boolean;
+};
+
 const useApproverLookup = (
   method: string,
   { revalidateOnFocus }: UseApproverOptionsOptions,
+  params: Record<string, unknown> = {},
+  shouldFetch = true,
 ) => {
   const { options } = useRemoteLookup<
     ApproverLookupResult,
@@ -30,7 +37,8 @@ const useApproverLookup = (
     ApproverOption
   >({
     method,
-    params: () => ({}),
+    shouldFetch,
+    params: () => params,
     getItems: (message) => message ?? [],
     mapOption: (employee) => ({
       label: employee.employee_name,
@@ -50,11 +58,18 @@ const useApproverOptions = (options: UseApproverOptionsOptions = {}) =>
   useApproverLookup("next_pms.timesheet.api.get_approver_details", options);
 
 /**
- * Fetches the approvers the current user may send their own week to.
+ * Fetches the approvers the current user may send the week of `startDate` to:
+ * their reporting manager and the managers of that week's projects.
  */
 export const useTimesheetApproverOptions = (
-  options: UseApproverOptionsOptions = {},
+  startDate: string,
+  { shouldFetch = true, ...options }: UseTimesheetApproverOptions = {},
 ) =>
-  useApproverLookup("next_pms.timesheet.api.get_timesheet_approvers", options);
+  useApproverLookup(
+    "next_pms.timesheet.api.get_timesheet_approvers",
+    options,
+    { start_date: startDate },
+    shouldFetch && !!startDate,
+  );
 
 export default useApproverOptions;

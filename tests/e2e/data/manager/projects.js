@@ -93,6 +93,10 @@ module.exports = {
       ],
     }),
     ...pages,
+    // A Lead Engineer must hold at least Projects User (TC329).
+    payloadCreateWeekEmployees: {
+      PrjEngineer: { managed: false, user: { roles: ["Projects User"] } },
+    },
     payloadShareProject5: [
       {
         doctype: "Project",

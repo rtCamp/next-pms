@@ -8,7 +8,11 @@ from frappe import get_all
 from frappe.utils import add_days, get_first_day_of_week, get_last_day_of_week, getdate
 from frappe.utils.caching import redis_cache
 
-from next_pms.permissions.capabilities import ALL, CAPABILITIES, REPORTS_AND_OWN_PROJECTS, has_capability
+from next_pms.permissions.capabilities import (
+    get_missing_manager_role,
+    get_project_manager_fields,
+    has_capability,
+)
 from next_pms.permissions.scope import get_employee_scope
 from next_pms.resource_management.api.utils.query import get_employee_leaves
 from next_pms.timesheet.utils.constant import (
@@ -268,40 +272,39 @@ def employee_has_higher_access(employee: str, ptype: str = "read") -> bool:
     return get_employee_scope("view_others_timesheets").allows(employee)
 
 
-def get_timesheet_approver_users(employee: str) -> set[str]:
-    """Users `employee` may send a week to: anyone holding `be_timesheet_approver` for
-    everyone, plus scoped holders who are the employee's reporting manager or manage one of
-    the employee's projects. Feeds both the approver picker and the submit validation."""
-    grants = CAPABILITIES["be_timesheet_approver"]
+def get_timesheet_approver_users(employee: str, start_date: str) -> set[str]:
+    """Users `employee` may send the week of `start_date` to: their reporting manager, plus the
+    managers of the projects logged that week who hold the role their manager field needs.
+    Feeds both the approver picker and the submit validation."""
+    week_start = get_first_day_of_week(start_date)
+    projects = get_all(
+        "Timesheet",
+        filters={
+            "employee": employee,
+            "start_date": [">=", week_start],
+            "end_date": ["<=", get_last_day_of_week(week_start)],
+            "docstatus": ["!=", 2],
+            "parent_project": ["is", "set"],
+        },
+        pluck="parent_project",
+        distinct=True,
+    )
 
-    def holders(scope):
-        roles = [role for role, granted in grants.items() if granted == scope]
-        return set(
-            get_all(
-                "Has Role",
-                filters={"role": ["in", roles], "parenttype": "User", "parent": ["!=", "Administrator"]},
-                pluck="parent",
+    approvers = set()
+    manager_fields = get_project_manager_fields()
+    if projects:
+        for project in get_all("Project", filters={"name": ["in", projects]}, fields=manager_fields):
+            approvers.update(
+                project[fieldname]
+                for fieldname in manager_fields
+                if project[fieldname] and not get_missing_manager_role(fieldname, project[fieldname])
             )
-        )
 
     user_id, reports_to = frappe.db.get_value("Employee", employee, ["user_id", "reports_to"]) or (None, None)
-    projects = set(get_all("Timesheet", filters={"employee": employee}, pluck="parent_project", distinct=True))
-    if user_id:
-        projects |= set(
-            get_all(
-                "DocShare", filters={"share_doctype": "Project", "user": user_id, "everyone": 0}, pluck="share_name"
-            )
-        )
-    projects.discard(None)
-    related = set(
-        get_all("Project", filters={"name": ["in", list(projects)]}, pluck="custom_engineering_manager")
-        if projects
-        else []
-    )
     if reports_to:
-        related.add(frappe.db.get_value("Employee", reports_to, "user_id"))
+        approvers.add(frappe.db.get_value("Employee", reports_to, "user_id"))
 
-    return (holders(ALL) | (holders(REPORTS_AND_OWN_PROJECTS) & related)) - {user_id, None}
+    return approvers - {user_id, None}
 
 
 def can_approve_week(employee: str) -> bool:

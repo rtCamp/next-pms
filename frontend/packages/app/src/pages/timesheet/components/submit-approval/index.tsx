@@ -61,7 +61,9 @@ const SubmitApproval = ({
   const { call: submitForApproval } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.submit_for_approval",
   );
-  const approverOptions = useTimesheetApproverOptions();
+  const approverOptions = useTimesheetApproverOptions(startDate, {
+    shouldFetch: open,
+  });
 
   const approverComboboxOptions = useMemo(
     () => approverOptions.map(withApproverAvatar),

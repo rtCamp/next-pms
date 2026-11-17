@@ -187,6 +187,7 @@ test.describe("Manager: Project details", () => {
     page,
   }) => {
     allure.story("Projects");
+    const engineer = data.employees.PrjEngineer;
     await restore();
     try {
       await details.goto(project);
@@ -194,7 +195,7 @@ test.describe("Manager: Project details", () => {
         details.projectManager,
         process.env.REP_MAN_NAME,
       );
-      await details.pickPerson(details.leadEngineer, process.env.EMP3_NAME);
+      await details.pickPerson(details.leadEngineer, engineer.name);
       await expect
         .poll(async () => {
           const saved = await getDocument("Project", project);
@@ -203,7 +204,7 @@ test.describe("Manager: Project details", () => {
             saved.custom_engineering_manager,
           ];
         })
-        .toEqual([process.env.REP_MAN_EMAIL, process.env.EMP3_EMAIL]);
+        .toEqual([process.env.REP_MAN_EMAIL, engineer.user.email]);
 
       const list = new ProjectsListPage(page);
       await list.open({ search: DETAIL });
@@ -211,7 +212,7 @@ test.describe("Manager: Project details", () => {
         process.env.REP_MAN_NAME,
       );
       await expect(await list.cell(DETAIL, "Lead engineer")).toContainText(
-        process.env.EMP3_NAME,
+        engineer.name,
       );
     } finally {
       await restore();

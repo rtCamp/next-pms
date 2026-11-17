@@ -115,9 +115,9 @@ class _ProjectViewBase(IntegrationTestCase):
         )
         if project_type:
             doc.project_type = project_type
-        if project_manager:
-            doc.custom_project_manager = project_manager
         doc.insert(ignore_permissions=True)
+        if project_manager:
+            doc.db_set("custom_project_manager", project_manager)
         for tag in tags:
             doc.add_tag(tag)
         return doc.name

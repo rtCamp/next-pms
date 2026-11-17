@@ -89,3 +89,48 @@ class TestProjectTechStackFromDeal(IntegrationTestCase):
     def test_billable_project_from_deal_without_tech_stack_is_rejected(self):
         with self.assertRaises(frappe.ValidationError):
             self.new_project(self.new_deal()).insert(ignore_permissions=True)
+
+
+class TestProjectManagerRoles(IntegrationTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.no_role_user = "manager-role-warning-plain@example.com"
+        cls.projects_user = "manager-role-warning-projects-user@example.com"
+        for email in (cls.no_role_user, cls.projects_user):
+            if not frappe.db.exists("User", email):
+                frappe.get_doc({"doctype": "User", "email": email, "first_name": email.split("@")[0]}).insert(
+                    ignore_permissions=True
+                )
+        frappe.get_doc("User", cls.projects_user).add_roles("Projects User")
+
+    @staticmethod
+    def new_project(**managers):
+        return frappe.get_doc(
+            {
+                "doctype": "Project",
+                "project_name": f"Manager Role {frappe.generate_hash(length=8)}",
+                "custom_billing_type": "Non-Billable",
+                **managers,
+            }
+        )
+
+    def test_engineering_manager_without_projects_user_is_rejected(self):
+        with self.assertRaisesRegex(frappe.ValidationError, "Projects User"):
+            self.new_project(custom_engineering_manager=self.no_role_user).insert(ignore_permissions=True)
+
+    def test_project_manager_needs_projects_manager_not_projects_user(self):
+        with self.assertRaisesRegex(frappe.ValidationError, "Projects Manager"):
+            self.new_project(custom_project_manager=self.projects_user).insert(ignore_permissions=True)
+
+    def test_manager_with_the_role_saves(self):
+        project = self.new_project(custom_engineering_manager=self.projects_user).insert(ignore_permissions=True)
+        self.assertEqual(project.custom_engineering_manager, self.projects_user)
+
+    def test_existing_under_roled_manager_does_not_block_other_edits(self):
+        project = self.new_project().insert(ignore_permissions=True)
+        frappe.db.set_value("Project", project.name, "custom_engineering_manager", self.no_role_user)
+
+        project = frappe.get_doc("Project", project.name)
+        project.notes = "Edited while the manager lacks the role"
+        project.save(ignore_permissions=True)

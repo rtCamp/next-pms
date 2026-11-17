@@ -60,6 +60,28 @@ CAPABILITIES: dict[str, dict[str, Scope]] = {
 }
 
 
+MANAGER_FIELD_ROLES: dict[str, tuple[str, ...]] = {
+    "custom_project_manager": _MANAGERS,
+    "custom_engineering_manager": _REVIEWERS,
+    "custom_account_manager_": _MANAGERS,
+}
+
+
+def get_project_manager_fields() -> list[str]:
+    """Manager fields present on Project; the account manager field comes from the rtcamp app."""
+    meta = frappe.get_meta("Project")
+    return [fieldname for fieldname in MANAGER_FIELD_ROLES if meta.has_field(fieldname)]
+
+
+def get_missing_manager_role(fieldname: str, user: str) -> str | None:
+    """The least role `user` needs to approve timesheets as the project's `fieldname`, or None
+    when they already hold one that qualifies."""
+    qualifying_roles = MANAGER_FIELD_ROLES[fieldname]
+    if user == "Administrator" or set(frappe.get_roles(user)) & set(qualifying_roles):
+        return None
+    return qualifying_roles[0]
+
+
 def _widest_scope(grants: dict[str, Scope], roles: set[str]) -> Scope | None:
     scopes = [grants[role] for role in roles if role in grants]
     return max(scopes, key=_SCOPE_RANK.__getitem__, default=None)

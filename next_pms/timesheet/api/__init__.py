@@ -22,15 +22,15 @@ def get_approver_details():
 
 
 @whitelist(methods=["GET"])
-def get_timesheet_approvers():
-    """Employees the session user may send their own week to for approval."""
+def get_timesheet_approvers(start_date: str):
+    """Employees the session user may send their week of `start_date` to for approval."""
     from .employee import get_employee_from_user
     from .utils import get_timesheet_approver_users
 
     employee = get_employee_from_user()
     if not employee:
         return []
-    return _active_employees_for_users(list(get_timesheet_approver_users(employee)))
+    return _active_employees_for_users(list(get_timesheet_approver_users(employee, start_date)))
 
 
 def _active_employees_for_users(user_ids: list[str]) -> list[dict]:
