@@ -11,7 +11,7 @@ from next_pms.next_pms.doctype.pms_project_update_subscription.pms_project_updat
     get_project_account_manager,
     get_project_subscribers,
 )
-from next_pms.permissions.capabilities import PMS_LEADERSHIP, has_capability
+from next_pms.permissions.capabilities import CAPABILITIES, has_capability
 
 MENTION_EMAIL_TEMPLATE = "next_pms/templates/mention_notification.html"
 
@@ -543,7 +543,7 @@ def send_review_reminders():
 
 
 def ai_allocation_after_insert(doc, method=None):
-    """Notify PMS Leadership when an AI allocation is created."""
+    """Notify everyone who manages AI allocations when one is created."""
     if not getattr(doc, "is_ai_created", 0):
         return
 
@@ -553,7 +553,7 @@ def ai_allocation_after_insert(doc, method=None):
 def sync_ai_allocation_notifications(project=None, new_doc=None):
     ai_allocation_managers = frappe.get_all(
         "Has Role",
-        filters={"role": PMS_LEADERSHIP, "parenttype": "User"},
+        filters={"role": ["in", list(CAPABILITIES["manage_ai_allocations"])], "parenttype": "User"},
         pluck="parent",
     )
     if not ai_allocation_managers:

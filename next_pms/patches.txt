@@ -49,3 +49,4 @@ next_pms.next_pms.patches.backfill_risk_mitigated_on
 next_pms.timesheet.patches.setup_timesheet_rejected_on_field
 next_pms.next_pms.patches.apply_role_permissions
 next_pms.next_pms.patches.retire_timesheet_roles
+next_pms.timesheet.patches.add_timesheet_parent_project_index

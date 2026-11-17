@@ -30,6 +30,7 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         cls.project = cls._make_project("Active Project", cls.customer)
         cls.projects_user = cls._make_user("meera.iyer@example.com", roles=["Projects User"])
         cls.leadership_user = cls._make_user("pl.resource.alloc@example.com", roles=["PMS Leadership"])
+        cls.system_manager_user = cls._make_user("sm.resource.alloc@example.com", roles=["System Manager"])
 
     @classmethod
     def _make_user(cls, email, roles=None):
@@ -126,7 +127,11 @@ class TestResourceAllocationValidation(IntegrationTestCase):
             frappe.set_user(self.leadership_user if allocation.is_ai_created else "Administrator")
             frappe.delete_doc("Resource Allocation", allocation.name, force=1, ignore_permissions=True)
         frappe.set_user("Administrator")
-        for notif in frappe.get_all("NextPMS Notifications", filters={"user": self.leadership_user}, pluck="name"):
+        for notif in frappe.get_all(
+            "NextPMS Notifications",
+            filters={"user": ["in", [self.leadership_user, self.system_manager_user]]},
+            pluck="name",
+        ):
             frappe.delete_doc("NextPMS Notifications", notif, force=1, ignore_permissions=True)
 
     def test_active_project_and_enabled_customer_saves(self):
@@ -301,6 +306,16 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         doc = self._make_allocation_doc(customer=self.customer, currency="INR")
         doc.insert(ignore_permissions=True)
         self.assertEqual(doc.currency, "INR")
+
+    def test_ai_allocation_notifies_system_managers_too(self):
+        project = self._make_project("AI Notif SM Project", self.customer)
+        self._make_allocation_doc(project=project, is_ai_created=1, status="Tentative").insert(ignore_permissions=True)
+        self.assertTrue(
+            frappe.db.exists(
+                "NextPMS Notifications",
+                {"user": self.system_manager_user, "linked_doctype": "Project", "linked_document": project},
+            )
+        )
 
     def test_ai_allocation_notifies_leadership(self):
         project = self._make_project("AI Notif Project", self.customer)

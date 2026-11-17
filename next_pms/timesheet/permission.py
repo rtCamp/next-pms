@@ -4,7 +4,7 @@ from next_pms.permissions.capabilities import REPORTS_AND_OWN_PROJECTS, has_capa
 from next_pms.permissions.scope import EmployeeScope, get_employee_scope
 
 # Roles outside PMS that keep reading and editing every timesheet, as they did before.
-UNRESTRICTED_ROLES = frozenset({"HR User", "Accounts User"})
+UNRESTRICTED_ROLES = frozenset({"HR User", "HR Manager", "Accounts User"})
 READ_PTYPES = frozenset({"read", "select", "report", "export", "print", "email", "share"})
 
 

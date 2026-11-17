@@ -8,6 +8,7 @@ import { Tabs } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
+import { useCapability } from "@/hooks/useCapability";
 import { ROUTES } from "@/lib/constant";
 import { AboutThisProject } from "./about";
 import { TAB_PARAM } from "./constants";
@@ -38,9 +39,11 @@ function ProjectDetail() {
 function ProjectDetailBody() {
   const [searchParams, setSearchParams] = useSearchParams();
   const isProjectLoaded = useProjectDetail((state) => Boolean(state.project));
-  const reportEnabled = useProjectDetail(
+  const reportGenerationOn = useProjectDetail(
     (state) => state.project?.custom_enable_project_report_generation,
   );
+  const canManageReports = useCapability("project_admin");
+  const reportEnabled = reportGenerationOn && canManageReports;
   const editorMatch = useMatch(`${ROUTES.project}/:projectId/notes/*`);
 
   let finalTabs = TABS;

@@ -12,5 +12,5 @@ def execute() -> None:
         frappe.db.delete("Custom DocPerm", {"role": role})
         frappe.db.delete("Has Role", {"role": role, "parenttype": ["!=", "User"]})
         frappe.db.delete("Has Role", {"role": role, "parenttype": "User"})
-        frappe.delete_doc("Role", role, force=True, ignore_permissions=True)
+        frappe.delete_doc("Role", role, ignore_permissions=True)
     frappe.clear_cache()

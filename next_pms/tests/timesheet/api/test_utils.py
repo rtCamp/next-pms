@@ -209,6 +209,16 @@ class TestTimesheetAccess(IntegrationTestCase):
         self.assertFalse(has_permission(self._timesheet(self.other_employee), "submit", MANAGER_USER))
         self.assertTrue(has_permission(self._timesheet(self.other_employee), "write", ADMIN_USER))
 
+    def test_desk_hr_manager_reads_every_timesheet(self):
+        hr_manager = "ts-utils-hr-manager@example.com"
+        if not frappe.db.exists("User", hr_manager):
+            frappe.get_doc({"doctype": "User", "email": hr_manager, "first_name": "HR Manager"}).insert(
+                ignore_permissions=True
+            )
+        frappe.get_doc("User", hr_manager).add_roles("HR Manager")
+        self.assertTrue(has_permission(self._timesheet(self.other_employee), "read", hr_manager))
+        self.assertEqual(get_permission_query_conditions(hr_manager), "")
+
     def test_desk_employee_reads_only_own_timesheets(self):
         own = frappe.db.get_value("Employee", {"user_id": PLAIN_EMPLOYEE_USER})
         self.assertTrue(has_permission(self._timesheet(own), "read", PLAIN_EMPLOYEE_USER))
