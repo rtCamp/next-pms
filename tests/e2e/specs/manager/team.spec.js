@@ -135,7 +135,7 @@ test.describe("Manager: Team Tab", () => {
 
     const context = await signedInContext(
       browser,
-      TC47data.employees.TmEditor.user,
+      TC47data.employees.EdTeam.user,
       "team-editor",
     );
     try {

@@ -56,11 +56,11 @@ def run():
     holiday_list()
     masters()
     business_unit_customization()
-    release_notes()
     personas = create_personas()
     write_env(personas)
     frappe.db.commit()
     frappe.clear_cache()
+    release_notes()
 
 
 def setup_wizard():

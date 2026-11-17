@@ -116,7 +116,7 @@ module.exports = {
     // deleteEmployeeByName() via the "Playwright-" prefix.
     // Only a System Manager edits someone else's time entry.
     payloadCreateWeekEmployees: {
-      TmEditor: { managed: false, user: { roles: ["System Manager"] } },
+      EdTeam: { managed: false, user: { roles: ["System Manager"] } },
     },
     payloadCreateReviewee: {
       first_name: "Playwright-",
