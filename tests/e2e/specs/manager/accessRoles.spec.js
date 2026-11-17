@@ -12,6 +12,7 @@ import {
   createDocument,
   deleteDocument,
   getDocList,
+  updateDocument,
 } from "../../utils/api/apiClient";
 import { apiRequest } from "../../utils/api/timesheetRequests";
 import { getFormattedDate, weekLabel } from "../../utils/dateUtils";
@@ -301,6 +302,67 @@ test.describe("Access & Roles", () => {
             { timeout: scaleTimeout(90000), intervals: [3000] },
           )
           .toBe(true);
+      },
+    );
+  });
+
+  test("TC414: A Projects User who manages a project sees its members' weeks on the Team timesheet but is offered review only on a direct report's", async ({
+    browser,
+  }) => {
+    allure.story("Access & Roles");
+    test.setTimeout(scaleTimeout(120000));
+    const week = weekLabel(1);
+    const report = data.employees.AcMember;
+    const member = data.employees.AcProjMember;
+    await updateDocument("Project", projectId, {
+      custom_engineering_manager: persona("AcProjUser").email,
+    });
+    try {
+      await signedInAs(
+        browser,
+        persona("AcProjUser"),
+        "projuser-team-action",
+        async ({ page }) => {
+          const team = new TeamTimesheetPage(page);
+          await team.goto({ search: member.name });
+          const memberRow = team.memberRow(week, member.name);
+          await expect(memberRow).toBeVisible();
+          expect(await team.memberStatus(week, member.name)).toBe(
+            "Approval pending",
+          );
+          // Week approval covers direct reports only; project entries go through the
+          // Project timesheet.
+          await expect(team.reviewButton(memberRow)).toHaveCount(0);
+
+          await team.goto({ search: report.name });
+          await expect(
+            team.reviewButton(team.memberRow(week, report.name)),
+          ).toBeVisible();
+        },
+      );
+    } finally {
+      await updateDocument("Project", projectId, {
+        custom_engineering_manager: "",
+      });
+    }
+  });
+
+  test("TC415: A Projects User reads a project's past reports but is not offered report generation", async ({
+    browser,
+  }) => {
+    allure.story("Access & Roles");
+    await signedInAs(
+      browser,
+      persona("AcProjUser"),
+      "projuser-reports",
+      async ({ page }) => {
+        const risks = new ProjectRisksPage(page);
+        await risks.goto(projectId, { tab: "reports" });
+        await expect(
+          page.getByText("Project Reports", { exact: true }),
+        ).toBeVisible();
+        await expect(page.getByText("Done", { exact: true })).toBeVisible();
+        await expect(risks.generateReport).toHaveCount(0);
       },
     );
   });

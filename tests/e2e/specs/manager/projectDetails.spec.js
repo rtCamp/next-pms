@@ -183,7 +183,7 @@ test.describe("Manager: Project details", () => {
     );
   });
 
-  test("TC329: The Project Manager and Lead Engineer chosen in the sidebar show on the project and in the Projects list", async ({
+  test("TC329: The Lead Engineer picker offers only Projects User or higher, and the Project Manager and Lead Engineer chosen show on the project and in the Projects list", async ({
     page,
   }) => {
     allure.story("Projects");
@@ -191,6 +191,16 @@ test.describe("Manager: Project details", () => {
     await restore();
     try {
       await details.goto(project);
+      // EMP3 holds no PMS role, so they cannot be a Lead Engineer.
+      const offered = await details.searchPerson(
+        details.leadEngineer,
+        process.env.EMP3_NAME,
+      );
+      await expect(
+        offered.filter({ hasText: process.env.EMP3_NAME }),
+      ).toHaveCount(0);
+      await details.leadEngineer.fill("");
+
       await details.pickPerson(
         details.projectManager,
         process.env.REP_MAN_NAME,

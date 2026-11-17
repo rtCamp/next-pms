@@ -156,12 +156,22 @@ test.describe("Manager: Dashboards", () => {
     for (const [id, rag] of seeded) {
       await updateDocument("Project", id, { custom_project_rag_status: rag });
     }
-    // A Projects Manager's count covers the projects they manage.
-    const atRisk = await getDocList("Project", [
-      ["is_active", "=", "Yes"],
-      ["custom_project_rag_status", "in", ["Red", "Amber"]],
-      ["custom_project_manager", "=", process.env.REP_MAN_EMAIL],
-    ]);
+    // A Projects Manager's count covers every project naming them as project, engineering
+    // or account manager.
+    const managed = await Promise.all(
+      [
+        "custom_project_manager",
+        "custom_engineering_manager",
+        "custom_account_manager_",
+      ].map((field) =>
+        getDocList("Project", [
+          ["is_active", "=", "Yes"],
+          ["custom_project_rag_status", "in", ["Red", "Amber"]],
+          [field, "=", process.env.REP_MAN_EMAIL],
+        ]),
+      ),
+    );
+    const atRisk = [...new Set(managed.flat().map((project) => project.name))];
     const { get_at_risk_projects_count: count } = await dashboard.goto(
       "manager",
       ["get_at_risk_projects_count"],

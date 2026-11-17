@@ -444,10 +444,15 @@ export const reseedLeave = async (entry, key) => {
   return entry.leaves[key];
 };
 
-/** Sends weeks for approval as admin and decides them, all days or only `days`. */
+/**
+ * Sends weeks for approval as admin and decides them, all days or only `days`. A week goes to
+ * the employee's own reporting manager when the case names one, else to the manager, who must
+ * then manage one of the week's projects: the server accepts no other approver.
+ */
 const decideWeeks = async (entry, tcId, specs, booked) => {
   for (const { employee, weeksAgo, status, days, note } of specs) {
     const id = employeeId(entry, employee);
+    const reportsTo = entry.payloadCreateWeekEmployees?.[employee]?.reportsTo;
     const dates = (booked[`${employee}|${weeksAgo}`] ?? []).filter(
       (date) => !days || days.some((day) => dateInWeek(weeksAgo, day) === date),
     );
@@ -456,7 +461,9 @@ const decideWeeks = async (entry, tcId, specs, booked) => {
         start_date: dateInWeek(weeksAgo, "Mon"),
         end_date: dateInWeek(weeksAgo, "Sun"),
         notes: `${tcId} - submitted by global setup`,
-        approver: process.env.REP_MAN_ID,
+        approver: reportsTo
+          ? employeeId(entry, reportsTo)
+          : process.env.REP_MAN_ID,
         employee: id,
       },
       "admin",

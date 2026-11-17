@@ -5,6 +5,9 @@ const project = (label, postfix = "", sharedWith = []) => ({
   [`payloadCreateProject${postfix}`]: {
     project_name: `TM ${label}`,
     company: COMPANY,
+    // The members here do not report to the manager, so their weeks reach him as this
+    // project's manager.
+    custom_project_manager: process.env.REP_MAN_EMAIL,
     customer: "QA-INR",
     project_type: "Fixed Cost",
     business_unit: "Jupiter",

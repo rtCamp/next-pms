@@ -426,6 +426,8 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC92 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
+      // ApSt* do not report to the manager, so their weeks reach him as this project's manager.
+      custom_project_manager: process.env.REP_MAN_EMAIL,
       customer: "Acme Corporation",
       custom_billing_type: "Fixed Cost",
       custom_currency: "INR",
