@@ -19,6 +19,13 @@ const project = (n, extra = {}) => ({
   },
 });
 
+// An Account Manager needs at least Projects Manager; the case sets this user on the project.
+const accountManager = {
+  payloadCreateWeekEmployees: {
+    NtAccountManager: { managed: false, user: { roles: ["Projects Manager"] } },
+  },
+};
+
 module.exports = {
   TC133: {
     ...project(133),
@@ -40,12 +47,14 @@ module.exports = {
   },
   TC136: { ...project(136) },
   TC137: {
-    ...project(137, { custom_account_manager_: process.env.EMP2_EMAIL }),
+    ...project(137),
+    ...accountManager,
     title: "TC137 Note",
     body: "TC137 - note body.",
   },
   TC138: {
-    ...project(138, { custom_account_manager_: process.env.EMP2_EMAIL }),
+    ...project(138),
+    ...accountManager,
     title: "TC138 Note",
     body: "TC138 - note body.",
     newBody: "TC138 - edited body.",
