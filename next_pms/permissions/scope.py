@@ -8,6 +8,7 @@ from next_pms.permissions.capabilities import (
     REPORTS_AND_OWN_PROJECTS,
     Scope,
     capability_scope,
+    get_project_manager_fields,
 )
 
 
@@ -57,7 +58,7 @@ def get_employee_scope(capability: str, user: str | None = None) -> EmployeeScop
     if scope == REPORTS:
         return EmployeeScope(scope=scope, employee=employee, reports=reports)
 
-    managed_projects = frozenset(frappe.get_all("Project", filters={"custom_engineering_manager": user}, pluck="name"))
+    managed_projects = get_managed_projects(user)
     return EmployeeScope(
         scope=scope,
         employee=employee,
@@ -65,6 +66,12 @@ def get_employee_scope(capability: str, user: str | None = None) -> EmployeeScop
         managed_projects=managed_projects,
         project_members=_get_project_members(managed_projects),
     )
+
+
+def get_managed_projects(user: str) -> frozenset[str]:
+    """Projects that name `user` in any manager field: project, engineering or account manager."""
+    or_filters = dict.fromkeys(get_project_manager_fields(), user)
+    return frozenset(frappe.get_all("Project", or_filters=or_filters, pluck="name"))
 
 
 def _get_project_members(projects: frozenset[str]) -> frozenset[str]:

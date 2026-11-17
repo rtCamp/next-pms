@@ -28,7 +28,7 @@ from next_pms.api.utils import (
 from next_pms.next_projects.api.constant import TIMELINE_ITEM_FIELDS
 from next_pms.next_projects.api.project_timeline_item import enrich_timeline_item
 from next_pms.permissions.capabilities import ALL, require_capability
-from next_pms.permissions.scope import get_employee_scope
+from next_pms.permissions.scope import get_employee_scope, get_managed_projects
 from next_pms.resource_management.api.utils.query import attach_extra_entries, get_employee_leaves
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm, get_employee_from_user
 
@@ -53,12 +53,16 @@ def get_at_risk_projects_count(client: str | None = None, project: str | None = 
         "is_active": "Yes",
         "custom_project_rag_status": ["in", ["Red", "Amber"]],
     }
-    if scope != ALL:
-        filters["custom_project_manager"] = frappe.session.user
     if client:
         filters["customer"] = client
     if project:
         filters["name"] = project
+    if scope != ALL:
+        managed = get_managed_projects(frappe.session.user)
+        if not managed or (project and project not in managed):
+            return 0
+        if not project:
+            filters["name"] = ["in", list(managed)]
     return frappe.db.count("Project", filters=filters)
 
 
@@ -495,7 +499,11 @@ def get_my_projects_summary(days: int = 7, customer: str | None = None) -> list:
 def _get_my_projects_summary(user: str, days: int, customer: str | None) -> list:
     since = add_days(today(), -days)
 
-    filters = {"custom_project_manager": user, "status": "Open"}
+    managed = get_managed_projects(user)
+    if not managed:
+        return []
+
+    filters = {"name": ["in", list(managed)], "status": "Open"}
     if customer:
         filters["customer"] = customer
 
@@ -1509,7 +1517,7 @@ def get_calendar_timeline_items(
 def _get_scoped_calendar_projects() -> list[str]:
     """Projects the session user manages, plus projects their reports are allocated to."""
     employees = get_employee_scope("allocation_widgets").employee_ids() or set()
-    managed = frappe.get_all("Project", filters={"custom_project_manager": frappe.session.user}, pluck="name")
+    managed = get_managed_projects(frappe.session.user)
     allocated = (
         frappe.get_all(
             "Resource Allocation", filters={"employee": ["in", list(employees)]}, pluck="project", distinct=True

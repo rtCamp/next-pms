@@ -119,3 +119,62 @@ class TestDashboardPermissions(IntegrationTestCase):
             (get_allocation_heatmap, [SAMPLE_DATE_FROM, SAMPLE_DATE_TO]),
             (get_calendar_timeline_items, [SAMPLE_DATE_FROM, SAMPLE_DATE_TO]),
         ]
+
+
+class TestDashboardManagedProjects(IntegrationTestCase):
+    """Below leadership, project widgets follow every manager field, not only Project Manager."""
+
+    ENGINEER = "test.em.managed-projects@example.com"
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        if not frappe.db.exists("User", cls.ENGINEER):
+            frappe.get_doc(
+                {"doctype": "User", "email": cls.ENGINEER, "first_name": "Managed Projects EM", "send_welcome_email": 0}
+            ).insert(ignore_permissions=True)
+        frappe.get_doc("User", cls.ENGINEER).add_roles("Projects User")
+        cls.engineered = cls._project("Managed Projects EM", custom_engineering_manager=cls.ENGINEER)
+        cls.other = cls._project("Managed Projects Other")
+        cls.legacy_pm = cls._project("Managed Projects Legacy PM")
+        frappe.db.set_value("Project", cls.legacy_pm, "custom_project_manager", cls.ENGINEER)
+
+    @staticmethod
+    def _project(name, **values):
+        return (
+            frappe.get_doc(
+                {
+                    "doctype": "Project",
+                    "project_name": f"{name} {frappe.generate_hash(length=6)}",
+                    "custom_billing_type": "Non-Billable",
+                    "is_active": "Yes",
+                    "status": "Open",
+                    "custom_project_rag_status": "Red",
+                    **values,
+                }
+            )
+            .insert(ignore_permissions=True)
+            .name
+        )
+
+    def tearDown(self):
+        frappe.set_user("Administrator")
+
+    def test_managed_projects_cover_every_manager_field(self):
+        from next_pms.permissions.scope import get_managed_projects
+
+        managed = get_managed_projects(self.ENGINEER)
+        self.assertIn(self.engineered, managed)
+        self.assertIn(self.legacy_pm, managed)
+        self.assertNotIn(self.other, managed)
+
+    def test_at_risk_count_includes_engineering_manager_projects(self):
+        frappe.set_user(self.ENGINEER)
+        self.assertEqual(get_at_risk_projects_count(project=self.engineered), 1)
+        self.assertEqual(get_at_risk_projects_count(project=self.other), 0)
+
+    def test_my_projects_summary_includes_engineering_manager_projects(self):
+        frappe.set_user(self.ENGINEER)
+        names = {row["name"] for row in get_my_projects_summary()}
+        self.assertIn(self.engineered, names)
+        self.assertNotIn(self.other, names)

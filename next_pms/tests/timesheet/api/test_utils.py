@@ -57,7 +57,7 @@ class TestTimesheetAccess(IntegrationTestCase):
         frappe.db.set_value(
             "Project",
             cls.other_project,
-            {"custom_engineering_manager": None, "custom_project_manager": REVIEWER_USER},
+            {"custom_engineering_manager": None, "custom_project_manager": None},
         )
         frappe.db.set_value(
             "Project",
