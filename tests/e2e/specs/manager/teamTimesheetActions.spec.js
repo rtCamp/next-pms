@@ -14,6 +14,7 @@ import {
   deleteDocument,
   getDocList,
 } from "../../utils/api/apiClient";
+import { actOnTimesheet } from "../../utils/api/timesheetRequests";
 import { dateInWeek, getFormattedDate, weekLabel } from "../../utils/dateUtils";
 import { readJSONFile } from "../../utils/fileUtils";
 import { scaleTimeout } from "../../utils/timeouts";
@@ -284,20 +285,24 @@ test.describe("Manager: Team timesheet actions", () => {
     await expect(team.approveButton).toBeEnabled();
   });
 
-  test("TC257: A manager cannot approve their own week", async () => {
+  test("TC257: A manager is not offered review on their own week, and the server refuses it", async () => {
     allure.story("Team Timesheet");
     const own = process.env.REP_MAN_NAME;
     const week = weekLabel(2);
     await team.goto({ search: own });
-    await team.approve(week, own);
-    await expect(
-      team.toast("You cannot approve or reject your own timesheets."),
-    ).toBeVisible();
-    // Refused before anything is written.
-    await expect(team.drawer).toBeVisible();
-    expect(await weekStatuses(data, "MANAGER", 2)).not.toContain("Approved");
-    await team.reload();
     expect(await team.memberStatus(week, own)).toBe("Approval pending");
+    await expect(team.reviewButton(team.memberRow(week, own))).toHaveCount(0);
+
+    // A direct call is refused before anything is written.
+    await expect(
+      actOnTimesheet({
+        dates: [dateInWeek(2, "Mon")],
+        employee: process.env.REP_MAN_ID,
+        note: "TC257 - own week",
+        status: "Approved",
+      }),
+    ).rejects.toThrow("You cannot approve or reject your own timesheets.");
+    expect(await weekStatuses(data, "MANAGER", 2)).not.toContain("Approved");
   });
 
   test("TC258: Approving a week older than the backdate limit is refused with the earliest allowed date", async () => {

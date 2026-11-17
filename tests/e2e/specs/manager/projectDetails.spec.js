@@ -199,7 +199,9 @@ test.describe("Manager: Project details", () => {
       await expect(
         offered.filter({ hasText: process.env.EMP3_NAME }),
       ).toHaveCount(0);
-      await details.leadEngineer.fill("");
+      // The picker is not a plain input while open; Escape closes it. The field is still
+      // empty here, so clearing it on close changes nothing.
+      await page.keyboard.press("Escape");
 
       await details.pickPerson(
         details.projectManager,
