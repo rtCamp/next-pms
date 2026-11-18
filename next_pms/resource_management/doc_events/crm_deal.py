@@ -1,7 +1,10 @@
 import frappe
 from frappe.utils import cint, date_diff, nowdate
+from frappe.utils.background_jobs import get_queue_list
 
 PIPELINE = "next_pms.resource_management.ai_staffing.pipeline"
+STAFFING_QUEUE = "ai_staffing"
+STAFFING_QUEUE_FALLBACK = "long"
 
 
 def on_update(doc, method=None):
@@ -27,7 +30,7 @@ def on_update(doc, method=None):
         frappe.get_doc({"doctype": "AI Staffing Request", "deal": doc.name, "sow_link": sow_link}).insert(
             ignore_permissions=True
         )
-    _enqueue("run_staffing", doc.name, queue="long")
+    _enqueue("run_staffing", doc.name, queue=get_staffing_queue())
 
 
 def _qualifies(doc, settings) -> bool:
@@ -37,6 +40,11 @@ def _qualifies(doc, settings) -> bool:
         and doc.get("sales_stage") in {row.sales_stage for row in settings.qualifying_stages}
         and 0 <= date_diff(start, nowdate()) <= cint(settings.start_window_days)
     )
+
+
+def get_staffing_queue() -> str:
+    """The dedicated queue when the bench runs a worker for it, else the long queue."""
+    return STAFFING_QUEUE if STAFFING_QUEUE in get_queue_list() else STAFFING_QUEUE_FALLBACK
 
 
 def _enqueue(job: str, deal: str, queue: str) -> None:
