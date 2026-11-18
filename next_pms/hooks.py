@@ -309,6 +309,9 @@ doc_events = {
     "Resource Allocation": {
         "after_insert": "next_pms.next_pms.notifications.ai_allocation_after_insert",
     },
+    "CRM Deal": {
+        "on_update": "next_pms.resource_management.doc_events.crm_deal.on_update",
+    },
     "Risk": {
         "on_update": [
             "next_pms.next_pms.notifications.risk_on_update",
