@@ -174,6 +174,8 @@ OWNED_DOCTYPES: tuple[str, ...] = (
     "Technology",
     "Delivery Accelerator",
     "Resource Allocation",
+    "AI Staffing Settings",
+    "AI Staffing Request",
     "NextPMS Notifications",
     "PMS View Setting",
     "PMS User Setting",
