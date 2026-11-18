@@ -5,6 +5,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, today
 
+from next_pms.resource_management.doc_events import crm_deal
 from next_pms.tests.resource_management.ai_staffing.utils import STAGE, crm_installed, make_deal
 
 RUN = "next_pms.resource_management.ai_staffing.pipeline.run_staffing"
@@ -46,6 +47,18 @@ class TestCRMDealTrigger(IntegrationTestCase):
         self.assertEqual(frappe.db.get_value("AI Staffing Request", deal, "status"), "Pending")
         self.assertEqual(self.queued(), [RUN])
         self.assertEqual(self.enqueue.call_args.kwargs["job_id"], f"ai-staffing::run_staffing::{deal}")
+
+    def test_staffing_runs_on_its_own_queue_when_the_bench_has_one(self):
+        with patch.object(crm_deal, "get_queue_list", return_value=["default", "short", "long", "ai_staffing"]):
+            self.qualifying_deal()
+
+        self.assertEqual(self.enqueue.call_args.kwargs["queue"], "ai_staffing")
+
+    def test_staffing_falls_back_to_the_long_queue(self):
+        with patch.object(crm_deal, "get_queue_list", return_value=["default", "short", "long"]):
+            self.qualifying_deal()
+
+        self.assertEqual(self.enqueue.call_args.kwargs["queue"], "long")
 
     def test_deals_that_do_not_qualify_are_left_alone(self):
         for values in (
