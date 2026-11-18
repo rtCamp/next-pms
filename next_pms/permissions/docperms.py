@@ -168,6 +168,8 @@ OWNED_DOCTYPES: tuple[str, ...] = (
     "Project Timeline Item Category",
     "Technology",
     "Resource Allocation",
+    "AI Staffing Settings",
+    "AI Staffing Request",
     "NextPMS Notifications",
     "PMS View Setting",
     "PMS User Setting",
