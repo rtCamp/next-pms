@@ -19,7 +19,7 @@ const project = (n, extra = {}) => ({
   },
 });
 
-// An Account Manager needs at least Projects Manager; the case sets this user on the project.
+// An Account Manager needs Projects User, which Projects Manager implies; the case sets this user on the project.
 const accountManager = {
   payloadCreateWeekEmployees: {
     NtAccountManager: { managed: false, user: { roles: ["Projects Manager"] } },
