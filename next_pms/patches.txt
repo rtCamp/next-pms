@@ -47,6 +47,6 @@ next_pms.next_projects.patches.setup_project_tech_stack_field
 next_pms.next_projects.patches.setup_crm_deal_tech_stack_field
 next_pms.next_pms.patches.backfill_risk_mitigated_on
 next_pms.timesheet.patches.setup_timesheet_rejected_on_field
-next_pms.next_pms.patches.apply_role_permissions #2026-11-19-stacked-owned-doctypes
+next_pms.next_pms.patches.apply_role_permissions #2026-11-19-role-profiles
 next_pms.next_pms.patches.retire_timesheet_roles
 next_pms.timesheet.patches.add_timesheet_parent_project_index

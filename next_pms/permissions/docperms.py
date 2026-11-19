@@ -175,6 +175,14 @@ OWNED_DOCTYPES: tuple[str, ...] = (
 )
 
 
+ROLE_PROFILES: dict[str, tuple[str, ...]] = {
+    "PMS Employee": (EMPLOYEE,),
+    "PMS Engineering Manager": (EMPLOYEE, PROJECTS_USER),
+    "PMS Project Manager": (EMPLOYEE, PROJECTS_USER, PROJECTS_MANAGER),
+    "PMS Leadership": (EMPLOYEE, PROJECTS_USER, PROJECTS_MANAGER, PMS_LEADERSHIP),
+}
+
+
 def create_pms_roles() -> None:
     if not frappe.db.exists("Role", PMS_LEADERSHIP):
         frappe.get_doc({"doctype": "Role", "role_name": PMS_LEADERSHIP, "desk_access": 1}).insert(
@@ -182,8 +190,26 @@ def create_pms_roles() -> None:
         )
 
 
+def create_pms_role_profiles() -> None:
+    for name, roles in ROLE_PROFILES.items():
+        if not frappe.db.exists("Role Profile", name):
+            frappe.get_doc(
+                {"doctype": "Role Profile", "role_profile": name, "roles": [{"role": role} for role in roles]}
+            ).insert(ignore_permissions=True)
+            continue
+
+        profile = frappe.get_doc("Role Profile", name)
+        held = {row.role for row in profile.roles}
+        missing = [role for role in roles if role not in held]
+        if missing:
+            for role in missing:
+                profile.append("roles", {"role": role})
+            profile.save(ignore_permissions=True)
+
+
 def apply_permissions() -> None:
     create_pms_roles()
+    create_pms_role_profiles()
     for doctype in sorted(set(PMS_SET_KEYS) | set(PERMISSION_MAP)):
         apply_doctype_permissions(doctype)
     for doctype in OWNED_DOCTYPES:

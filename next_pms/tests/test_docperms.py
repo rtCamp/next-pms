@@ -2,7 +2,13 @@ import frappe
 from frappe.permissions import std_rights
 from frappe.tests import IntegrationTestCase
 
-from next_pms.permissions.docperms import OWNED_DOCTYPES, PERMISSION_MAP, apply_permissions
+from next_pms.permissions.docperms import (
+    OWNED_DOCTYPES,
+    PERMISSION_MAP,
+    ROLE_PROFILES,
+    apply_permissions,
+    create_pms_role_profiles,
+)
 
 PROJECTS_USER_STACK = ("Employee", "Projects User")
 PROJECTS_MANAGER_STACK = (*PROJECTS_USER_STACK, "Projects Manager")
@@ -351,3 +357,36 @@ class TestApplyPermissions(IntegrationTestCase):
                     with self.subTest(doctype=doctype, role=role, permlevel=row.permlevel, if_owner=row.if_owner):
                         self.assertTrue(rights)
                         self.assertTrue(not repeated or level_zero_anchor, repeated)
+
+
+class TestRoleProfiles(IntegrationTestCase):
+    def setUp(self):
+        for name in ROLE_PROFILES:
+            frappe.delete_doc("Role Profile", name, force=True, ignore_missing=True, ignore_permissions=True)
+        create_pms_role_profiles()
+
+    def _roles(self, name: str) -> list[str]:
+        return [row.role for row in frappe.get_doc("Role Profile", name).roles]
+
+    def test_each_profile_has_exactly_its_roles(self):
+        for name, roles in ROLE_PROFILES.items():
+            with self.subTest(profile=name):
+                self.assertCountEqual(self._roles(name), roles)
+
+    def test_rerun_changes_nothing(self):
+        modified = {name: frappe.db.get_value("Role Profile", name, "modified") for name in ROLE_PROFILES}
+        create_pms_role_profiles()
+        for name, roles in ROLE_PROFILES.items():
+            with self.subTest(profile=name):
+                self.assertCountEqual(self._roles(name), roles)
+                self.assertEqual(frappe.db.get_value("Role Profile", name, "modified"), modified[name])
+
+    def test_missing_role_is_restored_and_admin_added_role_kept(self):
+        profile = frappe.get_doc("Role Profile", "PMS Project Manager")
+        profile.roles = [row for row in profile.roles if row.role != "Projects User"]
+        profile.append("roles", {"role": "Blogger"})
+        profile.save(ignore_permissions=True)
+
+        create_pms_role_profiles()
+
+        self.assertCountEqual(self._roles("PMS Project Manager"), (*ROLE_PROFILES["PMS Project Manager"], "Blogger"))
