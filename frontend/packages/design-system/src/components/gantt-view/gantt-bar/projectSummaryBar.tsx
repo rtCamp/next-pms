@@ -89,7 +89,7 @@ export function GanttProjectSummaryBar({
             label={`${formatHours(summary.hours)}h / week`}
             left={summary.barOffset + headerWidth}
             width={summary.width}
-            trailingLabel={summary.isAiCreated ? "Ai" : undefined}
+            trailingLabel={summary.isAiCreated ? "AI" : undefined}
             trailingLabelVariant={summary.isAiCreated ? "ai" : undefined}
           />
         }

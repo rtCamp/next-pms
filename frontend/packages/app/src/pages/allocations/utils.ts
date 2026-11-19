@@ -282,7 +282,7 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
  * Each segment is treated as its own visible allocation entry while still pointing at
  * the same underlying allocation document id.
  *
- * An Ai allocation without weekends breaks at every weekend, so the suggestion renders as the
+ * An AI allocation without weekends breaks at every weekend, so the suggestion renders as the
  * Mon-Fri pieces approval saves it as. Other allocations keep one bar per document: a bar that
  * is only part of a multi-week document would open the edit dialog on that part's dates.
  *
