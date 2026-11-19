@@ -777,7 +777,7 @@ function AddAllocationModal({
               {initialValues?.isAiCreated && (
                 <span className="text-sm font-normal text-ink-gray-5">
                   This allocation was created by{" "}
-                  <span className="text-ink-amber-4">Ai</span>
+                  <span className="text-ink-amber-4">AI</span>
                 </span>
               )}
             </div>
