@@ -384,9 +384,11 @@ class TestRoleProfiles(IntegrationTestCase):
     def test_missing_role_is_restored_and_admin_added_role_kept(self):
         profile = frappe.get_doc("Role Profile", "PMS Project Manager")
         profile.roles = [row for row in profile.roles if row.role != "Projects User"]
-        profile.append("roles", {"role": "Blogger"})
+        profile.append("roles", {"role": "Accounts User"})
         profile.save(ignore_permissions=True)
 
         create_pms_role_profiles()
 
-        self.assertCountEqual(self._roles("PMS Project Manager"), (*ROLE_PROFILES["PMS Project Manager"], "Blogger"))
+        self.assertCountEqual(
+            self._roles("PMS Project Manager"), (*ROLE_PROFILES["PMS Project Manager"], "Accounts User")
+        )

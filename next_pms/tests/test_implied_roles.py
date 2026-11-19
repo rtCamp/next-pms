@@ -34,9 +34,9 @@ class TestImpliedRoles(IntegrationTestCase):
         self.assertLessEqual({"PMS Leadership", "Projects Manager", "Projects User"}, _roles(PL_ONLY_USER))
 
     def test_role_added_later_pulls_in_the_roles_below_it(self):
-        _make_user(NEW_PM_USER, "Blogger")
+        _make_user(NEW_PM_USER, "Accounts User")
         frappe.get_doc("User", NEW_PM_USER).add_roles("Projects Manager")
-        self.assertLessEqual({"Blogger", "Projects Manager", "Projects User"}, _roles(NEW_PM_USER))
+        self.assertLessEqual({"Accounts User", "Projects Manager", "Projects User"}, _roles(NEW_PM_USER))
 
     def test_projects_user_gains_nothing(self):
         _make_user(PU_ONLY_USER, "Projects User")
