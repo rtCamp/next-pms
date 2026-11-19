@@ -7,6 +7,7 @@ from next_pms.permissions.capabilities import (
     ALL,
     CAPABILITIES,
     EMPLOYEE,
+    MANAGER_FIELD_ROLES,
     PMS_LEADERSHIP,
     PROJECTS_MANAGER,
     PROJECTS_USER,
@@ -14,6 +15,8 @@ from next_pms.permissions.capabilities import (
     REPORTS_AND_OWN_PROJECTS,
     SYSTEM_MANAGER,
     capability_scope,
+    get_implied_roles,
+    get_missing_manager_role,
     get_user_capabilities,
     has_capability,
     require_capability,
@@ -71,3 +74,18 @@ class TestCapabilities(UnitTestCase):
                 require_capability("projects_page")
         finally:
             frappe.session.user = session_user
+
+    def test_implied_roles_stack_leadership_on_manager_on_user(self):
+        self.assertEqual(get_implied_roles([PMS_LEADERSHIP]), {PROJECTS_MANAGER, PROJECTS_USER})
+        self.assertEqual(get_implied_roles([PROJECTS_MANAGER]), {PROJECTS_USER})
+        self.assertEqual(get_implied_roles([EMPLOYEE, PROJECTS_USER, SYSTEM_MANAGER]), set())
+
+    def test_projects_user_qualifies_for_every_manager_field(self):
+        with _as_roles(EMPLOYEE, PROJECTS_USER):
+            for fieldname in MANAGER_FIELD_ROLES:
+                self.assertIsNone(get_missing_manager_role(fieldname, "pu@example.com"), fieldname)
+
+    def test_user_without_projects_user_is_asked_for_it_on_every_manager_field(self):
+        with _as_roles(EMPLOYEE):
+            for fieldname in MANAGER_FIELD_ROLES:
+                self.assertEqual(get_missing_manager_role(fieldname, "emp@example.com"), PROJECTS_USER, fieldname)

@@ -1,7 +1,82 @@
 import frappe
+from frappe.permissions import std_rights
 from frappe.tests import IntegrationTestCase
 
 from next_pms.permissions.docperms import PERMISSION_MAP, apply_permissions
+
+PROJECTS_USER_STACK = ("Employee", "Projects User")
+PROJECTS_MANAGER_STACK = (*PROJECTS_USER_STACK, "Projects Manager")
+LEADERSHIP_STACK = (*PROJECTS_MANAGER_STACK, "PMS Leadership")
+
+# What each stacked persona held when every role carried its own full rows: stacking the roles
+# must keep it, keyed by (permlevel, if_owner).
+EFFECTIVE_RIGHTS = {
+    "Timesheet": {
+        PROJECTS_USER_STACK: {
+            (0, 0): "amend cancel create delete email print read report share submit write",
+        },
+        PROJECTS_MANAGER_STACK: {
+            (0, 0): "amend cancel create delete email export print read report share submit write",
+            (1, 0): "export read write",
+        },
+        LEADERSHIP_STACK: {
+            (0, 0): "amend cancel create delete email export print read report share submit write",
+            (1, 0): "export read write",
+        },
+    },
+    "Project": {
+        PROJECTS_USER_STACK: {
+            (0, 0): "create delete email export print read report select share write",
+            (0, 1): "read select",
+            (1, 0): "export read",
+            (2, 0): "export read",
+            (3, 0): "read",
+        },
+        PROJECTS_MANAGER_STACK: {
+            (0, 0): "create delete email export import print read report select share write",
+            (0, 1): "read select",
+            (1, 0): "export read write",
+            (2, 0): "export read write",
+            (3, 0): "export read",
+        },
+        LEADERSHIP_STACK: {
+            (0, 0): "create delete email export import print read report select share write",
+            (0, 1): "read select",
+            (1, 0): "export read write",
+            (2, 0): "export read write",
+            (3, 0): "export read write",
+        },
+    },
+    "Task": {
+        PROJECTS_USER_STACK: {
+            (0, 0): "create delete email print read report select share write",
+            (0, 1): "create delete read write",
+            (1, 0): "export read write",
+        },
+        PROJECTS_MANAGER_STACK: {
+            (0, 0): "create delete email export import print read report select share write",
+            (0, 1): "create delete read write",
+            (1, 0): "export read write",
+        },
+        LEADERSHIP_STACK: {
+            (0, 0): "create delete email export import print read report select share write",
+            (0, 1): "create delete read write",
+            (1, 0): "export read write",
+        },
+    },
+}
+
+
+def _effective_rights(doctype: str, roles: tuple[str, ...]) -> dict[tuple[int, int], str]:
+    granted: dict[tuple[int, int], set[str]] = {}
+    rows = frappe.get_all(
+        "Custom DocPerm",
+        filters={"parent": doctype, "role": ["in", [*roles, "All", "Desk User"]]},
+        fields=["permlevel", "if_owner", *std_rights],
+    )
+    for row in rows:
+        granted.setdefault((row.permlevel, row.if_owner), set()).update(right for right in std_rights if row[right])
+    return {key: " ".join(sorted(rights)) for key, rights in sorted(granted.items())}
 
 
 def _rows(doctype: str, **filters) -> list[dict]:
@@ -43,11 +118,26 @@ class TestApplyPermissions(IntegrationTestCase):
         self.assertFalse(_rows("Project", role="Delivery Manager", permlevel=2))
         self.assertFalse(_rows("Project", role="Timesheet Manager"))
 
+    def test_stacked_roles_keep_the_rights_each_persona_had_with_full_rows(self):
+        for doctype, personas in EFFECTIVE_RIGHTS.items():
+            for roles, expected in personas.items():
+                with self.subTest(doctype=doctype, roles=roles):
+                    self.assertEqual(_effective_rights(doctype, roles), expected)
+
+    def test_manager_roles_only_list_what_the_role_below_lacks(self):
+        self.assertFalse(_rows("Timesheet", role="PMS Leadership"))
+        self.assertFalse(_rows("Task", role="PMS Leadership"))
+        self.assertFalse(_rows("Customer", role="PMS Leadership"))
+        self.assertFalse(_rows("Territory", role="Projects Manager"))
+        self.assertFalse(_rows("Project", role="PMS Leadership", permlevel=1))
+        self.assertFalse(_rows("Project", role="PMS Leadership", permlevel=2))
+        [row] = _rows("Task", role="Projects Manager", permlevel=0)
+        self.assertFalse(row.write)
+
     def test_territory_is_readable_below_leadership_and_editable_by_leadership(self):
-        for role in ("Projects User", "Projects Manager"):
-            [row] = _rows("Territory", role=role, permlevel=0)
-            self.assertTrue(row.read, role)
-            self.assertFalse(row.write, role)
+        [row] = _rows("Territory", role="Projects User", permlevel=0)
+        self.assertTrue(row.read)
+        self.assertFalse(row.write)
         [row] = _rows("Territory", role="PMS Leadership", permlevel=0)
         self.assertTrue(row.read)
         self.assertTrue(row.write)

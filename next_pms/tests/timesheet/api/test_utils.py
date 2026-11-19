@@ -171,6 +171,13 @@ class TestTimesheetAccess(IntegrationTestCase):
 
         self.assertEqual(get_timesheet_approver_users(self.other_employee, nowdate()), {REVIEWER_USER, MANAGER_USER})
 
+    def test_approver_list_offers_a_projects_user_set_as_project_manager(self):
+        frappe.db.set_value("Project", self.other_project, "custom_project_manager", REVIEWER_USER)
+        self.addCleanup(frappe.db.set_value, "Project", self.other_project, "custom_project_manager", None)
+        self._log_week(self.other_employee, self.other_project, nowdate())
+
+        self.assertEqual(get_timesheet_approver_users(self.other_employee, nowdate()), {REVIEWER_USER})
+
     def test_approver_list_ignores_projects_from_other_weeks(self):
         self._log_week(self.other_employee, self.approver_project, add_days(nowdate(), -7))
         self.assertNotIn(MANAGER_USER, get_timesheet_approver_users(self.other_employee, nowdate()))

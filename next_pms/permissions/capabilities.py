@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from typing import Literal
 
 import frappe
@@ -19,6 +20,18 @@ PMS_LEADERSHIP = "PMS Leadership"
 SYSTEM_MANAGER = "System Manager"
 
 PMS_ROLES = (EMPLOYEE, PROJECTS_USER, PROJECTS_MANAGER, PMS_LEADERSHIP, SYSTEM_MANAGER)
+
+IMPLIED_ROLES = {PMS_LEADERSHIP: PROJECTS_MANAGER, PROJECTS_MANAGER: PROJECTS_USER}
+
+
+def get_implied_roles(roles: Iterable[str]) -> set[str]:
+    """Every role the given roles stack on top of, transitively."""
+    implied = set()
+    for role in roles:
+        while role in IMPLIED_ROLES:
+            role = IMPLIED_ROLES[role]
+            implied.add(role)
+    return implied
 
 
 def _grant(scope: Scope, *roles: str) -> dict[str, Scope]:
@@ -61,9 +74,9 @@ CAPABILITIES: dict[str, dict[str, Scope]] = {
 
 
 MANAGER_FIELD_ROLES: dict[str, tuple[str, ...]] = {
-    "custom_project_manager": _MANAGERS,
-    "custom_engineering_manager": _REVIEWERS,
-    "custom_account_manager_": _MANAGERS,
+    "custom_project_manager": (PROJECTS_USER,),
+    "custom_engineering_manager": (PROJECTS_USER,),
+    "custom_account_manager_": (PROJECTS_USER,),
 }
 
 

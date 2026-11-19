@@ -119,9 +119,13 @@ class TestProjectManagerRoles(IntegrationTestCase):
         with self.assertRaisesRegex(frappe.ValidationError, "Projects User"):
             self.new_project(custom_engineering_manager=self.no_role_user).insert(ignore_permissions=True)
 
-    def test_project_manager_needs_projects_manager_not_projects_user(self):
-        with self.assertRaisesRegex(frappe.ValidationError, "Projects Manager"):
-            self.new_project(custom_project_manager=self.projects_user).insert(ignore_permissions=True)
+    def test_project_manager_without_projects_user_is_rejected(self):
+        with self.assertRaisesRegex(frappe.ValidationError, "Projects User"):
+            self.new_project(custom_project_manager=self.no_role_user).insert(ignore_permissions=True)
+
+    def test_projects_user_can_be_the_project_manager(self):
+        project = self.new_project(custom_project_manager=self.projects_user).insert(ignore_permissions=True)
+        self.assertEqual(project.custom_project_manager, self.projects_user)
 
     def test_manager_with_the_role_saves(self):
         project = self.new_project(custom_engineering_manager=self.projects_user).insert(ignore_permissions=True)

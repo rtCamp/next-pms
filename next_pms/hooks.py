@@ -329,6 +329,7 @@ doc_events = {
         "on_trash": "next_pms.next_projects.doc_events.todo.on_trash",
     },
     "Customer": {"validate": "next_pms.resource_management.doc_events.customer.validate_abbr"},
+    "User": {"validate": "next_pms.permissions.doc_events.user.validate"},
     "Employee": {
         "on_update": [
             "next_pms.timesheet.doc_events.employee.on_update",

@@ -41,6 +41,8 @@ PMS_SET_KEYS: dict[str, tuple[PermKey, ...]] = {
         PermKey(PROJECTS_USER, 1),
         PermKey(PROJECTS_MANAGER),
         PermKey(PROJECTS_MANAGER, 1),
+        PermKey(PMS_LEADERSHIP),
+        PermKey(PMS_LEADERSHIP, 1),
         PermKey("Accounts User"),
         PermKey("Accounts User", 1),
         PermKey("HR User"),
@@ -55,7 +57,7 @@ PMS_SET_KEYS: dict[str, tuple[PermKey, ...]] = {
         ),
         *(
             PermKey(role, level)
-            for role in (PROJECTS_MANAGER, "Delivery Manager", SYSTEM_MANAGER)
+            for role in (PROJECTS_MANAGER, PMS_LEADERSHIP, "Delivery Manager", SYSTEM_MANAGER)
             for level in (0, 1, 2, 3)
         ),
     ),
@@ -64,34 +66,39 @@ PMS_SET_KEYS: dict[str, tuple[PermKey, ...]] = {
         PermKey(EMPLOYEE, if_owner=1),
         PermKey(PROJECTS_MANAGER),
         PermKey(PROJECTS_MANAGER, 1),
+        PermKey(PMS_LEADERSHIP),
+        PermKey(PMS_LEADERSHIP, 1),
         PermKey(PROJECTS_USER),
         PermKey(PROJECTS_USER, 1),
         PermKey("Delivery Manager"),
         PermKey("Delivery User"),
     ),
-    "Customer": (PermKey(PROJECTS_MANAGER), PermKey("Delivery Manager"), PermKey(SYSTEM_MANAGER)),
+    "Customer": (
+        PermKey(PROJECTS_MANAGER),
+        PermKey(PMS_LEADERSHIP),
+        PermKey("Delivery Manager"),
+        PermKey(SYSTEM_MANAGER),
+    ),
     "Role": (PermKey("Delivery Manager"),),
     "Designation": (PermKey(PROJECTS_MANAGER),),
+    "Territory": (PermKey(PROJECTS_MANAGER),),
     "ToDo": (PermKey(SYSTEM_MANAGER),),
 }
 
 _TIMESHEET_REVIEWER = "read write create delete submit cancel amend report export share print email"
 _FULL = "select read write create delete report export import share print email"
-_PROJECT_ADMIN_FIELDS = tuple(
-    rule(role, "read write export", permlevel=level) for role in (PMS_LEADERSHIP, SYSTEM_MANAGER) for level in (1, 2, 3)
-)
 
-# Rows next_pms grants on doctypes it does not own. Timesheet rows are narrowed further by
-# next_pms.timesheet.permission (own / reports / own projects; nobody but System Manager
-# writes someone else's timesheet).
+# Rows next_pms grants on doctypes it does not own. Frappe unions the rows of every role a user
+# holds, and Projects Manager and PMS Leadership users also hold the role below them (see
+# IMPLIED_ROLES), so those roles only list the rights the role below lacks. Timesheet rows are
+# narrowed further by next_pms.timesheet.permission (own / reports / own projects; nobody but
+# System Manager writes someone else's timesheet).
 PERMISSION_MAP: dict[str, tuple[PermRule, ...]] = {
     "Timesheet": (
         rule(EMPLOYEE, "read write create delete"),
         rule(PROJECTS_USER, "read write create delete submit cancel amend report share print email"),
-        rule(PROJECTS_MANAGER, _TIMESHEET_REVIEWER),
+        rule(PROJECTS_MANAGER, "read export"),
         rule(PROJECTS_MANAGER, "read write export", permlevel=1),
-        rule(PMS_LEADERSHIP, _TIMESHEET_REVIEWER),
-        rule(PMS_LEADERSHIP, "read write export", permlevel=1),
         rule(SYSTEM_MANAGER, f"select import {_TIMESHEET_REVIEWER}"),
         rule(SYSTEM_MANAGER, "read write export", permlevel=1),
         rule("Accounts User", "read write create delete submit cancel amend report email"),
@@ -107,25 +114,26 @@ PERMISSION_MAP: dict[str, tuple[PermRule, ...]] = {
         rule(PROJECTS_USER, "read export", permlevel=1),
         rule(PROJECTS_USER, "read export", permlevel=2),
         rule(PROJECTS_USER, "read", permlevel=3),
-        rule(PROJECTS_MANAGER, _FULL),
-        rule(PROJECTS_MANAGER, "read write export", permlevel=1),
-        rule(PROJECTS_MANAGER, "read write export", permlevel=2),
+        rule(PROJECTS_MANAGER, "select read create import"),
+        rule(PROJECTS_MANAGER, "read write", permlevel=1),
+        rule(PROJECTS_MANAGER, "read write", permlevel=2),
         rule(PROJECTS_MANAGER, "read export", permlevel=3),
-        rule(PMS_LEADERSHIP, _FULL),
+        rule(PMS_LEADERSHIP, "read"),
+        rule(PMS_LEADERSHIP, "read write", permlevel=3),
         rule(SYSTEM_MANAGER, _FULL),
-        *_PROJECT_ADMIN_FIELDS,
+        *(rule(SYSTEM_MANAGER, "read write export", permlevel=level) for level in (1, 2, 3)),
     ),
     "Task": (
         rule(EMPLOYEE, "read write create"),
         rule(EMPLOYEE, "read write create delete", if_owner=1),
         rule(PROJECTS_USER, "select read write create delete report share print email"),
         rule(PROJECTS_USER, "read write export", permlevel=1),
-        *(rule(role, _FULL) for role in (PROJECTS_MANAGER, PMS_LEADERSHIP, SYSTEM_MANAGER)),
-        *(rule(role, "read write export", permlevel=1) for role in (PROJECTS_MANAGER, PMS_LEADERSHIP, SYSTEM_MANAGER)),
+        rule(PROJECTS_MANAGER, "read create export import"),
+        rule(SYSTEM_MANAGER, _FULL),
+        rule(SYSTEM_MANAGER, "read write export", permlevel=1),
     ),
     "Customer": (
         rule(PROJECTS_MANAGER, "select read export"),
-        rule(PMS_LEADERSHIP, "select"),
         rule(SYSTEM_MANAGER, "select"),
     ),
     "Role": (rule(PMS_LEADERSHIP, "select"),),
@@ -134,7 +142,6 @@ PERMISSION_MAP: dict[str, tuple[PermRule, ...]] = {
     "Project Type": (rule(PMS_LEADERSHIP, "select"),),
     "Territory": (
         rule(PROJECTS_USER, "select read"),
-        rule(PROJECTS_MANAGER, "select read"),
         rule(PMS_LEADERSHIP, "select read write"),
     ),
     "ToDo": (rule(SYSTEM_MANAGER, "read write create delete report export share print email"),),
