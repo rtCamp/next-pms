@@ -303,7 +303,7 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
     # Since all the task are supposed to be under a project, we need to check if the user has access to the project
     # if task has project field set.
     if project:
-        frappe.has_permission(doctype="Project", doc=project, throw=True)
+        frappe.has_permission(doctype="Project", doc=project, ptype="select", throw=True)
     else:
         frappe.has_permission("Task", doc=task, ptype="read", throw=True)
 
@@ -351,7 +351,7 @@ def get_task_log(task: str, start_date: str = None, end_date: str = None, employ
     project = frappe.db.get_value("Task", task, "project")
 
     if project:
-        frappe.has_permission(doctype="Project", doc=project, throw=True)
+        frappe.has_permission(doctype="Project", doc=project, ptype="select", throw=True)
     else:
         frappe.has_permission("Task", doc=task, ptype="read", throw=True)
 

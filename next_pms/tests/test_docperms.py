@@ -347,16 +347,22 @@ class TestApplyPermissions(IntegrationTestCase):
                 ("Projects Manager", ("Projects User",)),
                 ("PMS Leadership", ("Projects User", "Projects Manager")),
             ):
-                has_higher_level = any(row.role == role and row.permlevel > 0 for row in rows)
                 for row in (row for row in rows if row.role == role):
                     rights = {right for right in std_rights if row[right]}
                     repeated = rights & {
                         right for lower in below for right in _granted(rows, lower, row.permlevel, row.if_owner)
                     }
-                    level_zero_anchor = has_higher_level and row.permlevel == 0 and rights == {"read"}
+                    read_anchor = row.permlevel == 0 and repeated == {"read"}
                     with self.subTest(doctype=doctype, role=role, permlevel=row.permlevel, if_owner=row.if_owner):
                         self.assertTrue(rights)
-                        self.assertTrue(not repeated or level_zero_anchor, repeated)
+                        self.assertTrue(not repeated or read_anchor, repeated)
+
+    def test_owned_doctype_rows_pass_frappe_permission_validation(self):
+        from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
+
+        for doctype in OWNED_DOCTYPES:
+            with self.subTest(doctype=doctype):
+                validate_permissions_for_doctype(doctype, for_remove=False)
 
 
 class TestRoleProfiles(IntegrationTestCase):

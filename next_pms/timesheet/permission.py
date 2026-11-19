@@ -1,10 +1,10 @@
 import frappe
 
-from next_pms.permissions.capabilities import REPORTS_AND_OWN_PROJECTS, has_capability
+from next_pms.permissions.capabilities import HR_ROLES, REPORTS_AND_OWN_PROJECTS, has_capability
 from next_pms.permissions.scope import EmployeeScope, get_employee_scope
 
 # Roles outside PMS that keep reading and editing every timesheet, as they did before.
-UNRESTRICTED_ROLES = frozenset({"HR User", "HR Manager", "Accounts User"})
+UNRESTRICTED_ROLES = HR_ROLES | {"Accounts User"}
 READ_PTYPES = frozenset({"read", "select", "report", "export", "print", "email", "share"})
 
 

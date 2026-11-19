@@ -33,6 +33,18 @@ class TestPMSViewSetting(IntegrationTestCase):
         create_view(_view("Manager public", public=1))
         self.assertTrue(frappe.db.exists("PMS View Setting", {"label": "Manager public", "public": 1}))
 
+    def test_public_flag_is_checked_outside_the_view_endpoints(self):
+        frappe.set_user(EMPLOYEE_USER)
+        doc = frappe.get_doc({"doctype": "PMS View Setting", **_view("Employee desk public", public=1)})
+        with self.assertRaises(frappe.PermissionError):
+            doc.insert()
+
+        create_view(_view("Employee desk personal"))
+        doc = frappe.get_doc("PMS View Setting", {"label": "Employee desk personal", "user": EMPLOYEE_USER})
+        doc.public = 1
+        with self.assertRaises(frappe.PermissionError):
+            doc.save()
+
     def test_owner_deletes_own_personal_view(self):
         frappe.set_user(EMPLOYEE_USER)
         create_view(_view("Employee personal"))

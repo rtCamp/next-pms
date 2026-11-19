@@ -21,6 +21,9 @@ SYSTEM_MANAGER = "System Manager"
 
 PMS_ROLES = (EMPLOYEE, PROJECTS_USER, PROJECTS_MANAGER, PMS_LEADERSHIP, SYSTEM_MANAGER)
 
+# Non-PMS roles that keep their pre-capability access to employee and timesheet data.
+HR_ROLES = frozenset({"HR User", "HR Manager"})
+
 IMPLIED_ROLES = {PMS_LEADERSHIP: PROJECTS_MANAGER, PROJECTS_MANAGER: PROJECTS_USER}
 
 

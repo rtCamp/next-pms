@@ -5,11 +5,11 @@ import frappe
 from frappe.utils import cint, flt
 from frappe.utils.data import add_days, getdate
 
-from next_pms.permissions.capabilities import has_capability, require_capability
+from next_pms.permissions.capabilities import HR_ROLES, has_capability, require_capability
 from next_pms.timesheet.api.team import get_week_dates
 
 # Roles outside PMS that keep seeing employee compensation in allocation views.
-COMPENSATION_ROLES = frozenset({"HR Manager", "HR User", "Accounts Manager"})
+COMPENSATION_ROLES = HR_ROLES | {"Accounts Manager"}
 
 DEFAULT_ALLOCATION_RATE_CURRENCY = "USD"
 

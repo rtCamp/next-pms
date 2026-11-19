@@ -76,6 +76,8 @@ def _get_employee_scope(capability: str, user: str) -> EmployeeScope:
 def get_managed_projects(user: str) -> frozenset[str]:
     """Projects that name `user` in any manager field: project, engineering or account manager."""
     or_filters = dict.fromkeys(get_project_manager_fields(), user)
+    if not or_filters:
+        return frozenset()
     return frozenset(frappe.get_all("Project", or_filters=or_filters, pluck="name"))
 
 

@@ -140,7 +140,11 @@ class TestLeaveRealtimePayload(LeaveRealtimeTestCase):
 
     def _timesheet_update_payloads(self, mock_publish):
         event = f"timesheet_update::{self.employee}"
-        return [call.args[1]["message"] for call in mock_publish.call_args_list if call.args[0] == event]
+        return [
+            call.args[1]["message"]
+            for call in mock_publish.call_args_list
+            if call.args[0] == event and "message" in call.args[1]
+        ]
 
     def test_created_leave_is_in_the_pushed_snapshot(self):
         get_employee_leaves(self.employee, MON_OCT_12, WED_OCT_14)  # warm the cache the flush must clear

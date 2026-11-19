@@ -6,19 +6,18 @@ from next_pms.permissions.capabilities import ALL, capability_scope
 
 @whitelist(methods=["GET"])
 def get_approver_details():
-    """Employees whose roles let them approve timesheets for at least some employees."""
-    from next_pms.permissions.capabilities import CAPABILITIES
-
-    user_ids = get_all(
-        "Has Role",
-        filters={
-            "role": ["in", list(CAPABILITIES["be_timesheet_approver"])],
-            "parenttype": "User",
-            "parent": ["!=", "Administrator"],
-        },
-        pluck="parent",
+    """Active employees that some active employee reports to, for the "Reports to" filter."""
+    managers = get_all(
+        "Employee",
+        filters={"status": "Active", "reports_to": ["is", "set"]},
+        pluck="reports_to",
+        distinct=True,
     )
-    return _active_employees_for_users(user_ids)
+    return get_all(
+        "Employee",
+        filters={"name": ["in", managers], "status": "Active"},
+        fields=["name", "employee_name", "image"],
+    )
 
 
 @whitelist(methods=["GET"])

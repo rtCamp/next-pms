@@ -886,7 +886,7 @@ class TestTeamTimesheetMemberWeek(_TeamTimesheetDataBase):
         published = []
 
         def capture(event, message, **kwargs):
-            published.append((event, message))
+            published.append((event, message, kwargs))
 
         frappe.set_user(WRITE_USER)
         original = frappe.publish_realtime
@@ -903,13 +903,23 @@ class TestTeamTimesheetMemberWeek(_TeamTimesheetDataBase):
         finally:
             frappe.publish_realtime = original
 
-        info = [message for event, message in published if event == "timesheet_info"]
-        self.assertTrue(info, "no timesheet_info event published")
-        for payload in info:
-            self.assertEqual(sorted(payload), ["employee", "message", "start_date"])
-            self.assertEqual(payload["employee"], self.r1)
-            self.assertIn("tasks", payload["message"])
-            self.assertIn("status", payload["message"])
+        info = [(message, kwargs) for event, message, kwargs in published if event == "timesheet_info"]
+        broadcast = next(message for message, kwargs in info if kwargs.get("room"))
+        self.assertEqual(sorted(broadcast), ["employee", "start_date"])
+        self.assertEqual(broadcast["employee"], self.r1)
+
+        editor = next(message for message, kwargs in info if kwargs.get("user"))
+        self.assertEqual(sorted(editor), ["employee", "message", "start_date"])
+        self.assertEqual(editor["employee"], self.r1)
+        self.assertIn("tasks", editor["message"])
+        self.assertIn("status", editor["message"])
+
+        personal_broadcast = next(
+            message
+            for event, message, kwargs in published
+            if event == f"timesheet_update::{self.r1}" and kwargs.get("room")
+        )
+        self.assertEqual(sorted(personal_broadcast), ["week_key"])
 
 
 class TestTeamTimesheetDataBackdateRestriction(_TeamTimesheetDataBase):

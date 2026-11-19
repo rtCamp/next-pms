@@ -5,7 +5,7 @@ from functools import wraps
 import frappe
 from frappe.utils import flt
 
-from next_pms.permissions.capabilities import ALL, has_capability
+from next_pms.permissions.capabilities import ALL, HR_ROLES, has_capability
 from next_pms.permissions.scope import EmployeeScope, get_employee_scope
 from next_pms.timesheet.utils.constant import (
     DEFAULT_DAILY_WORKING_HOURS,
@@ -229,9 +229,6 @@ def get_workable_days_for_employee(employee: str, start_date: str | datetime.dat
         "total_working_days": date_diff(end_date, start_date) + 1 - total_leave_hours - len(holidays),
         "leave_days": total_leave_hours + len(holidays),
     }
-
-
-HR_ROLES = frozenset({"HR Manager", "HR User"})
 
 
 def get_employee_detail_scope() -> EmployeeScope:

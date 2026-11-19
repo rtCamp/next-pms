@@ -4,8 +4,6 @@ import frappe
 from frappe import _, get_value, throw
 from frappe.utils import add_days, cint, date_diff, flt, formatdate, get_link_to_form, getdate, today
 
-HR_ROLES = {"HR User", "HR Manager"}
-
 
 #  Doc Events for Timesheet DocType
 def validate(doc, method=None):
@@ -375,7 +373,7 @@ def _get_effective_backdated_allowed_days(employees: list) -> dict:
     once, no matter how many employees are passed."""
     from frappe import get_roles
 
-    from next_pms.permissions.capabilities import has_capability
+    from next_pms.permissions.capabilities import HR_ROLES, has_capability
     from next_pms.timesheet.api.employee import get_employee_from_user
 
     has_access = has_capability("view_others_timesheets") or HR_ROLES.intersection(get_roles())
@@ -550,11 +548,16 @@ def publish_timesheet_update(employee, start_date):
     from next_pms.timesheet.api.project import get_project_timesheet_member_week
     from next_pms.timesheet.api.team import get_team_timesheet_member_week
     from next_pms.timesheet.api.timesheet import build_timesheet_data
+    from next_pms.timesheet.api.utils import get_week_dates
 
+    # Every realtime event below sends the site room - every logged-in client, whatever
+    # their role - only which week changed, and authorised viewers refetch it through the
+    # checked endpoint. The editor, authorised by having just written the timesheet, still
+    # gets the detailed week so their own view swaps in without a round trip.
     data = build_timesheet_data(employee, start_date, 1)
     publish_realtime(
         f"timesheet_update::{employee}",
-        {"message": data},
+        {"week_key": get_week_dates(start_date)["key"]},
         after_commit=True,
         room=get_site_room(),
     )
@@ -573,13 +576,9 @@ def publish_timesheet_update(employee, start_date):
         start_date=get_date_str(start_date),
         by_pass_access_check=True,
     )
-    payload = {
-        "message": member,
-        "employee": employee,
-        "start_date": get_date_str(start_date),
-    }
-    publish_realtime("timesheet_info", payload, after_commit=True, room=get_site_room())
-    publish_realtime("timesheet_info", payload, after_commit=True, user=frappe.session.user)
+    invalidation = {"employee": employee, "start_date": get_date_str(start_date)}
+    publish_realtime("timesheet_info", invalidation, after_commit=True, room=get_site_room())
+    publish_realtime("timesheet_info", {**invalidation, "message": member}, after_commit=True, user=frappe.session.user)
 
     # The project timesheet groups by project, so it needs the employee's whole week keyed
     # by project - a single member-week would not tell it which project rows to update, nor
@@ -589,13 +588,6 @@ def publish_timesheet_update(employee, start_date):
         start_date=get_date_str(start_date),
         by_pass_access_check=True,
     )
-    # The detailed week carries another employee's tasks, hours, leave and approval
-    # status, so the site room - which holds every logged-in client, including ones that
-    # would fail get_project_timesheet_data's only_for - gets an invalidation only.
-    # Authorized viewers reload the week through that checked endpoint. The editor, who is
-    # authorized by virtue of having just written the timesheet, still gets the payload so
-    # their own row swaps in without a round trip.
-    invalidation = {"employee": employee, "start_date": get_date_str(start_date)}
     publish_realtime("project_timesheet_info", invalidation, after_commit=True, room=get_site_room())
     publish_realtime(
         "project_timesheet_info",

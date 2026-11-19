@@ -89,3 +89,13 @@ class TestCapabilities(UnitTestCase):
         with _as_roles(EMPLOYEE):
             for fieldname in MANAGER_FIELD_ROLES:
                 self.assertEqual(get_missing_manager_role(fieldname, "emp@example.com"), PROJECTS_USER, fieldname)
+
+    def test_no_manager_fields_means_no_managed_projects(self):
+        from next_pms.permissions.scope import get_managed_projects
+
+        with (
+            patch("next_pms.permissions.scope.get_project_manager_fields", return_value=[]),
+            patch("next_pms.permissions.scope.frappe.get_all") as get_all,
+        ):
+            self.assertEqual(get_managed_projects("someone@example.com"), frozenset())
+        get_all.assert_not_called()

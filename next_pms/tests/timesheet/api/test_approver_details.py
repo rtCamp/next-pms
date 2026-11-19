@@ -5,9 +5,9 @@ from frappe.tests import IntegrationTestCase
 from next_pms.tests.utils import make_employee
 from next_pms.timesheet.api import get_approver_details
 
-PROJECTS_USER = "approver.projects.user@example.com"
-PROJECTS_MANAGER_USER = "approver.projects.manager@example.com"
-PLAIN_EMPLOYEE_USER = "approver.plain.employee@example.com"
+MANAGER_USER = "approver.manager@example.com"
+REPORT_USER = "approver.report@example.com"
+SYSTEM_MANAGER_USER = "approver.system.manager@example.com"
 
 
 class TestApproverDetails(IntegrationTestCase):
@@ -16,28 +16,19 @@ class TestApproverDetails(IntegrationTestCase):
         super().setUpClass()
         company = get_default_company()
 
-        cls.projects_user_employee = make_employee(PROJECTS_USER, company=company, leave_approver="Administrator")
-        frappe.get_doc("User", PROJECTS_USER).add_roles("Projects User")
+        cls.manager = make_employee(MANAGER_USER, company=company, leave_approver="Administrator")
+        cls.report = make_employee(REPORT_USER, company=company, leave_approver="Administrator")
+        frappe.db.set_value("Employee", cls.report, "reports_to", cls.manager)
 
-        cls.projects_manager_employee = make_employee(
-            PROJECTS_MANAGER_USER, company=company, leave_approver="Administrator"
-        )
-        frappe.get_doc("User", PROJECTS_MANAGER_USER).add_roles("Projects Manager")
+        cls.system_manager = make_employee(SYSTEM_MANAGER_USER, company=company, leave_approver="Administrator")
+        frappe.get_doc("User", SYSTEM_MANAGER_USER).add_roles("System Manager")
 
-        cls.plain_employee_employee = make_employee(
-            PLAIN_EMPLOYEE_USER, company=company, leave_approver="Administrator"
-        )
+    def _names(self):
+        return {employee["name"] for employee in get_approver_details()}
 
-        frappe.clear_cache()
+    def test_lists_employees_someone_reports_to(self):
+        self.assertIn(self.manager, self._names())
 
-    def _names(self, employees):
-        return {employee["name"] for employee in employees}
-
-    def test_projects_user_appears_in_approver_details(self):
-        self.assertIn(self.projects_user_employee, self._names(get_approver_details()))
-
-    def test_projects_manager_appears_in_approver_details(self):
-        self.assertIn(self.projects_manager_employee, self._names(get_approver_details()))
-
-    def test_plain_employee_is_not_listed_as_approver(self):
-        self.assertNotIn(self.plain_employee_employee, self._names(get_approver_details()))
+    def test_skips_approver_role_holders_nobody_reports_to(self):
+        self.assertNotIn(self.system_manager, self._names())
+        self.assertNotIn(self.report, self._names())
