@@ -2,7 +2,7 @@ import frappe
 from frappe.permissions import std_rights
 from frappe.tests import IntegrationTestCase
 
-from next_pms.permissions.docperms import PERMISSION_MAP, apply_permissions
+from next_pms.permissions.docperms import OWNED_DOCTYPES, PERMISSION_MAP, apply_permissions
 
 PROJECTS_USER_STACK = ("Employee", "Projects User")
 PROJECTS_MANAGER_STACK = (*PROJECTS_USER_STACK, "Projects Manager")
@@ -67,16 +67,151 @@ EFFECTIVE_RIGHTS = {
 }
 
 
+_FULL = "create delete email export print read report share write"
+_FULL_SELECT = "create delete email export print read report select share write"
+_VIEW = "email export print read report share"
+
+# The personas of EFFECTIVE_RIGHTS (Projects User, Projects Manager, PMS Leadership stack) for the
+# doctypes next_pms owns, whose rows come from the doctype JSON.
+OWNED_EFFECTIVE_RIGHTS = {
+    "PMS Growth Initiative": (
+        {(0, 0): "create email export print read report share write", (1, 0): _VIEW},
+        {(0, 0): _FULL, (1, 0): _VIEW},
+        {(0, 0): _FULL, (1, 0): _VIEW},
+    ),
+    "PMS Growth Initiative Category": (
+        {(0, 0): "select"},
+        {(0, 0): _FULL_SELECT},
+        {(0, 0): _FULL_SELECT},
+    ),
+    "PMS Growth Initiative Status": (
+        {(0, 0): "select"},
+        {(0, 0): _FULL_SELECT},
+        {(0, 0): _FULL_SELECT},
+    ),
+    "Project Status Update": (
+        {(0, 0): "create delete read select share write"},
+        {(0, 0): "create delete export read select share write"},
+        {(0, 0): "create delete export read select share write"},
+    ),
+    "Project Status Update Template": (
+        {(0, 0): _FULL_SELECT},
+        {(0, 0): _FULL_SELECT},
+        {(0, 0): _FULL_SELECT},
+    ),
+    "Project Status Update Template Category": (
+        {(0, 0): _FULL_SELECT},
+        {(0, 0): _FULL_SELECT},
+        {(0, 0): _FULL_SELECT},
+    ),
+    "Project Time Report Frequency": (
+        {(0, 0): _FULL},
+        {(0, 0): _FULL},
+        {(0, 0): _FULL},
+    ),
+    "Risk": (
+        {(0, 0): "create email export print read report share write", (1, 0): _VIEW},
+        {(0, 0): _FULL, (1, 0): _VIEW},
+        {(0, 0): _FULL, (1, 0): _VIEW},
+    ),
+    "Risk Category": (
+        {(0, 0): "select"},
+        {(0, 0): _FULL_SELECT},
+        {(0, 0): _FULL_SELECT},
+    ),
+    "Risk Level": (
+        {(0, 0): "select"},
+        {(0, 0): _FULL_SELECT},
+        {(0, 0): _FULL_SELECT},
+    ),
+    "Risk Status": (
+        {(0, 0): "select"},
+        {(0, 0): _FULL_SELECT},
+        {(0, 0): _FULL_SELECT},
+    ),
+    "Project Phase": (
+        {},
+        {(0, 0): _FULL},
+        {(0, 0): _FULL},
+    ),
+    "Project Timeline Item": (
+        {(0, 0): _FULL},
+        {(0, 0): _FULL},
+        {(0, 0): _FULL},
+    ),
+    "Project Timeline Item Category": (
+        {(0, 0): "select"},
+        {(0, 0): _FULL_SELECT},
+        {(0, 0): _FULL_SELECT},
+    ),
+    "Technology": (
+        {(0, 0): "read"},
+        {(0, 0): _FULL},
+        {(0, 0): _FULL},
+    ),
+    "Resource Allocation": (
+        {(0, 0): _FULL_SELECT},
+        {(0, 0): _FULL_SELECT, (2, 0): "delete email export print read report share write"},
+        {(0, 0): _FULL_SELECT, (2, 0): "delete email export print read report share write"},
+    ),
+    "NextPMS Notifications": (
+        {(0, 0): "email export print read report share write", (1, 0): _VIEW},
+        {(0, 0): "email export print read report share write", (1, 0): _VIEW},
+        {(0, 0): "email export print read report share write", (1, 0): _VIEW},
+    ),
+    "PMS View Setting": (
+        {(0, 1): "create delete read write"},
+        {(0, 1): "create delete read select write"},
+        {(0, 1): "create delete read select write"},
+    ),
+    "PMS User Setting": (
+        {(0, 1): "read write"},
+        {(0, 1): "read write"},
+        {(0, 1): "read write"},
+    ),
+    "PMS Project Update Subscription": (
+        {},
+        {(0, 0): "read report"},
+        {(0, 0): "read report"},
+    ),
+    "Timesheet Settings": (
+        {},
+        {},
+        {(0, 0): "email print read share write"},
+    ),
+    "Host": (
+        {(0, 0): "read select"},
+        {(0, 0): "read select"},
+        {(0, 0): "read select write"},
+    ),
+}
+
+
+STACKS = (PROJECTS_USER_STACK, PROJECTS_MANAGER_STACK, LEADERSHIP_STACK)
+
+
 def _effective_rights(doctype: str, roles: tuple[str, ...]) -> dict[tuple[int, int], str]:
     granted: dict[tuple[int, int], set[str]] = {}
+    table = "Custom DocPerm" if frappe.db.exists("Custom DocPerm", {"parent": doctype}) else "DocPerm"
     rows = frappe.get_all(
-        "Custom DocPerm",
+        table,
         filters={"parent": doctype, "role": ["in", [*roles, "All", "Desk User"]]},
         fields=["permlevel", "if_owner", *std_rights],
     )
     for row in rows:
         granted.setdefault((row.permlevel, row.if_owner), set()).update(right for right in std_rights if row[right])
     return {key: " ".join(sorted(rights)) for key, rights in sorted(granted.items())}
+
+
+def _granted(rows: list[dict], role: str, permlevel: int, if_owner: int) -> set[str]:
+    """Rights `role` already grants for rows at (permlevel, if_owner): an unrestricted row covers an owner-only one."""
+    return {
+        right
+        for row in rows
+        if row.role == role and row.permlevel == permlevel and row.if_owner in (0, if_owner)
+        for right in std_rights
+        if row[right]
+    }
 
 
 def _rows(doctype: str, **filters) -> list[dict]:
@@ -144,10 +279,9 @@ class TestApplyPermissions(IntegrationTestCase):
 
     def test_host_is_readable_below_leadership_and_editable_by_leadership(self):
         perms = {perm.role: perm for perm in frappe.get_meta("Host").permissions}
-        for role in ("Projects User", "Projects Manager"):
-            self.assertTrue(perms[role].read, role)
-            self.assertFalse(perms[role].write, role)
-        self.assertTrue(perms["PMS Leadership"].read)
+        self.assertTrue(perms["Projects User"].read)
+        self.assertFalse(perms["Projects User"].write)
+        self.assertNotIn("Projects Manager", perms)
         self.assertTrue(perms["PMS Leadership"].write)
 
     def test_projects_user_reads_the_report_generation_flag_but_cannot_edit_it(self):
@@ -188,3 +322,32 @@ class TestApplyPermissions(IntegrationTestCase):
         self.assertEqual(len(own_task), 1)
         self.assertFalse(any_task[0].delete)
         self.assertTrue(own_task[0].delete)
+
+    def test_owned_doctypes_keep_the_rights_each_stacked_persona_has(self):
+        for doctype, expected in OWNED_EFFECTIVE_RIGHTS.items():
+            for roles, rights in zip(STACKS, expected, strict=True):
+                with self.subTest(doctype=doctype, roles=roles):
+                    self.assertEqual(_effective_rights(doctype, roles), rights)
+
+    def test_owned_doctypes_are_all_pinned(self):
+        self.assertEqual(set(OWNED_EFFECTIVE_RIGHTS), set(OWNED_DOCTYPES))
+
+    def test_owned_doctype_manager_rows_do_not_repeat_the_role_below(self):
+        for doctype in OWNED_DOCTYPES:
+            rows = frappe.get_all(
+                "DocPerm", filters={"parent": doctype}, fields=["role", "permlevel", "if_owner", *std_rights]
+            )
+            for role, below in (
+                ("Projects Manager", ("Projects User",)),
+                ("PMS Leadership", ("Projects User", "Projects Manager")),
+            ):
+                has_higher_level = any(row.role == role and row.permlevel > 0 for row in rows)
+                for row in (row for row in rows if row.role == role):
+                    rights = {right for right in std_rights if row[right]}
+                    repeated = rights & {
+                        right for lower in below for right in _granted(rows, lower, row.permlevel, row.if_owner)
+                    }
+                    level_zero_anchor = has_higher_level and row.permlevel == 0 and rights == {"read"}
+                    with self.subTest(doctype=doctype, role=role, permlevel=row.permlevel, if_owner=row.if_owner):
+                        self.assertTrue(rights)
+                        self.assertTrue(not repeated or level_zero_anchor, repeated)
