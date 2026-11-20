@@ -215,10 +215,8 @@ export class TimesheetTabPage {
       .getByRole("option", { name: /^Date$/i })
       .first()
       .click();
-    await this.page
-      .locator("span[role=button][aria-haspopup=dialog]")
-      .last()
-      .click();
+    // The range picker is an input with the "Value" placeholder; clicking it opens the calendar.
+    await this.filterValue.last().click();
     await this.clickDay(from);
     await this.clickDay(to);
     await this.closeFilterPanel();
