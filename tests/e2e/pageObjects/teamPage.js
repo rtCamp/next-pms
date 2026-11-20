@@ -19,6 +19,7 @@ const REVIEWABLE =
   /^(Approval pending|Approved|Rejected|Partially approved|Partially rejected)$/;
 const EMPTY_WEEK = "No timesheet for this week";
 const MEMBERS_API = "next_pms.timesheet.api.team.get_team_timesheet_data";
+const WEEKS_API = "next_pms.timesheet.api.team.get_team_timesheet_weeks";
 
 /** The query a request was sent with, from its URL (GET) or its JSON body. */
 const paramsOf = (response) => {
@@ -27,6 +28,17 @@ const paramsOf = (response) => {
     return { ...params, ...(response.request().postDataJSON() ?? {}) };
   } catch {
     return params;
+  }
+};
+
+/** Whether a weeks response is the last one and holds no week, which the page shows as "No data". */
+const leavesNoWeeks = async (response) => {
+  try {
+    const body = await response.json();
+    const payload = body.data ?? body.message ?? body;
+    return payload.weeks?.length === 0 && !payload.has_more_weeks;
+  } catch {
+    return false;
   }
 };
 
@@ -165,12 +177,17 @@ export class TeamPage {
    * Runs `action`, a filter change, and waits for the members loaded with the filters
    * `matches` accepts. The weeks re-render under the new filters before their members
    * load, so the rows read afterwards are the filtered ones. `matches` is checked after
-   * the action, so it can depend on what the action changed.
+   * the action, so it can depend on what the action changed. A filter that leaves no week
+   * loads no members, so a weeks response with none counts as the answer too.
    */
   async applyAndWait(action, matches = () => true, unchanged = () => false) {
     const queries = [];
-    const record = (response) => {
-      if (response.url().includes(MEMBERS_API))
+    const record = async (response) => {
+      const url = response.url();
+      if (
+        url.includes(MEMBERS_API) ||
+        (url.includes(WEEKS_API) && (await leavesNoWeeks(response)))
+      )
         queries.push(paramsOf(response));
     };
     this.page.on("response", record);
