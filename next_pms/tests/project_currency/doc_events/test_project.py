@@ -97,12 +97,14 @@ class TestProjectManagerRoles(IntegrationTestCase):
         super().setUpClass()
         cls.no_role_user = "manager-role-warning-plain@example.com"
         cls.projects_user = "manager-role-warning-projects-user@example.com"
-        for email in (cls.no_role_user, cls.projects_user):
+        cls.system_manager = "manager-role-warning-system-manager@example.com"
+        for email in (cls.no_role_user, cls.projects_user, cls.system_manager):
             if not frappe.db.exists("User", email):
                 frappe.get_doc({"doctype": "User", "email": email, "first_name": email.split("@")[0]}).insert(
                     ignore_permissions=True
                 )
         frappe.get_doc("User", cls.projects_user).add_roles("Projects User")
+        frappe.get_doc("User", cls.system_manager).add_roles("System Manager")
 
     @staticmethod
     def new_project(**managers):
@@ -126,6 +128,12 @@ class TestProjectManagerRoles(IntegrationTestCase):
     def test_projects_user_can_be_the_project_manager(self):
         project = self.new_project(custom_project_manager=self.projects_user).insert(ignore_permissions=True)
         self.assertEqual(project.custom_project_manager, self.projects_user)
+
+    def test_system_manager_without_projects_user_can_be_every_manager(self):
+        for fieldname in ("custom_project_manager", "custom_engineering_manager"):
+            with self.subTest(fieldname=fieldname):
+                project = self.new_project(**{fieldname: self.system_manager}).insert(ignore_permissions=True)
+                self.assertEqual(project.get(fieldname), self.system_manager)
 
     def test_manager_with_the_role_saves(self):
         project = self.new_project(custom_engineering_manager=self.projects_user).insert(ignore_permissions=True)
