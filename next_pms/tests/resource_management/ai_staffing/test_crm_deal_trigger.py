@@ -8,6 +8,7 @@ from frappe.utils import add_days, today
 from next_pms.resource_management.ai_staffing import crm_xt_installed
 from next_pms.resource_management.doc_events import crm_deal
 from next_pms.tests.resource_management.ai_staffing.utils import STAGE, make_deal
+from next_pms.tests.utils import make_sales_stage
 
 RUN = "next_pms.resource_management.ai_staffing.pipeline.run_staffing"
 SYNC = "next_pms.resource_management.ai_staffing.pipeline.sync_project_value"
@@ -18,8 +19,7 @@ class TestCRMDealTrigger(IntegrationTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        if not frappe.db.exists("Sales Stage", STAGE):
-            frappe.get_doc({"doctype": "Sales Stage", "stage_name": STAGE}).insert(ignore_permissions=True)
+        make_sales_stage(STAGE)
 
     def setUp(self):
         self.set_enabled(True)
