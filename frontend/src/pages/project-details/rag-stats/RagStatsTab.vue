@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Spinner, useCall } from "frappe-ui";
 import { ErrorFallback } from "@/components/ErrorFallback";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
 import { errorMessage } from "@/utils/errors";
 import {
@@ -9,6 +10,7 @@ import {
   RAG_COLOUR_CLASS,
   TRIGGER_COLUMNS,
 } from "./constants";
+import { RAG_STATS_HELP } from "./help";
 import RagComments from "./RagComments.vue";
 import RagStatusTable from "./RagStatusTable.vue";
 import type { RagDetails, RagHistory } from "./types";
@@ -53,6 +55,7 @@ const details = useCall<RagDetails, { project: string }>({
           {{ details.data.current_status }}
         </span>
         <span v-else class="font-medium text-ink-gray-5">N/A</span>
+        <InfoHoverCard :help="RAG_STATS_HELP.currentStatus" />
       </div>
 
       <div class="flex flex-col gap-2">

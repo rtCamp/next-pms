@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Select } from "frappe-ui";
 import { Filter, FilterLinkValue, type FilterField } from "@/components/Filter";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { SortSelector } from "@/components/SortSelector";
 import {
   EMPLOYEE_LIST_METHOD,
@@ -8,6 +9,7 @@ import {
   RISK_SORT_FIELDS,
   RISK_STATUSES,
 } from "./constants";
+import { RISKS_HELP } from "./help";
 import { useRisks } from "./useRisks";
 
 const {
@@ -69,14 +71,17 @@ const LEVEL_OPTIONS = [
         aria-label="Risk owner"
         @update:model-value="quick.riskOwner = String($event ?? '')"
       />
-      <Select
-        :model-value="quick.owner || undefined"
-        class="w-36 text-ink-gray-7"
-        :options="ownerOptions"
-        placeholder="Owner"
-        aria-label="Owner"
-        @update:model-value="quick.owner = String($event ?? '')"
-      />
+      <div class="flex items-center gap-1.5">
+        <Select
+          :model-value="quick.owner || undefined"
+          class="w-36 text-ink-gray-7"
+          :options="ownerOptions"
+          placeholder="Owner"
+          aria-label="Owner"
+          @update:model-value="quick.owner = String($event ?? '')"
+        />
+        <InfoHoverCard :help="RISKS_HELP.owners" />
+      </div>
       <Select
         :model-value="quick.status || undefined"
         class="w-30 text-ink-gray-7"

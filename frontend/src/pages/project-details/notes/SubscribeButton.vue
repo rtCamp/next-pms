@@ -4,6 +4,7 @@ import { Button, toast, Tooltip, useCall } from "frappe-ui";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
 import { errorMessage } from "@/utils/errors";
 import { NOTES_API } from "./constants";
+import { ACCOUNT_MANAGER_SUBSCRIBED_TOOLTIP, SUBSCRIBE_TOOLTIP } from "./help";
 import type { NoteSubscription } from "./types";
 
 const { projectId } = useProjectDetails();
@@ -46,18 +47,19 @@ async function toggle() {
   <template v-if="state && !subscription.loading">
     <Tooltip
       v-if="state.is_account_manager"
-      text="Account managers are notified of every note"
+      :text="ACCOUNT_MANAGER_SUBSCRIBED_TOOLTIP"
     >
       <span>
         <Button icon-left="lucide-bell" label="Subscribed" disabled />
       </span>
     </Tooltip>
-    <Button
-      v-else
-      :icon-left="state.subscribed ? 'lucide-bell-off' : 'lucide-bell'"
-      :label="state.subscribed ? 'Unsubscribe' : 'Subscribe'"
-      :loading="setSubscription.loading"
-      @click="toggle"
-    />
+    <Tooltip v-else :text="SUBSCRIBE_TOOLTIP">
+      <Button
+        :icon-left="state.subscribed ? 'lucide-bell-off' : 'lucide-bell'"
+        :label="state.subscribed ? 'Unsubscribe' : 'Subscribe'"
+        :loading="setSubscription.loading"
+        @click="toggle"
+      />
+    </Tooltip>
   </template>
 </template>

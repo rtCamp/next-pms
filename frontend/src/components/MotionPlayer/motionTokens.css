@@ -1,0 +1,72 @@
+/*
+ * The motion scenes are vendored from the React app and style themselves with
+ * the old kit's `--color-*` variables. Each one is aliased to the frappe-ui 1.0
+ * token on the same palette step (the tokens-v2 codemod's ink, outline and
+ * light-surface steps land one step off), so the scenes follow the theme.
+ */
+[data-motion] {
+  --color-white: #fff;
+  --color-gray-500: var(--gray-500);
+  --color-red-500: var(--red-500);
+  --color-red-600: var(--red-600);
+  --color-amber-500: var(--amber-500);
+  --color-amber-700: var(--amber-700);
+  --color-green-500: var(--green-500);
+  --color-green-700: var(--green-700);
+  --color-blue-500: var(--blue-500);
+  --color-violet-50: var(--violet-50);
+
+  --color-ink-white: var(--ink-base);
+  --color-ink-gray-3: var(--ink-gray-3);
+  --color-ink-gray-4: var(--ink-gray-4);
+  --color-ink-gray-5: var(--ink-gray-5);
+  --color-ink-gray-6: var(--ink-gray-6);
+  --color-ink-gray-7: var(--ink-gray-7);
+  --color-ink-gray-8: var(--ink-gray-8);
+  --color-ink-gray-9: var(--ink-gray-9);
+  --color-ink-red-2: var(--ink-red-4);
+  --color-ink-red-3: var(--ink-red-5);
+  --color-ink-red-4: var(--ink-red-7);
+  --color-ink-amber-2: var(--ink-amber-5);
+  --color-ink-amber-3: var(--ink-amber-6);
+  --color-ink-amber-4: var(--ink-amber-7);
+  --color-ink-green-2: var(--ink-green-5);
+  --color-ink-green-3: var(--ink-green-6);
+  --color-ink-green-4: var(--ink-green-7);
+  --color-ink-blue-3: var(--ink-blue-6);
+  --color-ink-violet-3: var(--ink-violet-5);
+  --color-ink-violet-4: var(--ink-violet-7);
+  --color-ink-cyan-3: var(--ink-cyan-5);
+
+  --color-surface-white: var(--surface-base);
+  --color-surface-cards: var(--surface-elevation-1);
+  --color-surface-modal: var(--surface-elevation-2);
+  --color-surface-menu-bar: var(--surface-sidebar);
+  --color-surface-gray-1: var(--surface-gray-1);
+  --color-surface-gray-2: var(--surface-gray-2);
+  --color-surface-gray-3: var(--surface-gray-3);
+  --color-surface-gray-4: var(--surface-gray-4);
+  --color-surface-gray-6: var(--surface-gray-9);
+  --color-surface-gray-7: var(--surface-gray-10);
+  --color-surface-red-1: var(--surface-red-1);
+  --color-surface-red-2: var(--surface-red-2);
+  --color-surface-red-5: var(--surface-red-7);
+  --color-surface-red-6: var(--surface-red-8);
+  --color-surface-amber-1: var(--surface-amber-1);
+  --color-surface-amber-2: var(--surface-amber-2);
+  --color-surface-amber-3: var(--surface-amber-7);
+  --color-surface-amber-5: var(--surface-amber-7);
+  --color-surface-green-2: var(--surface-green-2);
+  --color-surface-green-3: var(--surface-green-3);
+  --color-surface-green-5: var(--surface-green-7);
+  --color-surface-blue-2: var(--surface-blue-2);
+  --color-surface-violet-1: var(--surface-violet-2);
+
+  --color-outline-gray-1: var(--outline-gray-1);
+  --color-outline-gray-2: var(--outline-gray-2);
+  --color-outline-gray-3: var(--outline-gray-3);
+  --color-outline-gray-4: var(--outline-gray-4);
+  --color-outline-gray-5: var(--outline-gray-7);
+  --color-outline-red-1: var(--outline-red-3);
+  --color-outline-amber-2: var(--outline-amber-4);
+}

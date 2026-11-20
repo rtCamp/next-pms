@@ -10,3 +10,6 @@ export const ACTIVITY_HELP: FieldHelp = {
     "Only the 50 most recent changes are listed.",
   ],
 };
+
+export const UPDATE_ACTIONS_TOOLTIP = (author: string) =>
+  `Only ${author} or a System Manager can edit or delete this update.`;

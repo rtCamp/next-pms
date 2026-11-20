@@ -230,13 +230,19 @@ export function useAllocationForm(dialogs: AllocationDialogs) {
     dialogs.form.open = false;
   }
 
+  /** Whether the running save is an AI allocation's Save as tentative. */
+  const savingAsTentative = ref(false);
+
   /** Saves the form; on success closes, refreshes the touched rows and clears the draft. */
-  async function save() {
+  async function save({ saveAsTentative = false } = {}) {
     const request = dialogs.form.request;
-    const allocation = allocationPayload(form, context.value);
+    const allocation = allocationPayload(form, context.value, {
+      saveAsTentative,
+    });
     const allocationId = context.value.allocationId;
     const targets = formRefreshTargets(form, context.value);
     submitting.value = true;
+    savingAsTentative.value = saveAsTentative;
     try {
       await dialogs.runWrite(async () => {
         if (mode.value === "edit" && allocationId) {
@@ -253,11 +259,13 @@ export function useAllocationForm(dialogs: AllocationDialogs) {
           });
         }
         toast.success(
-          context.value.isAiCreated
-            ? "Allocation approved successfully"
-            : mode.value === "edit"
-              ? "Allocation updated successfully"
-              : "Allocation created successfully",
+          saveAsTentative
+            ? "Allocation saved as tentative"
+            : context.value.isAiCreated
+              ? "Allocation approved successfully"
+              : mode.value === "edit"
+                ? "Allocation updated successfully"
+                : "Allocation created successfully",
         );
         close();
         await dialogs.refresh(targets);
@@ -299,6 +307,14 @@ export function useAllocationForm(dialogs: AllocationDialogs) {
     await save();
   }
 
+  /** Saves an AI allocation as Tentative without approving it, so no access checks. */
+  async function saveAsTentative() {
+    clearErrors();
+    Object.assign(errors, validateAllocationForm(form));
+    if (Object.keys(errors).length) return;
+    await save({ saveAsTentative: true });
+  }
+
   async function confirmApproval() {
     approveConfirmOpen.value = false;
     await save();
@@ -338,9 +354,11 @@ export function useAllocationForm(dialogs: AllocationDialogs) {
     availability,
     totalHours,
     submitting,
+    savingAsTentative,
     canSubmit,
     approveConfirmOpen,
     submit,
+    saveAsTentative,
     confirmApproval,
     close,
   });

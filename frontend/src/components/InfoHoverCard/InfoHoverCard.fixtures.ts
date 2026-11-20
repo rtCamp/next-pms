@@ -33,6 +33,7 @@ export const FULL_HELP: FieldHelp = {
     "Actual cost comes from approved timesheets.",
     "The forecast comes from the remaining allocations.",
   ],
+  wiki: "Projects#cost-burn",
 };
 
 export const TOOLTIP = "Hours left after this allocation";

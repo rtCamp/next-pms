@@ -9,6 +9,7 @@ import type { Person, UserDetails } from "@/pages/project-details/shared/types";
 import GrowthActions from "./GrowthActions.vue";
 import GrowthPriorityPill from "./GrowthPriorityPill.vue";
 import GrowthStatusBadge from "./GrowthStatusBadge.vue";
+import { ACTIVITY_OWNER_TOOLTIP, IDEATION_OWNER_TOOLTIP } from "./help";
 import type { GrowthDoc } from "./types";
 import { useGrowth } from "./useGrowth";
 
@@ -50,8 +51,16 @@ const ideationOwner = computed(() => person(props.initiative.ideation_owner));
         v-if="isPriorityLevel(initiative.client_priority)"
         :priority="initiative.client_priority"
       />
-      <OwnerPill :person="activityOwner" title="Activity owner" />
-      <OwnerPill :person="ideationOwner" title="Ideation owner" />
+      <OwnerPill
+        :person="activityOwner"
+        title="Activity owner"
+        :tooltip="ACTIVITY_OWNER_TOOLTIP"
+      />
+      <OwnerPill
+        :person="ideationOwner"
+        title="Ideation owner"
+        :tooltip="IDEATION_OWNER_TOOLTIP"
+      />
       <span class="rounded-full bg-surface-gray-2 px-2 py-1">
         <GrowthStatusBadge :status="initiative.status" />
       </span>

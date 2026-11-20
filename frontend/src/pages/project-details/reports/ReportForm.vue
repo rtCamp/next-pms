@@ -12,9 +12,11 @@ import {
   useCall,
   type DateRangeValue,
 } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
 import { errorMessage } from "@/utils/errors";
 import { REPORT_API } from "./constants";
+import { REPORT_HELP } from "./help";
 import SlackChannelField from "./SlackChannelField.vue";
 import { durationPresets, previousReportUrl, repositoryOptions } from "./utils";
 
@@ -89,7 +91,10 @@ async function generate() {
 
 <template>
   <form class="flex flex-col gap-4" @submit.prevent="generate">
-    <h2 class="text-2xl-semibold text-ink-gray-8">Report Configuration</h2>
+    <div class="flex min-w-0 items-center gap-1.5">
+      <h2 class="text-2xl-semibold text-ink-gray-8">Report Configuration</h2>
+      <InfoHoverCard :help="REPORT_HELP" />
+    </div>
 
     <div class="grid grid-cols-2 gap-4">
       <DateRangePicker

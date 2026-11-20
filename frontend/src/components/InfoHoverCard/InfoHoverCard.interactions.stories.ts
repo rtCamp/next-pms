@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { expect, screen, userEvent, waitFor, within } from "storybook/test";
 import InfoHoverCard from "./InfoHoverCard.vue";
-import { FULL_HELP, TOOLTIP } from "./InfoHoverCard.fixtures";
+import { BASIC_HELP, FULL_HELP, TOOLTIP } from "./InfoHoverCard.fixtures";
+import { WIKI_BASE } from "./constants";
 
 const meta = {
   title: "Components/InfoHoverCard/Interactions",
@@ -38,6 +39,35 @@ export const OpensOnHover: Story = {
     await waitFor(() =>
       expect(screen.queryByText("Used so far")).not.toBeInTheDocument(),
     );
+  },
+};
+
+export const LinksToTheWiki: Story = {
+  play: async ({ canvasElement }) => {
+    await userEvent.hover(
+      within(canvasElement).getByRole("button", { name: "About Cost burn" }),
+    );
+    const link = await screen.findByRole("link", {
+      name: "Learn more in the wiki",
+    });
+    await expect(link).toHaveAttribute(
+      "href",
+      `${WIKI_BASE}/Projects#cost-burn`,
+    );
+    await expect(link).toHaveAttribute("target", "_blank");
+  },
+};
+
+export const NoWikiLinkWithoutAPage: Story = {
+  args: { help: BASIC_HELP },
+  play: async ({ canvasElement }) => {
+    await userEvent.hover(
+      within(canvasElement).getByRole("button", { name: "About Utilisation" }),
+    );
+    await screen.findByText(BASIC_HELP.summary);
+    await expect(
+      screen.queryByRole("link", { name: "Learn more in the wiki" }),
+    ).not.toBeInTheDocument();
   },
 };
 

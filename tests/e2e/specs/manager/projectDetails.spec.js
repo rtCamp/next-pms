@@ -15,6 +15,9 @@ import {
 import { readJSONFile } from "../../utils/fileUtils";
 import { scaleTimeout } from "../../utils/timeouts";
 
+// Seeded by global setup; named here so a run of this spec alone seeds it.
+const FIXTURE = "TC299";
+
 // TC299 seeds the "E2E Prj Detail" project these cases open; see data/manager/projects.js.
 const DETAIL = "E2E Prj Detail";
 const SUMMARY = "<p>E2E Prj detail summary</p>";
@@ -30,7 +33,7 @@ test.describe("Manager: Project details", () => {
 
   test.beforeEach(async ({ page, jsonDir }) => {
     details = new ProjectDetailsPage(page);
-    data = (await readJSONFile(path.join(jsonDir, "TC299.json"))).TC299;
+    data = (await readJSONFile(path.join(jsonDir, `${FIXTURE}.json`)))[FIXTURE];
     project = data.payloadDeleteProject5.projectId;
   });
 
@@ -152,7 +155,7 @@ test.describe("Manager: Project details", () => {
     page.on("request", (req) => {
       if (
         req.method() === "PUT" &&
-        req.url().includes("/api/resource/Project/")
+        /\/api\/(resource|v2\/document)\/Project\//.test(req.url())
       )
         writes.push(req.url());
     });
