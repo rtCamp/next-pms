@@ -2,21 +2,25 @@ import { expect } from "@playwright/test";
 import { gotoWithRetry } from "../utils/navigation.js";
 import { escapeRegExp } from "../utils/stringUtils";
 import { scaleTimeout } from "../utils/timeouts";
+import {
+  approvalDrawer,
+  DECIDED,
+  rejectConfirm,
+  rejectDialog,
+  rejectReason,
+  ROW,
+  rowToggle,
+  STATUS,
+  WEEK_LABEL,
+  weekRegion,
+} from "./timesheetGrid";
 
 // The grid is a flat list of rows with no table roles: a week's rows follow its header
 // inside one `scroll-mt-7` wrapper, and depth is the row's indent class (pl-7.5 member,
 // pl-13.5 project or time-off, pl-19.5 task). Each collapsible row has a
 // "Toggle <label>" chevron that carries `aria-expanded`.
-const ROW = "div.border-b.transition-colors";
 const MEMBER_ROW = `${ROW}[class~="pl-7.5"]`;
 const DETAIL_ROW = `${ROW}[class~="pl-13.5"], ${ROW}[class~="pl-19.5"]`;
-const WEEK_TOGGLE =
-  /^Toggle (This week|Last week|[A-Z][a-z]{2} \d+(, \d{4})? - )/;
-const STATUS =
-  /^(Not submitted|Approval pending|Approved|Rejected|Partially approved|Partially rejected|Processing)/i;
-// A week still to submit has no review button; every other status has one, named after it.
-const REVIEWABLE =
-  /^(Approval pending|Approved|Rejected|Partially approved|Partially rejected)$/;
 const EMPTY_WEEK = "No timesheet for this week";
 const MEMBERS_API = "next_pms.timesheet.api.team.get_team_timesheet_data";
 const WEEKS_API = "next_pms.timesheet.api.team.get_team_timesheet_weeks";
@@ -78,23 +82,12 @@ export class TeamPage {
     this.filterOperator = page.getByPlaceholder("Operator");
     this.filterValue = page.getByPlaceholder("Value");
 
-    this.weekToggles = page.getByRole("button", { name: WEEK_TOGGLE });
+    this.weekToggles = page.getByRole("button", { name: WEEK_LABEL });
 
-    this.reviewTimesheetPane = page.getByRole("dialog").filter({
-      has: page.getByRole("button", { name: "Approve", exact: true }),
-    });
-    this.rejectTimesheetModal = page.getByRole("dialog").filter({
-      has: page.getByRole("heading", {
-        name: "Reason for timesheet rejection",
-      }),
-    });
-    this.rejectReasonInput = this.rejectTimesheetModal.getByPlaceholder(
-      "Enter reason for rejection",
-    );
-    this.confirmRejectButton = this.rejectTimesheetModal.getByRole("button", {
-      name: "Reject timesheet",
-      exact: true,
-    });
+    this.reviewTimesheetPane = approvalDrawer(page);
+    this.rejectTimesheetModal = rejectDialog(page);
+    this.rejectReasonInput = rejectReason(this.rejectTimesheetModal);
+    this.confirmRejectButton = rejectConfirm(this.rejectTimesheetModal);
 
     this.employeeNameInTable = (employeeName) =>
       page
@@ -122,17 +115,12 @@ export class TeamPage {
   }
 
   weekToggle(label) {
-    return this.page.getByRole("button", {
-      name: `Toggle ${label}`,
-      exact: true,
-    });
+    return rowToggle(this.page, label);
   }
 
   /** A week: its header row and every row under it. */
   weekRegion(label = "This week") {
-    return this.page
-      .locator("div.scroll-mt-7")
-      .filter({ has: this.weekToggle(label) });
+    return weekRegion(this.page, label);
   }
 
   memberRows(weekLabel = "This week") {
@@ -433,7 +421,7 @@ export class TeamPage {
 
   async openReviewTimesheetPane(employee) {
     const row = await this.findMember(employee);
-    await row.getByRole("button", { name: REVIEWABLE }).click();
+    await row.getByRole("button", { name: DECIDED }).click();
     await this.reviewTimesheetPane.waitFor({ timeout: scaleTimeout(20000) });
   }
 

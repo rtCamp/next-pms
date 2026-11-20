@@ -2,23 +2,20 @@ import { gotoWithRetry } from "../utils/navigation";
 import { escapeRegExp } from "../utils/stringUtils";
 import { scaleTimeout } from "../utils/timeouts";
 import {
-  dayCells,
+  approvalDrawer,
+  DECIDED,
   nestedRows,
-  pickCalendarDay,
+  rejectConfirm,
+  rejectDialog,
+  rejectReason,
   rowColumns,
   rowsLabelled,
   rowToggle,
-  weekHeader,
-  weekHeaders,
-  weekRegion,
+  STATUS,
 } from "./timesheetGrid";
 import { TimesheetTabPage } from "./timesheetTabPage";
 
 const MEMBER_LEVEL = "pl-7.5";
-const DECIDED =
-  /^(Approval pending|Approved|Rejected|Partially approved|Partially rejected)$/;
-const STATUS =
-  /^(Not submitted|Approval pending|Approved|Rejected|Partially approved|Partially rejected|Processing)/i;
 
 /** How the approval drawer names a day: "Mon, Oct 12". */
 export const drawerDay = (isoDate) => {
@@ -63,16 +60,8 @@ export class TeamTimesheetPage extends TimesheetTabPage {
     this.approvalFilter = page.locator(
       'button[aria-haspopup="listbox"][data-slot="trigger"]',
     );
-    this.dateField = this.addTimeDialog.getByRole("combobox", {
-      name: /^Date/,
-    });
-    this.halfDayField = this.addTimeOffDialog.getByPlaceholder(
-      "Select half day date",
-    );
 
-    this.drawer = page.getByRole("dialog").filter({
-      has: page.getByRole("button", { name: "Approve", exact: true }),
-    });
+    this.drawer = approvalDrawer(page);
     this.approveButton = this.drawer.getByRole("button", {
       name: "Approve",
       exact: true,
@@ -81,76 +70,14 @@ export class TeamTimesheetPage extends TimesheetTabPage {
       name: "Reject",
       exact: true,
     });
-    this.rejectDialog = page.getByRole("dialog").filter({
-      has: page.getByRole("heading", {
-        name: "Reason for timesheet rejection",
-      }),
-    });
-    this.rejectReason = this.rejectDialog.getByRole("textbox", {
-      name: "Reason (required)",
-    });
-    this.rejectSubmit = this.rejectDialog.getByRole("button", {
-      name: "Reject timesheet",
-    });
-  }
-
-  get weekHeaders() {
-    return weekHeaders(this.page);
-  }
-
-  weekHeader(label) {
-    return weekHeader(this.page, label);
-  }
-
-  weekRegion(label) {
-    return weekRegion(this.page, label);
-  }
-
-  cells(row) {
-    return dayCells(row);
+    this.rejectDialog = rejectDialog(page);
+    this.rejectReason = rejectReason(this.rejectDialog);
+    this.rejectSubmit = rejectConfirm(this.rejectDialog);
   }
 
   /** The seven days a row prints, Monday first. */
   async rowDays(row) {
     return (await rowColumns(row)).slice(0, 7);
-  }
-
-  async rowTotal(row) {
-    return (await rowColumns(row))[7];
-  }
-
-  async clickDay(isoDate) {
-    await pickCalendarDay(this.page, isoDate);
-  }
-
-  /** The time-off dialog's From and To fields. */
-  get dateFields() {
-    return this.addTimeOffDialog.getByRole("combobox", { name: /^(From|To)/ });
-  }
-
-  /** As in the base page, but the leave duration is a radio group. */
-  async fillTimeOff({ employee, from, to = from, duration, type, reason }) {
-    if (employee) {
-      await this.choose("Select employee", employee, this.addTimeOffDialog);
-    }
-    await this.pickDate(this.dateFields.nth(0), from);
-    await this.pickDate(this.dateFields.nth(1), to);
-    if (duration) {
-      await this.addTimeOffDialog
-        .getByRole("radio", { name: duration, exact: true })
-        .click();
-    }
-    if (type) {
-      await this.addTimeOffDialog
-        .getByRole("combobox", { name: /Leave type/ })
-        .click();
-      await this.page.getByRole("option", { name: type }).click();
-    }
-    if (reason) {
-      await this.addTimeOffDialog
-        .getByRole("textbox", { name: /Reason/ })
-        .fill(reason);
-    }
   }
 
   // --------------------------------------

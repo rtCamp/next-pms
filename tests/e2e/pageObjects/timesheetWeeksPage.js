@@ -1,13 +1,7 @@
 import { expect } from "@playwright/test";
 import { gotoWithRetry } from "../utils/navigation";
 import { scaleTimeout } from "../utils/timeouts";
-import {
-  pickCalendarDay,
-  rowToggle,
-  weekHeader,
-  weekHeaders,
-  weekRegion,
-} from "./timesheetGrid";
+import { rowToggle } from "./timesheetGrid";
 import { TimesheetTabPage } from "./timesheetTabPage";
 
 /**
@@ -38,60 +32,10 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
     this.approvalFilter = page
       .locator('button[aria-haspopup="listbox"]')
       .first();
-    this.dateField = this.addTimeDialog.getByRole("combobox", {
-      name: /^Date/,
-    });
-    this.halfDayField = this.addTimeOffDialog.getByPlaceholder(
-      "Select half day date",
-    );
     // A task cell opens a hover card listing the day's entries; it has no role.
     this.entryPopover = page
       .locator('[data-slot="content"][data-state="open"]')
       .last();
-  }
-
-  get weekHeaders() {
-    return weekHeaders(this.page);
-  }
-
-  /** A week's header row, by its label ("This week", "Oct 5 - 11, 2026"). */
-  weekHeader(label) {
-    return weekHeader(this.page, label);
-  }
-
-  weekRegion(label) {
-    return weekRegion(this.page, label);
-  }
-
-  async clickDay(isoDate) {
-    await pickCalendarDay(this.page, isoDate);
-  }
-
-  /** The time-off dialog's From and To fields. */
-  get dateFields() {
-    return this.addTimeOffDialog.getByRole("combobox", { name: /^(From|To)/ });
-  }
-
-  /** As in the base page, but the leave duration is a radio group. */
-  async fillTimeOff({ from, to = from, duration, type, reason }) {
-    await this.pickDate(this.dateFields.nth(0), from);
-    await this.pickDate(this.dateFields.nth(1), to);
-    if (duration) {
-      await this.addTimeOffDialog
-        .getByRole("radio", { name: duration, exact: true })
-        .click();
-    }
-    if (type) {
-      await this.addTimeOffDialog
-        .getByRole("combobox", { name: /Leave type/ })
-        .click();
-      await this.page.getByRole("option", { name: type }).click();
-    }
-    if (reason) {
-      await this.addTimeOffDialog
-        .getByRole("textbox", { name: /Reason/ })
-        .fill(reason);
-    }
   }
 
   /** The day cells of a row, Monday first; their text is the hours or a dash. */
@@ -100,6 +44,11 @@ export class TimesheetWeeksPage extends TimesheetTabPage {
     return row
       .getByRole("button")
       .filter({ hasText: /^\s*(\d{2}:\d{2}|-)\s*$/ });
+  }
+
+  /** The hours a row adds up to: the last thing it prints. */
+  async rowTotal(row) {
+    return (await row.innerText()).trim().split("\n").pop().trim();
   }
 
   // --------------------------------------

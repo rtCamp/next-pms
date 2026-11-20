@@ -1,9 +1,37 @@
 // The Team and Project grids are flat lists of rows: a row's children follow it as
 // siblings, indented one step further (pl-7.5, then pl-13.5, then pl-19.5), with no
 // container or ARIA region around them. Each collapsible row has a "Toggle <label>" button.
-const ROW = "div.border-b.transition-colors";
-const WEEK_LABEL =
+export const ROW = "div.border-b.transition-colors";
+export const WEEK_LABEL =
   /^Toggle (This week|Last week|[A-Z][a-z]{2} \d+(, \d{4})? - )/;
+
+/** The approval status a row prints, e.g. "Approval pending". */
+export const STATUS =
+  /^(Not submitted|Approval pending|Approved|Rejected|Partially approved|Partially rejected|Processing)/i;
+
+/** A status that has been sent for a decision, which gives its row a review button named after it. */
+export const DECIDED =
+  /^(Approval pending|Approved|Rejected|Partially approved|Partially rejected)$/;
+
+/** The approval drawer a submitted week opens. */
+export const approvalDrawer = (page) =>
+  page.getByRole("dialog").filter({
+    has: page.getByRole("button", { name: "Approve", exact: true }),
+  });
+
+/** The dialog that asks for the reason of a rejection. */
+export const rejectDialog = (page) =>
+  page.getByRole("dialog").filter({
+    has: page.getByRole("heading", { name: "Reason for timesheet rejection" }),
+  });
+
+/** The rejection dialog's reason field; frappe-ui adds "(required)" to a required label. */
+export const rejectReason = (dialog) =>
+  dialog.getByRole("textbox", { name: "Reason (required)" });
+
+/** The rejection dialog's confirm button. */
+export const rejectConfirm = (dialog) =>
+  dialog.getByRole("button", { name: "Reject timesheet", exact: true });
 
 const hasClass = (name) =>
   `contains(concat(' ', normalize-space(@class), ' '), ' ${name} ')`;

@@ -1,15 +1,6 @@
 import { gotoWithRetry } from "../utils/navigation";
 import { scaleTimeout } from "../utils/timeouts";
-import {
-  dayCells,
-  nestedRows,
-  rowColumns,
-  rowsLabelled,
-  rowToggle,
-  weekHeader,
-  weekHeaders,
-  weekRegion,
-} from "./timesheetGrid";
+import { nestedRows, rowsLabelled, rowToggle } from "./timesheetGrid";
 import { TimesheetTabPage } from "./timesheetTabPage";
 
 const PROJECT_LEVEL = "pl-7.5";
@@ -31,26 +22,6 @@ export class ProjectTimesheetPage extends TimesheetTabPage {
       has: page.getByRole("button", { name: "Approve" }),
     });
     this.approvalFilter = page.getByRole("button", { name: "Approval status" });
-  }
-
-  get weekHeaders() {
-    return weekHeaders(this.page);
-  }
-
-  weekHeader(label) {
-    return weekHeader(this.page, label);
-  }
-
-  weekRegion(label) {
-    return weekRegion(this.page, label);
-  }
-
-  cells(row) {
-    return dayCells(row);
-  }
-
-  async rowTotal(row) {
-    return (await rowColumns(row))[7];
   }
 
   /** Opens the tab; `params` is the state kept in its URL (search, compositeFilters). */
