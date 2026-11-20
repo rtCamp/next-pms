@@ -5,6 +5,8 @@ from unittest.mock import patch
 import frappe
 from erpnext import get_default_company
 
+from next_pms.tests.utils import make_sales_stage
+
 ORGANIZATION = "AI Staffing Test Org"
 STAGE = "AI Staffing Test Stage"
 START = date(2027, 3, 1)
@@ -22,6 +24,7 @@ def make_deal(organization: str = ORGANIZATION, **values) -> str:
         {
             "doctype": "CRM Deal",
             "organization": make_organization(organization),
+            "sales_stage": make_sales_stage(values.pop("sales_stage", "Prospecting")),
             "company": get_default_company(),
             "currency": "USD",
             "expected_deal_value": 48000,
