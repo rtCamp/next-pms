@@ -4,6 +4,8 @@ const project = (tc, label, postfix = "", email = process.env.EMP2_EMAIL) => ({
   [`payloadCreateProject${postfix}`]: {
     project_name: `${tc} ${label}`,
     company: COMPANY,
+    // EMP2 does not report to the manager, so the week reaches him as this project's manager.
+    custom_project_manager: process.env.REP_MAN_EMAIL,
     customer: "QA-INR",
     project_type: "Fixed Cost",
     business_unit: "Jupiter",
@@ -86,5 +88,9 @@ module.exports = {
       description: "Task for TC220 created through automation",
     },
     payloadDeleteTask: { taskID: "filled-automatically-from-createTasks" },
+    // Made the project's engineering manager by the case, so "Send to" offers them too.
+    payloadCreateWeekEmployees: {
+      SubmitReviewer: { managed: false, user: { roles: ["Projects User"] } },
+    },
   },
 };

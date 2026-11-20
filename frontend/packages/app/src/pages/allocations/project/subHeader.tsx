@@ -19,11 +19,9 @@ import {
  * Internal dependencies.
  */
 import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
+import { useCapability } from "@/hooks/useCapability";
 import { useDebounce } from "@/hooks/useDebounce";
-import { ROLE_ACCESS } from "@/lib/constant";
-import { hasAnyRole } from "@/lib/utils";
 import { useGuardedAction } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
-import { useUser } from "@/providers/user";
 import {
   projectAllocationFilters,
   projectAllocationsTypeOptions,
@@ -68,8 +66,7 @@ export function SubHeader() {
   const handleNext = useAllocationsProject(({ actions }) => actions.handleNext);
 
   const guard = useGuardedAction();
-  const roles = useUser(({ state }) => state.roles);
-  const showFilters = hasAnyRole(roles, ROLE_ACCESS.manageAllocations);
+  const showFilters = useCapability("filter_lookups");
 
   const externalFilterCount =
     (search !== "" ? 1 : 0) +

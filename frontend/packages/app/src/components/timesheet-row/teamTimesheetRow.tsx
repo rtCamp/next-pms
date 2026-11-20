@@ -12,6 +12,7 @@ import { Skeleton } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies
  */
+import { useCapability } from "@/hooks/useCapability";
 import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
 import { TEAM_TIMESHEET_HELP } from "@/pages/timesheet/team/help";
 import type { WeeklyApprovalTarget } from "@/pages/timesheet/team/weekly-approval/types";
@@ -36,6 +37,7 @@ export type TeamMember = {
   status: ApprovalStatusLabelType;
   backdateRestrictedBefore: string | null;
   rejectionUnlockedDates: string[];
+  canApprove: boolean;
 };
 
 type TeamTimesheetRowProps = {
@@ -66,6 +68,7 @@ export const TeamTimesheetRow = ({
   openWeeklyApproval,
 }: TeamTimesheetRowProps) => {
   const { openAddTimeDialog } = useTimesheetOutletContext();
+  const canEditOthersTime = useCapability("edit_others_time");
   const teamMembersData = useMemo(() => {
     return teamMembers.map((member) => {
       const projects = groupTasksByProject(member.tasks);
@@ -104,18 +107,23 @@ export const TeamTimesheetRow = ({
                 workingHour={member.workingHour}
                 workingFrequency={member.workingFrequency}
                 status={member.status}
-                hideAction={member.status === "Not Submitted"}
+                hideAction={
+                  member.status === "Not Submitted" || !member.canApprove
+                }
                 className="pl-7.5 animate-fade-in"
                 collapsed={true}
                 disabled={member.status === "Approved"}
                 backdateRestrictedBefore={member.backdateRestrictedBefore}
                 rejectionUnlockedDates={member.rejectionUnlockedDates}
-                onCellClick={(date) =>
-                  openAddTimeDialog({
-                    date,
-                    employeeId: member.employee,
-                    employeeLabel: member.label,
-                  })
+                onCellClick={
+                  canEditOthersTime
+                    ? (date) =>
+                        openAddTimeDialog({
+                          date,
+                          employeeId: member.employee,
+                          employeeLabel: member.label,
+                        })
+                    : undefined
                 }
                 onButtonClick={() =>
                   openWeeklyApproval?.({
@@ -140,15 +148,18 @@ export const TeamTimesheetRow = ({
                           member.backdateRestrictedBefore
                         }
                         rejectionUnlockedDates={member.rejectionUnlockedDates}
-                        onCellClick={(date) =>
-                          openAddTimeDialog({
-                            date,
-                            project: project.project,
-                            projectLabel:
-                              project.project_name || project.project,
-                            employeeId: member.employee,
-                            employeeLabel: member.label,
-                          })
+                        onCellClick={
+                          canEditOthersTime
+                            ? (date) =>
+                                openAddTimeDialog({
+                                  date,
+                                  project: project.project,
+                                  projectLabel:
+                                    project.project_name || project.project,
+                                  employeeId: member.employee,
+                                  employeeLabel: member.label,
+                                })
+                            : undefined
                         }
                       >
                         {Object.entries(project.tasks).map(
@@ -162,6 +173,7 @@ export const TeamTimesheetRow = ({
                               status={task.status}
                               className="pl-19.5"
                               disabled={
+                                !canEditOthersTime ||
                                 member.status === "Approved" ||
                                 member.status === "Processing Timesheet"
                               }

@@ -7,6 +7,8 @@ from frappe import _
 from frappe.utils import getdate
 from frappe.utils.password import get_decrypted_password
 
+from next_pms.permissions.capabilities import require_capability
+
 INITIAL_DELAY = 30
 POLL_INTERVAL = 15
 MAX_POLL_DURATION = 840
@@ -53,6 +55,7 @@ def generate_pm_report(
     selected_repo: str | None = None,
     selected_board: str | None = None,
 ) -> dict:
+    require_capability("project_admin")
     frappe.has_permission("Project", doc=project, ptype="write", throw=True)
 
     urls = get_llm_urls()
@@ -374,6 +377,7 @@ def update_report_row(project, run_id, report_link=None, generated_on=None, stat
 @frappe.whitelist()
 def resync_report(project: str, run_id: str) -> dict:
     """Poll for document_url for a completed run"""
+    require_capability("project_admin")
     frappe.has_permission("Project", doc=project, ptype="write", throw=True)
 
     api_key = get_api_key()

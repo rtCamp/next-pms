@@ -7,15 +7,15 @@ import { DeleteActionDialog } from "@next-pms/design-system/components";
 /**
  * Internal dependencies.
  */
+import { useCapability } from "@/hooks/useCapability";
 import { mergeClassNames as cn } from "@/lib/utils";
-import { useUser } from "@/providers/user";
 import { AddWidgetModal } from "./components/addWidgetModal";
 import { TrackingHeader } from "./components/trackingHeader";
 import { TrackingSkeleton } from "./components/trackingSkeleton";
 import { WidgetShell } from "./components/widgetShell";
 import {
+  BURN_WIDGETS,
   CUSTOMIZABLE_WIDGETS,
-  CUSTOMIZATION_ROLES,
   ROW_COLUMNS,
   getDefaultLayout,
 } from "./constants";
@@ -31,7 +31,8 @@ function TrackingContent() {
   const projectId = useProjectDetail((state) => state.projectId);
   const isLoading = useTracking((state) => state.isLoading);
   const billingType = useTracking((state) => state.tracking.billing_type);
-  const roles = useUser(({ state }) => state.roles);
+  const canCustomize = useCapability("project_admin");
+  const canViewBurn = useCapability("view_cost_and_invoice_burn");
 
   const {
     storedLayout,
@@ -58,8 +59,12 @@ function TrackingContent() {
   );
 
   const layout = useMemo(
-    () => applyHiddenWidgets(defaultLayout, hidden),
-    [defaultLayout, hidden],
+    () =>
+      applyHiddenWidgets(
+        defaultLayout,
+        canViewBurn ? hidden : [...hidden, ...BURN_WIDGETS],
+      ),
+    [defaultLayout, hidden, canViewBurn],
   );
 
   const confirmRemoval = useCallback(
@@ -82,8 +87,6 @@ function TrackingContent() {
   if (isLoading || isLayoutLoading) {
     return <TrackingSkeleton />;
   }
-
-  const canCustomize = CUSTOMIZATION_ROLES.some((role) => roles.includes(role));
 
   return (
     <div className="flex flex-col gap-6">

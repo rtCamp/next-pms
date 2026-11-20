@@ -77,9 +77,14 @@ def _get_system_auto_expand_weeks() -> int:
     return value or DEFAULT_AUTO_EXPAND_WEEKS
 
 
+def _require_employee_record() -> None:
+    if not frappe.db.exists("Employee", {"user_id": frappe.session.user}):
+        frappe.throw(frappe._("Only users with an Employee record have PMS settings."), frappe.PermissionError)
+
+
 def _get_or_create_settings() -> PMSUserSetting:
     """Return or create the current Employee's settings document."""
-    frappe.only_for(["Employee"], message=True)
+    _require_employee_record()
     user = frappe.session.user
     if frappe.db.exists("PMS User Setting", user):
         return frappe.get_doc("PMS User Setting", user)
@@ -129,7 +134,7 @@ def update_pms_settings(settings: dict) -> dict:
     if unknown_settings:
         frappe.throw(frappe._("Unsupported PMS setting."), frappe.ValidationError)
 
-    frappe.only_for(["Employee"], message=True)
+    _require_employee_record()
     settings_doc = frappe.get_doc("PMS User Setting", frappe.session.user)
     for fieldname, value in settings.items():
         validator = EDITABLE_SETTINGS[fieldname]

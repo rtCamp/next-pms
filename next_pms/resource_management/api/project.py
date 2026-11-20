@@ -287,7 +287,7 @@ def _get_resource_management_project_view_data(
 
     resource_allocation_map = {}
     user_info_cache = {}
-    privileged_emp_fields = ["ctc", "salary_currency"] if permissions["write"] else []
+    privileged_emp_fields = ["ctc", "salary_currency"] if permissions["view_cost"] else []
     emp_fields = [
         "employee_name",
         "name",
@@ -515,7 +515,7 @@ def _get_employees_resrouce_data_for_given_project(
     start_date = getdate(start_date)
     end_date = getdate(end_date)
 
-    privileged_emp_fields = ["ctc", "salary_currency"] if permissions["write"] else []
+    privileged_emp_fields = ["ctc", "salary_currency"] if permissions["view_cost"] else []
     emp_fields = [
         "employee_name",
         "name",

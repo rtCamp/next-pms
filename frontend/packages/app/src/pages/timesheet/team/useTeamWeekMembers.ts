@@ -30,7 +30,7 @@ type UseTeamWeekMembersResult = {
   isLoadingMembers: boolean;
   isNextPageLoading: boolean;
   loadMore: () => void;
-  refreshMember: (member: TeamMemberPayload) => void;
+  refreshMember: (employee: string, member: TeamMemberPayload | null) => void;
 };
 
 const QUERY_SIGNATURE_PREFIX = "team-week-members:";
@@ -47,6 +47,7 @@ const toTeamMember = (member: TeamMemberPayload): TeamMember => ({
   status: member.status,
   backdateRestrictedBefore: member.backdate_restricted_before,
   rejectionUnlockedDates: member.rejection_unlocked_dates,
+  canApprove: member.can_approve ?? false,
 });
 
 export function useTeamWeekMembers({
@@ -131,15 +132,26 @@ export function useTeamWeekMembers({
   }, [hasMore, isLoading, isNextPageLoading, setSize]);
 
   const refreshMember = useCallback(
-    (member: TeamMemberPayload) => {
+    (employee: string, member: TeamMemberPayload | null) => {
       if (!paginatedData?.length) {
+        return;
+      }
+
+      const isLoaded = paginatedData.some((page) =>
+        page.message?.members?.some((m) => m.employee === employee),
+      );
+      if (!isLoaded) {
+        return;
+      }
+      if (!member) {
+        void mutate();
         return;
       }
 
       let changed = false;
       const nextPages = paginatedData.map((page) => {
         const currentMembers = page.message?.members;
-        if (!currentMembers?.some((m) => m.employee === member.employee)) {
+        if (!currentMembers?.some((m) => m.employee === employee)) {
           return page;
         }
         changed = true;
@@ -148,7 +160,9 @@ export function useTeamWeekMembers({
           message: {
             ...page.message!,
             members: currentMembers.map((m) =>
-              m.employee === member.employee ? member : m,
+              m.employee === employee
+                ? { ...member, can_approve: m.can_approve }
+                : m,
             ),
           },
         };

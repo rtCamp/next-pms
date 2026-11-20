@@ -133,8 +133,14 @@ after_app_install = "next_pms.install.after_app_install"
 # Permissions evaluated in scripted ways
 
 
+permission_query_conditions = {
+    "Timesheet": "next_pms.timesheet.permission.get_permission_query_conditions",
+    "NextPMS Notifications": "next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications.get_permission_query_conditions",
+}
+
 has_permission = {
-    "Risk": "next_pms.next_pms.doctype.risk.risk.has_permission",
+    "Timesheet": "next_pms.timesheet.permission.has_permission",
+    "NextPMS Notifications": "next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications.has_permission",
     "Resource Allocation": "next_pms.resource_management.doctype.resource_allocation.resource_allocation.has_permission",
     "PMS Growth Initiative": "next_pms.next_pms.doctype.pms_growth_initiative.pms_growth_initiative.has_permission",
 }
@@ -323,6 +329,7 @@ doc_events = {
         "on_trash": "next_pms.next_projects.doc_events.todo.on_trash",
     },
     "Customer": {"validate": "next_pms.resource_management.doc_events.customer.validate_abbr"},
+    "User": {"validate": "next_pms.permissions.doc_events.user.validate"},
     "Employee": {
         "on_update": [
             "next_pms.timesheet.doc_events.employee.on_update",

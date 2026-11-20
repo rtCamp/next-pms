@@ -16,6 +16,8 @@ import { PinnedEdgeAutoScroller, RestrictToColumnGroup } from "./utils";
 import { PROJECT_LIST_HELP } from "../../help";
 import type { ProjectListColumn } from "../../types";
 
+export const BURN_COLUMN_KEYS = new Set(["cost_burn_percent"]);
+
 export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
   {
     key: "name",

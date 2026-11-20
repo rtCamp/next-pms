@@ -23,12 +23,9 @@ class IntegrationTestRiskOwnerNotification(IntegrationTestCase):
         for email in (ACTOR_USER, OWNER_USER, REASSIGNED_USER):
             cls._make_user(email)
         cls.project = frappe.get_doc(
-            {
-                "doctype": "Project",
-                "project_name": "Risk Owner Notification Test Project",
-                "custom_project_manager": OWNER_USER,
-            }
+            {"doctype": "Project", "project_name": "Risk Owner Notification Test Project"}
         ).insert(ignore_permissions=True)
+        cls.project.db_set("custom_project_manager", OWNER_USER)
 
     @classmethod
     def _make_user(cls, email):
@@ -173,9 +170,8 @@ class IntegrationTestRiskOwnerNotification(IntegrationTestCase):
         # A maximum-length project name plus the summary overflows the Data column the label lives
         # in; an unhandled length error would fail the job and drop both channels.
         project_name = "L" * frappe.db.VARCHAR_LEN
-        project = frappe.get_doc(
-            {"doctype": "Project", "project_name": project_name, "custom_project_manager": OWNER_USER}
-        ).insert(ignore_permissions=True)
+        project = frappe.get_doc({"doctype": "Project", "project_name": project_name}).insert(ignore_permissions=True)
+        project.db_set("custom_project_manager", OWNER_USER)
         self.addCleanup(frappe.delete_doc, "Project", project.name, force=True, ignore_permissions=True)
 
         frappe.set_user(ACTOR_USER)

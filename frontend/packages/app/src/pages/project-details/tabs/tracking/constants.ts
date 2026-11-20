@@ -6,11 +6,10 @@ import type { FieldHelp } from "@next-pms/design-system/components";
 /**
  * Internal dependencies.
  */
-import type { Role } from "@/types";
 import { TRACKING_HELP } from "./help";
 import type { ContractRow, RateRow, TrackingLayout, WidgetKey } from "./types";
 
-export const CUSTOMIZATION_ROLES: Role[] = ["Projects Manager"];
+export const BURN_WIDGETS: WidgetKey[] = ["cost_burn", "invoice_burn"];
 
 export const CUSTOMIZABLE_WIDGETS: { key: WidgetKey; label: string }[] = [
   { key: "task_completion", label: "Task completion" },

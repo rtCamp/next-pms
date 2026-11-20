@@ -1,20 +1,13 @@
-import frappe
+from next_pms.permissions.capabilities import has_capability
 
-OWNER_GATED_ROLES = frozenset({"Projects User"})
-UNRESTRICTED_ROLES = frozenset(
-    {"System Manager", "Projects Manager", "Delivery Manager", "Delivery User", "Timesheet Manager"}
-)
 OWNER_REQUIRED_PTYPES = frozenset({"write", "delete", "share"})
 
 
 def has_owner_gated_permission(doc_owner: str | None, ptype: str, user: str) -> bool:
-    """Owner-gated roles may write, delete or share only when they are the document's assigned owner."""
-    roles = frappe.get_roles(user)
-
-    if UNRESTRICTED_ROLES.intersection(roles):
+    """Below project_admin, Projects page users may write, delete or share only when they are
+    the document's assigned owner."""
+    if has_capability("project_admin", user) or ptype not in OWNER_REQUIRED_PTYPES:
         return True
-    if ptype not in OWNER_REQUIRED_PTYPES:
-        return True
-    if OWNER_GATED_ROLES.intersection(roles):
+    if has_capability("projects_page", user):
         return (doc_owner or "").lower() == user.lower()
     return True

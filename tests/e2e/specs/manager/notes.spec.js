@@ -223,7 +223,10 @@ test.describe("Manager: Project Notes", () => {
     test.setTimeout(scaleTimeout(240000));
     const { data, projectId } = await load(jsonDir, "TC137");
     const subscriber = process.env.EMP_EMAIL;
-    const accountManager = process.env.EMP2_EMAIL;
+    const accountManager = data.employees.NtAccountManager.user.email;
+    await updateDocument("Project", projectId, {
+      [ACCOUNT_MANAGER_FIELD]: accountManager,
+    });
     await createDocument(SUBSCRIPTION, {
       project: projectId,
       user: subscriber,
@@ -258,7 +261,10 @@ test.describe("Manager: Project Notes", () => {
     const { data, projectId } = await load(jsonDir, "TC138");
     const author = process.env.REP_MAN_EMAIL;
     const subscriber = process.env.EMP_EMAIL;
-    const accountManager = process.env.EMP2_EMAIL;
+    const accountManager = data.employees.NtAccountManager.user.email;
+    await updateDocument("Project", projectId, {
+      [ACCOUNT_MANAGER_FIELD]: accountManager,
+    });
     // The author is subscribed too, which is the case the rule exists for.
     await createDocument(SUBSCRIPTION, { project: projectId, user: author });
     await createDocument(SUBSCRIPTION, {

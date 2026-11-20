@@ -114,6 +114,10 @@ module.exports = {
     // Dedicated employee: submitting a shared account's week breaks TC11 and
     // TC6, which both need an unsubmitted timesheet. Swept up at teardown by
     // deleteEmployeeByName() via the "Playwright-" prefix.
+    // Only a System Manager edits someone else's time entry.
+    payloadCreateWeekEmployees: {
+      EdTeam: { managed: false, user: { roles: ["System Manager"] } },
+    },
     payloadCreateReviewee: {
       first_name: "Playwright-",
       last_name: "",
@@ -422,6 +426,8 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC92 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
+      // ApSt* do not report to the manager, so their weeks reach him as this project's manager.
+      custom_project_manager: process.env.REP_MAN_EMAIL,
       customer: "Acme Corporation",
       custom_billing_type: "Fixed Cost",
       custom_currency: "INR",

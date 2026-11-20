@@ -57,14 +57,44 @@ export interface DocMetaProps {
   title_field: string;
 }
 
+export type CapabilityScope =
+  "own" | "reports" | "reports_and_own_projects" | "all";
+
+export type Capability =
+  | "open_app"
+  | "edit_others_time"
+  | "view_others_timesheets"
+  | "approve_week"
+  | "approve_project_timesheets"
+  | "be_timesheet_approver"
+  | "team_timesheet_pages"
+  | "view_employee_details"
+  | "manager_dashboard"
+  | "approve_leaves"
+  | "leadership_dashboard"
+  | "allocation_widgets"
+  | "projects_page"
+  | "view_project_financials"
+  | "view_cost_and_invoice_burn"
+  | "edit_project_billing"
+  | "project_admin"
+  | "view_allocations"
+  | "manage_allocations"
+  | "manage_ai_allocations"
+  | "view_resource_cost"
+  | "view_team_leaves"
+  | "system_settings"
+  | "public_views"
+  | "filter_lookups"
+  | "notifications";
+
+export type Capabilities = Partial<Record<Capability, CapabilityScope>>;
+
 export type Role =
   | "Projects Manager"
   | "Projects User"
-  | "Delivery Manager"
-  | "Delivery User"
   | "Employee"
-  | "Timesheet Manager"
-  | "Timesheet User"
+  | "PMS Leadership"
   | "System Manager";
 
 declare global {
@@ -76,6 +106,7 @@ declare global {
           can_create: string[];
         };
         currencies?: string[];
+        capabilities?: Capabilities;
         sysdefaults?: {
           currency?: string;
         };
@@ -135,7 +166,7 @@ export type LazyView = PreloadableComponent<ComponentType<any>>;
 
 export type RouteConfig = {
   Component: LazyView;
-  allowedRoles: Role[];
+  capability?: Capability;
   layout?: ReactNode;
   title: string;
 };

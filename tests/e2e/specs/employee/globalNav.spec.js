@@ -8,6 +8,8 @@ const EMPLOYEE_TARGETS = [
   "Allocations - Team",
   "Allocations - project",
   "Tasks",
+  // Listed once the site has release notes cached.
+  "What's new",
 ];
 
 const sorted = (list) => [...list].sort();
@@ -48,7 +50,7 @@ test.describe("Employee: Global search", () => {
     await expect(nav.searchInput).toBeHidden();
   });
 
-  test("TC401: Global search lists only the destinations the role can open: an employee gets four, the manager also gets Dashboards, Projects, Team and Project timesheets", async ({
+  test("TC401: Global search lists only the destinations the role can open: an employee gets five, the manager also gets Dashboards, Projects, Team and Project timesheets", async ({
     browser,
   }) => {
     allure.story("Global & Navigation");
@@ -66,17 +68,14 @@ test.describe("Employee: Global search", () => {
       "Timesheet - Personal",
     ]);
 
-    // The manager holds Projects Manager and Timesheet Manager.
+    // The manager holds Projects Manager.
     const context = await signedInAsRole(browser, "manager");
     try {
       const manager = new NavigationPage(await context.newPage());
       await manager.goto("/timesheet");
       await manager.openSearch();
       const found = async (query) => sorted(await manager.searchFor(query));
-      expect(await found("Dashboard")).toEqual([
-        "Dashboard - Leadership",
-        "Dashboard - Manager",
-      ]);
+      expect(await found("Dashboard")).toEqual(["Dashboard - Manager"]);
       expect(await found("Timesheet")).toEqual([
         "Timesheet - Personal",
         "Timesheet - Projects",

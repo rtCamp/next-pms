@@ -120,7 +120,7 @@ export const seedBillingTime = async (
       date: lastWorkday(),
       employee,
     },
-    "manager",
+    "admin",
   );
   return task;
 };

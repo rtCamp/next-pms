@@ -12,11 +12,12 @@ import {
   Success,
 } from "@rtcamp/frappe-ui-react/icons";
 
-import EntryRow from "./entryRow";
-import { useWeeklyApproval } from "./provider";
 /**
  * Internal Dependencies
  */
+import { useCapability } from "@/hooks/useCapability";
+import EntryRow from "./entryRow";
+import { useWeeklyApproval } from "./provider";
 import { DECIDED_DAY_TOOLTIP } from "../help";
 
 const ApprovalPopup = () => {
@@ -36,6 +37,7 @@ const ApprovalPopup = () => {
     handleApproveSubmit,
     handleReject,
   } = useWeeklyApproval();
+  const canEditOthersTime = useCapability("edit_others_time");
 
   const isBlocked = isReadOnly || !hasSelection;
 
@@ -133,7 +135,9 @@ const ApprovalPopup = () => {
                   <EntryRow
                     key={entry.timesheetId}
                     entry={entry}
-                    readOnly={isReadOnly || dayGroup.isDecided}
+                    readOnly={
+                      !canEditOthersTime || isReadOnly || dayGroup.isDecided
+                    }
                     maxDuration={dailyWorkingHours}
                     onSave={handleTimesheetUpdate}
                   />

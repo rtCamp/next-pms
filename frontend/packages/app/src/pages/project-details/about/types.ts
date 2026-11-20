@@ -6,6 +6,7 @@ import type { ComponentType, SVGProps } from "react";
 /**
  * Internal dependencies.
  */
+import type { ManagerRole } from "../context";
 
 export type ProjectLinkKey =
   "website" | "files" | "github" | "people" | "support";
@@ -128,6 +129,8 @@ export type ProjectSidebar = {
     employee_id: string;
     user_id: string | null;
   }>;
+  manager_roles: Record<ManagerRole, string[]>;
+  missing_manager_roles: Record<ManagerRole, string | null>;
   is_shared_with_everyone: boolean;
 };
 

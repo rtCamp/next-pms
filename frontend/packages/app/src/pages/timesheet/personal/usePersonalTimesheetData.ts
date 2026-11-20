@@ -338,14 +338,17 @@ export function usePersonalTimesheetData({
   );
 
   useFrappeEventListener(`timesheet_update::${employeeId}`, (payload) => {
-    const updatedPayload = payload.message as PersonalTimesheetPayload;
-    const key = Object.keys(updatedPayload?.data ?? {})[0];
+    const updatedPayload = payload.message as
+      PersonalTimesheetPayload | undefined;
+    const key =
+      Object.keys(updatedPayload?.data ?? {})[0] ??
+      (payload.week_key as string | undefined);
 
     if (!key) {
       return;
     }
 
-    if (filtersAreActive) {
+    if (!updatedPayload || filtersAreActive) {
       void refreshPageForWeek(key);
       return;
     }

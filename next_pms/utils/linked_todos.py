@@ -1,7 +1,7 @@
 import frappe
 from frappe import _
 
-from next_pms.next_projects.api.constant import ALLOWED_ROLES
+from next_pms.permissions.capabilities import has_capability
 
 LINKED_TODO_DOCTYPE = "PMS Linked ToDo"
 LINKED_TODO_OWNERS = {
@@ -53,9 +53,7 @@ def validate_linked_todos(doc):
 
 
 def has_project_page_access(project: str) -> bool:
-    return bool(set(ALLOWED_ROLES).intersection(frappe.get_roles())) and frappe.has_permission(
-        "Project", "read", doc=project
-    )
+    return has_capability("projects_page") and frappe.has_permission("Project", "read", doc=project)
 
 
 def get_todo_owner_rows(todos: list[str]) -> list[dict]:
