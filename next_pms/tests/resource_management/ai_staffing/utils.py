@@ -11,10 +11,6 @@ START = date(2027, 3, 1)
 LAUNCH = date(2027, 4, 26)
 
 
-def crm_installed() -> bool:
-    return bool(frappe.db.exists("DocType", "CRM Deal"))
-
-
 def make_organization(name: str = ORGANIZATION) -> str:
     if not frappe.db.exists("CRM Organization", name):
         frappe.get_doc({"doctype": "CRM Organization", "organization_name": name}).insert(ignore_permissions=True)

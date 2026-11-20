@@ -4,11 +4,10 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from next_pms.resource_management.ai_staffing import data
+from next_pms.resource_management.ai_staffing import crm_xt_installed, data
 from next_pms.resource_management.ai_staffing.pipeline import run_staffing, sync_project_value
 from next_pms.tests.resource_management.ai_staffing.utils import (
     ORGANIZATION,
-    crm_installed,
     make_deal,
     make_staff,
     mocked_sheet,
@@ -19,7 +18,7 @@ from next_pms.tests.resource_management.ai_staffing.utils import (
 TABS = sow_tabs({"Sr CMS Dev": ("8", "1"), "QA Engineer": ("4", "1")})
 
 
-@unittest.skipUnless(crm_installed(), "CRM is not installed")
+@unittest.skipUnless(crm_xt_installed(), "frappe_crm_xt is not installed")
 class TestAIStaffingPipeline(IntegrationTestCase):
     @classmethod
     def setUpClass(cls):
