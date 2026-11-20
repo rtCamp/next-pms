@@ -5,6 +5,16 @@ frappe.ui.form.on("Project", {
     frm.set_query("tech_stack", function () {
       return { filters: { disabled: 0 } };
     });
+    [
+      "custom_project_manager",
+      "custom_engineering_manager",
+      "custom_account_manager_",
+    ].forEach((fieldname) => {
+      frm.set_query(fieldname, () => ({
+        query: "next_pms.permissions.queries.manager_user_query",
+        filters: { fieldname },
+      }));
+    });
     frm.set_query("custom_client_point_of_contact", function () {
       if (!frm.doc.customer) {
         return {
