@@ -5,14 +5,15 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, today
 
+from next_pms.resource_management.ai_staffing import crm_xt_installed
 from next_pms.resource_management.doc_events import crm_deal
-from next_pms.tests.resource_management.ai_staffing.utils import STAGE, crm_installed, make_deal
+from next_pms.tests.resource_management.ai_staffing.utils import STAGE, make_deal
 
 RUN = "next_pms.resource_management.ai_staffing.pipeline.run_staffing"
 SYNC = "next_pms.resource_management.ai_staffing.pipeline.sync_project_value"
 
 
-@unittest.skipUnless(crm_installed(), "CRM is not installed")
+@unittest.skipUnless(crm_xt_installed(), "frappe_crm_xt is not installed")
 class TestCRMDealTrigger(IntegrationTestCase):
     @classmethod
     def setUpClass(cls):
@@ -80,6 +81,13 @@ class TestCRMDealTrigger(IntegrationTestCase):
         self.set_enabled(False)
 
         deal = self.qualifying_deal()
+
+        self.assertFalse(frappe.db.exists("AI Staffing Request", deal))
+        self.assertEqual(self.queued(), [])
+
+    def test_nothing_runs_without_frappe_crm_xt(self):
+        with patch.object(crm_deal, "crm_xt_installed", return_value=False):
+            deal = self.qualifying_deal()
 
         self.assertFalse(frappe.db.exists("AI Staffing Request", deal))
         self.assertEqual(self.queued(), [])

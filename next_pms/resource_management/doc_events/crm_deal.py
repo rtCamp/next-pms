@@ -2,6 +2,8 @@ import frappe
 from frappe.utils import cint, date_diff, nowdate
 from frappe.utils.background_jobs import get_queue_list
 
+from next_pms.resource_management.ai_staffing import crm_xt_installed
+
 PIPELINE = "next_pms.resource_management.ai_staffing.pipeline"
 STAFFING_QUEUE = "ai_staffing"
 STAFFING_QUEUE_FALLBACK = "long"
@@ -10,6 +12,8 @@ STAFFING_QUEUE_FALLBACK = "long"
 def on_update(doc, method=None):
     """Queues AI staffing for a deal saved while it qualifies; for one already staffed, only
     its value is synced. Saving a deal again is also how a failed run is retried."""
+    if not crm_xt_installed():
+        return
     settings = frappe.get_cached_doc("AI Staffing Settings")
     if not settings.enabled or not _qualifies(doc, settings):
         return
