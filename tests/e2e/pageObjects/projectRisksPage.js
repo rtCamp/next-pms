@@ -32,6 +32,13 @@ export class ProjectRisksPage extends GrowthPage {
     });
   }
 
+  /** A risk page's date chip, "Created <date>" or "Mitigated <date>". */
+  dateChip(label) {
+    return this.page.locator("span.rounded-full").filter({
+      hasText: new RegExp(`^\\s*${label}\\s`),
+    });
+  }
+
   async goto(projectId, { tab = "risks", risk } = {}) {
     const query = new URLSearchParams({ tab, ...(risk ? { risk } : {}) });
     await gotoWithRetry(this.page, `/next-pms/projects/${projectId}?${query}`);

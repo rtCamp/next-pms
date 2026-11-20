@@ -1,5 +1,7 @@
+import { expect } from "@playwright/test";
 import { gotoWithRetry } from "../../utils/navigation";
 import { scaleTimeout } from "../../utils/timeouts";
+import { headerNames, TOP_LEVEL_HEADERS } from "./gridRows";
 import { TeamPage } from "./team";
 
 const UNITS = { week: "Week", month: "Month", quarter: "Quarter" };
@@ -130,13 +132,9 @@ export class AllocationsPage extends TeamPage {
   // Rows
   // --------------------------------------
 
-  /** The names in the grid's top-level rows, from their "Toggle <name>" buttons. */
+  /** The names in the grid's top-level rows, including those that cannot expand. */
   async rowNames() {
-    return this.table
-      .getByRole("button", { name: /^Toggle / })
-      .evaluateAll((els) =>
-        els.map((el) => el.getAttribute("aria-label").replace(/^Toggle /, "")),
-      );
+    return headerNames(this.table.locator(TOP_LEVEL_HEADERS));
   }
 
   /** A row by the name in its header cell; child rows have no button to anchor on. */
@@ -166,7 +164,13 @@ export class AllocationsPage extends TeamPage {
   /** Opens the popover of a row's chip: project, dates, hours, status, Edit and Delete. */
   async openChip(name, index = 0) {
     // A chip's card opens on hover or focus, not on click.
-    await this.chips(name).nth(index).focus();
+    const chip = this.chips(name).nth(index);
+    await chip.focus();
+    // The previous chip's card closes 150 ms after it loses focus and this one opens after
+    // 400 ms, so the hours line alone can still belong to the old card.
+    await expect(chip).toHaveAttribute("data-state", "open", {
+      timeout: scaleTimeout(10000),
+    });
     // An employee's popover has no buttons, so wait for its hours line.
     await this.popover.waitFor({ timeout: scaleTimeout(10000) });
     return this.popover;

@@ -470,10 +470,7 @@ test.describe("Manager: Project reports and risks", () => {
     const mitigated = `E2E Prj dated mitigated risk ${stamp}`;
     await withRisk(open, {}, async (openName) => {
       await withRisk(mitigated, mitigatedLog, async (mitigatedName) => {
-        const chip = (label) =>
-          page.locator("span.rounded-full").filter({
-            hasText: new RegExp(`^\\s*${label}\\s`),
-          });
+        const chip = (label) => risks.dateChip(label);
 
         await risks.goto(project, { risk: openName });
         const created = projectDate(
@@ -495,11 +492,18 @@ test.describe("Manager: Project reports and risks", () => {
 
         await risks.goto(project);
         await risks.sortButton.click();
+        // The list is read again in the chosen order.
+        const sorted = page.waitForRequest(
+          (request) =>
+            new URL(request.url()).searchParams.get("order_by") ===
+            "creation desc",
+        );
         await page
           .getByRole("button", { name: "Created on", exact: true })
           .or(page.getByRole("option", { name: "Created on" }))
           .first()
           .click();
+        await sorted;
         await expect(risks.sortButton).toContainText("Created on");
       });
     });

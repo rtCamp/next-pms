@@ -91,12 +91,15 @@ export const dayCells = (row) => row.locator(":scope > div.w-16 > button");
  * the total. A holiday's day also holds its name for screen readers, so only the
  * first line of each counts.
  */
-export const rowColumns = (row) =>
-  row
+export const rowColumns = async (row) => {
+  // A cell under the pointer hides its text behind a plus, and innerText skips hidden text.
+  await row.page().mouse.move(0, 0);
+  return row
     .locator(":scope > div.w-16")
     .evaluateAll((columns) =>
       columns.map((column) => column.innerText.trim().split("\n")[0].trim()),
     );
+};
 
 /** Picks `isoDate` in the open frappe-ui calendar, paging months as needed. */
 export const pickCalendarDay = async (page, isoDate) => {

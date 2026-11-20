@@ -26,14 +26,6 @@ export class TaskPage {
     this.getSearchInputByValue = (taskName) =>
       page.getByRole("textbox", { value: taskName });
     this.saveButton = page.getByRole("button", { name: "Save changes" });
-    this.columnsButton = page
-      .getByRole("button")
-      .filter({ has: page.locator("//p[text()='Columns']") });
-
-    // Popper Modals
-    this.columnMenu = page
-      .locator("//div[@data-radix-popper-content-wrapper]")
-      .filter({ has: page.getByRole("menuitem", { name: "Add Columns" }) });
 
     // Tasks Table
     this.tasksTable = page.getByRole("table");
@@ -201,39 +193,6 @@ export class TaskPage {
    */
   async saveView() {
     await this.saveButton.click();
-  }
-
-  /**
-   * Adds a column by selecting it from the Columns menu.
-   */
-  async addColumn(name) {
-    const columnSelectionMenu = this.page
-      .locator("//div[@data-radix-popper-content-wrapper]")
-      .filter({
-        hasNot: this.page.getByRole("menuitem", { name: "Add Columns" }),
-      });
-
-    await this.columnsButton.click();
-    await this.columnMenu
-      .getByRole("menuitem", { name: "Add Columns" })
-      .click();
-    await columnSelectionMenu
-      .locator(`//div[@role='menuitem' and text()='${name}']`)
-      .click();
-    await this.searchInput.click({ force: true });
-  }
-
-  /**
-   * Removes a column by de-selecting it from the Columns menu.
-   */
-  async removeColumn(name) {
-    await this.columnsButton.click();
-    await this.columnMenu
-      .getByRole("menuitem", { name: name })
-      .locator("//span")
-      .last()
-      .click();
-    await this.searchInput.click({ force: true });
   }
 
   // --------------------------------------

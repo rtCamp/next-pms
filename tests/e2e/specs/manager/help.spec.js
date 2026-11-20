@@ -2,6 +2,7 @@ const { test, expect } = require("../../playwright.fixture.cjs");
 import * as allure from "allure-js-commons";
 import path from "path";
 import { NavigationPage } from "../../pageObjects/navigationPage";
+import { ProjectDetailsPage } from "../../pageObjects/projectDetailsPage";
 import { ProjectRisksPage } from "../../pageObjects/projectRisksPage";
 import { readJSONFile } from "../../utils/fileUtils";
 import { scaleTimeout } from "../../utils/timeouts";
@@ -41,6 +42,8 @@ test.describe("Manager: Help panel and help cards", () => {
 
   test("TC410: The Help panel lists each page's own tips under On this page, and the tips for every page under Everywhere", async () => {
     allure.story("Global & Navigation");
+    // Eight pages, each loaded and its panel opened and closed.
+    test.setTimeout(scaleTimeout(120000));
     for (const [route, tip] of PAGE_TIPS) {
       await nav.goto(route);
       await nav.openHelp();
@@ -93,6 +96,7 @@ test.describe("Manager: Help panel and help cards", () => {
   }) => {
     allure.story("Projects");
     const risks = new ProjectRisksPage(page);
+    const details = new ProjectDetailsPage(page);
     await risks.goto(project, { tab: "risks" });
     await nav.openHelp();
     await expect(nav.helpTips("On this page")).toHaveText([
@@ -100,14 +104,14 @@ test.describe("Manager: Help panel and help cards", () => {
       "What the Risks tab shows",
     ]);
 
-    await page.getByRole("tab", { name: "Growth" }).click();
+    await details.tab("Growth").click();
     await expect(nav.helpTips("On this page")).toHaveText([
       "Change an initiative's status with an update",
       "What the Growth tab shows",
       "Add an action item to an initiative",
     ]);
 
-    await page.getByRole("tab", { name: "Overview" }).click();
+    await details.tab("Overview").click();
     await expect(nav.helpTips("On this page")).toContainText([
       "What the Overview tab shows",
     ]);
@@ -123,11 +127,12 @@ test.describe("Manager: Help panel and help cards", () => {
     await nav.helpTip(title).click();
     const body = nav.helpTipBody(title);
 
-    // The scene is loaded on demand; the stage is named after the tip once it has.
-    const stage = body.getByRole("img", { name: title });
-    await expect(stage).toBeVisible({ timeout: scaleTimeout(15000) });
-    await expect(stage.locator("> *").first()).toBeAttached();
+    // The scene is loaded on demand. Its stage is in the page at once, named after the tip
+    // but see-through, so the controls (drawn once the scene has loaded) are what to wait for.
     const progress = body.getByRole("slider", { name: "Animation progress" });
+    await expect(progress).toBeVisible({ timeout: scaleTimeout(15000) });
+    const stage = body.getByRole("img", { name: title });
+    await expect(stage.locator("> *").first()).toBeAttached();
     const at = async () => Number(await progress.getAttribute("aria-valuenow"));
     const start = await at();
     await expect.poll(at).not.toBe(start);
@@ -137,6 +142,7 @@ test.describe("Manager: Help panel and help cards", () => {
       body.getByRole("button", { name: "Play animation" }),
     ).toBeVisible();
     const paused = await at();
+    // Staying put is only shown by letting time pass; a playing scene moves on within this.
     await page.waitForTimeout(500);
     expect(await at()).toBe(paused);
 

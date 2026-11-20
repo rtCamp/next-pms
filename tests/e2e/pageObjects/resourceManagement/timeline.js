@@ -394,13 +394,9 @@ export class TimelinePage {
     // Allocations are chips in the grid; clicking one opens a popover whose
     // actions are labelled "Edit allocation" / "Delete allocation".
     await this.allocationChip.first().focus();
-    await this.page.waitForTimeout(1200);
     await this.deleteAllocationAction.first().click();
-    await this.page.waitForTimeout(800);
-
-    if (await this.confirmDeleteButton.isVisible().catch(() => false)) {
-      await this.confirmDeleteButton.click();
-    }
+    // Delete always asks first; a missing confirmation is a failure, not a skipped step.
+    await this.confirmDeleteButton.click();
   }
 
   /**

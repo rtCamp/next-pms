@@ -6,6 +6,7 @@ import { expect } from "@playwright/test";
 import { TimelinePage } from "./timeline";
 import { getShortFormattedDate, getWeekdayName } from "../../utils/dateUtils";
 import { scaleTimeout } from "../../utils/timeouts";
+import { headerNames, TOP_LEVEL_HEADERS } from "./gridRows";
 // Filter keys mapped to the labels the panel's "Field" dropdown offers.
 const RM_FILTER_FIELD_LABELS = {
   customer: "Customer",
@@ -85,10 +86,8 @@ export class ProjectPage extends TimelinePage {
     this.editIcon = page.getByRole("img", { name: "Edit" }).first();
     this.clipboardIcon = page.getByRole("img", { name: "Copy" }).first();
 
-    // One "Toggle <name>" button per project row.
-    this.projectListItems = page
-      .getByRole("table")
-      .getByRole("button", { name: /^Toggle / });
+    // One header cell per project row, whether or not the project can expand.
+    this.projectListItems = page.getByRole("table").locator(TOP_LEVEL_HEADERS);
 
     //Locator targetting the total hours text field in the allocation modal
     this.projectNameWithDate = (projectName, startDate) => {
@@ -270,16 +269,8 @@ export class ProjectPage extends TimelinePage {
    * Retrieves a list of project titles from the project list items.
    */
   async getProjectList() {
-    const titles = [];
     await this.waitForSpinnerTodisappear();
-    const count = await this.projectListItems.count();
-
-    for (let i = 0; i < Math.min(count, 10); i++) {
-      const label = await this.projectListItems
-        .nth(i)
-        .getAttribute("aria-label");
-      titles.push(label.replace(/^Toggle /, "").trim());
-    }
+    const titles = (await headerNames(this.projectListItems)).slice(0, 10);
 
     return {
       totalCount: titles.length,

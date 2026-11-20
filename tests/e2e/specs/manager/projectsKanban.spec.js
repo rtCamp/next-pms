@@ -10,7 +10,9 @@ import {
 import { deleteProject } from "../../utils/api/projectRequests";
 import { readJSONFile } from "../../utils/fileUtils";
 
-// TC299 seeds the projects; see data/manager/projects.js.
+// TC299 seeds the projects; see data/manager/projects.js. Named so a run of this spec alone
+// seeds it.
+const FIXTURE = "TC299";
 const KANBAN = "E2E Prj Kanban";
 const PHASES = [
   "Delivery Prep",
@@ -33,7 +35,7 @@ test.describe("Manager: Projects Kanban and Add project", () => {
 
   test.beforeEach(async ({ page, jsonDir }) => {
     list = new ProjectsListPage(page);
-    data = (await readJSONFile(path.join(jsonDir, "TC299.json"))).TC299;
+    data = (await readJSONFile(path.join(jsonDir, `${FIXTURE}.json`)))[FIXTURE];
     kanbanId = data.payloadDeleteProject4.projectId;
     await updateDocument("Project", kanbanId, {
       custom_project_phase: "Discovery",

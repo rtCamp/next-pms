@@ -36,7 +36,9 @@ export class TodoPage {
     // A picker shows its placeholder until a day is picked, then the date.
     this.dateTriggers = this.form
       .locator("button")
-      .filter({ hasText: /^(Start|End|\d{4}-\d{2}-\d{2} \d{2}:\d{2} [ap]m)$/ });
+      .filter({
+        hasText: /^(Start|End|\d{4}-\d{2}-\d{2} \d{1,2}:\d{2} [ap]m)$/,
+      });
     this.startTrigger = this.dateTriggers.nth(0);
     this.endTrigger = this.dateTriggers.nth(1);
     // The status and priority selects are comboboxes labelled by their value.

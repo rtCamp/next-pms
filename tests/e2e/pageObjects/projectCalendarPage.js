@@ -1,3 +1,4 @@
+import { expect } from "@playwright/test";
 import { gotoWithRetry } from "../utils/navigation";
 import { scaleTimeout } from "../utils/timeouts";
 import { TodoPage } from "./todoPage";
@@ -51,6 +52,7 @@ export class ProjectCalendarPage extends TodoPage {
       if ((await this.monthLabel.innerText()) === wanted) return;
       await this.nextButton.click();
     }
+    await expect(this.monthLabel).toHaveText(wanted);
   }
 
   /** A milestone or touchpoint on the Calendar or Gantt view; the table below lists the titles too. */

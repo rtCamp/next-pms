@@ -1,6 +1,7 @@
 import { TimelinePage } from "./timeline";
 import { expect } from "@playwright/test";
 import { scaleTimeout } from "../../utils/timeouts";
+import { headerNames, TOP_LEVEL_HEADERS } from "./gridRows";
 
 // Filter-panel fields whose value control is a free-text input rather than a
 // dropdown. "Skill" is declared `type: "string"` in the app's filter config
@@ -37,10 +38,10 @@ export class TeamPage extends TimelinePage {
     this.reportsToDropdown = page.getByRole("button", {
       name: "Reporting Manager",
     });
-    // One "Toggle <name>" button per member row.
+    // One header cell per member row, whether or not the member can expand.
     this.employeeCountFromTable = page
       .getByRole("table")
-      .getByRole("button", { name: /^Toggle / });
+      .locator(TOP_LEVEL_HEADERS);
     // The grid has no ARIA roles, so anchor a member's row on that button.
     this.memberRow = (employeeName) =>
       page.locator("table tr").filter({
@@ -218,8 +219,7 @@ export class TeamPage extends TimelinePage {
   }
 
   /**
-   * The member names currently rendered, read from each row's
-   * "Toggle <name>" button.
+   * The member names currently rendered, read from each row's header.
    *
    * More reliable than the row count for asserting a filter narrowed things:
    * the grid renders a fixed page of 10, so once a filtered set also reaches 10
@@ -229,13 +229,7 @@ export class TeamPage extends TimelinePage {
   async getEmployeeNamesFromTable() {
     await this.page.waitForTimeout(200);
 
-    const labels = await this.employeeCountFromTable.evaluateAll((els) =>
-      els.map((e) => e.getAttribute("aria-label") || ""),
-    );
-
-    return labels
-      .map((l) => l.replace(/^Toggle\s+/, "").trim())
-      .filter(Boolean);
+    return (await headerNames(this.employeeCountFromTable)).filter(Boolean);
   }
 
   /**

@@ -305,7 +305,9 @@ test.describe("Manager: Currency & Billing", () => {
       await test.step(project.custom_billing_type, async () => {
         await tracking.goto(await findProjectId(project));
         const hours = tracking.sidebarSection("Progress (hours)");
-        const hoursLabel = (count) => `${count} hour${count === 1 ? "" : "s"}`;
+        // Not part of a longer number: "1 hour" must not match "11 hours".
+        const hoursLabel = (count) =>
+          new RegExp(`(?<!\\d)${count} hour${count === 1 ? "(?!s)" : "s"}`);
         await expect(hours).toContainText(hoursLabel(used));
         await expect(hours).toContainText(hoursLabel(total));
         const usage = tracking.card("Hours usage");
