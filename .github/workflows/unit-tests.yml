@@ -165,6 +165,8 @@ jobs:
           # frappe_crm_xt's deal fields link to next_pms (Host) and rtcamp (Service Type) doctypes, so it goes last
           if [ -n "$PRIVATE_APPS" ]; then
             bench --site test_site install-app frappe_crm_xt
+            # Production runs CRM's ERPNext integration, which adds CRM Deal erpnext_customer (read on every deal save)
+            bench --site test_site execute "frappe.get_single('ERPNext CRM Settings').update({'enabled': 1, 'sync_products': 0}).save()"
           fi
         env:
           CI: "Yes"
