@@ -1,0 +1,32 @@
+{
+ "actions": [],
+ "creation": "2026-11-18 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sales_stage"
+ ],
+ "fields": [
+  {
+   "fieldname": "sales_stage",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Sales Stage",
+   "options": "Sales Stage",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-11-18 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Resource Management",
+ "name": "AI Staffing Qualifying Stage",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

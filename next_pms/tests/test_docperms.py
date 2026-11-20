@@ -85,6 +85,8 @@ _VIEW = "email export print read report share"
 # The personas of EFFECTIVE_RIGHTS (Projects User, Projects Manager, PMS Leadership stack) for the
 # doctypes next_pms owns, whose rows come from the doctype JSON.
 OWNED_EFFECTIVE_RIGHTS = {
+    "AI Staffing Request": ({}, {}, {(0, 0): "print read report"}),
+    "AI Staffing Settings": ({}, {}, {}),
     "PMS Growth Initiative": (
         {(0, 0): "create email export print read report share write", (1, 0): _VIEW},
         {(0, 0): _FULL, (1, 0): _VIEW},
