@@ -519,8 +519,8 @@ export class TeamPage {
       .waitFor({ state: "hidden", timeout: scaleTimeout(10000) });
   }
 
-  async checkEmployeeStatus(empStatus) {
-    await this.addFilterCondition("Member Status", empStatus);
+  async checkEmployeeStatus(empStatus, needsNewRow = false) {
+    await this.addFilterCondition("Member Status", empStatus, needsNewRow);
   }
 
   async checkProjectStatus(projectName) {

@@ -265,9 +265,14 @@ test.describe("Manager: Team Tab", () => {
     }
   });
 
-  // Vue: a filter row switched from one link field to another (a new row starts on Project) keeps the first field's value lookup, so Business Unit searches Projects and finds nothing.
-  test.fixme("TC95: Verify multiple filters at a time", async ({ jsonDir }) => {
-    allure.story("Team");
+  /**
+   * Two conditions of different kinds AND rather than replace each other: a Project
+   * condition, then `addSecond`'s, and the member who logged time on the project is
+   * still listed. The worker reuses one browser context across this file's tests, so
+   * the filters start from none; a condition left by an earlier test (TC93 applies one)
+   * would still be counted.
+   */
+  const verifyTwoFilters = async (jsonDir, addSecond, secondField) => {
     const stubPath = path.join(jsonDir, "TC95.json");
     const data = await readJSONFile(stubPath);
     const TC95data = data.TC95;
@@ -275,29 +280,42 @@ test.describe("Manager: Team Tab", () => {
     // slowMo:500 puts that past the 30s default.
     test.setTimeout(120000);
 
-    // Second filter changed from User Group to Business Unit: the User Group
-    // control was removed in the redesign (the panel offers Project, Task,
-    // Date, Member, Member Status and Business Unit), so the original pairing
-    // has nothing to drive. What the case is really about - two filters of
-    // different kinds ANDing rather than replacing each other - is unchanged.
-    // Start from a known filter state: the worker reuses one browser context
-    // across this file's tests, so a filter left applied by an earlier test
-    // (TC93 applies one) would still be counted below.
     await teamPage.removeAllFilterConditions();
-
     await teamPage.checkProjectStatus(
       TC95data.payloadCreateProject.project_name,
     );
-    await teamPage.checkBusinessUnit(TC95data.businessUnit);
+    await addSecond(TC95data);
     const employees = await teamPage.getEmployees();
     expect(employees).toContain(TC95data.employee);
-    // Both conditions are really registered - the point of the case is that the
-    // second filter ANDs onto the first rather than replacing it. Asserted on
-    // the field names rather than the count badge, whose handling of the blank
-    // row the panel re-seeds is inconsistent.
+    // Asserted on the field names rather than the count badge, whose handling of
+    // the blank row the panel re-seeds is inconsistent.
     const appliedFields = await teamPage.getAppliedFilterFields();
     expect(appliedFields).toContain("Project");
-    expect(appliedFields).toContain("Business Unit");
+    expect(appliedFields).toContain(secondField);
+  };
+
+  // The panel offers Project, Task, Date, Member, Member Status and Business Unit; the
+  // original second filter, User Group, was removed in the redesign.
+  test("TC95: Verify multiple filters at a time", async ({ jsonDir }) => {
+    allure.story("Team");
+    await verifyTwoFilters(
+      jsonDir,
+      ({ employeeStatus }) =>
+        teamPage.checkEmployeeStatus(employeeStatus, true),
+      "Member Status",
+    );
+  });
+
+  // Vue: FilterRow's link-value slot has no key, so a row switched from Project to Business Unit keeps searching Projects.
+  test.fixme("TC95: Verify multiple filters at a time, with Business Unit", async ({
+    jsonDir,
+  }) => {
+    allure.story("Team");
+    await verifyTwoFilters(
+      jsonDir,
+      ({ businessUnit }) => teamPage.checkBusinessUnit(businessUnit),
+      "Business Unit",
+    );
   });
 
   test("TC49: Reject timesheet for employee", async ({ page, jsonDir }) => {

@@ -142,7 +142,7 @@ test.describe("Manager: Team timesheet", () => {
     await expect(team.weekHeader("This week")).toHaveCount(0);
   });
 
-  // Vue: a filter row switched from Project to Member still searches Projects for its value.
+  // Vue: FilterRow's link-value slot has no key, so a row switched from Project to Member keeps searching Projects.
   test.fixme("TC236: Member, Project and Date filters together narrow the grid to that member's time on the project in the range", async () => {
     allure.story("Team Timesheet");
     test.setTimeout(180000);
@@ -159,7 +159,7 @@ test.describe("Manager: Team timesheet", () => {
     await expect(team.weekHeader("This week")).toHaveCount(0);
   });
 
-  // Vue: a filter row switched from Project to Member still searches Projects for its value.
+  // Vue: FilterRow's link-value slot has no key, so a row switched from Project to Member keeps searching Projects.
   test.fixme("TC237: Removing one filter condition leaves the others applied", async ({
     page,
   }) => {

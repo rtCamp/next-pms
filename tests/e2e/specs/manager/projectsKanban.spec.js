@@ -145,7 +145,9 @@ test.describe("Manager: Projects Kanban and Add project", () => {
     page.on("request", (req) => {
       if (
         req.method() === "POST" &&
-        req.url().endsWith("/api/resource/Project")
+        /\/api\/(resource|v2\/document)\/Project$/.test(
+          new URL(req.url()).pathname,
+        )
       )
         posted.push(req.url());
     });
