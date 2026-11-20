@@ -23,6 +23,7 @@ from .employee import (
     get_employee_working_hours,
     validate_current_employee,
 )
+from .project import check_project_access
 from .utils import (
     build_filters,
     employee_has_higher_access,
@@ -352,6 +353,7 @@ def save(date: str, description: str, task: str, hours: float = 0, employee: str
         throw(_("Task is mandatory for creating time entry."), frappe.MandatoryError)
 
     project = frappe.get_value("Task", task, "project")
+    check_project_access(project)
 
     parent = frappe.db.get_value(
         "Timesheet",
@@ -501,6 +503,8 @@ def update_timesheet_detail(
     logs_to_remove = []
     new_logs = []
     task_project = frappe.get_value("Task", task, "project")
+    if task_project != parent_doc.parent_project:
+        check_project_access(task_project)
 
     for log in parent_doc.time_logs:
         if not name or log.name != name:

@@ -85,6 +85,11 @@ class TestCapabilities(UnitTestCase):
             for fieldname in MANAGER_FIELD_ROLES:
                 self.assertIsNone(get_missing_manager_role(fieldname, "pu@example.com"), fieldname)
 
+    def test_system_manager_qualifies_for_every_manager_field(self):
+        with _as_roles(EMPLOYEE, SYSTEM_MANAGER):
+            for fieldname in MANAGER_FIELD_ROLES:
+                self.assertIsNone(get_missing_manager_role(fieldname, "sm@example.com"), fieldname)
+
     def test_user_without_projects_user_is_asked_for_it_on_every_manager_field(self):
         with _as_roles(EMPLOYEE):
             for fieldname in MANAGER_FIELD_ROLES:

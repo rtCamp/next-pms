@@ -74,6 +74,7 @@ PMS_SET_KEYS: dict[str, tuple[PermKey, ...]] = {
         PermKey("Delivery User"),
     ),
     "Customer": (
+        PermKey(PROJECTS_USER),
         PermKey(PROJECTS_MANAGER),
         PermKey(PMS_LEADERSHIP),
         PermKey("Delivery Manager"),
@@ -133,8 +134,9 @@ PERMISSION_MAP: dict[str, tuple[PermRule, ...]] = {
         rule(SYSTEM_MANAGER, "read write export", permlevel=1),
     ),
     "Customer": (
-        rule(PROJECTS_MANAGER, "select read export"),
-        rule(SYSTEM_MANAGER, "select"),
+        rule(PROJECTS_USER, "select read"),
+        rule(PROJECTS_MANAGER, "read export"),
+        rule(SYSTEM_MANAGER, "select read"),
     ),
     "Role": (rule(PMS_LEADERSHIP, "select"),),
     "Designation": (rule(PROJECTS_MANAGER, "select read"),),

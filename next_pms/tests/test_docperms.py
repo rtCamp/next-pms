@@ -53,6 +53,11 @@ EFFECTIVE_RIGHTS = {
             (3, 0): "export read write",
         },
     },
+    "Customer": {
+        PROJECTS_USER_STACK: {(0, 0): "read select"},
+        PROJECTS_MANAGER_STACK: {(0, 0): "export read select"},
+        LEADERSHIP_STACK: {(0, 0): "export read select"},
+    },
     "Task": {
         PROJECTS_USER_STACK: {
             (0, 0): "create delete email print read report select share write",
@@ -248,6 +253,12 @@ class TestApplyPermissions(IntegrationTestCase):
         before = {doctype: _rows(doctype) for doctype in PERMISSION_MAP}
         apply_permissions()
         self.assertEqual(before, {doctype: _rows(doctype) for doctype in PERMISSION_MAP})
+
+    def test_project_creators_can_read_customer_names(self):
+        for role in ("Projects User", "System Manager"):
+            with self.subTest(role=role):
+                [row] = _rows("Customer", role=role, permlevel=0)
+                self.assertTrue(row.read)
 
     def test_erpnext_standard_rows_come_back_for_removed_pms_rows(self):
         for doctype in ("Project", "Customer"):

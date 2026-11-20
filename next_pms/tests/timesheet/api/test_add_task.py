@@ -3,7 +3,9 @@ from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
 
 from next_pms.tests.utils import make_employee
-from next_pms.timesheet.api.task import add_task
+from next_pms.timesheet.api.project import get_projects
+from next_pms.timesheet.api.task import add_task, get_task, get_task_list
+from next_pms.timesheet.api.timesheet import save
 
 CUSTOMER_NAME = "Add Task Test Customer"
 PROJECT_NAME = "Add Task Test Project"
@@ -23,6 +25,15 @@ class TestAddTask(IntegrationTestCase):
         frappe.share.add_docshare(
             "Project", cls.project, EMPLOYEE_USER, read=1, flags={"ignore_share_permission": True}
         )
+        cls.shared_task = cls._make_access_task("Access shared task", cls.project)
+        cls.other_task = cls._make_access_task("Access unshared task", cls.other_project)
+
+    @classmethod
+    def _make_access_task(cls, subject, project):
+        existing = frappe.db.get_value("Task", {"subject": subject, "project": project})
+        if existing:
+            return existing
+        return frappe.get_doc({"doctype": "Task", "subject": subject, "project": project}).insert().name
 
     def tearDown(self):
         frappe.set_user("Administrator")
@@ -173,3 +184,30 @@ class TestAddTask(IntegrationTestCase):
         task.project = self.other_project
         with self.assertRaises(frappe.PermissionError):
             task.save()
+
+    def test_task_list_holds_only_tasks_of_projects_shared_with_the_employee(self):
+        frappe.set_user(EMPLOYEE_USER)
+        names = {task.name for task in get_task_list(page_length=500)["task"]}
+        self.assertIn(self.shared_task, names)
+        self.assertNotIn(self.other_task, names)
+
+    def test_asking_for_an_unshared_project_returns_no_tasks(self):
+        frappe.set_user(EMPLOYEE_USER)
+        self.assertEqual(get_task_list(projects=[self.other_project])["task"], [])
+
+    def test_project_lookup_holds_only_shared_projects(self):
+        frappe.set_user(EMPLOYEE_USER)
+        names = {project.name for project in get_projects(limit=500)["data"]}
+        self.assertIn(self.project, names)
+        self.assertNotIn(self.other_project, names)
+
+    def test_employee_cannot_open_a_task_of_an_unshared_project(self):
+        frappe.set_user(EMPLOYEE_USER)
+        get_task(self.shared_task, "2026-11-16", "2026-11-22")
+        with self.assertRaises(frappe.PermissionError):
+            get_task(self.other_task, "2026-11-16", "2026-11-22")
+
+    def test_employee_cannot_log_time_on_a_task_of_an_unshared_project(self):
+        frappe.set_user(EMPLOYEE_USER)
+        with self.assertRaises(frappe.PermissionError):
+            save(date=frappe.utils.today(), description="Unshared", task=self.other_task, hours=1)

@@ -53,9 +53,9 @@ def get_projects(
         fields.append("custom_currency")
 
     if not filters:
-        filters = get_project_filter_for_contractor()
+        filters = get_accessible_project_filter()
     else:
-        filters += get_project_filter_for_contractor()
+        filters += get_accessible_project_filter()
     filters += get_project_filter_for_employee(employee)
     project_lists = get_list(
         "Project",
@@ -122,6 +122,33 @@ def get_project_filter_for_contractor(only_list=False):
         return [["name", "in", names]]
 
     return []
+
+
+def get_accessible_project_names() -> list[str] | None:
+    """Projects whose tasks the session user may see and log time on, or None when every
+    project they can read is fine. Contractors keep only individual shares; anyone else
+    without the Projects page gets projects shared with them or everyone, or that they own."""
+    user = frappe.session.user
+    if user == "Administrator":
+        return None
+    if "Contractor" in frappe.get_roles(user):
+        return get_project_filter_for_contractor(only_list=True)
+    if has_capability("projects_page"):
+        return None
+    shared = frappe.share.get_shared("Project", user)
+    owned = get_all("Project", filters={"owner": user}, pluck="name")
+    return sorted(set(shared) | set(owned))
+
+
+def get_accessible_project_filter() -> list:
+    names = get_accessible_project_names()
+    return [] if names is None else [["name", "in", names or [""]]]
+
+
+def check_project_access(project: str | None) -> None:
+    names = get_accessible_project_names()
+    if project and names is not None and project not in names:
+        frappe.throw(frappe._("You can only work on tasks of projects shared with you."), frappe.PermissionError)
 
 
 def _can_view_employee_projects(employee: str) -> bool:

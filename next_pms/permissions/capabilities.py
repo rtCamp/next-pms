@@ -77,9 +77,9 @@ CAPABILITIES: dict[str, dict[str, Scope]] = {
 
 
 MANAGER_FIELD_ROLES: dict[str, tuple[str, ...]] = {
-    "custom_project_manager": (PROJECTS_USER,),
-    "custom_engineering_manager": (PROJECTS_USER,),
-    "custom_account_manager_": (PROJECTS_USER,),
+    "custom_project_manager": (PROJECTS_USER, SYSTEM_MANAGER),
+    "custom_engineering_manager": (PROJECTS_USER, SYSTEM_MANAGER),
+    "custom_account_manager_": (PROJECTS_USER, SYSTEM_MANAGER),
 }
 
 
