@@ -6,6 +6,7 @@ export const overviewSchema = z.object({
   priority: z.string(),
   host: z.string(),
   techStack: z.array(z.string()),
+  deliveryAccelerators: z.array(z.string()),
   complexity: z.string(),
   keyAccount: z.string(),
   source: z.string(),

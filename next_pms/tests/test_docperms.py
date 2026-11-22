@@ -160,6 +160,11 @@ OWNED_EFFECTIVE_RIGHTS = {
         {(0, 0): _FULL},
         {(0, 0): _FULL},
     ),
+    "Delivery Accelerator": (
+        {(0, 0): "read report"},
+        {(0, 0): _FULL},
+        {(0, 0): _FULL},
+    ),
     "Resource Allocation": (
         {(0, 0): _FULL_SELECT},
         {(0, 0): _FULL_SELECT, (2, 0): "delete email export print read report share write"},
