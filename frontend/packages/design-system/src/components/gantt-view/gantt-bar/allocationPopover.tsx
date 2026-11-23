@@ -150,7 +150,7 @@ function AllocationItem({
           {entry.isAiCreated ? (
             <div className="flex flex-1 gap-2 items-center">
               <span className="text-sm truncate text-ink-amber-4 mr-10 font-semibold">
-                Ai
+                AI
                 {entry.createdOn
                   ? ` created on ${format(entry.createdOn, "MMM d")}`
                   : " created"}
