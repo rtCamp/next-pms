@@ -28,6 +28,8 @@ def get_own_salary_summary(employee: str) -> dict:
     if not record:
         frappe.throw(_("You can only view the salary summary of your own Employee record."), frappe.PermissionError)
 
-    record.monthly_salary = flt(record.ctc) / 12
+    record.monthly_salary = flt(
+        flt(record.ctc) / 12, frappe.get_precision("Employee", "ctc", currency=record.salary_currency)
+    )
     record.income_tax_slab = get_income_tax_slab(record.pop("name"))
     return record
