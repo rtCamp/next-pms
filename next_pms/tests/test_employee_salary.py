@@ -64,6 +64,7 @@ class TestEmployeeSalary(IntegrationTestCase):
         self.assertEqual(employee.custom_monthly_salary, 100_000)
         self.assertEqual(employee.custom_hourly_salary, 625)
         self.assertEqual(employee.custom_annual_salary_usd, 14_400)
+        self.assertEqual(employee.custom_monthly_salary_usd, 1_200)
         self.assertEqual(employee.custom_hourly_salary_usd, 7.5)
         self.assertEqual(employee.custom_usd_currency, "USD")
 
