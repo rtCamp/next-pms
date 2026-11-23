@@ -55,6 +55,13 @@ export const PROJECT_LIST_PAGE_SIZE = 20;
 
 export const MONETARY_SORT_FIELDS = ["burn_rate_per_week", "total_budget"];
 
+export const CHILD_TABLE_FILTER_FIELDS: Record<string, [string, string]> = {
+  delivery_accelerators: [
+    "Project Delivery Accelerator",
+    "delivery_accelerator",
+  ],
+};
+
 export const RAG_OPTIONS = [
   { label: "Red", value: "red" },
   { label: "Amber", value: "amber" },

@@ -391,6 +391,13 @@ export function ProjectFilters() {
               ],
             },
             {
+              name: "delivery_accelerators",
+              label: "Delivery Accelerator",
+              type: "link",
+              link: { doctype: "Delivery Accelerator" },
+              operators: [{ label: "Equals", value: "=" }],
+            },
+            {
               name: "tag",
               label: "Tags",
               type: "link",

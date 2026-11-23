@@ -5,6 +5,7 @@ import {
   isCompleteFilterCondition,
   normalizeLikeFilterValue,
 } from "@/lib/utils";
+import { CHILD_TABLE_FILTER_FIELDS } from "./constants";
 import type { ProjectListFilters } from "./types";
 
 export const buildListFrappeFilters = (filters: ProjectListFilters) => {
@@ -22,7 +23,7 @@ export const buildListFrappeFilters = (filters: ProjectListFilters) => {
     filters.advanced.forEach((filter) => {
       if (isCompleteFilterCondition(filter)) {
         out.push([
-          filter.field,
+          ...(CHILD_TABLE_FILTER_FIELDS[filter.field] ?? [filter.field]),
           filter.operator,
           normalizeLikeFilterValue(filter.operator, filter.value),
         ]);

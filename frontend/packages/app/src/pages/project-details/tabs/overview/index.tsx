@@ -16,6 +16,7 @@ import { FrappeError, useFrappeUpdateDoc } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { useCapability } from "@/hooks/useCapability";
 import {
   hasProjectField,
   mergeClassNames,
@@ -106,6 +107,10 @@ function OverviewForm() {
       priority: project?.priority ?? "",
       host: project?.custom_host ?? "",
       techStack: project?.tech_stack?.map((row) => row.technology) ?? [],
+      deliveryAccelerators:
+        project?.delivery_accelerators?.map(
+          (row) => row.delivery_accelerator,
+        ) ?? [],
       complexity: project?.custom_complexity ?? "",
       keyAccount: project?.custom_key_account ?? "",
       source: project?.custom_source ?? "",
@@ -127,6 +132,7 @@ function OverviewForm() {
   const [submitting, setSubmitting] = useState(false);
   const toast = useToasts();
   const { updateDoc } = useFrappeUpdateDoc();
+  const canEditDeliveryAccelerators = useCapability("project_admin");
 
   const form = useOverviewForm(defaultValues, async ({ value }) => {
     setSubmitting(true);
@@ -137,6 +143,11 @@ function OverviewForm() {
         priority: value.priority,
         custom_host: value.host,
         tech_stack: value.techStack.map((technology) => ({ technology })),
+        ...(canEditDeliveryAccelerators && {
+          delivery_accelerators: value.deliveryAccelerators.map(
+            (delivery_accelerator) => ({ delivery_accelerator }),
+          ),
+        }),
         custom_complexity: value.complexity,
         custom_key_account: value.keyAccount,
         custom_client_point_of_contact: value.pointOfContact,

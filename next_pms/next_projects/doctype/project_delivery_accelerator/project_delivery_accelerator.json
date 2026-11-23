@@ -1,0 +1,33 @@
+{
+ "actions": [],
+ "creation": "2026-11-23 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "delivery_accelerator"
+ ],
+ "fields": [
+  {
+   "fieldname": "delivery_accelerator",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Delivery Accelerator",
+   "options": "Delivery Accelerator",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-11-23 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Next Projects",
+ "name": "Project Delivery Accelerator",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

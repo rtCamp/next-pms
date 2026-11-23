@@ -146,3 +146,37 @@ class TestProjectManagerRoles(IntegrationTestCase):
         project = frappe.get_doc("Project", project.name)
         project.notes = "Edited while the manager lacks the role"
         project.save(ignore_permissions=True)
+
+
+class TestProjectDeliveryAccelerators(IntegrationTestCase):
+    def setUp(self):
+        for name in ("Test Accelerator A", "Test Accelerator B"):
+            if not frappe.db.exists("Delivery Accelerator", name):
+                frappe.get_doc({"doctype": "Delivery Accelerator", "accelerator_name": name}).insert(
+                    ignore_permissions=True
+                )
+
+    def test_duplicate_delivery_accelerators_are_saved_once(self):
+        rows = ["Test Accelerator A", "Test Accelerator B", "Test Accelerator A"]
+        project = frappe.get_doc(
+            {
+                "doctype": "Project",
+                "project_name": f"Delivery Accelerators {frappe.generate_hash(length=8)}",
+                "custom_billing_type": "Non-Billable",
+                "delivery_accelerators": [{"delivery_accelerator": name} for name in rows],
+            }
+        ).insert(ignore_permissions=True)
+
+        project.append("delivery_accelerators", {"delivery_accelerator": "Test Accelerator B"})
+        project.save(ignore_permissions=True)
+
+        saved = frappe.get_all(
+            "Project Delivery Accelerator",
+            filters={"parenttype": "Project", "parent": project.name},
+            fields=["delivery_accelerator", "idx"],
+            order_by="idx",
+        )
+        self.assertEqual(
+            [(row.delivery_accelerator, row.idx) for row in saved],
+            [("Test Accelerator A", 1), ("Test Accelerator B", 2)],
+        )
