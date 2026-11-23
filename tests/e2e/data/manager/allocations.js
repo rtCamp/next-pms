@@ -12,10 +12,12 @@ const project = (label, postfix, extra = {}) => ({
   [`payloadDeleteProject${postfix}`]: {
     projectId: "filled-automatically-from-createProjects",
   },
-  // The Add allocation dialog lists only the employees a project is shared with.
+  // The Add allocation dialog lists only the employees a project is shared with, and an
+  // employee's Project grid (TC296) lists only the projects shared with them.
   [`payloadShareProject${postfix}`]: [
     process.env.EMP3_EMAIL,
     process.env.EMP2_EMAIL,
+    process.env.EMP_EMAIL,
   ].map((user) => ({
     doctype: "Project",
     name: "filled-automatically-from-createProjects",
