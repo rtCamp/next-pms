@@ -70,8 +70,6 @@ class EmployeeOverride:
         }
         information = {**get_salary_breakdown([row])[self.name], "income_tax_slab": get_income_tax_slab(self.name)}
         for currency in CONVERSION_CURRENCIES:
-            if currency == self.salary_currency:
-                continue
             converted = get_salary_breakdown([row], currency)[self.name]
             information[f"annual_salary_{currency.lower()}"] = converted["monthly_salary"] * 12
             information[f"monthly_salary_{currency.lower()}"] = converted["monthly_salary"]
