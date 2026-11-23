@@ -192,6 +192,7 @@ extend_doctype_class = {
     "Project": ["next_pms.project_currency.overrides.project.ProjectOverwrite"],
     "Timesheet": ["next_pms.project_currency.overrides.timesheet.TimesheetOverwrite"],
     "Task": ["next_pms.project_currency.overrides.task.TaskOverride"],
+    "Employee": ["next_pms.next_pms.overrides.employee.EmployeeSalaryInformation"],
 }
 
 
