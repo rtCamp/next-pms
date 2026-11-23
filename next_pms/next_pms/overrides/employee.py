@@ -1,3 +1,5 @@
+from frappe.utils import flt
+
 from next_pms.utils.employee import get_income_tax_slab, get_salary_breakdown
 
 CONVERSION_CURRENCIES = ("USD", "INR")
@@ -6,11 +8,11 @@ CONVERSION_CURRENCIES = ("USD", "INR")
 class EmployeeOverride:
     @property
     def custom_monthly_salary(self) -> float | None:
-        return self._salary_information.get("monthly_salary")
+        return self._get_salary_amount("custom_monthly_salary")
 
     @property
     def custom_hourly_salary(self) -> float | None:
-        return self._salary_information.get("hourly_salary")
+        return self._get_salary_amount("custom_hourly_salary")
 
     @property
     def custom_income_tax_slab(self) -> str | None:
@@ -18,27 +20,27 @@ class EmployeeOverride:
 
     @property
     def custom_annual_salary_usd(self) -> float | None:
-        return self._salary_information.get("annual_salary_usd")
+        return self._get_salary_amount("custom_annual_salary_usd")
 
     @property
     def custom_monthly_salary_usd(self) -> float | None:
-        return self._salary_information.get("monthly_salary_usd")
+        return self._get_salary_amount("custom_monthly_salary_usd")
 
     @property
     def custom_hourly_salary_usd(self) -> float | None:
-        return self._salary_information.get("hourly_salary_usd")
+        return self._get_salary_amount("custom_hourly_salary_usd")
 
     @property
     def custom_annual_salary_inr(self) -> float | None:
-        return self._salary_information.get("annual_salary_inr")
+        return self._get_salary_amount("custom_annual_salary_inr")
 
     @property
     def custom_monthly_salary_inr(self) -> float | None:
-        return self._salary_information.get("monthly_salary_inr")
+        return self._get_salary_amount("custom_monthly_salary_inr")
 
     @property
     def custom_hourly_salary_inr(self) -> float | None:
-        return self._salary_information.get("hourly_salary_inr")
+        return self._get_salary_amount("custom_hourly_salary_inr")
 
     @property
     def custom_usd_currency(self) -> str:
@@ -56,6 +58,10 @@ class EmployeeOverride:
             cached = (inputs, self._get_salary_information())
             self.__dict__["_salary_information_cache"] = cached
         return cached[1]
+
+    def _get_salary_amount(self, fieldname: str) -> float | None:
+        amount = self._salary_information.get(fieldname.removeprefix("custom_"))
+        return None if amount is None else flt(amount, self.precision(fieldname))
 
     def _get_salary_information(self) -> dict:
         if not self.ctc or not self.salary_currency:
