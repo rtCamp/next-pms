@@ -3,7 +3,7 @@ from next_pms.utils.employee import get_income_tax_slab, get_salary_breakdown
 CONVERSION_CURRENCIES = ("USD", "INR")
 
 
-class EmployeeSalaryInformation:
+class EmployeeOverride:
     @property
     def custom_monthly_salary(self) -> float | None:
         return self._salary_information.get("monthly_salary")
