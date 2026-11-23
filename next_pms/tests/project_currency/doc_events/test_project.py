@@ -89,3 +89,94 @@ class TestProjectTechStackFromDeal(IntegrationTestCase):
     def test_billable_project_from_deal_without_tech_stack_is_rejected(self):
         with self.assertRaises(frappe.ValidationError):
             self.new_project(self.new_deal()).insert(ignore_permissions=True)
+
+
+class TestProjectManagerRoles(IntegrationTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.no_role_user = "manager-role-warning-plain@example.com"
+        cls.projects_user = "manager-role-warning-projects-user@example.com"
+        cls.system_manager = "manager-role-warning-system-manager@example.com"
+        for email in (cls.no_role_user, cls.projects_user, cls.system_manager):
+            if not frappe.db.exists("User", email):
+                frappe.get_doc({"doctype": "User", "email": email, "first_name": email.split("@")[0]}).insert(
+                    ignore_permissions=True
+                )
+        frappe.get_doc("User", cls.projects_user).add_roles("Projects User")
+        frappe.get_doc("User", cls.system_manager).add_roles("System Manager")
+
+    @staticmethod
+    def new_project(**managers):
+        return frappe.get_doc(
+            {
+                "doctype": "Project",
+                "project_name": f"Manager Role {frappe.generate_hash(length=8)}",
+                "custom_billing_type": "Non-Billable",
+                **managers,
+            }
+        )
+
+    def test_engineering_manager_without_projects_user_is_rejected(self):
+        with self.assertRaisesRegex(frappe.ValidationError, "Projects User"):
+            self.new_project(custom_engineering_manager=self.no_role_user).insert(ignore_permissions=True)
+
+    def test_project_manager_without_projects_user_is_rejected(self):
+        with self.assertRaisesRegex(frappe.ValidationError, "Projects User"):
+            self.new_project(custom_project_manager=self.no_role_user).insert(ignore_permissions=True)
+
+    def test_projects_user_can_be_the_project_manager(self):
+        project = self.new_project(custom_project_manager=self.projects_user).insert(ignore_permissions=True)
+        self.assertEqual(project.custom_project_manager, self.projects_user)
+
+    def test_system_manager_without_projects_user_can_be_every_manager(self):
+        for fieldname in ("custom_project_manager", "custom_engineering_manager"):
+            with self.subTest(fieldname=fieldname):
+                project = self.new_project(**{fieldname: self.system_manager}).insert(ignore_permissions=True)
+                self.assertEqual(project.get(fieldname), self.system_manager)
+
+    def test_manager_with_the_role_saves(self):
+        project = self.new_project(custom_engineering_manager=self.projects_user).insert(ignore_permissions=True)
+        self.assertEqual(project.custom_engineering_manager, self.projects_user)
+
+    def test_existing_under_roled_manager_does_not_block_other_edits(self):
+        project = self.new_project().insert(ignore_permissions=True)
+        frappe.db.set_value("Project", project.name, "custom_engineering_manager", self.no_role_user)
+
+        project = frappe.get_doc("Project", project.name)
+        project.notes = "Edited while the manager lacks the role"
+        project.save(ignore_permissions=True)
+
+
+class TestProjectDeliveryAccelerators(IntegrationTestCase):
+    def setUp(self):
+        for name in ("Test Accelerator A", "Test Accelerator B"):
+            if not frappe.db.exists("Delivery Accelerator", name):
+                frappe.get_doc({"doctype": "Delivery Accelerator", "accelerator_name": name}).insert(
+                    ignore_permissions=True
+                )
+
+    def test_duplicate_delivery_accelerators_are_saved_once(self):
+        rows = ["Test Accelerator A", "Test Accelerator B", "Test Accelerator A"]
+        project = frappe.get_doc(
+            {
+                "doctype": "Project",
+                "project_name": f"Delivery Accelerators {frappe.generate_hash(length=8)}",
+                "custom_billing_type": "Non-Billable",
+                "delivery_accelerators": [{"delivery_accelerator": name} for name in rows],
+            }
+        ).insert(ignore_permissions=True)
+
+        project.append("delivery_accelerators", {"delivery_accelerator": "Test Accelerator B"})
+        project.save(ignore_permissions=True)
+
+        saved = frappe.get_all(
+            "Project Delivery Accelerator",
+            filters={"parenttype": "Project", "parent": project.name},
+            fields=["delivery_accelerator", "idx"],
+            order_by="idx",
+        )
+        self.assertEqual(
+            [(row.delivery_accelerator, row.idx) for row in saved],
+            [("Test Accelerator A", 1), ("Test Accelerator B", 2)],
+        )

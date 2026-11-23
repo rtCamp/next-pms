@@ -8,8 +8,10 @@ import { move } from "@dnd-kit/helpers";
 /**
  * Internal dependencies.
  */
+import { useCapability } from "@/hooks/useCapability";
 import { parseColumnKeys } from "@/lib/utils";
 import {
+  BURN_COLUMN_KEYS,
   COLUMN_PARAM_KEYS,
   MAX_PINNED_COLUMNS,
   PROJECT_LIST_COLUMNS,
@@ -66,6 +68,7 @@ function toLayoutParams(next: { order?: string[]; pinned?: string[] }) {
 export function useColumnLayout() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeView = useProjectViews((state) => state.state.activeView);
+  const canViewBurn = useCapability("view_cost_and_invoice_burn");
 
   const savedOrder = useMemo(
     () => resolveOrder(parseKeys(activeView?.columns)),
@@ -77,10 +80,14 @@ export function useColumnLayout() {
   );
 
   // The search params hold the layout in use, the view holds the saved one.
-  const baseOrder = useMemo(
-    () => resolveOrder(parseKeys(searchParams.get(COLUMN_PARAM_KEYS.columns))),
-    [searchParams],
-  );
+  const baseOrder = useMemo(() => {
+    const order = resolveOrder(
+      parseKeys(searchParams.get(COLUMN_PARAM_KEYS.columns)),
+    );
+    return canViewBurn
+      ? order
+      : order.filter((key) => !BURN_COLUMN_KEYS.has(key));
+  }, [searchParams, canViewBurn]);
 
   const pinnedColumns = useMemo(
     () => parseKeys(searchParams.get(COLUMN_PARAM_KEYS.pinnedColumns)),

@@ -23,7 +23,7 @@ from next_pms.timesheet.doc_events.timesheet import get_date_access, get_date_re
 MANAGER_USER = "rejected-window-test-manager@example.com"
 EMPLOYEE_USER = "rejected-window-test-employee@example.com"
 OTHER_EMPLOYEE_USER = "rejected-window-test-other@example.com"
-MANAGER_ROLES = ["Projects Manager", "Timesheet Manager"]
+MANAGER_ROLES = ["Projects Manager"]
 
 PROJECT_A = "Rejected Window Test Project A"
 PROJECT_B = "Rejected Window Test Project B"
@@ -74,6 +74,10 @@ class TestRejectedTimesheetWindow(IntegrationTestCase):
 
         cls.project_a = cls.make_project(PROJECT_A, company)
         cls.project_b = cls.make_project(PROJECT_B, company)
+        for project in (cls.project_a, cls.project_b):
+            frappe.share.add_docshare(
+                "Project", project, EMPLOYEE_USER, read=1, flags={"ignore_share_permission": True}
+            )
         cls.task_a1 = cls.make_task(TASK_A1, cls.project_a)
         cls.task_a2 = cls.make_task(TASK_A2, cls.project_a)
         cls.task_b1 = cls.make_task(TASK_B1, cls.project_b)

@@ -26,13 +26,10 @@ class TestNotificationUrls(IntegrationTestCase):
                 }
             ).insert(ignore_permissions=True)
 
-        cls.project = frappe.get_doc(
-            {
-                "doctype": "Project",
-                "project_name": "Notification URL Test Project",
-                "custom_project_manager": FOLLOWER_USER,
-            }
-        ).insert(ignore_permissions=True)
+        cls.project = frappe.get_doc({"doctype": "Project", "project_name": "Notification URL Test Project"}).insert(
+            ignore_permissions=True
+        )
+        cls.project.db_set("custom_project_manager", FOLLOWER_USER)
 
         for status in (RISK_STATUS_OPEN, RISK_STATUS_MITIGATED):
             if not frappe.db.exists("Risk Status", status):

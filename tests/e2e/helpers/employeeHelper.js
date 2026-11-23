@@ -409,6 +409,13 @@ export const deleteEmployeeByName = async () => {
     linked.push(["Holiday List Assignment", "assigned_to"]);
   }
 
+  // A seeded employee may report to another (`reportsTo`), which blocks deleting the manager.
+  for (const { name } of await getDocList("Employee", [
+    ["reports_to", "in", employees.map((emp) => emp.name)],
+  ])) {
+    await updateEmployee(name, { reports_to: "" }, "admin");
+  }
+
   const survivors = [];
   for (const emp of employees) {
     // Frappe refuses to delete an employee that any document still points at,

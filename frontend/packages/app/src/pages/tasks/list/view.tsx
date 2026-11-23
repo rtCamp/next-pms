@@ -24,6 +24,7 @@ import { ArrowDown, ArrowUp } from "@rtcamp/frappe-ui-react/icons";
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import PersonalTaskLog from "@/components/task-log/personalTaskLog";
 import TeamTaskLog from "@/components/task-log/teamTaskLog";
+import { useCapability } from "@/hooks/useCapability";
 import AddTime from "@/pages/timesheet/components/add-time";
 import type { OpenAddTimeDialogOptions } from "@/pages/timesheet/outletContext";
 import { useUser } from "@/providers/user";
@@ -48,10 +49,9 @@ function TaskList() {
   const openEditTaskModal = useTaskList((c) => c.actions.openEditTaskModal);
   const { sort, setSort } = useTaskFilters();
   const { columns } = useTaskColumns();
-  const roles = useUser(({ state }) => state.roles);
   const userId = useUser(({ state }) => state.userId);
-  const showTeamTaskLog =
-    roles.includes("Projects Manager") || roles.includes("Timesheet Manager");
+  const showTeamTaskLog = useCapability("view_employee_details");
+  const canDeleteAnyTask = useCapability("project_admin");
   const [openTask, setOpenTask] = useState<string | null>(null);
   const [addTimePrefill, setAddTimePrefill] =
     useState<OpenAddTimeDialogOptions>({ date: getTodayDate() });
@@ -174,7 +174,7 @@ function TaskList() {
                             onEditTask={openEditTaskModal}
                             onDeleteTask={setDeleteTaskName}
                             userId={userId}
-                            roles={roles}
+                            canDeleteAnyTask={canDeleteAnyTask}
                           />
                         </div>
                       ))}

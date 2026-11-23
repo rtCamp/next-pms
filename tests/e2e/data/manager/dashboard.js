@@ -48,6 +48,8 @@ module.exports = {
       DbApprove: { designation: "L1 - Software Engineer" },
       DbReject: {},
       DbAway: {},
+      // The Leadership dashboard is for PMS Leadership and System Manager.
+      DbLeader: { managed: false, user: { roles: ["PMS Leadership"] } },
     },
     payloadCreateWeekTime: [
       {

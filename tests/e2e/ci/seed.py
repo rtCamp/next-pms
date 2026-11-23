@@ -23,7 +23,7 @@ PASSWORD = os.environ.get("E2E_PASSWORD", "")
 
 # Names must not be substrings of each other: TC38 expects a search for one name to return one row.
 PERSONAS = {
-    "REP_MAN": {"first": "Marcus", "last": "Thorne", "roles": ["Projects Manager", "Timesheet Manager"]},
+    "REP_MAN": {"first": "Marcus", "last": "Thorne", "roles": ["Projects Manager"]},
     "EMP": {"first": "Priya", "last": "Raman", "roles": []},
     "EMP2": {"first": "Daniel", "last": "Okafor", "roles": []},
     "EMP3": {"first": "Lena", "last": "Fischer", "roles": [], "business_unit": "Polaris"},
@@ -56,11 +56,11 @@ def run():
     holiday_list()
     masters()
     business_unit_customization()
-    permission_patches()
     personas = create_personas()
     write_env(personas)
     frappe.db.commit()
     frappe.clear_cache()
+    release_notes()
 
 
 def setup_wizard():
@@ -109,6 +109,8 @@ def site_settings():
     ts.allow_backdated_entries = 1
     ts.allow_backdated_entries_till_employee = 30
     ts.allow_backdated_entries_till_manager = 30
+    # The shipped default; a fresh install marks the patch that stores it as done without running it.
+    ts.allow_rejected_timesheet_edit_till = 3
     ts.save()
 
     # The Add Leave dialog posts no leave_approver, so HRMS must not demand one.
@@ -278,18 +280,21 @@ def todo_statuses():
         make_property_setter("ToDo", "status", "options", "Open\nBacklog\nIn Progress\nClosed\nCancelled", "Text")
 
 
-def permission_patches():
-    # Patches are marked done on a fresh install without running; the suite needs their permissions.
-    for path in (
-        "next_pms.next_projects.patches.add_customer_permissions_for_projects_manager.execute",
-        "next_pms.next_projects.patches.add_designation_permissions_for_pm.execute",
-        "next_pms.timesheet.patches.add_project_report_permissions.execute",
-    ):
-        try:
-            frappe.get_attr(path)()
-        except Exception:
-            frappe.log_error(title=f"e2e seed: {path}")
-            print(f"WARN: {path} failed")
+def release_notes():
+    """Cache two releases for the What's new page, so the site never asks GitHub for them."""
+    from next_pms import __version__
+    from next_pms.api.constant import RELEASES_CACHE_KEY, VERSIONS_CACHE_KEY
+
+    releases = [
+        {
+            "version": version,
+            "date": today(),
+            "html": f"<h3>Features</h3><ul><li>E2E release note for v{version}</li></ul>",
+        }
+        for version in (__version__, "0.1.0")
+    ]
+    frappe.cache.set_value(RELEASES_CACHE_KEY, releases)
+    frappe.cache.set_value(VERSIONS_CACHE_KEY, [release["version"] for release in releases])
 
 
 def create_user(email, first, last, roles):

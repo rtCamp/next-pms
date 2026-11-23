@@ -34,6 +34,9 @@ function toComboboxOptions(
   return mapped;
 }
 
+const missingRoleMessage = (role: string) =>
+  `Needs the ${role} role to approve this project's timesheets.`;
+
 export function MemberSection() {
   const [addMemberOpen, setAddMemberOpen] = useState(false);
   const teamMembers = useSidebar((state) => state.teamMembers);
@@ -49,13 +52,17 @@ export function MemberSection() {
   const addMember = useSidebar((state) => state.addMember);
   const removeMember = useSidebar((state) => state.removeMember);
   const updateManager = useSidebar((state) => state.updateManager);
+  const managerRoles = useSidebar((state) => state.sidebar.manager_roles);
+  const missingManagerRoles = useSidebar(
+    (state) => state.sidebar.missing_manager_roles,
+  );
 
   const [projectManagerQuery, setProjectManagerQuery] = useState("");
   const { options: projectManagerOptions, isLoading: projectManagerLoading } =
     useEmployeeLookup({
-      shouldFetch: true,
+      shouldFetch: managerRoles.project_manager.length > 0,
       query: projectManagerQuery,
-      roles: ["Projects Manager"],
+      roles: managerRoles.project_manager,
     });
   const projectManagerComboboxOptions = useMemo(
     () =>
@@ -71,7 +78,11 @@ export function MemberSection() {
   const {
     options: engineeringManagerOptions,
     isLoading: engineeringManagerLoading,
-  } = useEmployeeLookup({ shouldFetch: true, query: engineeringManagerQuery });
+  } = useEmployeeLookup({
+    shouldFetch: managerRoles.engineering_manager.length > 0,
+    query: engineeringManagerQuery,
+    roles: managerRoles.engineering_manager,
+  });
   const engineeringManagerComboboxOptions = useMemo(
     () =>
       toComboboxOptions(
@@ -108,6 +119,11 @@ export function MemberSection() {
                   onChange={(value) => updateManager("project_manager", value)}
                   openOnFocus
                 />
+                {missingManagerRoles.project_manager && (
+                  <p className="col-span-2 text-sm text-ink-amber-4">
+                    {missingRoleMessage(missingManagerRoles.project_manager)}
+                  </p>
+                )}
               </div>
             }
           />
@@ -131,6 +147,13 @@ export function MemberSection() {
                   }
                   openOnFocus
                 />
+                {missingManagerRoles.engineering_manager && (
+                  <p className="col-span-2 text-sm text-ink-amber-4">
+                    {missingRoleMessage(
+                      missingManagerRoles.engineering_manager,
+                    )}
+                  </p>
+                )}
               </div>
             }
           />

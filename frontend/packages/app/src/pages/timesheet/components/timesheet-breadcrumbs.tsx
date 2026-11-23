@@ -8,19 +8,15 @@ import { Folder, People, Time, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import { ROLE_ACCESS, ROUTES } from "@/lib/constant";
-import { hasAnyRole } from "@/lib/utils";
+import { useCapability } from "@/hooks/useCapability";
+import { ROUTES } from "@/lib/constant";
 import { useUser } from "@/providers/user";
 
 export const TimesheetBreadcrumbs = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { employeeId, roles } = useUser(({ state }) => ({
-    employeeId: state.employeeId,
-    roles: state.roles,
-  }));
-
-  const hasRoleAccess = hasAnyRole(roles, ROLE_ACCESS.reviewTimesheets);
+  const employeeId = useUser(({ state }) => state.employeeId);
+  const hasRoleAccess = useCapability("team_timesheet_pages");
 
   const timesheetViews = [
     {

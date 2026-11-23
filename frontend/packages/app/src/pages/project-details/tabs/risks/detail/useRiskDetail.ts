@@ -121,6 +121,7 @@ export function useRiskDetail(riskId: string) {
       try {
         const remainingEntries = (enrichedRisk.risk_update_log ?? [])
           .filter((e) => e.name !== entry.name)
+          .sort((a, b) => a.updated_at.localeCompare(b.updated_at))
           .map((e) => ({
             name: e.name,
             status: e.status,

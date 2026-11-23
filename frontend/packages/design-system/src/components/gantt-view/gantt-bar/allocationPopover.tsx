@@ -10,6 +10,7 @@ import {
   EditAlt,
   Folder,
   Holiday,
+  Notes,
   Tentative,
   Time,
   TimeOff,
@@ -38,6 +39,7 @@ export interface AllocationEntry {
   status: "confirmed" | "tentative";
   billable: boolean;
   isAiCreated?: boolean;
+  note?: string;
   updatedByName?: string;
   updatedByImage?: string;
   onEdit?: () => void;
@@ -145,12 +147,24 @@ function AllocationItem({
           </span>
         </div>
 
+        {entry.note && (
+          <div className="flex gap-2 items-start">
+            <Notes className="-mt-px size-4 text-ink-gray-5 shrink-0" />
+            <span
+              className="text-sm text-ink-gray-6 whitespace-pre-line break-words line-clamp-4 min-w-0"
+              title={entry.note}
+            >
+              {entry.note}
+            </span>
+          </div>
+        )}
+
         {/* Created / Last edited row with avatar and edit/delete actions */}
         <div className="flex gap-2 justify-between items-center">
           {entry.isAiCreated ? (
             <div className="flex flex-1 gap-2 items-center">
               <span className="text-sm truncate text-ink-amber-4 mr-10 font-semibold">
-                Ai
+                AI
                 {entry.createdOn
                   ? ` created on ${format(entry.createdOn, "MMM d")}`
                   : " created"}

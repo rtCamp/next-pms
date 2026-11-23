@@ -93,11 +93,7 @@ export function RiskGroup({ value, label, columns, risks }: RiskGroupProps) {
                 className="w-8 shrink-0 flex justify-end"
                 onClick={(e) => e.stopPropagation()}
               >
-                <RiskRowActions
-                  riskName={risk.name}
-                  riskOwner={risk.risk_owner}
-                  showFollow={false}
-                />
+                <RiskRowActions riskName={risk.name} showFollow={false} />
               </div>
             </div>
           ))}

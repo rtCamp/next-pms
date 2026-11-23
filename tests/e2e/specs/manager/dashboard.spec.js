@@ -1,6 +1,7 @@
 const { test, expect } = require("../../playwright.fixture.cjs");
 import * as allure from "allure-js-commons";
 import path from "path";
+import { signedInContext } from "../../helpers/storageStateHelper";
 import { DashboardPage } from "../../pageObjects/dashboardPage";
 import { ProjectsListPage } from "../../pageObjects/projectsListPage";
 import {
@@ -64,7 +65,24 @@ test.describe("Manager: Dashboards", () => {
     data = (await readJSONFile(path.join(jsonDir, `${FIXTURE}.json`)))[FIXTURE];
   });
 
-  test("TC359: The Manager and Leadership dashboards each show their own widgets under their own heading", async () => {
+  /** Runs `body` with `dashboard` on a page of the seeded PMS Leadership user. */
+  const asLeadership = async (browser, body) => {
+    const context = await signedInContext(
+      browser,
+      data.employees.DbLeader.user,
+      "dashboard-leader",
+    );
+    try {
+      dashboard = new DashboardPage(await context.newPage());
+      await body();
+    } finally {
+      await context.close();
+    }
+  };
+
+  test("TC359: The Manager and Leadership dashboards each show their own widgets under their own heading", async ({
+    browser,
+  }) => {
     allure.story("Dashboard");
     await dashboard.goto("manager");
     await expect(dashboard.breadcrumbs).toHaveText(["Dashboard", "Management"]);
@@ -91,31 +109,38 @@ test.describe("Manager: Dashboards", () => {
       dashboard.page.getByText("Revenue", { exact: true }),
     ).toHaveCount(0);
 
-    await dashboard.goto("leadership");
-    await expect(dashboard.breadcrumbs).toHaveText(["Dashboard", "Leadership"]);
-    await expect(dashboard.greeting).toHaveText(`Hey, ${FIRST_NAME}`);
-    for (const label of [
-      "Revenue",
-      "Cost",
-      "Profit margin",
-      "Active billable projects",
-      "At risk projects",
-      "Members without allocation",
-      "Non-billable hours logged",
-    ]) {
-      await expect(dashboard.statCard(label), label).toBeVisible();
-    }
-    for (const heading of [
-      "Heatmap",
-      "Notifications",
-      "Utilised time in the past 30 days",
-      "Forecast breakdown for the next month",
-    ]) {
-      await expect(dashboard.heading(heading), heading).toBeVisible();
-    }
-    await expect(dashboard.rangeButton).toBeVisible();
-    await expect(dashboard.heading("Managed projects")).toHaveCount(0);
-    await expect(dashboard.heading("Upcoming time-offs")).toHaveCount(0);
+    await asLeadership(browser, async () => {
+      await dashboard.goto("leadership");
+      await expect(dashboard.breadcrumbs).toHaveText([
+        "Dashboard",
+        "Leadership",
+      ]);
+      await expect(dashboard.greeting).toHaveText(
+        `Hey, ${data.employees.DbLeader.name.split(" ")[0]}`,
+      );
+      for (const label of [
+        "Revenue",
+        "Cost",
+        "Profit margin",
+        "Active billable projects",
+        "At risk projects",
+        "Members without allocation",
+        "Non-billable hours logged",
+      ]) {
+        await expect(dashboard.statCard(label), label).toBeVisible();
+      }
+      for (const heading of [
+        "Heatmap",
+        "Notifications",
+        "Utilised time in the past 30 days",
+        "Forecast breakdown for the next month",
+      ]) {
+        await expect(dashboard.heading(heading), heading).toBeVisible();
+      }
+      await expect(dashboard.rangeButton).toBeVisible();
+      await expect(dashboard.heading("Managed projects")).toHaveCount(0);
+      await expect(dashboard.heading("Upcoming time-offs")).toHaveCount(0);
+    });
   });
 
   test("TC360: At risk projects counts the Red and Amber projects and opens the Projects list filtered to them", async ({
@@ -131,10 +156,22 @@ test.describe("Manager: Dashboards", () => {
     for (const [id, rag] of seeded) {
       await updateDocument("Project", id, { custom_project_rag_status: rag });
     }
-    const atRisk = await getDocList("Project", [
-      ["is_active", "=", "Yes"],
-      ["custom_project_rag_status", "in", ["Red", "Amber"]],
-    ]);
+    // A Projects Manager's count covers every project naming them as project, engineering
+    // or account manager.
+    const managed = await Promise.all(
+      [
+        "custom_project_manager",
+        "custom_engineering_manager",
+        "custom_account_manager_",
+      ].map((field) =>
+        getDocList("Project", [
+          ["is_active", "=", "Yes"],
+          ["custom_project_rag_status", "in", ["Red", "Amber"]],
+          [field, "=", process.env.REP_MAN_EMAIL],
+        ]),
+      ),
+    );
+    const atRisk = [...new Set(managed.flat().map((project) => project.name))];
     const { get_at_risk_projects_count: count } = await dashboard.goto(
       "manager",
       ["get_at_risk_projects_count"],
@@ -467,81 +504,91 @@ test.describe("Manager: Dashboards", () => {
     ]);
   });
 
-  test("TC376: Revenue, Cost and Profit margin share one month, and changing it on one card changes all three", async () => {
-    allure.story("Dashboard");
-    await dashboard.goto("leadership");
-    const cards = ["Revenue", "Cost", "Profit margin"];
-    for (const card of cards) {
-      await expect(dashboard.kpiMonth(card), card).toHaveText(
-        monthLabel(monthsAgo(1)),
-      );
-    }
+  test("TC376: Revenue, Cost and Profit margin share one month, and changing it on one card changes all three", async ({
+    browser,
+  }) =>
+    asLeadership(browser, async () => {
+      allure.story("Dashboard");
+      await dashboard.goto("leadership");
+      const cards = ["Revenue", "Cost", "Profit margin"];
+      for (const card of cards) {
+        await expect(dashboard.kpiMonth(card), card).toHaveText(
+          monthLabel(monthsAgo(1)),
+        );
+      }
 
-    const month = monthsAgo(2);
-    const first = (date) =>
-      `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-01`;
-    const kpis = dashboard.response(
-      "get_leadership_kpis",
-      (url) => url.searchParams.get("cur_start") === first(month),
-    );
-    await dashboard.chooseKpiMonth(
-      "Cost",
-      month.toLocaleDateString("en-US", { month: "short" }),
-      month.getFullYear(),
-    );
-    const { revenue, cost, profit_margin: margin } = await kpis;
-    for (const card of cards) {
-      await expect(dashboard.kpiMonth(card), card).toHaveText(
-        monthLabel(month),
+      const month = monthsAgo(2);
+      const first = (date) =>
+        `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-01`;
+      const kpis = dashboard.response(
+        "get_leadership_kpis",
+        (url) => url.searchParams.get("cur_start") === first(month),
       );
-    }
-    await expect
-      .poll(() => dashboard.kpiValue("Revenue"))
-      .toBe(usd(revenue.current));
-    await expect.poll(() => dashboard.kpiValue("Cost")).toBe(usd(cost.current));
-    // This branch prints a zero margin as 0%; staging's build shows N/A.
-    await expect
-      .poll(() => dashboard.kpiValue("Profit margin"))
-      .toMatch(
-        new RegExp(
-          `^(${number(margin.current)}%${margin.current ? "" : "|N/A"})$`,
-        ),
+      await dashboard.chooseKpiMonth(
+        "Cost",
+        month.toLocaleDateString("en-US", { month: "short" }),
+        month.getFullYear(),
       );
-  });
+      const { revenue, cost, profit_margin: margin } = await kpis;
+      for (const card of cards) {
+        await expect(dashboard.kpiMonth(card), card).toHaveText(
+          monthLabel(month),
+        );
+      }
+      await expect
+        .poll(() => dashboard.kpiValue("Revenue"))
+        .toBe(usd(revenue.current));
+      await expect
+        .poll(() => dashboard.kpiValue("Cost"))
+        .toBe(usd(cost.current));
+      // This branch prints a zero margin as 0%; staging's build shows N/A.
+      await expect
+        .poll(() => dashboard.kpiValue("Profit margin"))
+        .toMatch(
+          new RegExp(
+            `^(${number(margin.current)}%${margin.current ? "" : "|N/A"})$`,
+          ),
+        );
+    }));
 
   test("TC377: Active billable projects and Non-billable hours show the server's figures, and the project card opens the filtered list", async ({
-    page,
+    browser,
+  }) =>
+    asLeadership(browser, async () => {
+      allure.story("Dashboard");
+      const {
+        get_active_projects_count: active,
+        get_non_billable_hours: nonBillable,
+      } = await dashboard.goto("leadership", [
+        "get_active_projects_count",
+        "get_non_billable_hours",
+      ]);
+      await expect
+        .poll(() => dashboard.statValue("Active billable projects"))
+        .toBe(number(active));
+      await expect
+        .poll(() => dashboard.statValue("Non-billable hours logged"))
+        .toBe(number(nonBillable));
+
+      await dashboard.statLink("Active billable projects").click();
+      await expect(dashboard.page).toHaveURL(
+        /\/next-pms\/projects\?status=Open&advanced=/,
+      );
+      const [condition] = JSON.parse(
+        new URL(dashboard.page.url()).searchParams.get("advanced"),
+      );
+      expect(condition).toEqual(
+        expect.objectContaining({
+          field: "custom_billing_type",
+          operator: "!=",
+          value: "Non-Billable",
+        }),
+      );
+    }));
+
+  test("TC378: The dashboard keeps its role, project, customer and month choices after a reload", async ({
+    browser,
   }) => {
-    allure.story("Dashboard");
-    const {
-      get_active_projects_count: active,
-      get_non_billable_hours: nonBillable,
-    } = await dashboard.goto("leadership", [
-      "get_active_projects_count",
-      "get_non_billable_hours",
-    ]);
-    await expect
-      .poll(() => dashboard.statValue("Active billable projects"))
-      .toBe(number(active));
-    await expect
-      .poll(() => dashboard.statValue("Non-billable hours logged"))
-      .toBe(number(nonBillable));
-
-    await dashboard.statLink("Active billable projects").click();
-    await expect(page).toHaveURL(/\/next-pms\/projects\?status=Open&advanced=/);
-    const [condition] = JSON.parse(
-      new URL(page.url()).searchParams.get("advanced"),
-    );
-    expect(condition).toEqual(
-      expect.objectContaining({
-        field: "custom_billing_type",
-        operator: "!=",
-        value: "Non-Billable",
-      }),
-    );
-  });
-
-  test("TC378: The dashboard keeps its role, project, customer and month choices after a reload", async () => {
     allure.story("Dashboard");
     test.slow();
     // Manager: heatmap roles, calendar projects and managed-project customers.
@@ -585,30 +632,32 @@ test.describe("Manager: Dashboards", () => {
     ).toHaveCount(0);
 
     // Leadership: utilised time and forecast roles, and the KPI month.
-    await dashboard.goto("leadership");
-    const utilisation = dashboard.sectionPicker(
-      "Utilised time in the past 30 days",
-    );
-    const forecast = dashboard.sectionPicker(
-      "Forecast breakdown for the next month",
-    );
-    await utilisation.click();
-    const [firstRole] = await dashboard.page
-      .getByRole("option")
-      .allInnerTexts();
-    await dashboard.page.keyboard.press("Escape");
-    await dashboard.toggle(utilisation, [firstRole.trim()]);
-    await dashboard.toggle(forecast, [firstRole.trim()]);
-    const month = monthsAgo(3);
-    await dashboard.chooseKpiMonth(
-      "Revenue",
-      month.toLocaleDateString("en-US", { month: "short" }),
-      month.getFullYear(),
-    );
+    await asLeadership(browser, async () => {
+      await dashboard.goto("leadership");
+      const utilisation = dashboard.sectionPicker(
+        "Utilised time in the past 30 days",
+      );
+      const forecast = dashboard.sectionPicker(
+        "Forecast breakdown for the next month",
+      );
+      await utilisation.click();
+      const [firstRole] = await dashboard.page
+        .getByRole("option")
+        .allInnerTexts();
+      await dashboard.page.keyboard.press("Escape");
+      await dashboard.toggle(utilisation, [firstRole.trim()]);
+      await dashboard.toggle(forecast, [firstRole.trim()]);
+      const month = monthsAgo(3);
+      await dashboard.chooseKpiMonth(
+        "Revenue",
+        month.toLocaleDateString("en-US", { month: "short" }),
+        month.getFullYear(),
+      );
 
-    await dashboard.reload();
-    await expect(utilisation).toHaveText("1 role selected");
-    await expect(forecast).toHaveText("1 role selected");
-    await expect(dashboard.kpiMonth("Revenue")).toHaveText(monthLabel(month));
+      await dashboard.reload();
+      await expect(utilisation).toHaveText("1 role selected");
+      await expect(forecast).toHaveText("1 role selected");
+      await expect(dashboard.kpiMonth("Revenue")).toHaveText(monthLabel(month));
+    });
   });
 });

@@ -58,6 +58,7 @@ export function allocationBarToEntry(
     status: alloc.tentative ? "tentative" : "confirmed",
     billable: alloc.billable ?? true,
     isAiCreated: alloc.isAiCreated,
+    note: alloc.note?.trim() || undefined,
     recurrenceId: alloc.recurrenceId,
     updatedByName: alloc.updatedBy?.name,
     updatedByImage: alloc.updatedBy?.image,

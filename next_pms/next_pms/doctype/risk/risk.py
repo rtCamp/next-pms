@@ -3,11 +3,9 @@
 
 from datetime import datetime
 
-import frappe
 from frappe.model.document import Document
 from frappe.utils import get_datetime
 
-from next_pms.utils.permissions import has_owner_gated_permission
 from next_pms.utils.update_log import prevent_changing_others_update_rows, stamp_new_update_rows
 
 
@@ -76,8 +74,3 @@ def get_mitigated_on(status, update_log):
             break
         mitigated_on = row.updated_at
     return mitigated_on
-
-
-def has_permission(doc, ptype="read", user=None, debug=False):
-    """Projects User may write only when they are risk_owner."""
-    return has_owner_gated_permission(doc.risk_owner, ptype, user or frappe.session.user)

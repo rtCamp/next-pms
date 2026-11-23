@@ -40,7 +40,7 @@ test.describe("Employee: Team timesheet access", () => {
         const body = await res.json();
         expect(body.exc_type, method).toBe("PermissionError");
         expect(body._server_messages, method).toContain(
-          "This action is only allowed for",
+          "You are not permitted to perform this action.",
         );
       }
     } finally {

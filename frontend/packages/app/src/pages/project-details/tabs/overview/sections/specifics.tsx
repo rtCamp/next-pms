@@ -9,11 +9,14 @@ import {
   Layers,
   Server,
   SolidPriorityHigh,
+  Zap,
 } from "@rtcamp/frappe-ui-react/icons";
+import { useStore } from "@tanstack/react-form";
 
 /**
  * Internal dependencies.
  */
+import { useCapability } from "@/hooks/useCapability";
 import { useDoctypeLinkLookup } from "@/hooks/useDoctypeLinkLookup";
 import { useHostLookup } from "@/hooks/useHostLookup";
 import { useProjectDetail } from "../../../context";
@@ -23,7 +26,7 @@ import type { OverviewFormApi } from "../index";
 
 const EMPTY = "—";
 
-const ENABLED_TECHNOLOGY_FILTER = [["disabled", "=", 0]];
+const ENABLED_FILTER = [["disabled", "=", 0]];
 
 const PRIORITY_OPTIONS = [
   { label: "Low", value: "Low" },
@@ -76,11 +79,37 @@ export function Specifics({ form, isEditing, submitting }: SpecificsProps) {
   const { options: techStackOptions, isLoading: isTechStackLoading } =
     useDoctypeLinkLookup({
       doctype: "Technology",
-      filters: ENABLED_TECHNOLOGY_FILTER,
+      filters: ENABLED_FILTER,
       shouldFetch: isEditing,
       query: techStackSearch,
       selectedOption: techStackSelectedOptions,
     });
+
+  const canEditDeliveryAccelerators = useCapability("project_admin");
+  const [deliveryAcceleratorSearch, setDeliveryAcceleratorSearch] =
+    useState("");
+  const deliveryAcceleratorValue = useStore(
+    form.store,
+    (state) => state.values.deliveryAccelerators,
+  );
+  const deliveryAcceleratorSelectedOptions = useMemo(
+    () =>
+      deliveryAcceleratorValue.map((deliveryAccelerator) => ({
+        label: deliveryAccelerator,
+        value: deliveryAccelerator,
+      })),
+    [deliveryAcceleratorValue],
+  );
+  const {
+    options: deliveryAcceleratorOptions,
+    isLoading: isDeliveryAcceleratorLoading,
+  } = useDoctypeLinkLookup({
+    doctype: "Delivery Accelerator",
+    filters: ENABLED_FILTER,
+    shouldFetch: isEditing && canEditDeliveryAccelerators,
+    query: deliveryAcceleratorSearch,
+    selectedOption: deliveryAcceleratorSelectedOptions,
+  });
 
   return (
     <OverviewSection title="Specifics">
@@ -174,6 +203,28 @@ export function Specifics({ form, isEditing, submitting }: SpecificsProps) {
                 popupClassName="w-max min-w-(--anchor-width) max-w-[300px]"
                 searchValue={techStackSearch}
                 onSearchChange={setTechStackSearch}
+                value={field.state.value}
+                onChange={field.handleChange}
+                open={submitting ? false : undefined}
+              />
+            </EditableField>
+          )}
+        </form.Field>
+        <form.Field name="deliveryAccelerators">
+          {(field) => (
+            <EditableField
+              icon={<Zap className="size-[18px]" />}
+              label="Delivery accelerators"
+              value={field.state.value.join(", ") || EMPTY}
+              isEditing={isEditing && canEditDeliveryAccelerators}
+            >
+              <MultiSelect
+                loading={isDeliveryAcceleratorLoading}
+                options={deliveryAcceleratorOptions}
+                placeholder="Select delivery accelerators"
+                popupClassName="w-max min-w-(--anchor-width) max-w-[300px]"
+                searchValue={deliveryAcceleratorSearch}
+                onSearchChange={setDeliveryAcceleratorSearch}
                 value={field.state.value}
                 onChange={field.handleChange}
                 open={submitting ? false : undefined}

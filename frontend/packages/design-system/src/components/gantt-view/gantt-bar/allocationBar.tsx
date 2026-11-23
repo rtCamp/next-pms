@@ -346,7 +346,7 @@ export function GanttAllocationBar({
             renderLabel={renderLabel}
             trailingLabel={
               allocation.isAiCreated
-                ? "Ai"
+                ? "AI"
                 : showCapacityStatus
                   ? capacityStatus.trailingLabel
                   : undefined

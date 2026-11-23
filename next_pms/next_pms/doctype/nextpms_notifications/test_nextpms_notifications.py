@@ -2,6 +2,7 @@
 # See license.txt
 
 import frappe
+from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
 
 from next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications import (
@@ -10,6 +11,7 @@ from next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications impor
 )
 from next_pms.next_pms.patches.backfill_notification_title import NOTIFICATION_TITLES
 from next_pms.next_pms.patches.backfill_notification_title import execute as backfill_notification_title
+from next_pms.tests.utils import make_employee
 
 # On IntegrationTestCase, the doctype test records and all
 # link-field test record dependencies are recursively loaded
@@ -23,16 +25,16 @@ IGNORE_TEST_RECORD_DEPENDENCIES = ["User"]
 SYSTEM_MANAGER_USER = "test.sm.notifications@example.com"
 PROJECTS_MANAGER_USER = "test.pm.notifications@example.com"
 PROJECTS_USER_USER = "test.pu.notifications@example.com"
-DELIVERY_MANAGER_USER = "test.dm.notifications@example.com"
-DELIVERY_USER_USER = "test.du.notifications@example.com"
+LEADERSHIP_USER = "test.pl.notifications@example.com"
+EMPLOYEE_USER = "test.emp.notifications@example.com"
 
 # Every role other than System Manager: read/write at permlevel 0, no create/delete,
 # read-only at permlevel 1 (per nextpms_notifications.json "permissions").
 RESTRICTED_ROLE_USERS = [
     PROJECTS_MANAGER_USER,
     PROJECTS_USER_USER,
-    DELIVERY_MANAGER_USER,
-    DELIVERY_USER_USER,
+    LEADERSHIP_USER,
+    EMPLOYEE_USER,
 ]
 
 
@@ -48,8 +50,9 @@ class IntegrationTestNextPMSNotifications(IntegrationTestCase):
         cls._make_user(SYSTEM_MANAGER_USER, ["System Manager"])
         cls._make_user(PROJECTS_MANAGER_USER, ["Projects Manager"])
         cls._make_user(PROJECTS_USER_USER, ["Projects User"])
-        cls._make_user(DELIVERY_MANAGER_USER, ["Delivery Manager"])
-        cls._make_user(DELIVERY_USER_USER, ["Delivery User"])
+        cls._make_user(LEADERSHIP_USER, ["PMS Leadership"])
+        cls._make_user(EMPLOYEE_USER, [])
+        make_employee(EMPLOYEE_USER, company=get_default_company())
         frappe.clear_cache()
 
     @classmethod
@@ -153,11 +156,11 @@ class IntegrationTestNextPMSNotifications(IntegrationTestCase):
         self._make_notification(PROJECTS_MANAGER_USER)
         frappe.set_user(PROJECTS_MANAGER_USER)
 
-        create_notification(DELIVERY_MANAGER_USER, "Cross-user", "Cross-user", "User", DELIVERY_MANAGER_USER)
+        create_notification(LEADERSHIP_USER, "Cross-user", "Cross-user", "User", LEADERSHIP_USER)
 
         frappe.set_user("Administrator")
         names = frappe.get_all(
-            "NextPMS Notifications", filters={"user": DELIVERY_MANAGER_USER, "title": "Cross-user"}, pluck="name"
+            "NextPMS Notifications", filters={"user": LEADERSHIP_USER, "title": "Cross-user"}, pluck="name"
         )
         for name in names:
             self.addCleanup(frappe.delete_doc, "NextPMS Notifications", name, ignore_permissions=True, force=True)
@@ -171,7 +174,7 @@ class IntegrationTestNextPMSNotifications(IntegrationTestCase):
     # own recipient via a User Permission, regardless of doctype-level read access.
     def test_user_cannot_list_another_users_notification(self):
         own_doc = self._make_notification(PROJECTS_MANAGER_USER)
-        other_doc = self._make_notification(DELIVERY_MANAGER_USER)
+        other_doc = self._make_notification(LEADERSHIP_USER)
 
         frappe.set_user(PROJECTS_MANAGER_USER)
         names = frappe.get_list("NextPMS Notifications", pluck="name")
@@ -182,6 +185,15 @@ class IntegrationTestNextPMSNotifications(IntegrationTestCase):
     # Permlevel 1 fields (label, user, linked_doctype, linked_document) are
     # read-only for every role except System Manager; only "viewed" (permlevel 0)
     # is writable by the other four roles.
+    def test_users_only_reach_their_own_notifications(self):
+        own = self._make_notification(PROJECTS_USER_USER)
+        other = self._make_notification(PROJECTS_MANAGER_USER)
+        frappe.set_user(PROJECTS_USER_USER)
+        names = frappe.get_list("NextPMS Notifications", pluck="name")
+        self.assertIn(own.name, names)
+        self.assertNotIn(other.name, names)
+        self.assertFalse(frappe.has_permission("NextPMS Notifications", "read", doc=other.name))
+
     def test_restricted_roles_cannot_write_permlevel1_fields(self):
         for user in RESTRICTED_ROLE_USERS:
             doc = self._make_notification(user)
@@ -248,7 +260,7 @@ class IntegrationTestNextPMSNotifications(IntegrationTestCase):
         )
 
     def test_mark_as_viewed_leaves_other_users_notifications_unread(self):
-        other_doc = self._make_notification(DELIVERY_USER_USER)
+        other_doc = self._make_notification(EMPLOYEE_USER)
         self._make_notification(PROJECTS_USER_USER)
         frappe.set_user(PROJECTS_USER_USER)
 

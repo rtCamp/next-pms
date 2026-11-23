@@ -22,6 +22,15 @@ export interface TechStackItem {
   doctype: "Tech Stack Item";
 }
 
+export interface DeliveryAcceleratorItem {
+  name: string;
+  delivery_accelerator: string;
+  parent: string;
+  parentfield: string;
+  parenttype: string;
+  doctype: "Project Delivery Accelerator";
+}
+
 export interface ProjectRepositoryConnection {
   name: string;
   creation: string;
@@ -92,6 +101,7 @@ export interface ProjectDoc {
   priority?: "Medium" | "Low" | "High";
   custom_host?: string;
   tech_stack?: TechStackItem[];
+  delivery_accelerators?: DeliveryAcceleratorItem[];
   is_active?: "Yes" | "No";
   status?: "Open" | "Completed" | "Cancelled";
   custom_project_phase: string;

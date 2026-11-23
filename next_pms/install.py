@@ -2,10 +2,10 @@ import os
 
 from frappe import _, get_app_path, get_doc, read_file
 
+from next_pms.permissions.docperms import apply_permissions
+
 
 def after_install():
-    create_roles()
-    add_project_manager_perm()
     setup_email_template()
     setup_project_threshold_reminder_template()
     create_default_project_phases()
@@ -13,21 +13,19 @@ def after_install():
     create_default_timeline_item_categories()
     create_default_growth_masters()
     create_default_technologies()
+    create_default_delivery_accelerators()
     setup_project_custom_fields()
     setup_project_target_hours_field()
     setup_project_tech_stack_field()
     setup_crm_deal_tech_stack_field()
+    setup_project_delivery_accelerators_field()
     setup_timesheet_rejection_reason_field()
     setup_timesheet_weekly_rejection_reason_field()
     setup_timesheet_rejected_hours_field()
     setup_timesheet_rejected_on_field()
     setup_leave_rejection_reason_field()
-    setup_task_permissions()
-    setup_todo_permissions()
-    setup_role_permissions()
-    setup_project_permissions_for_managers()
     setup_time_report_frequency()
-    setup_custom_docperms()
+    apply_permissions()
 
 
 def setup_timesheet_rejection_reason_field():
@@ -169,6 +167,26 @@ def setup_project_tech_stack_field():
     )
 
 
+def setup_project_delivery_accelerators_field():
+    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+    create_custom_fields(
+        {
+            "Project": [
+                {
+                    "fieldname": "delivery_accelerators",
+                    "fieldtype": "Table MultiSelect",
+                    "label": "Delivery Accelerators",
+                    "options": "Project Delivery Accelerator",
+                    "insert_after": "tech_stack",
+                    "permlevel": 1,
+                    "module": "Next Projects",
+                },
+            ]
+        }
+    )
+
+
 def after_app_install(app_name):
     if app_name in ("crm", "frappe_crm_xt"):
         setup_crm_deal_tech_stack_field()
@@ -286,252 +304,6 @@ def setup_project_custom_fields():
     )
 
 
-def setup_task_permissions():
-    import frappe
-    from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
-    from frappe.permissions import add_permission, setup_custom_perms, update_permission_property
-
-    doctype = "Task"
-    permissions = {"read": 1, "write": 1, "create": 1, "delete": 1}
-
-    for role in ("Projects Manager", "Delivery Manager", "Delivery User"):
-        if not frappe.db.exists("Role", role):
-            continue
-        add_permission(doctype, role, 0)
-        for perm_key, perm_val in permissions.items():
-            update_permission_property(doctype, role, 0, perm_key, perm_val)
-
-    if not frappe.db.exists("Role", "Employee"):
-        return
-
-    setup_custom_perms(doctype)
-    if not frappe.db.exists("Custom DocPerm", {"parent": doctype, "role": "Employee", "permlevel": 0, "if_owner": 1}):
-        frappe.get_doc(
-            {
-                "doctype": "Custom DocPerm",
-                "parent": doctype,
-                "parenttype": "DocType",
-                "parentfield": "permissions",
-                "role": "Employee",
-                "permlevel": 0,
-                "if_owner": 1,
-                **permissions,
-            }
-        ).insert(ignore_permissions=True)
-        validate_permissions_for_doctype(doctype)
-
-
-def setup_todo_permissions():
-    import frappe
-    from frappe.permissions import add_permission, update_permission_property
-
-    doctype = "ToDo"
-    role = "System Manager"
-    permlevel = 0
-
-    if not frappe.db.exists("Custom DocPerm", {"parent": doctype, "role": role, "permlevel": permlevel}):
-        add_permission(doctype, role, permlevel)
-
-    update_permission_property(doctype, role, permlevel, "delete", 1)
-
-
-def setup_role_permissions():
-    """Let Delivery Manager pick roles in the System Configuration settings, and let the
-    allocation managers beyond Projects Manager pick a customer in the allocation dialogs."""
-    import frappe
-    from frappe.permissions import add_permission, update_permission_property
-
-    permlevel = 0
-    for doctype, role in (
-        ("Role", "Delivery Manager"),
-        ("Customer", "Delivery Manager"),
-        ("Customer", "System Manager"),
-    ):
-        if not frappe.db.exists("Custom DocPerm", {"parent": doctype, "role": role, "permlevel": permlevel}):
-            add_permission(doctype, role, permlevel)
-
-        update_permission_property(doctype, role, permlevel, "select", 1)
-
-
-def setup_project_permissions_for_managers():
-    """Give System Manager and Delivery Manager full read/write on Project, including the
-    financial permlevels, so the project list and detail pages they can open return data."""
-    import frappe
-    from frappe.permissions import add_permission, update_permission_property
-
-    doctype = "Project"
-    base_permissions = {"read": 1, "write": 1, "create": 1, "select": 1, "report": 1, "export": 1, "share": 1}
-    field_permissions = {"read": 1, "write": 1}
-
-    for role, permlevels in (("System Manager", (0, 1, 2, 3)), ("Delivery Manager", (0, 1, 2))):
-        for permlevel in permlevels:
-            if not frappe.db.exists("Custom DocPerm", {"parent": doctype, "role": role, "permlevel": permlevel}):
-                add_permission(doctype, role, permlevel)
-            for perm_key, perm_val in (base_permissions if permlevel == 0 else field_permissions).items():
-                update_permission_property(doctype, role, permlevel, perm_key, perm_val)
-
-
-CUSTOM_DOCPERMS: tuple[tuple[str, str, int, int, tuple[str, ...]], ...] = (
-    # (doctype, role, permlevel, if_owner, granted permission types)
-    ("Project", "Desk User", 1, 0, ("read", "export")),
-    ("Project", "Employee", 0, 1, ("select", "read", "create", "export")),
-    (
-        "Project",
-        "Projects Manager",
-        0,
-        0,
-        ("select", "read", "write", "create", "delete", "report", "export", "import", "share", "print", "email"),
-    ),
-    ("Project", "Projects Manager", 1, 0, ("read", "write", "export")),
-    ("Project", "Projects Manager", 2, 0, ("read", "write", "export")),
-    ("Project", "Projects User", 0, 0, ("read", "write", "create", "delete", "report", "share", "print", "email")),
-    ("Project", "Projects User", 1, 0, ("read", "export")),
-    ("Project", "Projects User", 2, 0, ("read", "write", "export")),
-    (
-        "Project",
-        "Timesheet Manager",
-        0,
-        0,
-        ("select", "read", "write", "create", "delete", "report", "export", "import", "share", "print", "email"),
-    ),
-    ("Project", "Timesheet Manager", 1, 0, ("read", "write", "export")),
-    ("Project", "Timesheet Manager", 2, 0, ("read", "write", "export")),
-    ("Project", "Timesheet User", 0, 0, ("read",)),
-    ("Project", "Timesheet User", 1, 0, ("read", "export")),
-    ("Project", "Timesheet User", 2, 0, ("read", "export")),
-    ("Task", "Employee", 0, 0, ("read", "write", "create")),
-    (
-        "Task",
-        "Projects Manager",
-        0,
-        0,
-        ("select", "read", "write", "create", "delete", "report", "export", "import", "share"),
-    ),
-    ("Task", "Projects Manager", 1, 0, ("read", "write", "export")),
-    (
-        "Task",
-        "Projects User",
-        0,
-        0,
-        ("select", "read", "write", "create", "delete", "report", "share", "print", "email"),
-    ),
-    ("Task", "Projects User", 1, 0, ("read", "write", "export")),
-    (
-        "Timesheet",
-        "Accounts User",
-        0,
-        0,
-        ("read", "write", "create", "delete", "submit", "cancel", "amend", "report", "email"),
-    ),
-    ("Timesheet", "Accounts User", 1, 0, ("read", "write")),
-    ("Timesheet", "Employee", 0, 0, ("read", "write", "create", "delete")),
-    (
-        "Timesheet",
-        "HR User",
-        0,
-        0,
-        (
-            "read",
-            "write",
-            "create",
-            "delete",
-            "submit",
-            "cancel",
-            "amend",
-            "report",
-            "export",
-            "share",
-            "print",
-            "email",
-        ),
-    ),
-    ("Timesheet", "Projects Manager", 0, 0, ("submit",)),
-    ("Timesheet", "Projects Manager", 1, 0, ("read", "write", "export")),
-    (
-        "Timesheet",
-        "Projects User",
-        0,
-        0,
-        ("read", "write", "create", "delete", "submit", "cancel", "amend", "report", "share", "print", "email"),
-    ),
-    ("Timesheet", "Projects User", 1, 0, ("read", "write", "export")),
-)
-
-
-def setup_custom_docperms() -> None:
-    """Create the Project / Task / Timesheet role permissions previously shipped as the
-    Custom DocPerm fixture. A rule is inserted only when no Custom DocPerm exists for its
-    doctype, role, permlevel and if_owner combination. Existing rules are left untouched,
-    except a row that is still an unchanged copy of the doctype's standard permission,
-    which gets the grants."""
-    import frappe
-    from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
-    from frappe.permissions import setup_custom_perms, std_rights
-
-    existing_roles = set(frappe.get_all("Role", pluck="name"))
-    touched_doctypes = set()
-
-    for doctype, role, permlevel, if_owner, ptypes in CUSTOM_DOCPERMS:
-        if role not in existing_roles:
-            continue
-
-        setup_custom_perms(doctype)
-        rule = {"parent": doctype, "role": role, "permlevel": permlevel, "if_owner": if_owner}
-        existing = frappe.db.get_value("Custom DocPerm", rule, ["name", *std_rights], as_dict=True)
-        if existing:
-            if is_standard_copy(existing, rule, std_rights):
-                frappe.db.set_value("Custom DocPerm", existing.name, dict.fromkeys(ptypes, 1))
-                touched_doctypes.add(doctype)
-            continue
-
-        # ignore_permissions: runs from install/patch context as Administrator to seed role permissions
-        frappe.get_doc(
-            {
-                "doctype": "Custom DocPerm",
-                "parent": doctype,
-                "parenttype": "DocType",
-                "parentfield": "permissions",
-                "role": role,
-                "permlevel": permlevel,
-                "if_owner": if_owner,
-                **dict.fromkeys(ptypes, 1),
-            }
-        ).insert(ignore_permissions=True)
-        touched_doctypes.add(doctype)
-
-    for doctype in touched_doctypes:
-        validate_permissions_for_doctype(doctype)
-
-
-def is_standard_copy(custom_perm, rule, std_rights) -> bool:
-    import frappe
-    from frappe.utils import cint
-
-    standard = frappe.db.get_value("DocPerm", rule, std_rights, as_dict=True)
-    return bool(standard) and all(cint(custom_perm[r]) == cint(standard[r]) for r in std_rights)
-
-
-def add_project_manager_perm():
-    from frappe.permissions import add_permission, update_permission_property
-
-    role = "Projects Manager"
-    doctype = "Timesheet"
-    perm_level = 0
-    permissions = {
-        perm_level: {
-            "create": 0,
-            "read": 0,
-            "delete": 0,
-            "write": 0,
-            "export": 0,
-            "submit": 1,
-        }
-    }
-    add_permission(doctype, role, perm_level)
-    for perm_key, perm_val in permissions[perm_level].items():
-        update_permission_property(doctype, role, perm_level, perm_key, perm_val)
-
-
 def setup_email_template():
     base_path = get_app_path("next_pms", "templates", "timesheet")
     response = read_file(os.path.join(base_path, "daily_timesheet_reminder.html"))
@@ -605,16 +377,6 @@ def create_docs(records: list):
         get_doc(doc).insert(ignore_permissions=True, ignore_mandatory=True, ignore_if_duplicate=True)
 
 
-def create_roles():
-    import frappe
-
-    roles = ["Timesheet Manager", "Timesheet User"]
-
-    for role in roles:
-        role = frappe.get_doc({"doctype": "Role", "role_name": role, "is_custom": 1})
-        role.insert(ignore_permissions=True, ignore_if_duplicate=True)
-
-
 def create_default_project_phases():
     import frappe
 
@@ -648,6 +410,11 @@ def create_default_risk_masters():
 def create_default_technologies():
     technologies = ("WordPress VIP", "Drupal", "AEM", "Next.js", "Frappe")
     _insert_masters("Technology", [{"name": name, "technology_name": name} for name in technologies])
+
+
+def create_default_delivery_accelerators():
+    accelerators = ("Figma-to-FSE pipeline", "FE pipeline", "Garuda", "Training Videos")
+    _insert_masters("Delivery Accelerator", [{"name": name, "accelerator_name": name} for name in accelerators])
 
 
 def create_default_timeline_item_categories():

@@ -1,7 +1,6 @@
 [pre_model_sync]
 # Patches added in this section will be executed before doctypes are migrated
 # Read docs to understand patches: https://frappeframework.com/docs/v14/user/en/database-migrations
-next_pms.timesheet.patches.add_timesheet_role
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
@@ -14,33 +13,27 @@ next_pms.timesheet.patches.remove_project_name_from_task_rows
 
 
 next_pms.resource_management.patches.add_abbr_customer
-next_pms.resource_management.patches.update_resource_allocation_permissions
 # next_pms.timesheet.patches.update_task_and_project_costing
 next_pms.resource_management.patches.add_resource_reminder_template
 next_pms.timesheet.patches.add_index
 next_pms.timesheet.patches.remove_custom_fields
 next_pms.resource_management.patches.update_resource_allocation_status
 next_pms.next_projects.patches.create_default_project_phase
-next_pms.next_projects.patches.add_customer_permissions_for_projects_manager
 next_pms.resource_management.patches.populate_resource_allocation_cost
 next_pms.next_projects.patches.create_default_risk_masters
-next_pms.next_projects.patches.add_designation_permissions_for_pm
 next_pms.next_projects.patches.setup_project_lifetime_value_fields
 next_pms.timesheet.patches.add_timesheet_detail_index
 next_pms.next_projects.patches.setup_project_target_hours_field
-next_pms.timesheet.patches.add_project_report_permissions
 next_pms.timesheet.patches.setup_timesheet_rejection_reason_field
 next_pms.next_pms.patches.backfill_notification_title
 next_pms.resource_management.patches.update_active_allocation_currency_and_cost
 next_pms.next_projects.patches.share_projects_with_managers
-next_pms.next_projects.patches.setup_task_permissions
 next_pms.timesheet.patches.delete_legacy_project_views
 next_pms.timesheet.patches.add_team_timesheet_indexes
 next_pms.timesheet.patches.setup_timesheet_weekly_rejection_reason_field
 next_pms.next_pms.patches.setup_time_report_frequency
 next_pms.timesheet.patches.restore_stuck_processing_timesheets
 next_pms.next_pms.patches.backfill_risk_owner_and_initial_log
-next_pms.next_projects.patches.setup_todo_permissions
 next_pms.timesheet.patches.move_rejection_reason_to_timesheet_detail
 next_pms.project_currency.patches.setup_project_threshold_reminder_template
 next_pms.timesheet.patches.setup_timesheet_rejected_hours_field
@@ -49,11 +42,13 @@ next_pms.next_pms.patches.setup_leave_rejection_reason_field
 next_pms.next_projects.patches.setup_timeline_item_categories
 next_pms.next_projects.patches.create_default_growth_masters
 next_pms.next_pms.patches.backfill_growth_initiative_update_log
-next_pms.timesheet.patches.setup_role_permissions
-next_pms.next_projects.patches.setup_project_permissions_for_managers
 next_pms.next_projects.patches.create_default_technologies
 next_pms.next_projects.patches.setup_project_tech_stack_field
 next_pms.next_projects.patches.setup_crm_deal_tech_stack_field
-next_pms.next_pms.patches.setup_custom_docperms
 next_pms.next_pms.patches.backfill_risk_mitigated_on
 next_pms.timesheet.patches.setup_timesheet_rejected_on_field
+next_pms.next_pms.patches.apply_role_permissions #2026-11-20-customer-read
+next_pms.next_pms.patches.migrate_pms_role_holders
+next_pms.next_pms.patches.retire_timesheet_roles
+next_pms.timesheet.patches.add_timesheet_parent_project_index #2026-11-20-property-setter
+next_pms.next_projects.patches.setup_delivery_accelerators

@@ -5,20 +5,26 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import parse_json
 
+from next_pms.permissions.capabilities import has_capability
+
 TRACKING_VIEW_TYPE = "Tracking"
-
-
-TRACKING_LAYOUT_ROLES = frozenset({"Projects Manager"})
 
 
 class PMSViewSetting(Document):
     def validate(self):
         if self.public and self.user:
             self.user = None
+        if self.public and self.type != TRACKING_VIEW_TYPE and (self.is_new() or self.has_value_changed("public")):
+            check_public_view_permission()
+
+
+def check_public_view_permission():
+    if not has_capability("public_views"):
+        frappe.throw(frappe._("Not permitted to share views with everyone"), frappe.PermissionError)
 
 
 def check_tracking_layout_permission(project: str):
-    if not TRACKING_LAYOUT_ROLES & set(frappe.get_roles()):
+    if not has_capability("project_admin"):
         frappe.throw(frappe._("Not permitted to customize the tracking page"), frappe.PermissionError)
     if not frappe.has_permission("Project", "write", project):
         frappe.throw(frappe._("Not permitted to customize this project"), frappe.PermissionError)

@@ -60,6 +60,8 @@ export const DEFAULT_SIDEBAR: ProjectSidebar = {
   members: [],
   customers: [],
   billing_team: [],
+  manager_roles: { project_manager: [], engineering_manager: [] },
+  missing_manager_roles: { project_manager: null, engineering_manager: null },
   is_shared_with_everyone: false,
 };
 

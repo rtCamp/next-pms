@@ -5,6 +5,7 @@ import { useCallback, useMemo } from "react";
 import type { PropsWithChildren } from "react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import {
+  type FrappeError,
   useFrappeGetCall,
   useFrappePostCall,
   useFrappeUpdateDoc,
@@ -13,7 +14,7 @@ import {
 /**
  * Internal dependencies.
  */
-import { pickAllowed, toKebabCase } from "@/lib/utils";
+import { parseFrappeErrorMsg, pickAllowed, toKebabCase } from "@/lib/utils";
 import { RAG_STATUS } from "@/pages/projects/constants";
 import type { RagStatus } from "@/pages/projects/types";
 import {
@@ -216,7 +217,12 @@ export function SidebarProvider({ projectId, children }: SidebarProviderProps) {
           ? project?.custom_engineering_manager
           : project?.custom_project_manager;
 
-      await updateDoc("Project", projectId, { [fieldname]: userId ?? "" });
+      try {
+        await updateDoc("Project", projectId, { [fieldname]: userId ?? "" });
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+        return;
+      }
 
       if (userId) {
         await addMember(userId);
