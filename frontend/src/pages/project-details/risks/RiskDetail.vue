@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Button, Spinner } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { RichText } from "@/components/RichText";
 import LoadError from "@/pages/project-details/LoadError.vue";
 import DocumentUploadButton from "@/pages/project-details/shared/DocumentUploadButton.vue";
@@ -9,6 +10,7 @@ import { RISK_DOCTYPE } from "./constants";
 import RiskDetailHeader from "./RiskDetailHeader.vue";
 import RiskLevelPill from "./RiskLevelPill.vue";
 import RiskStatusBadge from "./RiskStatusBadge.vue";
+import { RISKS_HELP } from "./help";
 import RiskUpdateDialog from "./RiskUpdateDialog.vue";
 import { useRiskDetail } from "./useRiskDetail";
 
@@ -89,7 +91,10 @@ const {
       </section>
       <section>
         <div class="mb-3 flex items-center justify-between">
-          <h3 class="text-lg-medium text-ink-gray-7">Updates</h3>
+          <div class="flex min-w-0 items-center gap-1.5">
+            <h3 class="text-lg-medium text-ink-gray-7">Updates</h3>
+            <InfoHoverCard :help="RISKS_HELP.updates" />
+          </div>
           <Button
             v-if="permissions.canEdit"
             variant="ghost"
@@ -105,6 +110,7 @@ const {
             :author="update.author"
             :updated-at="update.updated_at"
             :note="update.note"
+            :show-actions="permissions.canEdit"
             :can-manage="detail.canManage(update)"
             @edit="detail.openEditUpdate(update)"
             @delete="detail.requestDeleteUpdate(update)"

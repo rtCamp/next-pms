@@ -55,7 +55,12 @@ const storySyntax = [
 ];
 
 export default defineConfigWithVueTs(
-  globalIgnores(["storybook-static/**", "node_modules/**"]),
+  globalIgnores([
+    "storybook-static/**",
+    "node_modules/**",
+    // Vendored help motion scenes, copied verbatim from the React app.
+    "src/assets/motions/**",
+  ]),
   {
     name: "app/files",
     files: ["**/*.{ts,mts,vue}"],

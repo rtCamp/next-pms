@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { Avatar, Button, Combobox } from "frappe-ui";
+import type { FieldHelp } from "@/components/InfoHoverCard";
 import { useEmployeeLookup } from "@/composables/useEmployeeLookup";
 import type { LookupOption } from "@/composables/useRemoteLookup";
+import HelpField from "@/pages/project-details/shared/HelpField.vue";
 import { toEmployeeUserOptions } from "@/pages/project-details/shared/permissions";
 import type { Person } from "@/pages/project-details/shared/types";
 import { errorMessage } from "@/utils/errors";
 
 const props = defineProps<{
   label: string;
+  /** The hover card beside the label. */
+  help?: FieldHelp;
   placeholder: string;
   /** Searches only while the dialog is open. */
   enabled: boolean;
@@ -63,43 +67,45 @@ function personOf(option: unknown) {
 </script>
 
 <template>
-  <Combobox
-    v-model="value"
-    v-model:query="query"
-    :label="label"
-    size="md"
-    variant="outline"
-    :options="options"
-    :loading="lookup.loading"
-    :filterable="false"
-    open-on-focus
-    :placeholder="placeholder"
-  >
-    <template #item-prefix="{ item }">
-      <Avatar
-        size="xs"
-        shape="circle"
-        :image="personOf(item).image"
-        :label="personOf(item).label"
-      />
-    </template>
-    <template v-if="value" #suffix="{ clear }">
-      <Button
-        class="size-4 shrink-0"
-        variant="ghost"
-        size="xs"
-        icon="lucide-x"
-        :label="`Clear ${label.toLowerCase()}`"
-        @click.stop="clear()"
-      />
-    </template>
-    <template v-if="searchError && !options.length" #empty>
-      <span role="alert" class="text-ink-red-6">{{ searchError }}</span>
-    </template>
-    <template v-else-if="searchError" #footer>
-      <p role="alert" class="px-3 py-1.5 text-base text-ink-red-6">
-        {{ searchError }}
-      </p>
-    </template>
-  </Combobox>
+  <HelpField v-slot="{ id }" :label="label" :help="help">
+    <Combobox
+      :id="id"
+      v-model="value"
+      v-model:query="query"
+      size="md"
+      variant="outline"
+      :options="options"
+      :loading="lookup.loading"
+      :filterable="false"
+      open-on-focus
+      :placeholder="placeholder"
+    >
+      <template #item-prefix="{ item }">
+        <Avatar
+          size="xs"
+          shape="circle"
+          :image="personOf(item).image"
+          :label="personOf(item).label"
+        />
+      </template>
+      <template v-if="value" #suffix="{ clear }">
+        <Button
+          class="size-4 shrink-0"
+          variant="ghost"
+          size="xs"
+          icon="lucide-x"
+          :label="`Clear ${label.toLowerCase()}`"
+          @click.stop="clear()"
+        />
+      </template>
+      <template v-if="searchError && !options.length" #empty>
+        <span role="alert" class="text-ink-red-6">{{ searchError }}</span>
+      </template>
+      <template v-else-if="searchError" #footer>
+        <p role="alert" class="px-3 py-1.5 text-base text-ink-red-6">
+          {{ searchError }}
+        </p>
+      </template>
+    </Combobox>
+  </HelpField>
 </template>

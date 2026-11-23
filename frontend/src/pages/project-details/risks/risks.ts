@@ -16,7 +16,8 @@ import { stripTags } from "@/utils/text";
 import {
   DEFAULT_RISK_SORT,
   MITIGATED_STATUS,
-  RISK_COLUMNS,
+  MITIGATED_RISK_COLUMNS,
+  OPEN_RISK_COLUMNS,
   RISK_UPDATE_FIELDS,
   type RiskColumnKey,
 } from "./constants";
@@ -113,13 +114,13 @@ export function riskGroups(
     {
       value: "open",
       label: "Open Risk",
-      columns: RISK_COLUMNS,
+      columns: OPEN_RISK_COLUMNS,
       rows: items.filter((item) => item.status !== MITIGATED_STATUS),
     },
     {
       value: "mitigated",
       label: "Mitigated Risk",
-      columns: RISK_COLUMNS,
+      columns: MITIGATED_RISK_COLUMNS,
       rows: items.filter((item) => item.status === MITIGATED_STATUS),
     },
   ];

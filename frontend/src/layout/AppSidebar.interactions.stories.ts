@@ -296,3 +296,67 @@ export const Search: Story = {
     );
   },
 };
+
+/** Help opens the tips for the current page beside the sidebar, and closes again from the same item or Escape. */
+export const Help: Story = {
+  render: (args) => ({
+    components: { AppSidebar },
+    setup() {
+      const router = useRouter();
+      router.addRoute({
+        path: "/tasks",
+        name: "task",
+        component: { render: () => null },
+      });
+      void router.push("/tasks");
+      onUnmounted(() => {
+        router.removeRoute("task");
+        void router.push("/");
+      });
+      return { args };
+    },
+    template: `
+      <div class="flex h-[600px]">
+        <AppSidebar v-bind="args" />
+      </div>
+    `,
+  }),
+  play: async ({ canvas }) => {
+    const help = canvas.getByRole("button", { name: "Help" });
+    await expect(help).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(help);
+    const panel = within(await screen.findByRole("dialog", { name: "Help" }));
+    await waitFor(() =>
+      expect(
+        panel.getByRole("button", { name: "Add time from a task" }),
+      ).toBeVisible(),
+    );
+    await expect(
+      within(panel.getByRole("group", { name: "Everywhere" })).getByRole(
+        "button",
+        { name: "Jump anywhere with search" },
+      ),
+    ).toBeInTheDocument();
+    await expect(help).toHaveAttribute("aria-expanded", "true");
+
+    await userEvent.click(help);
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+
+    // Escape closes it and puts focus back on the Help item.
+    await userEvent.click(help);
+    await screen.findByRole("dialog", { name: "Help" });
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(help).toHaveFocus());
+  },
+};
+
+/** Ctrl+Shift+Comma opens Settings from anywhere. */
+export const SettingsShortcut: Story = {
+  play: async () => {
+    await userEvent.keyboard("{Control>}{Shift>}[Comma]{/Shift}{/Control}");
+    await expect(
+      await screen.findByRole("tab", { name: "Profile" }),
+    ).toBeVisible();
+  },
+};

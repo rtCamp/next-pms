@@ -23,7 +23,7 @@ export interface FieldHelp {
   formula?: string;
   legend?: LegendItem[];
   details?: string[];
-  /** Page and anchor in the wiki, e.g. "Leadership-Dashboard#heatmap"; not shown for now. */
+  /** Page and anchor under `WIKI_BASE`, e.g. "Leadership-Dashboard#heatmap"; shown as a link at the end of the card. */
   wiki?: string;
 }
 

@@ -1,12 +1,13 @@
 import { expect } from "allure-playwright";
-import { escapeRegExp } from "../utils/stringUtils";
 import { scaleTimeout } from "../utils/timeouts";
-
-// A day cell prints its hours, or a dash.
-const DAY_CELL = /^(\d{2}:\d{2}|-)$/;
-
-// A week with no timesheet has nothing after its label, so the name may end there.
-const weekName = (label) => new RegExp(`^${escapeRegExp(label)}(?: |$)`);
+import {
+  dayCells,
+  pickCalendarDay,
+  rowColumns,
+  weekHeader,
+  weekHeaders,
+  weekRegion,
+} from "./timesheetGrid";
 
 /**
  * What the Personal and Project timesheet tabs share: the weeks they list, the
@@ -26,9 +27,6 @@ export class TimesheetTabPage {
     this.filterField = page.getByPlaceholder("Field");
     this.filterOperator = page.getByPlaceholder("Operator");
     this.filterValue = page.getByPlaceholder("Value");
-    this.approvalFilter = page.getByRole("combobox", {
-      name: "Select options",
-    });
     // `.first()`: a previous toast with the same text can still be on screen.
     this.toast = (text) =>
       page
@@ -38,12 +36,12 @@ export class TimesheetTabPage {
 
     this.addTimeDialog = page.getByRole("dialog", { name: "Add time" });
     this.addTimeOffDialog = page.getByRole("dialog", { name: "Add time off" });
-    this.dateField = this.addTimeDialog.getByRole("button", {
-      name: /^\d{4}-\d{2}-\d{2}$/,
+    this.dateField = this.addTimeDialog.getByRole("combobox", {
+      name: /^Date/,
     });
-    this.halfDayField = this.addTimeOffDialog
-      .getByRole("button")
-      .filter({ has: page.getByRole("textbox", { name: /Half Day Date/ }) });
+    this.halfDayField = this.addTimeOffDialog.getByPlaceholder(
+      "Select half day date",
+    );
   }
 
   // --------------------------------------
@@ -51,28 +49,26 @@ export class TimesheetTabPage {
   // --------------------------------------
 
   get weekHeaders() {
-    return this.page.getByRole("button", {
-      name: /^(This week|Last week|[A-Z][a-z]{2} \d+(, \d{4})? - )/,
-    });
+    return weekHeaders(this.page);
   }
 
-  /** The header button of a week, by its label ("This week", "Oct 5 - 11, 2026"). */
+  /** A week's header row, by its label ("This week", "Oct 5 - 11, 2026"). */
   weekHeader(label) {
-    return this.page.getByRole("button", { name: weekName(label) });
+    return weekHeader(this.page, label);
   }
 
   weekRegion(label) {
-    return this.page.getByRole("region", { name: weekName(label) });
+    return weekRegion(this.page, label);
   }
 
-  /** The day cells of a row, Monday first; their text is the hours or a dash. */
+  /** The seven day cells of a row, Monday first; their text is the hours or a dash. */
   cells(row) {
-    return row.getByRole("button").filter({ hasText: DAY_CELL });
+    return dayCells(row);
   }
 
-  /** The hours a row adds up to: the last thing it prints. */
+  /** The hours a row adds up to. */
   async rowTotal(row) {
-    return (await row.innerText()).trim().split("\n").pop().trim();
+    return (await rowColumns(row))[7];
   }
 
   // --------------------------------------
@@ -156,16 +152,14 @@ export class TimesheetTabPage {
     await this.page.getByRole("option", { name: value }).first().click();
   }
 
-  /** The dialog's From and To fields; the picker names both by the date they hold. */
+  /** The time-off dialog's From and To fields. */
   get dateFields() {
-    return this.addTimeOffDialog.getByRole("button", {
-      name: /^\d{4}-\d{2}-\d{2}$/,
-    });
+    return this.addTimeOffDialog.getByRole("combobox", { name: /^(From|To)/ });
   }
 
   /**
-   * Sets a time-off range and duration ("Full Day", "First Half", "Second Half"), then picks
-   * the leave type and reason; on the Team tab, `employee` first (it enables Leave type).
+   * Sets a time-off range and duration (a radio group), then picks the leave type and
+   * reason; on the Team tab, `employee` first (it enables Leave type).
    */
   async fillTimeOff({ employee, from, to = from, duration, type, reason }) {
     if (employee) {
@@ -175,7 +169,7 @@ export class TimesheetTabPage {
     await this.pickDate(this.dateFields.nth(1), to);
     if (duration) {
       await this.addTimeOffDialog
-        .getByRole("button", { name: duration, exact: true })
+        .getByRole("radio", { name: duration, exact: true })
         .click();
     }
     if (type) {
@@ -201,32 +195,8 @@ export class TimesheetTabPage {
   // Dates
   // --------------------------------------
 
-  /** Pages the open calendar to the month of `isoDate` and clicks that day. */
   async clickDay(isoDate) {
-    const [year, month, day] = isoDate.split("-").map(Number);
-    const target = new Date(year, month - 1, day);
-    const heading = this.page.getByRole("button", {
-      name: "Toggle calendar view",
-    });
-    await heading.waitFor({ timeout: scaleTimeout(10000) });
-    for (let paged = 0; paged < 24; paged++) {
-      const shown = new Date(`${await heading.innerText()} 1`);
-      const gap =
-        (target.getFullYear() - shown.getFullYear()) * 12 +
-        target.getMonth() -
-        shown.getMonth();
-      if (gap === 0) break;
-      await this.page
-        .getByRole("button", {
-          name: gap > 0 ? "Next month" : "Previous month",
-        })
-        .click();
-    }
-    // The grid also shows a few days of the months either side, in a lighter colour.
-    await this.page
-      .locator('[role="gridcell"]:not(.text-ink-gray-3)')
-      .filter({ hasText: new RegExp(`^${day}$`) })
-      .click();
+    await pickCalendarDay(this.page, isoDate);
   }
 
   /** Opens a date field's picker and picks `isoDate`. */
@@ -245,10 +215,8 @@ export class TimesheetTabPage {
       .getByRole("option", { name: /^Date$/i })
       .first()
       .click();
-    await this.page
-      .locator("span[role=button][aria-haspopup=dialog]")
-      .last()
-      .click();
+    // The range picker is an input with the "Value" placeholder; clicking it opens the calendar.
+    await this.filterValue.last().click();
     await this.clickDay(from);
     await this.clickDay(to);
     await this.closeFilterPanel();

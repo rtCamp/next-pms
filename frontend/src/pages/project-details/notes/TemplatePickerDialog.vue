@@ -11,6 +11,7 @@ import {
   toast,
   useCall,
 } from "frappe-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { useDoctypeLinkLookup } from "@/composables/useDoctypeLinkLookup";
 import { useRemoteLookup } from "@/composables/useRemoteLookup";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
@@ -22,6 +23,7 @@ import {
   TEMPLATE_PARAM,
   TEMPLATE_PICKER_LIMIT,
 } from "./constants";
+import { NOTES_HELP } from "./help";
 import { templateListFilters, templateSummary } from "./notes";
 import type { NoteTemplate } from "./types";
 
@@ -161,7 +163,10 @@ function useTemplate() {
         aria-label="Category"
       />
       <div class="relative flex flex-col gap-2">
-        <span class="text-base text-ink-gray-5">Templates</span>
+        <div class="flex min-w-0 items-center gap-1.5">
+          <span class="text-base text-ink-gray-5">Templates</span>
+          <InfoHoverCard :help="NOTES_HELP.templates" />
+        </div>
         <div
           v-if="!templates.loading && !templates.options.length"
           class="flex h-80 items-center justify-center"

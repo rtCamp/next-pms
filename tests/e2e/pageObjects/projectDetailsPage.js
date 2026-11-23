@@ -18,7 +18,8 @@ export class ProjectDetailsPage {
       name: "Cancel",
       exact: true,
     });
-    this.openInDesk = page.getByRole("button", { name: "Open in Desk" });
+    // A frappe-ui Button with an href renders as a link.
+    this.openInDesk = page.getByRole("link", { name: "Open in Desk" });
     this.addMemberButton = page.getByRole("button", { name: "Add member" });
     this.addCustomerButton = page.getByRole("button", { name: "Add customer" });
     this.membersDialog = page.getByRole("dialog", { name: "Add members" });
@@ -87,7 +88,11 @@ export class ProjectDetailsPage {
 
   /** Clicks Add or Remove on the one row the dialog's search narrows to. */
   async toggleInDialog(dialog, search, name, action) {
-    await dialog.getByRole("textbox").first().fill(search);
+    await dialog
+      .getByRole("searchbox")
+      .or(dialog.getByRole("textbox"))
+      .first()
+      .fill(search);
     await dialog.getByText(name).first().waitFor();
     await dialog
       .getByRole("button", { name: action, exact: true })

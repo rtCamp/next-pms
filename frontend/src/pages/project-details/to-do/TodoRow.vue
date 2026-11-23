@@ -2,7 +2,9 @@
 import { computed } from "vue";
 import { cva } from "class-variance-authority";
 import { Avatar, Button, Dropdown, Tooltip } from "frappe-ui";
+import TooltipMenuLabel from "@/pages/project-details/shared/TooltipMenuLabel.vue";
 import { PRIORITY_DOT } from "./constants";
+import { STATUS_TOOLTIP, UNLINK_TOOLTIP } from "./help";
 import LinkedChip from "./LinkedChip.vue";
 import {
   formatTodoDateTime,
@@ -19,7 +21,7 @@ const props = withDefaults(
     todo: Todo;
     /** The shorter row of a linked record's ToDos: no dates, no linked chip. */
     condensed?: boolean;
-    /** Offers Unlink when the ToDo is linked. */
+    /** Enables Unlink on a linked ToDo; otherwise it shows disabled, with the reason. */
     canUnlink?: boolean;
   }>(),
   { condensed: false, canUnlink: false },
@@ -40,14 +42,27 @@ const status = computed(() => todos.statusOf(props.todo));
 const statusLabel = computed(() =>
   status.value === "Closed" ? "Reopen" : "Mark as done",
 );
+const statusTooltip = computed(() =>
+  status.value === "Closed"
+    ? STATUS_TOOLTIP.reopen
+    : STATUS_TOOLTIP.close(status.value),
+);
 const assigneeHref = computed(
   () => `/desk/user/${encodeURIComponent(props.todo.allocated_to)}`,
 );
 
 const actions = computed(() => [
   { label: "Edit", onClick: () => todos.openEdit(props.todo) },
-  ...(props.canUnlink && props.todo.linked
-    ? [{ label: "Unlink", onClick: () => todos.requestUnlink(props.todo) }]
+  ...(props.todo.linked
+    ? [
+        {
+          label: "Unlink",
+          disabled: !props.canUnlink,
+          slot: props.canUnlink ? undefined : "tooltip",
+          tooltip: UNLINK_TOOLTIP(props.todo.linked),
+          onClick: () => todos.requestUnlink(props.todo),
+        },
+      ]
     : []),
   {
     label: "Delete",
@@ -108,7 +123,7 @@ const actions = computed(() => [
         </template>
       </div>
     </div>
-    <Tooltip :text="statusLabel">
+    <Tooltip :text="statusTooltip">
       <button
         type="button"
         class="flex shrink-0 transition-colors"
@@ -127,6 +142,13 @@ const actions = computed(() => [
       align="end"
     >
       <Button variant="ghost" icon="lucide-ellipsis" label="ToDo actions" />
+      <template #item-tooltip="{ item }">
+        <TooltipMenuLabel
+          :label="item.label"
+          :tooltip="item.tooltip"
+          :disabled="item.disabled"
+        />
+      </template>
     </Dropdown>
   </div>
 </template>

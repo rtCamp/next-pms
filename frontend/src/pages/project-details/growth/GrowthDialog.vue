@@ -16,6 +16,7 @@ import {
 } from "frappe-ui";
 import RichTextEditor from "@/pages/project-details/RichTextEditor.vue";
 import DisabledField from "@/pages/project-details/shared/DisabledField.vue";
+import HelpField from "@/pages/project-details/shared/HelpField.vue";
 import UpdateLogNote from "@/pages/project-details/shared/UpdateLogNote.vue";
 import { documentUrl } from "@/pages/project-details/shared/useDocumentWrite";
 import { useProjectDetails } from "@/pages/project-details/useProjectDetails";
@@ -26,6 +27,7 @@ import GrowthOwnerField from "./GrowthOwnerField.vue";
 import GrowthPriorityPill from "./GrowthPriorityPill.vue";
 import GrowthStatusBadge from "./GrowthStatusBadge.vue";
 import { growthForm, validateGrowthForm } from "./growth";
+import { GROWTH_HELP } from "./help";
 import type { GrowthDoc, GrowthForm, GrowthFormErrors } from "./types";
 import { useGrowth } from "./useGrowth";
 
@@ -295,6 +297,7 @@ async function submit(another: boolean) {
         <GrowthOwnerField
           v-model="form.activity_owner"
           label="Activity owner"
+          :help="GROWTH_HELP.activityOwner"
           placeholder="Select activity owner"
           :enabled="open"
         />
@@ -304,17 +307,23 @@ async function submit(another: boolean) {
           placeholder="Select ideation owner"
           :enabled="open"
         />
-        <TextInput
+        <HelpField
           v-if="!isEdit"
-          v-model="form.billable_outcome"
+          v-slot="{ id }"
           label="Billable outcome"
-          type="number"
-          min="0"
-          :error="errors.billable_outcome"
-          size="md"
-          variant="outline"
-          placeholder="0"
-        />
+          :help="GROWTH_HELP.billableOutcome"
+        >
+          <TextInput
+            :id="id"
+            v-model="form.billable_outcome"
+            type="number"
+            min="0"
+            :error="errors.billable_outcome"
+            size="md"
+            variant="outline"
+            placeholder="0"
+          />
+        </HelpField>
       </form>
     </ScrollArea>
 

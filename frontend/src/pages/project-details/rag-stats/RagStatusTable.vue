@@ -9,6 +9,7 @@ import {
   ListRows,
 } from "frappe-ui/list";
 import TruncatedText from "@/pages/project-details/TruncatedText.vue";
+import { APPROXIMATE_DATE_TOOLTIP } from "./help";
 import type { RagColumn, RagHistory, RagTrigger } from "./types";
 
 defineProps<{
@@ -58,7 +59,7 @@ function formatDate(date: string | null | undefined) {
                 v-if="
                   item.trigger_date && item.date_precision === 'Approximate'
                 "
-                text="Approximate date — refreshed on the weekly RAG recompute."
+                :text="APPROXIMATE_DATE_TOOLTIP"
               >
                 <span>~{{ formatDate(item.trigger_date) }}</span>
               </Tooltip>

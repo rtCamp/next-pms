@@ -543,8 +543,9 @@ module.exports = {
       custom_project_budget_hours: [],
     },
     employee: process.env.EMP3_NAME,
-    // Second filter value. Must be the business unit of `employee` above, or
-    // the two filters cannot intersect on them. Test Employee is Polaris.
+    // Second filter values: the Member Status and the Business Unit of `employee`
+    // above, or the filters cannot intersect on them. Test Employee is Polaris.
+    employeeStatus: "Active",
     businessUnit: "Polaris",
     // The Project filter matches on Timesheet Detail
     // (filters=[["Timesheet Detail","project","=",...]]), i.e. who *logged

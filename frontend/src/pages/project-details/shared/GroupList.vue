@@ -6,6 +6,7 @@ import {
   AccordionRoot,
   AccordionTrigger,
 } from "reka-ui";
+import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { groupRowMinWidth } from "./groups";
 import type { GroupColumn, RecordGroup } from "./types";
 
@@ -76,10 +77,11 @@ function columnStyle(column: GroupColumn) {
             <div
               v-for="column in group.columns"
               :key="column.key"
-              class="truncate px-2 py-1.5"
+              class="flex min-w-0 items-center gap-1.5 px-2 py-1.5"
               :style="columnStyle(column)"
             >
-              {{ column.label }}
+              <span class="truncate">{{ column.label }}</span>
+              <InfoHoverCard v-if="column.help" :help="column.help" />
             </div>
             <div class="w-8 shrink-0" />
           </div>

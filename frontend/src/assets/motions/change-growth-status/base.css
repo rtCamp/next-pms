@@ -1,0 +1,6 @@
+#stage { --ground:var(--color-surface-gray-2); --main:var(--color-ink-gray-8); --second:var(--color-ink-gray-8); --accent:#3B82F6; color:var(--second); font-family:var(--sans, system-ui, sans-serif) }
+.ground { position:absolute; inset:0; background:var(--ground) }
+.pms-cam { position:absolute; left:0; top:0; width:1920px; height:1080px; transform-origin:0 0 }
+.pms-win { position:absolute; left:240px; top:90px; width:1440px; height:900px; background:var(--color-surface-white); border-radius:12px; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,.06), 0 12px 40px rgba(0,0,0,.08); font-size:14px; color:var(--color-ink-gray-8) }
+.pms-abs { position:absolute }
+.pms-ring { position:absolute; border:3px solid var(--accent); border-radius:11px; pointer-events:none; box-sizing:border-box }

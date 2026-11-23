@@ -1,0 +1,1 @@
+{"width":1920,"height":1080,"background":"#F4F4F5","fonts":{"sans":{"family":"Inter"}},"scenes":[{"id":"resize-allocation","name":"Resize an allocation","dur":13,"desc":"Hover an allocation bar, drag its right edge a week further and select Save. Edit allocation opens with the new dates and Include weekends ticked, then Save Changes. The member's free week turns Full."}]}

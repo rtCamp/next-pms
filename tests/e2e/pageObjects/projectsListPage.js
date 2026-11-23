@@ -12,16 +12,13 @@ export class ProjectsListPage extends ProjectPage {
    */
   constructor(page) {
     super(page);
-    this.ragPicker = page
-      .getByRole("combobox")
-      .filter({ hasText: /^(RAG Status|Red|Amber|Green)/ })
-      .first();
+    // frappe-ui's MultiSelect drops the aria-label; its trigger is the first listbox button.
+    this.ragPicker = page.locator('button[aria-haspopup="listbox"]').first();
     // Phases and Status are single selects that show their choice in place of the label.
-    this.phaseSelect = page.getByRole("combobox").nth(2);
-    this.statusSelect = page.getByRole("combobox").nth(3);
-    // The breadcrumb's second button names the open view: "List view", "Kanban view"
-    // or a saved view's icon and label.
-    this.viewMenu = page.getByRole("banner").getByRole("button").nth(1);
+    this.phaseSelect = page.getByRole("combobox", { name: "Phases" });
+    this.statusSelect = page.getByRole("combobox", { name: "Status" });
+    // The breadcrumb's view button: "View: List view", "View: Kanban view" or a saved view's label.
+    this.viewMenu = page.getByRole("button", { name: /^View: / });
     this.addProjectButton = page
       .getByRole("banner")
       .getByRole("button", { name: "Add project", exact: true });
@@ -67,12 +64,9 @@ export class ProjectsListPage extends ProjectPage {
   // Kanban
   // --------------------------------------
 
-  /** A phase column: its label span and the cards under it share one full-height div. */
+  /** A phase column, a section named by its phase. */
   kanbanColumn(phase) {
-    return this.page
-      .locator("div.min-h-screen")
-      .filter({ has: this.page.getByText(phase, { exact: true }) })
-      .last();
+    return this.page.getByRole("region", { name: phase, exact: true });
   }
 
   /** A project's card on the board; it is a role="link" div. */

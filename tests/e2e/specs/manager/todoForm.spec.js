@@ -27,6 +27,9 @@ const NO_CUSTOM_FIELDS =
 
 // The form saves through these whitelisted methods, not /api/resource/ToDo.
 const TODO_API = "next_pms.next_projects.api.todo";
+// The app calls them with fetch, which reports an aborted request as Chromium's
+// "Failed to fetch" (React's axios said "Network Error").
+const NETWORK_ERROR = "Failed to fetch";
 
 const assigneeHref = (email) => `/desk/user/${encodeURIComponent(email)}`;
 
@@ -227,11 +230,11 @@ test.describe("Manager: ToDo form", () => {
     await todoPage.openNewTodo();
     await todoPage.fillTodo({ title: data.todo });
 
-    const createUrl = `**/api/method/${TODO_API}.create_project_todo`;
+    const createUrl = `**/method/${TODO_API}.create_project_todo`;
     await page.route(createUrl, (route) => route.abort());
     await todoPage.createButton.click();
 
-    await expect(todoPage.toast("Network Error")).toBeVisible();
+    await expect(todoPage.toast(NETWORK_ERROR)).toBeVisible();
     await expect(todoPage.form).toBeVisible();
     await expect(todoPage.editor).toContainText(data.todo);
     await expect(todoPage.toast("ToDo created")).toHaveCount(0);
@@ -241,16 +244,16 @@ test.describe("Manager: ToDo form", () => {
     await page.keyboard.press("Escape");
     await expect(todoPage.form).toBeHidden();
     // The first toast must be gone, or it would satisfy the next check by itself.
-    await expect(todoPage.toast("Network Error")).toBeHidden({
+    await expect(todoPage.toast(NETWORK_ERROR)).toBeHidden({
       timeout: scaleTimeout(15000),
     });
 
-    await page.route(`**/api/method/${TODO_API}.update_project_todo`, (route) =>
+    await page.route(`**/method/${TODO_API}.update_project_todo`, (route) =>
       route.abort(),
     );
     await todoPage.doneButton(data.statusTodo).click();
 
-    await expect(todoPage.toast("Network Error")).toBeVisible();
+    await expect(todoPage.toast(NETWORK_ERROR)).toBeVisible();
     await expect(todoPage.doneButton(data.statusTodo)).toBeVisible();
     await expect(todoPage.reopenButton(data.statusTodo)).toHaveCount(0);
     expect((await getDocument(TODO, seeded.name)).status).toBe("Open");

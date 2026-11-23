@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { computed, onScopeDispose, ref, watch } from "vue";
+import {
+  computed,
+  onScopeDispose,
+  ref,
+  useTemplateRef,
+  watch,
+  type ComponentPublicInstance,
+} from "vue";
+import { useRoute } from "vue-router";
 import {
   Sidebar,
   SidebarCollapseToggle,
@@ -7,6 +15,7 @@ import {
   useColorScheme,
   useKeyboardShortcut,
 } from "frappe-ui";
+import { HelpPanel } from "@/components/HelpPanel";
 import { NotificationTray } from "@/components/NotificationTray";
 import { useNotifications } from "@/composables/useNotifications";
 import type { Role } from "@/session";
@@ -16,7 +25,12 @@ import { SIDEBAR_COLLAPSED_KEY } from "./constants";
 import AppSidebarHeader from "./AppSidebarHeader.vue";
 import AppSidebarSection from "./AppSidebarSection.vue";
 import GlobalSearch from "./GlobalSearch.vue";
-import { NOTIFICATION_ITEM_TOOLTIP, NOTIFICATIONS_HELP } from "./help";
+import {
+  GENERAL_TIPS,
+  NOTIFICATION_ITEM_TOOLTIP,
+  NOTIFICATIONS_HELP,
+  tipsForRoute,
+} from "./help";
 import SettingsModal from "./settings/SettingsModal.vue";
 import {
   computeSearchItems,
@@ -69,6 +83,29 @@ useKeyboardShortcut({
     searchOpen.value = !searchOpen.value;
   },
 });
+
+useKeyboardShortcut({
+  combo: "Mod+Shift+Comma",
+  description: "Settings",
+  allowInInput: true,
+  allowInDialog: true,
+  handler: () => {
+    settingsOpen.value = !settingsOpen.value;
+  },
+});
+
+const route = useRoute();
+const helpOpen = ref(false);
+const helpItem = useTemplateRef<ComponentPublicInstance>("helpItem");
+
+/** The panel has no trigger to return focus to, so closing it focuses the Help item. */
+function focusHelpItem(event: Event) {
+  event.preventDefault();
+  (helpItem.value?.$el as HTMLElement | undefined)
+    ?.querySelector<HTMLElement>("button, a")
+    ?.focus();
+}
+const pageTips = computed(() => tipsForRoute(route.name, route.query));
 
 function runAction(action: NavAction["action"]) {
   if (action === "search") searchOpen.value = true;
@@ -179,13 +216,32 @@ const menuItems = computed(() => [
       />
     </div>
 
-    <div class="p-2">
+    <div class="flex flex-col gap-2 p-2">
+      <SidebarItem
+        ref="helpItem"
+        label="Help"
+        icon="lucide-circle-help"
+        :active="helpOpen"
+        :aria-expanded="helpOpen"
+        @click="helpOpen = !helpOpen"
+      >
+        <span class="truncate text-base leading-tighter">Help</span>
+      </SidebarItem>
       <SidebarCollapseToggle />
     </div>
   </Sidebar>
 
   <GlobalSearch v-model:open="searchOpen" :items="searchItems" />
   <SettingsModal v-model:open="settingsOpen" :roles="roles" />
+
+  <HelpPanel
+    v-model:open="helpOpen"
+    :page-tips="pageTips"
+    :general-tips="GENERAL_TIPS"
+    :roles="roles"
+    :class="sidebarCollapsed ? 'left-12' : 'left-60'"
+    @close-auto-focus="focusHelpItem"
+  />
 
   <NotificationTray
     v-if="hasNotifications"

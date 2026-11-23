@@ -1,3 +1,4 @@
+import { expect } from "@playwright/test";
 import { gotoWithRetry } from "../utils/navigation.js";
 import { scaleTimeout } from "../utils/timeouts";
 
@@ -33,9 +34,9 @@ export class TodoPage {
     // Title, Start and End are custom fields, so only sites that have them show them.
     this.titleInput = this.form.getByPlaceholder("Add a title");
     // A picker shows its placeholder until a day is picked, then the date.
-    this.dateTriggers = this.form
-      .locator("button")
-      .filter({ hasText: /^(Start|End|\d{4}-\d{2}-\d{2} \d{2}:\d{2} [ap]m)$/ });
+    this.dateTriggers = this.form.locator("button").filter({
+      hasText: /^(Start|End|\d{4}-\d{2}-\d{2} \d{1,2}:\d{2} [ap]m)$/,
+    });
     this.startTrigger = this.dateTriggers.nth(0);
     this.endTrigger = this.dateTriggers.nth(1);
     // The status and priority selects are comboboxes labelled by their value.
@@ -48,7 +49,7 @@ export class TodoPage {
     this.assigneeInput = this.form.getByPlaceholder("Assignee");
     this.linkInput = this.form.getByPlaceholder(/^Link to milestone/);
     this.clearLinkButton = this.form.getByRole("button", {
-      name: "Clear selection",
+      name: "Clear the linked record",
     });
     this.fieldError = (text) => this.form.getByText(text, { exact: true });
 
@@ -167,7 +168,7 @@ export class TodoPage {
     await this.page.getByText(priority, { exact: true }).last().click();
   }
 
-  /** Clicking a day sets the value and closes the picker; the time stays 12:00 am. */
+  /** Clicking a day sets the value; the time stays 12:00 am. */
   async pickDate(trigger, day) {
     await trigger.click();
     // The day buttons are missing from the accessibility tree while the dialog is open.
@@ -176,6 +177,11 @@ export class TodoPage {
       .filter({ hasText: new RegExp(`^${day}$`) })
       .first()
       .click();
+    // frappe-ui's DateTimePicker stays open for the time after a day is picked;
+    // Escape closes it, and would close the dialog once it is gone.
+    const picker = this.page.locator("[data-slot='content-body']:visible");
+    if (await picker.count()) await this.page.keyboard.press("Escape");
+    await expect(picker).toHaveCount(0);
   }
 
   /** Searches the users by name and picks the first match. */
@@ -257,9 +263,13 @@ export class TodoPage {
   // Calendar list view
   // --------------------------------------
 
+  /**
+   * A row of the milestones / touchpoints table; the month grid's weeks are rows
+   * too. The title is plain text that opens a hover card, not a button.
+   */
   listRow(title) {
-    return this.page.getByRole("row").filter({
-      has: this.page.getByRole("button", { name: title, exact: true }),
+    return this.page.locator("[data-slot=list-row]").filter({
+      has: this.page.getByText(title, { exact: true }),
     });
   }
 
@@ -292,9 +302,10 @@ export class TodoPage {
     });
   }
 
-  /** The row's actions button has no accessible name, so it is the row's last button. */
   async chooseListAction(title, action) {
-    await this.listRow(title).getByRole("button").last().click();
+    await this.listRow(title)
+      .getByRole("button", { name: `Actions for ${title}`, exact: true })
+      .click();
     await this.menuItems().filter({ hasText: action }).click();
   }
 

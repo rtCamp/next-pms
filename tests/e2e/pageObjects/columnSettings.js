@@ -66,11 +66,13 @@ export class ColumnSettings {
     await this.open();
     await this.addColumnButton.click();
 
-    // The picker opens as a second dialog over the panel.
+    // The picker opens over the panel, as a second dialog or a combobox listbox.
     const option = this.page
       .getByRole("dialog")
       .last()
-      .getByRole("option", { name, exact: true });
+      .or(this.page.getByRole("listbox").last())
+      .getByRole("option", { name, exact: true })
+      .first();
 
     await option
       .waitFor({ state: "visible", timeout: scaleTimeout(15000) })
