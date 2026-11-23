@@ -211,6 +211,10 @@ class TestProjectViewProjectListFilters(_ProjectViewBase):
         cls.p_completed = cls._make_project("PV Gamma Portal", cls.c_main, status="Completed")
         cls.p_cancelled = cls._make_project("PV Delta Portal", cls.c_main, status="Cancelled")
         cls.p_other = cls._make_project("PV Epsilon Portal", cls.c_other)
+        # An Employee-only caller lists only the projects shared with them.
+        frappe.share.add_docshare(
+            "Project", cls.p_alpha, READ_ONLY_USER, read=1, flags={"ignore_share_permission": True}
+        )
 
         frappe.clear_cache()
 

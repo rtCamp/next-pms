@@ -64,6 +64,10 @@ class TestEmployeeResourceDataCacheIsolation(IntegrationTestCase):
         cls.read_only_user = cls._make_user(READ_ONLY_USER)
         cls.employee = cls._make_employee("Arjun Mehta", user_id=cls.read_only_user)
         cls._make_allocation(cls.employee, cls.project, is_billable=0)
+        # An Employee-only caller sees only the projects shared with them.
+        frappe.share.add_docshare(
+            "Project", cls.project, READ_ONLY_USER, read=1, flags={"ignore_share_permission": True}
+        )
 
         # A second, billable allocation so the is_billable filter has something to
         # include/exclude.

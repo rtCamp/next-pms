@@ -7,6 +7,7 @@ from frappe.utils import add_days, flt, getdate
 
 from next_pms.api.utils import error_logger
 from next_pms.permissions.capabilities import has_capability, require_capability
+from next_pms.permissions.project import get_accessible_project_names
 from next_pms.timesheet.utils.constant import (
     MAX_PROJECT_TIMESHEET_PAGE_LENGTH,
     PROJECT_TIMESHEET_PAGE_LENGTH,
@@ -112,32 +113,6 @@ def get_currency_fields(meta_fields):
 def convert(value, rate):
     converted_value = flt(value) * flt(rate)
     return converted_value
-
-
-def get_project_filter_for_contractor(only_list=False):
-    if "Contractor" in frappe.get_roles() and frappe.session.user != "Administrator":
-        names = frappe.share.get_shared("Project", frappe.session.user, filters=[["everyone", "=", False]])
-        if only_list:
-            return names
-        return [["name", "in", names]]
-
-    return []
-
-
-def get_accessible_project_names() -> list[str] | None:
-    """Projects whose tasks the session user may see and log time on, or None when every
-    project they can read is fine. Contractors keep only individual shares; anyone else
-    without the Projects page gets projects shared with them or everyone, or that they own."""
-    user = frappe.session.user
-    if user == "Administrator":
-        return None
-    if "Contractor" in frappe.get_roles(user):
-        return get_project_filter_for_contractor(only_list=True)
-    if has_capability("projects_page"):
-        return None
-    shared = frappe.share.get_shared("Project", user)
-    owned = get_all("Project", filters={"owner": user}, pluck="name")
-    return sorted(set(shared) | set(owned))
 
 
 def get_accessible_project_filter() -> list:
