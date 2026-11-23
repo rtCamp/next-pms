@@ -282,8 +282,8 @@ def _summary(
     """One row per requirement and employee, including why a role is left unfilled."""
     weeks = round((end - start).days / 7)
     lines = [
-        f"**Project:** {project}",
-        f"**Duration:** {start.isoformat()} → {end.isoformat()} (~{weeks} weeks)",
+        f"- **Project:** {project}",
+        f"- **Duration:** {start.isoformat()} → {end.isoformat()} (~{weeks} weeks)",
         "",
         "| Role | Matched | Employee | Designation | Hours/day | Billability | Reason | Margin |",
         "|---|---|---|---|---|---|---|---|",

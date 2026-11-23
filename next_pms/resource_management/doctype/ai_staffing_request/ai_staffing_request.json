@@ -13,7 +13,8 @@
   "error_section",
   "error",
   "summary_section",
-  "summary"
+  "summary",
+  "summary_html"
  ],
  "fields": [
   {
@@ -76,11 +77,17 @@
    "fieldname": "summary",
    "fieldtype": "Markdown Editor",
    "label": "Summary",
-   "read_only": 1
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "summary_html",
+   "fieldtype": "HTML",
+   "label": "Summary"
   }
  ],
  "links": [],
- "modified": "2026-11-18 12:00:00.000000",
+ "modified": "2026-11-23 13:30:00.000000",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "AI Staffing Request",
