@@ -21,12 +21,20 @@ class EmployeeOverride:
         return self._salary_information.get("annual_salary_usd")
 
     @property
+    def custom_monthly_salary_usd(self) -> float | None:
+        return self._salary_information.get("monthly_salary_usd")
+
+    @property
     def custom_hourly_salary_usd(self) -> float | None:
         return self._salary_information.get("hourly_salary_usd")
 
     @property
     def custom_annual_salary_inr(self) -> float | None:
         return self._salary_information.get("annual_salary_inr")
+
+    @property
+    def custom_monthly_salary_inr(self) -> float | None:
+        return self._salary_information.get("monthly_salary_inr")
 
     @property
     def custom_hourly_salary_inr(self) -> float | None:
@@ -66,6 +74,7 @@ class EmployeeOverride:
                 continue
             converted = get_salary_breakdown([row], currency)[self.name]
             information[f"annual_salary_{currency.lower()}"] = converted["monthly_salary"] * 12
+            information[f"monthly_salary_{currency.lower()}"] = converted["monthly_salary"]
             information[f"hourly_salary_{currency.lower()}"] = converted["hourly_salary"]
         return information
 
