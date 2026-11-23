@@ -56,7 +56,7 @@ export const useCustomerLookup = ({
     }),
     getItems: (message) => message ?? [],
     mapOption: (customer) => ({
-      label: customer.customer_name,
+      label: customer.customer_name || customer.name,
       value: customer.name,
     }),
     selectedOption,

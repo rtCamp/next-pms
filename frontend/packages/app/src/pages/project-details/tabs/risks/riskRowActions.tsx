@@ -13,13 +13,12 @@ import type { FrappeError } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { useCapability } from "@/hooks/useCapability";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { useOwnerGatedPermissions } from "@/pages/project-details/useOwnerGatedPermissions";
 import { useRisks } from "./context";
 
 interface RiskRowActionsProps {
   riskName: string;
-  riskOwner?: string | null;
   isFollowing?: boolean;
   onAfterFollow?: () => void;
   showFollow?: boolean;
@@ -27,15 +26,14 @@ interface RiskRowActionsProps {
 
 export function RiskRowActions({
   riskName,
-  riskOwner,
   isFollowing = false,
   onAfterFollow,
   showFollow = true,
 }: RiskRowActionsProps) {
   const openEditRisk = useRisks((c) => c.actions.openEditRisk);
   const openDeleteRisk = useRisks((c) => c.actions.openDeleteRisk);
-  const { canEdit: canEditRisk, canDelete: canDeleteRisk } =
-    useOwnerGatedPermissions(riskOwner);
+  const canEditRisk = useCapability("projects_page");
+  const canDeleteRisk = useCapability("project_admin");
   const toast = useToasts();
 
   const { call: updateFollow } = useFrappePostCall(

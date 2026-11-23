@@ -10,9 +10,9 @@ import type { FrappeError } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { useCapability } from "@/hooks/useCapability";
 import { usePMSSettings, usePMSSystemSettings } from "@/hooks/usePMSSettings";
-import { ROLE_ACCESS } from "@/lib/constant";
-import { hasAnyRole, parseFrappeErrorMsg } from "@/lib/utils";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import { SETTINGS_SECTIONS } from "./constants";
 import { ProfilePage } from "./pages/profile";
@@ -33,16 +33,13 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const [useSystemAutoExpandWeeks, setUseSystemAutoExpandWeeks] =
     useState(true);
   const [systemForm, setSystemForm] = useState<SystemSettings>({ name: "" });
-  const { employeeName, userName, userId, image, roles } = useUser(
-    ({ state }) => ({
-      employeeName: state.employeeName,
-      userName: state.userName,
-      userId: state.userId,
-      image: state.image,
-      roles: state.roles,
-    }),
-  );
-  const canManageSystemSettings = hasAnyRole(roles, ROLE_ACCESS.systemSettings);
+  const { employeeName, userName, userId, image } = useUser(({ state }) => ({
+    employeeName: state.employeeName,
+    userName: state.userName,
+    userId: state.userId,
+    image: state.image,
+  }));
+  const canManageSystemSettings = useCapability("system_settings");
 
   const {
     error: settingsError,

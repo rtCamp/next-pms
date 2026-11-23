@@ -22,7 +22,6 @@ MANAGER = "test.linked.todo.pm@example.com"
 GATED = "test.linked.todo.pu@example.com"
 OUTSIDER = "test.linked.todo.emp@example.com"
 RESTRICTED = "test.linked.todo.restricted@example.com"
-DELIVERY = "test.linked.todo.du@example.com"
 
 
 class LinkedTodoTestCase(IntegrationTestCase):
@@ -36,7 +35,6 @@ class LinkedTodoTestCase(IntegrationTestCase):
         cls.make_user(GATED, ["Projects User"])
         cls.make_user(OUTSIDER, ["Employee"])
         cls.make_user(RESTRICTED, ["Projects Manager"])
-        cls.make_user(DELIVERY, ["Delivery User", "Timesheet User"])
         cls.project = cls.make_project("Linked ToDo Project")
         cls.other_project = cls.make_project("Linked ToDo Other Project")
         if not frappe.db.exists("User Permission", {"user": RESTRICTED, "allow": "Project"}):
@@ -199,23 +197,6 @@ class TestLinkedTodoValidation(LinkedTodoTestCase):
         with self.assertRaises(frappe.PermissionError):
             initiative.save()
 
-    def test_user_outside_project_roles_needs_read_on_the_new_todo(self):
-        initiative = self.make_initiative()
-        others_todo = self.make_todo()
-        own_todo = self.make_todo(allocated_to=DELIVERY)
-
-        frappe.set_user(DELIVERY)
-        self.assertTrue(frappe.has_permission("Project", "read", doc=self.project))
-        initiative = frappe.get_doc(GROWTH, initiative.name)
-        initiative.append("linked_todos", {"todo": others_todo.name})
-        with self.assertRaises(frappe.PermissionError):
-            initiative.save()
-
-        initiative = frappe.get_doc(GROWTH, initiative.name)
-        initiative.append("linked_todos", {"todo": own_todo.name})
-        initiative.save()
-        self.assertEqual(self.linked_todos(initiative), [own_todo.name])
-
     def test_reassigned_todo_does_not_block_unrelated_owner_edits(self):
         initiative = self.make_initiative()
         todo = self.make_todo()
@@ -278,7 +259,7 @@ class TestCreateLinkedTodo(LinkedTodoTestCase):
     def test_user_who_cannot_edit_owner_creates_nothing(self):
         milestone = self.make_timeline_item()
         before = frappe.db.count("ToDo")
-        frappe.set_user(GATED)
+        frappe.set_user(OUTSIDER)
         with self.assertRaises(frappe.PermissionError):
             create_linked_todo(PTI, milestone.name, {"description": "Sneaky"})
         frappe.set_user("Administrator")
@@ -334,8 +315,7 @@ class TestLinkAndUnlinkTodo(LinkedTodoTestCase):
         todo = self.make_todo(allocated_to=GATED)
 
         frappe.set_user(GATED)
-        with self.assertRaises(frappe.PermissionError):
-            link_todo(todo.name, PTI, milestone.name)
+        link_todo(todo.name, PTI, milestone.name)
         with self.assertRaises(frappe.PermissionError):
             link_todo(todo.name, GROWTH, others_initiative.name)
         link_todo(todo.name, GROWTH, own_initiative.name)
@@ -386,9 +366,9 @@ class TestLinkAndUnlinkTodo(LinkedTodoTestCase):
         self.assertEqual(unlink_todo(todo.name), {"todo": todo.name})
 
     def test_unlink_needs_write_on_the_owner(self):
-        milestone = self.make_timeline_item()
+        others_initiative = self.make_initiative(activity_owner=MANAGER)
         todo = self.make_todo(allocated_to=GATED)
-        link_todo(todo.name, PTI, milestone.name)
+        link_todo(todo.name, GROWTH, others_initiative.name)
         frappe.set_user(GATED)
         with self.assertRaises(frappe.PermissionError):
             unlink_todo(todo.name)
@@ -537,8 +517,8 @@ class TestLinkableRecords(LinkedTodoTestCase):
 
         frappe.set_user(GATED)
         self.assertEqual(
-            get_linkable_records(project),
-            [{"doctype": GROWTH, "name": own.name, "title": "Own", "type": "Growth Initiative"}],
+            {(record["doctype"], record["name"]) for record in get_linkable_records(project)},
+            {(PTI, milestone.name), (PTI, touchpoint.name), (GROWTH, own.name)},
         )
 
     def test_get_linkable_records_rejects_unknown_project(self):

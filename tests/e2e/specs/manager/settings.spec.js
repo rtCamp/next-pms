@@ -25,6 +25,8 @@ const SYSTEM = "System Configuration";
 const SYSTEM_DOC = "Timesheet Settings";
 const SAVED = "Settings saved";
 const TOO_MANY = /Auto Expand Weeks by Default cannot exceed 12/;
+const REJECTED_WINDOW =
+  "Rejected timesheet edit/approval window (working days)";
 const APP_DEFAULT_WEEKS = 4;
 
 const systemDoc = () => getDocument(SYSTEM_DOC, SYSTEM_DOC);
@@ -244,6 +246,38 @@ test.describe("Settings: personal and system configuration", () => {
       expect((await systemDoc()).auto_expand_weeks_by_default).toBe(original);
     } finally {
       await setSystem({ auto_expand_weeks_by_default: original ?? 0 });
+    }
+  });
+
+  test("TC410: The rejected timesheet window shows with backdated entries off, and a changed value is saved and stored on Timesheet Settings", async () => {
+    allure.story("Settings");
+    const original = (await systemDoc()).allow_rejected_timesheet_edit_till;
+    // Never 0: the rejected-window cases (TC407 to TC409) may run alongside.
+    const changed = original === 5 ? 6 : 5;
+    try {
+      await openOn(SYSTEM, "Timesheets");
+      // The window applies whether backdating is allowed or not.
+      const backdated = settings.checkbox("Allow Backdated Entries");
+      const ticked = await backdated.isChecked();
+      await backdated.setChecked(false);
+      await expect(settings.label(REJECTED_WINDOW)).toBeVisible();
+      await backdated.setChecked(ticked);
+
+      await settings.numberField(REJECTED_WINDOW).fill(String(changed));
+      await settings.save();
+      await expect(settings.toast(SAVED)).toBeVisible();
+      expect((await systemDoc()).allow_rejected_timesheet_edit_till).toBe(
+        changed,
+      );
+
+      await page.reload();
+      await settings.open();
+      await settings.openTab(SYSTEM, "Timesheets");
+      await expect(settings.numberField(REJECTED_WINDOW)).toHaveValue(
+        String(changed),
+      );
+    } finally {
+      await setSystem({ allow_rejected_timesheet_edit_till: original });
     }
   });
 });

@@ -156,18 +156,22 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   weeksRef.current = weeks;
 
   const handleTimesheetInfo = useCallback(
-    (info: { message?: TeamMemberPayload | null; start_date?: string }) => {
-      if (!info?.start_date) return;
+    (info: {
+      message?: TeamMemberPayload | null;
+      employee?: string;
+      start_date?: string;
+    }) => {
+      if (!info?.start_date || !info.employee) return;
 
       const week = weeksRef.current.find((w) =>
         w.dates.includes(info.start_date!),
       );
       if (!week) return;
 
-      const handler = refreshRegistry.current.get(week.start_date);
-      if (handler && info.message) {
-        handler(info.message);
-      }
+      refreshRegistry.current.get(week.start_date)?.(
+        info.employee,
+        info.message ?? null,
+      );
       void refreshWeeks();
     },
     [refreshWeeks],

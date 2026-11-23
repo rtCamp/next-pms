@@ -6,6 +6,7 @@ import {
   cancelDocument,
   deleteDocument,
   getDocList,
+  updateDocument,
 } from "../../utils/api/apiClient";
 import { createTimesheet } from "../../utils/api/timesheetRequests";
 import { dateInWeek, weekLabel } from "../../utils/dateUtils";
@@ -27,7 +28,7 @@ test.describe("Employee: Submit a week for approval", () => {
     weeks = new TimesheetWeeksPage(page);
   });
 
-  test("TC220: A week that can be submitted asks for an approver and then reads Approval pending", async ({
+  test("TC220: A week that can be submitted offers its reporting manager and project managers as approvers and then reads Approval pending", async ({
     jsonDir,
   }) => {
     allure.story("Timesheet");
@@ -38,6 +39,7 @@ test.describe("Employee: Submit a week for approval", () => {
     ];
     const project = await findProjectId(data.payloadCreateProject);
     const label = weekLabel(3);
+    const reviewer = data.employees.SubmitReviewer;
 
     // The case books its own week and removes it, so a retry starts from the same place.
     const booked = () =>
@@ -65,9 +67,15 @@ test.describe("Employee: Submit a week for approval", () => {
           date: dateInWeek(3, day),
           employee: process.env.EMP_ID,
         },
-        "manager",
+        "admin",
       );
     }
+
+    // The manager is EMP's reporting manager and this project's manager; the reviewer is
+    // only its engineering manager.
+    await updateDocument("Project", project, {
+      custom_engineering_manager: reviewer.user.email,
+    });
 
     try {
       await weeks.goto();
@@ -85,6 +93,15 @@ test.describe("Employee: Submit a week for approval", () => {
       const sendTo = weeks.submitDialog.getByRole("combobox", {
         name: "Send to (required)",
       });
+      await expect(sendTo).toHaveValue(process.env.REP_MAN_NAME);
+      // Only people with a stake in this week: no other Projects Manager in the company.
+      await sendTo.click();
+      const options = weeks.page.getByRole("option");
+      await expect(options).toHaveCount(2);
+      for (const name of [process.env.REP_MAN_NAME, reviewer.name]) {
+        await expect(options.filter({ hasText: name })).toHaveCount(1);
+      }
+      await options.filter({ hasText: process.env.REP_MAN_NAME }).click();
       await expect(sendTo).toHaveValue(process.env.REP_MAN_NAME);
       // The call can take over ten seconds on a busy site; the dialog closes after it.
       const submitted = weeks.page.waitForResponse(
@@ -113,6 +130,9 @@ test.describe("Employee: Submit a week for approval", () => {
       await expect(weeks.submitButton(label)).toHaveCount(0);
     } finally {
       await clear();
+      await updateDocument("Project", project, {
+        custom_engineering_manager: "",
+      });
     }
   });
 });

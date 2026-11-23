@@ -78,6 +78,8 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const roles: UserContextProps["state"]["roles"] =
     appData?.message?.roles ?? window.frappe?.boot?.user?.roles ?? [];
+  const capabilities: UserContextProps["state"]["capabilities"] =
+    appData?.message?.capabilities ?? window.frappe?.boot?.capabilities ?? {};
 
   useEffect(() => {
     if (!appData) {
@@ -181,6 +183,7 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
           image,
           isSidebarCollapsed,
           roles,
+          capabilities,
           currencies,
           hasBuField,
           hasIndustryField,

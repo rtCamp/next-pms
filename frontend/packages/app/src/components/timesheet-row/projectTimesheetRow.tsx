@@ -12,6 +12,7 @@ import { Skeleton } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies
  */
+import { useCapability } from "@/hooks/useCapability";
 import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
 import { PROJECT_TIMESHEET_HELP } from "@/pages/timesheet/project/help";
 import type { WeeklyApprovalTarget } from "@/pages/timesheet/team/weekly-approval/types";
@@ -71,6 +72,7 @@ export const ProjectTimesheetRow = ({
   openProjectApproval,
 }: ProjectTimesheetRowProps) => {
   const { openAddTimeDialog } = useTimesheetOutletContext();
+  const canEditOthersTime = useCapability("edit_others_time");
   const projectsData = useMemo(() => {
     return projects.map((project) => ({
       ...project,
@@ -101,12 +103,15 @@ export const ProjectTimesheetRow = ({
                 highlightTimeEntries={true}
                 lockApproved={false}
                 className="pl-7.5"
-                onCellClick={(date) =>
-                  openAddTimeDialog({
-                    date,
-                    project: project.project,
-                    projectLabel: project.projectName || project.project,
-                  })
+                onCellClick={
+                  canEditOthersTime
+                    ? (date) =>
+                        openAddTimeDialog({
+                          date,
+                          project: project.project,
+                          projectLabel: project.projectName || project.project,
+                        })
+                    : undefined
                 }
               >
                 {project.members.map((member) => (
@@ -140,14 +145,18 @@ export const ProjectTimesheetRow = ({
                     disabled={member.status === "Approved"}
                     backdateRestrictedBefore={member.backdateRestrictedBefore}
                     rejectionUnlockedDates={member.rejectionUnlockedDates}
-                    onCellClick={(date) =>
-                      openAddTimeDialog({
-                        date,
-                        employeeId: member.employee,
-                        employeeLabel: member.label,
-                        project: project.project,
-                        projectLabel: project.projectName || project.project,
-                      })
+                    onCellClick={
+                      canEditOthersTime
+                        ? (date) =>
+                            openAddTimeDialog({
+                              date,
+                              employeeId: member.employee,
+                              employeeLabel: member.label,
+                              project: project.project,
+                              projectLabel:
+                                project.projectName || project.project,
+                            })
+                        : undefined
                     }
                   >
                     {({ totalTimeEntriesInHours, dailyWorkingHours }) => (
@@ -162,6 +171,7 @@ export const ProjectTimesheetRow = ({
                             status={task.status}
                             className="pl-19.5"
                             disabled={
+                              !canEditOthersTime ||
                               member.status === "Approved" ||
                               member.status === "Processing Timesheet"
                             }

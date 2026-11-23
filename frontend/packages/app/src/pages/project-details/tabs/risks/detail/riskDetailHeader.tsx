@@ -127,7 +127,6 @@ export function RiskDetailHeader({
 
         <RiskRowActions
           riskName={risk.name}
-          riskOwner={risk.risk_owner}
           isFollowing={isFollowing}
           onAfterFollow={onAfterFollow}
         />

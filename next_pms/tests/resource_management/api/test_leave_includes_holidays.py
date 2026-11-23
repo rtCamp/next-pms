@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import frappe
 from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
@@ -236,3 +238,15 @@ class TestLeaveWeekendRendering(IntegrationTestCase):
         # the frontend derives which days to skip from from_date/to_date.
         self.assertLessEqual(getdate(member_row["from_date"]), getdate(SEP_SAT))
         self.assertGreaterEqual(getdate(member_row["to_date"]), getdate(SEP_SUN))
+
+    def test_leaves_survive_a_parallel_request_filling_the_cache(self):
+        expected = get_employee_leaves((self.employee,), MON, SEP_TUE_NEXT)
+
+        # A parallel request filled the key after this one's read missed, so redis_cache returns None.
+        with (
+            patch.object(frappe.cache, "get_value", return_value=None),
+            patch.object(frappe.cache, "exists", return_value=True),
+        ):
+            leaves = get_employee_leaves((self.employee,), MON, SEP_TUE_NEXT)
+
+        self.assertEqual(leaves, expected)

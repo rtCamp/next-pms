@@ -121,7 +121,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-10 18:03:05.100798",
+ "modified": "2026-11-13 18:25:27.636479",
  "modified_by": "Administrator",
  "module": "Timesheet",
  "name": "PMS View Setting",
@@ -151,6 +151,7 @@
   },
   {
    "create": 1,
+   "delete": 1,
    "if_owner": 1,
    "read": 1,
    "role": "Employee",

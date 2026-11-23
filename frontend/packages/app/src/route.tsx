@@ -8,13 +8,12 @@ import { useDocumentTitle } from "@next-pms/hooks";
 /**
  * Internal dependencies.
  */
-import { ROLE_ACCESS, ROUTES } from "@/lib/constant";
+import { ROUTES } from "@/lib/constant";
 import ReactLazyPreload from "@/lib/lazy-preload";
-import { hasAnyRole } from "@/lib/utils";
-import type { RouteConfig, RouteKey } from "@/types";
+import { hasCapability } from "@/lib/utils";
+import type { Capability, RouteConfig, RouteKey } from "@/types";
 import LayoutWithSidebar from "./layout";
 import { useUser } from "./providers/user";
-import { Role } from "./types";
 /**
  * Lazy load components used outside the route config (parameterized and
  * catch-all routes).
@@ -54,62 +53,55 @@ export const routeConfig: Record<
 > = {
   "dashboard-leadership": {
     Component: ReactLazyPreload(() => import("@/pages/dashboard/leadership")),
-    allowedRoles: ROLE_ACCESS.leadershipDashboard,
+    capability: "leadership_dashboard",
     title: "Leadership Dashboard",
   },
   "dashboard-manager": {
     Component: ReactLazyPreload(() => import("@/pages/dashboard/manager")),
-    allowedRoles: ROLE_ACCESS.managerDashboard,
+    capability: "manager_dashboard",
     title: "Manager Dashboard",
   },
   project: {
     Component: ReactLazyPreload(() => import("@/pages/projects")),
-    allowedRoles: ROLE_ACCESS.projects,
+    capability: "projects_page",
     title: "Projects",
   },
   task: {
     Component: ReactLazyPreload(() => import("@/pages/tasks/list")),
-    allowedRoles: [],
     title: "Tasks",
   },
   "timesheet-personal": {
     Component: ReactLazyPreload(() => import("@/pages/timesheet/personal")),
-    allowedRoles: [],
     title: "Timesheet",
   },
   "timesheet-team": {
     Component: ReactLazyPreload(() => import("@/pages/timesheet/team")),
-    allowedRoles: ROLE_ACCESS.reviewTimesheets,
+    capability: "team_timesheet_pages",
     title: "Team Timesheet",
   },
   "timesheet-project": {
     Component: ReactLazyPreload(() => import("./pages/timesheet/project")),
-    allowedRoles: ROLE_ACCESS.reviewTimesheets,
+    capability: "team_timesheet_pages",
     title: "Project Timesheet",
   },
   "allocations-team": {
     Component: ReactLazyPreload(() => import("@/pages/allocations/team")),
-    allowedRoles: [],
     title: "Team Allocations",
   },
   "allocations-project": {
     Component: ReactLazyPreload(() => import("@/pages/allocations/project")),
-    allowedRoles: [],
     title: "Project Allocations",
   },
   "not-found": {
     Component: ReactLazyPreload(() => import("@/pages/404")),
-    allowedRoles: [],
     title: "Page Not Found",
   },
   "no-employee": {
     Component: ReactLazyPreload(() => import("@/pages/noEmployee")),
-    allowedRoles: [],
     title: "Access Restricted",
   },
   "whats-new": {
     Component: ReactLazyPreload(() => import("@/pages/whats-new")),
-    allowedRoles: [],
     title: "What's new",
   },
 };
@@ -138,8 +130,8 @@ export function Router() {
           />
           <BaseRoute
             element={
-              <RoleProtectedRoute
-                allowedRoles={routeConfig["dashboard-leadership"].allowedRoles}
+              <CapabilityProtectedRoute
+                capability={routeConfig["dashboard-leadership"].capability}
               />
             }
           >
@@ -154,8 +146,8 @@ export function Router() {
           </BaseRoute>
           <BaseRoute
             element={
-              <RoleProtectedRoute
-                allowedRoles={routeConfig["dashboard-manager"].allowedRoles}
+              <CapabilityProtectedRoute
+                capability={routeConfig["dashboard-manager"].capability}
               />
             }
           >
@@ -170,8 +162,8 @@ export function Router() {
           </BaseRoute>
           <BaseRoute
             element={
-              <RoleProtectedRoute
-                allowedRoles={routeConfig["project"].allowedRoles}
+              <CapabilityProtectedRoute
+                capability={routeConfig["project"].capability}
               />
             }
           >
@@ -186,8 +178,8 @@ export function Router() {
           </BaseRoute>
           <BaseRoute
             element={
-              <RoleProtectedRoute
-                allowedRoles={routeConfig["task"].allowedRoles}
+              <CapabilityProtectedRoute
+                capability={routeConfig["task"].capability}
               />
             }
           >
@@ -202,8 +194,8 @@ export function Router() {
           </BaseRoute>
           <BaseRoute
             element={
-              <RoleProtectedRoute
-                allowedRoles={routeConfig["project"].allowedRoles}
+              <CapabilityProtectedRoute
+                capability={routeConfig["project"].capability}
               />
             }
           >
@@ -231,8 +223,8 @@ export function Router() {
           </BaseRoute>
           <BaseRoute
             element={
-              <RoleProtectedRoute
-                allowedRoles={routeConfig["timesheet-team"].allowedRoles}
+              <CapabilityProtectedRoute
+                capability={routeConfig["timesheet-team"].capability}
               />
             }
           >
@@ -249,8 +241,8 @@ export function Router() {
           </BaseRoute>
           <BaseRoute
             element={
-              <RoleProtectedRoute
-                allowedRoles={routeConfig["timesheet-project"].allowedRoles}
+              <CapabilityProtectedRoute
+                capability={routeConfig["timesheet-project"].capability}
               />
             }
           >
@@ -287,8 +279,8 @@ export function Router() {
           </BaseRoute>
           <BaseRoute
             element={
-              <RoleProtectedRoute
-                allowedRoles={routeConfig["whats-new"].allowedRoles}
+              <CapabilityProtectedRoute
+                capability={routeConfig["whats-new"].capability}
               />
             }
           >
@@ -355,22 +347,24 @@ const AuthenticatedRoute = () => {
   return <Outlet />;
 };
 
-const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: Role[] }) => {
-  const { isLoading, isAppDataLoading, roles } = useUser(({ state }) => ({
-    isLoading: state.isLoading,
-    isAppDataLoading: state.isAppDataLoading,
-    roles: state.roles,
-  }));
+const CapabilityProtectedRoute = ({
+  capability,
+}: {
+  capability?: Capability;
+}) => {
+  const { isLoading, isAppDataLoading, capabilities } = useUser(
+    ({ state }) => ({
+      isLoading: state.isLoading,
+      isAppDataLoading: state.isAppDataLoading,
+      capabilities: state.capabilities,
+    }),
+  );
 
   if (isLoading || isAppDataLoading) {
     return <Spinner isFull />;
   }
 
-  if (allowedRoles.length == 0) {
-    return <Outlet />;
-  }
-
-  if (!hasAnyRole(roles, allowedRoles)) {
+  if (capability && !hasCapability(capabilities, capability)) {
     return <Navigate to={ROUTES["not-found"]} replace />;
   }
 

@@ -46,6 +46,8 @@ export type TeamMemberPayload = {
   holidays: HolidayProp[];
   backdate_restricted_before: string | null;
   rejection_unlocked_dates: string[];
+  /** Whether the viewer may approve this week; absent on realtime rows. */
+  can_approve?: boolean;
 };
 
 export type TeamMembersPayload = {

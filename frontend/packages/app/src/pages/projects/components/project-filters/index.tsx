@@ -21,6 +21,7 @@ import {
  * Internal dependencies.
  */
 import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
+import { useCapability } from "@/hooks/useCapability";
 import { useDebounce } from "@/hooks/useDebounce";
 import { getDefaultCurrency, toSelectorColumns } from "@/lib/utils";
 import { useUser } from "@/providers/user";
@@ -28,6 +29,7 @@ import { useProjectFilters } from "./useProjectFilters";
 import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../../constants";
 import { CURRENCY_HELP, CURRENCY_SORT_TOOLTIP } from "../../help";
 import {
+  BURN_COLUMN_KEYS,
   MAX_PINNED_COLUMNS,
   PROJECT_LIST_COLUMNS,
 } from "../../list/columns/constants";
@@ -36,8 +38,12 @@ import { Phase, type ProjectStatus, type RagStatus } from "../../types";
 import { useProjectViews } from "../../views";
 
 const AVAILABLE_COLUMNS = toSelectorColumns(PROJECT_LIST_COLUMNS);
+const AVAILABLE_COLUMNS_WITHOUT_BURN = toSelectorColumns(
+  PROJECT_LIST_COLUMNS.filter((column) => !BURN_COLUMN_KEYS.has(column.key)),
+);
 
 export function ProjectFilters() {
+  const canViewBurn = useCapability("view_cost_and_invoice_burn");
   const {
     filters: { search, ragStatus, phase, status, advanced, currency },
     sort,
@@ -193,7 +199,9 @@ export function ProjectFilters() {
         {!isKanban && (
           <ColumnSelector
             columns={selectedColumns}
-            availableColumns={AVAILABLE_COLUMNS}
+            availableColumns={
+              canViewBurn ? AVAILABLE_COLUMNS : AVAILABLE_COLUMNS_WITHOUT_BURN
+            }
             pinnable
             maxPinned={MAX_PINNED_COLUMNS}
             labels={{
@@ -221,7 +229,9 @@ export function ProjectFilters() {
                 disabled: !currency,
                 tooltipText: !currency ? CURRENCY_SORT_TOOLTIP : undefined,
               },
-              { field: "cost_burn_percent", label: "Cost burn" },
+              ...(canViewBurn
+                ? [{ field: "cost_burn_percent", label: "Cost burn" }]
+                : []),
               {
                 field: "total_budget",
                 label: "Total budget",

@@ -222,6 +222,21 @@ class TestPmReport(TestNextPms):
             self.assertEqual(run_id, "mock-run-id-123")
             self.assertEqual(status, "Generating")
 
+    def test_projects_user_cannot_generate_or_resync_reports(self):
+        user = "pm-report-projects-user@example.com"
+        frappe.set_user("Administrator")
+        if not frappe.db.exists("User", user):
+            frappe.get_doc({"doctype": "User", "email": user, "first_name": "PM Report Projects User"}).insert(
+                ignore_permissions=True
+            )
+        frappe.get_doc("User", user).add_roles("Projects User")
+        self.login_as_user(user)
+
+        with self.assertRaises(frappe.PermissionError):
+            generate_pm_report(self.project_name, "2026-06-01", "2026-06-15")
+        with self.assertRaises(frappe.PermissionError):
+            resync_report(self.project_name, "any-run")
+
     # ------------------------------------------------------------------ #
     # generate_pm_report — validation guards
     # ------------------------------------------------------------------ #

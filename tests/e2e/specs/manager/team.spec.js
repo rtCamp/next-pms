@@ -1,5 +1,6 @@
 const path = require("path");
 const { test, expect } = require("../../playwright.fixture.cjs");
+import { signedInContext } from "../../helpers/storageStateHelper";
 import { TeamPage } from "../../pageObjects/teamPage";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import {
@@ -107,8 +108,8 @@ test.describe("Manager: Team Tab", () => {
     expect(secondEmployeeRows).not.toEqual(firstEmployeeRows);
   });
 
-  test("TC47: Modify or delete employee time entries", async ({
-    page,
+  test("TC47: A System Manager modifies or deletes an employee's time entries", async ({
+    browser,
     jsonDir,
   }) => {
     allure.story("Team");
@@ -132,29 +133,42 @@ test.describe("Manager: Team Tab", () => {
       "globalSetup did not create this test's own employee",
     ).toBeTruthy();
 
-    await teamPage.viewNextWeek();
-    await teamPage.openReviewTimesheetPane(reviewee);
-    const date = getShortFormattedDate(getDateForWeekday(TC47data.cell.col));
-    await teamPage.updateDurationOfTimeEntry({
-      date,
-      project: TC47data.taskInfo.project,
-      task: TC47data.taskInfo.task,
-      desc: TC47data.taskInfo.desc,
-      newDuration: TC47data.taskInfo.duration,
-    });
-    await teamPage
-      .toastNotification(TC47data.taskInfo.toastNotification)
-      .waitFor({ state: "visible" });
-    await page.reload();
-    await teamPage.viewNextWeek();
-    await teamPage.searchEmployee(reviewee);
-    await teamPage.toggleEmployeeTimesheet(reviewee);
-    const cellText = await timesheetPage.getCellText({
-      employee: reviewee,
-      rowName: TC47data.cell.rowName,
-      col: TC47data.cell.col,
-    });
-    expect(cellText).toContain(TC47data.taskInfo.duration);
+    const context = await signedInContext(
+      browser,
+      TC47data.employees.EdTeam.user,
+      "team-editor",
+    );
+    try {
+      const editor = await context.newPage();
+      teamPage = new TeamPage(editor);
+      timesheetPage = new TimesheetPage(editor);
+      await teamPage.goto();
+      await teamPage.viewNextWeek();
+      await teamPage.openReviewTimesheetPane(reviewee);
+      const date = getShortFormattedDate(getDateForWeekday(TC47data.cell.col));
+      await teamPage.updateDurationOfTimeEntry({
+        date,
+        project: TC47data.taskInfo.project,
+        task: TC47data.taskInfo.task,
+        desc: TC47data.taskInfo.desc,
+        newDuration: TC47data.taskInfo.duration,
+      });
+      await teamPage
+        .toastNotification(TC47data.taskInfo.toastNotification)
+        .waitFor({ state: "visible" });
+      await editor.reload();
+      await teamPage.viewNextWeek();
+      await teamPage.searchEmployee(reviewee);
+      await teamPage.toggleEmployeeTimesheet(reviewee);
+      const cellText = await timesheetPage.getCellText({
+        employee: reviewee,
+        rowName: TC47data.cell.rowName,
+        col: TC47data.cell.col,
+      });
+      expect(cellText).toContain(TC47data.taskInfo.duration);
+    } finally {
+      await context.close();
+    }
   });
 
   test("TC50: Open task details popup", async ({ jsonDir }) => {

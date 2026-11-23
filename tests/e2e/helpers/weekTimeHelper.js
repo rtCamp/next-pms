@@ -227,11 +227,12 @@ const createLoginUser = async (employee, roles) => {
 
 /**
  * Creates the throwaway employees a case lists in `payloadCreateWeekEmployees`
- * ({ <name>: { managed, holidayList, weekendsOff, designation, department, skills, user } })
+ * ({ <name>: { managed, reportsTo, holidayList, weekendsOff, designation, department, skills, user } })
  * and records their ids on the stub.
  * They report to the manager unless `managed` is false (the manager stays their leave
  * approver either way); `holidayList` replaces the company's (created empty when missing),
  * and `weekendsOff` replaces it with one that has every Saturday and Sunday off.
+ * `reportsTo` names another employee of the case to report to instead.
  * `user: { roles }` also creates a user to sign in as, kept in the stub as `user`.
  */
 const createEmployees = async (entry) => {
@@ -277,6 +278,14 @@ const createEmployees = async (entry) => {
       name: `${SEEDED_EMPLOYEE.first_name} ${lastName}`,
       ...(user && { user }),
     };
+  }
+  for (const [name, options] of Object.entries(
+    entry.payloadCreateWeekEmployees ?? {},
+  )) {
+    if (!options?.reportsTo) continue;
+    await updateDocument("Employee", entry.employees[name].id, {
+      reports_to: entry.employees[options.reportsTo].id,
+    });
   }
 };
 
@@ -372,8 +381,7 @@ const bookTime = async (entry, specs, taskOf) => {
           date,
           employee,
         },
-        // A week past the backdate limit can only be booked by an admin.
-        spec.role ?? "manager",
+        spec.role ?? "admin",
       );
       (booked[`${spec.employee}|${spec.weeksAgo}`] ??= []).push(date);
     }
@@ -436,10 +444,15 @@ export const reseedLeave = async (entry, key) => {
   return entry.leaves[key];
 };
 
-/** Sends weeks for approval as admin and decides them, all days or only `days`. */
+/**
+ * Sends weeks for approval as admin and decides them, all days or only `days`. A week goes to
+ * the employee's own reporting manager when the case names one, else to the manager, who must
+ * then manage one of the week's projects: the server accepts no other approver.
+ */
 const decideWeeks = async (entry, tcId, specs, booked) => {
   for (const { employee, weeksAgo, status, days, note } of specs) {
     const id = employeeId(entry, employee);
+    const reportsTo = entry.payloadCreateWeekEmployees?.[employee]?.reportsTo;
     const dates = (booked[`${employee}|${weeksAgo}`] ?? []).filter(
       (date) => !days || days.some((day) => dateInWeek(weeksAgo, day) === date),
     );
@@ -448,7 +461,9 @@ const decideWeeks = async (entry, tcId, specs, booked) => {
         start_date: dateInWeek(weeksAgo, "Mon"),
         end_date: dateInWeek(weeksAgo, "Sun"),
         notes: `${tcId} - submitted by global setup`,
-        approver: process.env.REP_MAN_ID,
+        approver: reportsTo
+          ? employeeId(entry, reportsTo)
+          : process.env.REP_MAN_ID,
         employee: id,
       },
       "admin",

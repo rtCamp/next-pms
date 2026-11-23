@@ -2,14 +2,13 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe import _, enqueue, only_for
+from frappe import _, enqueue
 from frappe.desk.notifications import extract_mentions
 from frappe.query_builder import DocType, Order
 from frappe.utils import cint, getdate, strip_html_tags
 from frappe.utils.user import get_user_fullname
 
 from next_pms.next_projects.api.constant import (
-    ALLOWED_ROLES,
     DEFAULT_STAR_MAX,
     RATING_FIELDS,
     RESOURCE_RATING_FIELDS,
@@ -22,6 +21,7 @@ from next_pms.next_projects.api.utils import (
     get_employee_image_map,
     get_user_details_map,
 )
+from next_pms.permissions.capabilities import require_capability
 
 
 def is_customer_feedback_available() -> bool:
@@ -54,7 +54,7 @@ def get_customer_feedback_availability():
     Returns:
         dict: ``{ available: bool }`` — ``True`` when the rtcamp app is installed.
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
     return {"available": is_customer_feedback_available()}
 
 
@@ -78,7 +78,7 @@ def get_project_feedback_timeline(
         where ``score`` is an int 0-100 (or ``None`` when pending) and ``feedback_id`` is
         the Customer Feedback name to pass to ``get_project_feedback_breakdown``.
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
     ensure_customer_feedback_available()
     if not project:
         frappe.throw(_("Project is required"))
@@ -144,7 +144,7 @@ def get_project_feedback_breakdown(feedback_name: str):
         where ``ratings`` is a list of ``{ fieldname, label, value, percent, stars,
         star_max }`` and ``responses`` a list of ``{ fieldname, label, answer }``.
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
     ensure_customer_feedback_available()
 
     rating_fields = RATING_FIELDS["Project"]
@@ -214,7 +214,7 @@ def get_team_feedback_list(project: str, start: int = 0, limit: int = 20):
         (``feedback_by``) avatar image. ``average`` is on the star scale (e.g. 2.8 of 4);
         the raw rating columns are not exposed.
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
     ensure_customer_feedback_available()
     if not project:
         frappe.throw(_("Project is required"))
@@ -303,7 +303,7 @@ def get_team_feedback_breakdown(feedback_name: str):
         image, and ``ratings`` is a list of ``{ fieldname, label, fieldtype, value, stars,
         star_max, percent }``.
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
     ensure_customer_feedback_available()
 
     evaluation_type = frappe.db.get_value("Customer Feedback", feedback_name, "evaluation_type")
@@ -380,7 +380,7 @@ def get_feedback_comments(feedback: str):
         user_full_name, user_image, comment, reply_to, created_at, modified_at,
         edited, deleted, deleted_at, reply_count and nested replies.
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
     ensure_customer_feedback_available()
     ensure_feedback_exists(feedback)
     return get_feedback_comment_tree(feedback)
@@ -403,7 +403,7 @@ def add_comment_to_feedback(feedback: str, comment: str, project: str, reply_to:
     Returns:
         list[dict]: The refreshed comment tree, as in get_feedback_comments.
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
     ensure_customer_feedback_available()
     ensure_feedback_exists(feedback)
     ensure_feedback_belongs_to_project(feedback, project)
@@ -460,7 +460,7 @@ def update_comment_in_feedback(comment_name: str, comment: str):
     Returns:
         list[dict]: The refreshed comment tree, as in get_feedback_comments.
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
     ensure_customer_feedback_available()
     doc = get_feedback_comment_doc(comment_name)
     ensure_comment_author(doc)
@@ -489,7 +489,7 @@ def delete_comment_from_feedback(comment_name: str):
     Returns:
         list[dict]: The refreshed comment tree, as in get_feedback_comments.
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
     ensure_customer_feedback_available()
     doc = get_feedback_comment_doc(comment_name)
     ensure_comment_author(doc)

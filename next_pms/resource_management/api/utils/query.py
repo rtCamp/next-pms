@@ -328,7 +328,6 @@ def leave_includes_holidays(leave: dict) -> bool:
     return flt(leave.get("total_leave_days"), 2) >= flt(span, 2)
 
 
-@redis_cache
 def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
     """Return Leave Application records that overlap a date range for one or more employees.
 
@@ -409,7 +408,15 @@ def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
         ]
         ```
     """
+    leaves = _get_employee_leaves(employee, start_date, end_date)
+    if leaves is None:
+        # redis_cache returns None when a parallel request fills the key between its read and exists check
+        leaves = _get_employee_leaves.__wrapped__(employee, start_date, end_date)
+    return leaves
 
+
+@redis_cache
+def _get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
     if isinstance(employee, tuple) and not employee:
         return []
 
@@ -459,6 +466,9 @@ def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
         row["includes_holidays"] = leave_includes_holidays(row)
 
     return results
+
+
+get_employee_leaves.clear_cache = _get_employee_leaves.clear_cache
 
 
 def get_allocation_worked_hours_for_given_employee(project: str, employee: str, start_date: str, end_date: str):

@@ -12,8 +12,8 @@ import {
  * Internal dependencies.
  */
 import { InfiniteScroll } from "@/components/infiniteScroll";
-import { ROLE_ACCESS } from "@/lib/constant";
-import { hasAnyRole, isWeekendEntryAllowed } from "@/lib/utils";
+import { useCapability } from "@/hooks/useCapability";
+import { isWeekendEntryAllowed } from "@/lib/utils";
 import { useAllocationOutletContext } from "@/pages/allocations/allocationOutletContext";
 import {
   ALLOCATIONS_GRID_HELP,
@@ -26,7 +26,6 @@ import {
   useGuardedAction,
   useUnsavedChangesSource,
 } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
-import { useUser } from "@/providers/user";
 import { useAllocationsTeam } from "./context";
 import { SubHeader } from "./subHeader";
 import { ALLOCATIONS_PAGE_SIZE } from "../constants";
@@ -51,12 +50,8 @@ export const AllocationsTeamTable = () => {
   const ganttRef = useUnsavedChangesSource();
   const guardAction = useGuardedAction();
 
-  const roles = useUser(({ state }) => state.roles);
-  const canManageAllocations = hasAnyRole(roles, ROLE_ACCESS.manageAllocations);
-  const canManageAiAllocations = hasAnyRole(
-    roles,
-    ROLE_ACCESS.manageAiAllocations,
-  );
+  const canManageAllocations = useCapability("manage_allocations");
+  const canManageAiAllocations = useCapability("manage_ai_allocations");
 
   const {
     openAddAllocationDialog,

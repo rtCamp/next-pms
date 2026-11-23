@@ -15,6 +15,7 @@ import {
 /**
  * Internal dependencies.
  */
+import { useCapability } from "@/hooks/useCapability";
 import type { ViewsContextProps } from "@/providers/views";
 import type { View } from "@/types";
 
@@ -55,6 +56,7 @@ function ViewsDropdown({
   createView,
   children,
 }: ViewsDropdownProps) {
+  const canMakePublic = useCapability("public_views");
   const toViewItem = (view: View) => ({
     label: view.label,
     key: String(view.name),
@@ -123,12 +125,19 @@ function ViewsDropdown({
                       icon: <Edit className="size-4 mr-2" />,
                       onClick: () => editView(view),
                     },
-                    {
-                      label: view.public ? "Make Private" : "Make Public",
-                      icon: <Lock className="size-4 mr-2" />,
-                      onClick: () =>
-                        updateView({ ...view, public: view.public ? 0 : 1 }),
-                    },
+                    ...(view.public || canMakePublic
+                      ? [
+                          {
+                            label: view.public ? "Make Private" : "Make Public",
+                            icon: <Lock className="size-4 mr-2" />,
+                            onClick: () =>
+                              updateView({
+                                ...view,
+                                public: view.public ? 0 : 1,
+                              }),
+                          },
+                        ]
+                      : []),
                   ]
                 : []),
             ],

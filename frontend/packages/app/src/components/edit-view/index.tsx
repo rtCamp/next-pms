@@ -17,6 +17,7 @@ import { useForm } from "@tanstack/react-form";
 /**
  * Internal dependencies.
  */
+import { useCapability } from "@/hooks/useCapability";
 import type { EditViewModalProps } from "./types";
 import { EmojiPicker } from "../create-view/emojiPicker";
 import { PUBLIC_VIEW_HELP } from "../create-view/help";
@@ -34,6 +35,7 @@ function EditViewModal({
   view,
   editView,
 }: EditViewModalProps) {
+  const canMakePublic = useCapability("public_views");
   const toast = useToasts();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -153,20 +155,22 @@ function EditViewModal({
           </div>
         </div>
 
-        <form.Field
-          name="isPublic"
-          children={(field) => (
-            <div className="flex min-w-0 items-center gap-1.5">
-              <Switch
-                size="sm"
-                label="Make this view public"
-                value={field.state.value}
-                onChange={field.handleChange}
-              />
-              <InfoHoverCard help={PUBLIC_VIEW_HELP} />
-            </div>
-          )}
-        />
+        {canMakePublic && (
+          <form.Field
+            name="isPublic"
+            children={(field) => (
+              <div className="flex min-w-0 items-center gap-1.5">
+                <Switch
+                  size="sm"
+                  label="Make this view public"
+                  value={field.state.value}
+                  onChange={field.handleChange}
+                />
+                <InfoHoverCard help={PUBLIC_VIEW_HELP} />
+              </div>
+            )}
+          />
+        )}
       </div>
     </Dialog>
   );

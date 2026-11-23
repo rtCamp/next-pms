@@ -10,7 +10,7 @@
  "is_standard": "Yes",
  "letter_head": null,
  "letterhead": null,
- "modified": "2025-01-30 11:13:55.757667",
+ "modified": "2026-11-13 21:01:51.152983",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "Capacity Planning",
@@ -21,7 +21,10 @@
  "report_type": "Script Report",
  "roles": [
   {
-   "role": "Delivery Manager"
+   "role": "PMS Leadership"
+  },
+  {
+   "role": "System Manager"
   }
  ],
  "timeout": 3600
