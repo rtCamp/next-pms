@@ -18,11 +18,11 @@ test.describe("Manager: Project RAG stats and Feedback", () => {
     project = data.payloadDeleteProject5.projectId;
   });
 
-  /** Opens the tab, or skips when the site does not offer it. */
+  /** Opens the tab, or skips when the site does not offer it (tabs without a flag are always offered). */
   const open = async (tab, flag) => {
     await details.goto(project);
     test.skip(
-      !(await details.boot(flag)),
+      Boolean(flag) && !(await details.boot(flag)),
       `This site has no ${tab} tab (rtcamp app not installed)`,
     );
     await details.tab(tab).click();
@@ -132,7 +132,7 @@ test.describe("Manager: Project RAG stats and Feedback", () => {
     page,
   }) => {
     allure.story("Projects");
-    await open("Feedback", "has_customer_feedback");
+    await open("Feedback");
     await expect(page).toHaveURL(/tab=feedback/);
     await expect(
       page.getByRole("button", { name: "Client feedback" }),
@@ -144,7 +144,7 @@ test.describe("Manager: Project RAG stats and Feedback", () => {
     page,
   }) => {
     allure.story("Projects");
-    await open("Feedback", "has_customer_feedback");
+    await open("Feedback");
     await page.getByRole("button", { name: "Client feedback" }).click();
     await page
       .getByRole("menuitem", { name: "Team feedback" })

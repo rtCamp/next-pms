@@ -1,0 +1,24 @@
+/* Hide both navbar */
+.navbar {
+  display: none;
+}
+
+/* Hide the footer */
+.web-footer {
+  display: none;
+}
+
+[data-path="customer-feedback/new"] .page-content-wrapper .container {
+    margin: 0 !important;
+    max-width: 100%;
+}
+
+[data-path="customer-feedback/new"] .page-content-wrapper .container .page_content{
+    margin: 0;
+    max-width: 100%;
+    min-height: 100%;
+}
+
+[data-path="customer-feedback/new"] .page-content-wrapper .container .web-form-container{
+    margin-top: -3rem;
+}
