@@ -11,6 +11,7 @@ import {
   SolidPriorityHigh,
   Zap,
 } from "@rtcamp/frappe-ui-react/icons";
+import { useStore } from "@tanstack/react-form";
 
 /**
  * Internal dependencies.
@@ -87,14 +88,15 @@ export function Specifics({ form, isEditing, submitting }: SpecificsProps) {
   const canEditDeliveryAccelerators = useCapability("project_admin");
   const [deliveryAcceleratorSearch, setDeliveryAcceleratorSearch] =
     useState("");
-  const deliveryAcceleratorValue = useProjectDetail(
-    (state) => state.project?.delivery_accelerators,
+  const deliveryAcceleratorValue = useStore(
+    form.store,
+    (state) => state.values.deliveryAccelerators,
   );
   const deliveryAcceleratorSelectedOptions = useMemo(
     () =>
-      (deliveryAcceleratorValue ?? []).map(({ delivery_accelerator }) => ({
-        label: delivery_accelerator,
-        value: delivery_accelerator,
+      deliveryAcceleratorValue.map((deliveryAccelerator) => ({
+        label: deliveryAccelerator,
+        value: deliveryAccelerator,
       })),
     [deliveryAcceleratorValue],
   );
