@@ -85,7 +85,6 @@ export const toProjectGroup = (
   project: project.project,
   projectName: project.project_name,
   approvableEmployees: new Set(project.approvable_employees ?? []),
-  editableEmployees: new Set(project.editable_employees ?? []),
   members: project.members.map(toProjectMember),
 });
 

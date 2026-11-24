@@ -45,7 +45,6 @@ export type ProjectTimesheetProject = {
   project: string;
   projectName: string | null;
   approvableEmployees: Set<string>;
-  editableEmployees: Set<string>;
   members: ProjectTimesheetMember[];
 };
 
@@ -147,7 +146,7 @@ export const ProjectTimesheetRow = ({
                     backdateRestrictedBefore={member.backdateRestrictedBefore}
                     rejectionUnlockedDates={member.rejectionUnlockedDates}
                     onCellClick={
-                      project.editableEmployees.has(member.employee)
+                      canEditOthersTime
                         ? (date) =>
                             openAddTimeDialog({
                               date,
@@ -172,7 +171,7 @@ export const ProjectTimesheetRow = ({
                             status={task.status}
                             className="pl-19.5"
                             disabled={
-                              !project.editableEmployees.has(member.employee) ||
+                              !canEditOthersTime ||
                               member.status === "Approved" ||
                               member.status === "Processing Timesheet"
                             }

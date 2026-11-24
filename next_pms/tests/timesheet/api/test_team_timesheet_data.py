@@ -869,9 +869,8 @@ class TestTeamTimesheetMemberWeek(_TeamTimesheetDataBase):
     def test_matches_the_element_the_page_endpoint_returns(self):
         page = self._call(reports_to=self.mgr, start_date=W1_MON)
         expected = self._members_by_employee(page)[self.r1]
-        # The realtime row is shared by every viewer, so it leaves out the viewer's own flags.
+        # The realtime row is shared by every viewer, so it leaves out the viewer's can_approve.
         expected.pop("can_approve")
-        expected.pop("can_edit_time")
 
         frappe.set_user(WRITE_USER)
         single = get_team_timesheet_member_week(employee=self.r1, start_date=W1_MON)

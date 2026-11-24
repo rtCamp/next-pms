@@ -1,13 +1,10 @@
-from unittest.mock import patch
-
 import frappe
 from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
 from frappe.utils import nowdate
 
 from next_pms.tests.utils import make_employee
-from next_pms.timesheet.api.timesheet import delete, save, submit_for_approval, update_timesheet_detail
-from next_pms.timesheet.api.utils import get_project_editable_employees
+from next_pms.timesheet.api.timesheet import delete, save, update_timesheet_detail
 
 MANAGER_USER = "edit-others-projects-manager@example.com"
 LEADERSHIP_USER = "edit-others-leadership@example.com"
@@ -21,7 +18,7 @@ OTHER_PROJECT_NAME = "Edit Others Other Project"
 
 class TestEditOthersTime(IntegrationTestCase):
     """Projects Manager, PMS Leadership and System Manager add and edit anyone's time; a Projects
-    User edits their reports' time on any project and anyone's time on a project they manage."""
+    User edits only their own, even for their reports and on projects they manage."""
 
     @classmethod
     def setUpClass(cls):
@@ -95,106 +92,39 @@ class TestEditOthersTime(IntegrationTestCase):
             self.assertTrue(self._entry(self.member, self.other_project)[1], user)
             frappe.db.delete("Timesheet", {"employee": self.member})
 
-    def test_projects_user_logs_a_reports_time_on_any_project(self):
-        self._log_as(REVIEWER_USER, self.report, self.other_task)
-        self.assertTrue(self._entry(self.report, self.other_project)[1])
-
-    def test_projects_user_logs_a_members_time_on_a_managed_project(self):
-        self._log_as(REVIEWER_USER, self.member, self.managed_task)
-        self.assertTrue(self._entry(self.member, self.managed_project)[1])
-
-    def test_projects_user_cannot_log_a_non_reports_time_on_another_project(self):
-        with self.assertRaises(frappe.PermissionError):
-            self._log_as(REVIEWER_USER, self.member, self.other_task)
-
-    def test_plain_employee_cannot_log_someone_elses_time(self):
-        with self.assertRaises(frappe.PermissionError):
-            self._log_as(PLAIN_EMPLOYEE_USER, self.member, self.managed_task)
-
-    def test_projects_user_edits_a_members_entry_on_a_managed_project(self):
-        save(date=nowdate(), description="Own entry", task=self.managed_task, hours=1, employee=self.member)
-        parent, name = self._entry(self.member, self.managed_project)
-
-        frappe.set_user(REVIEWER_USER)
-        update_timesheet_detail(
-            name=name, parent=parent, hours=2, description="Corrected", task=self.managed_task, date=nowdate()
-        )
-        frappe.set_user("Administrator")
-        self.assertEqual(frappe.db.get_value("Timesheet Detail", name, "hours"), 2)
-
-    def test_projects_user_cannot_move_a_members_entry_to_an_unmanaged_project(self):
-        save(date=nowdate(), description="Own entry", task=self.managed_task, hours=1, employee=self.member)
-        parent, name = self._entry(self.member, self.managed_project)
-
-        frappe.set_user(REVIEWER_USER)
-        with self.assertRaises(frappe.PermissionError):
-            update_timesheet_detail(
-                name=name, parent=parent, hours=1, description="Moved", task=self.other_task, date=nowdate()
-            )
-
-    def test_projects_user_cannot_edit_or_delete_a_members_entry_on_another_project(self):
+    def test_projects_manager_edits_and_deletes_someone_elses_entry(self):
         save(date=nowdate(), description="Own entry", task=self.other_task, hours=1, employee=self.member)
         parent, name = self._entry(self.member, self.other_project)
 
-        frappe.set_user(REVIEWER_USER)
-        with self.assertRaises(frappe.PermissionError):
-            update_timesheet_detail(
-                name=name, parent=parent, hours=2, description="Edited", task=self.other_task, date=nowdate()
-            )
-        with self.assertRaises(frappe.PermissionError):
-            delete(parent=parent, name=name)
-
-    def test_projects_user_deletes_a_reports_entry_on_any_project(self):
-        save(date=nowdate(), description="Own entry", task=self.other_task, hours=1, employee=self.report)
-        parent, name = self._entry(self.report, self.other_project)
-
-        frappe.set_user(REVIEWER_USER)
-        delete(parent=parent, name=name)
-        frappe.set_user("Administrator")
-        self.assertFalse(frappe.db.exists("Timesheet Detail", name))
-
-    def test_projects_user_cannot_submit_a_non_reports_week(self):
-        save(date=nowdate(), description="Own entry", task=self.managed_task, hours=1, employee=self.member)
-
-        frappe.set_user(REVIEWER_USER)
-        with self.assertRaises(frappe.PermissionError):
-            submit_for_approval(start_date=nowdate(), employee=self.member)
-
-    def test_project_rows_offer_editing_only_where_the_api_allows_it(self):
-        members = {self.managed_project: {self.report, self.member}, self.other_project: {self.report, self.member}}
-
-        frappe.set_user(REVIEWER_USER)
-        self.assertEqual(
-            get_project_editable_employees(members),
-            {self.managed_project: sorted([self.report, self.member]), self.other_project: [self.report]},
-        )
         frappe.set_user(MANAGER_USER)
-        self.assertEqual(
-            get_project_editable_employees(members),
-            {project: sorted([self.report, self.member]) for project in members},
+        update_timesheet_detail(
+            name=name, parent=parent, hours=2, description="Corrected", task=self.other_task, date=nowdate()
         )
-
-    def test_projects_user_deletes_a_members_last_entry_on_a_managed_project(self):
-        save(date=nowdate(), description="Only entry", task=self.managed_task, hours=1, employee=self.member)
-        parent, name = self._entry(self.member, self.managed_project)
-
-        frappe.set_user(REVIEWER_USER)
+        self.assertEqual(frappe.db.get_value("Timesheet Detail", name, "hours"), 2)
         delete(parent=parent, name=name)
         frappe.set_user("Administrator")
         self.assertFalse(frappe.db.exists("Timesheet", parent))
 
-    def test_editors_realtime_week_leaves_out_projects_they_cannot_read(self):
-        save(date=nowdate(), description="Elsewhere", task=self.other_task, hours=1, employee=self.member)
+    def test_projects_user_cannot_log_a_reports_time(self):
+        with self.assertRaises(frappe.PermissionError):
+            self._log_as(REVIEWER_USER, self.report, self.other_task)
+
+    def test_projects_user_cannot_log_time_on_a_managed_project_for_someone_else(self):
+        with self.assertRaises(frappe.PermissionError):
+            self._log_as(REVIEWER_USER, self.member, self.managed_task)
+
+    def test_projects_user_cannot_edit_or_delete_a_reports_entry(self):
+        save(date=nowdate(), description="Own entry", task=self.managed_task, hours=1, employee=self.report)
+        parent, name = self._entry(self.report, self.managed_project)
 
         frappe.set_user(REVIEWER_USER)
-        with patch("frappe.publish_realtime") as publish:
-            save(date=nowdate(), description="By the EM", task=self.managed_task, hours=1, employee=self.member)
-        frappe.set_user("Administrator")
+        with self.assertRaises(frappe.PermissionError):
+            update_timesheet_detail(
+                name=name, parent=parent, hours=2, description="Edited", task=self.managed_task, date=nowdate()
+            )
+        with self.assertRaises(frappe.PermissionError):
+            delete(parent=parent, name=name)
 
-        project_weeks = [
-            call.args[1]["message"]
-            for call in publish.call_args_list
-            if call.args[0] == "project_timesheet_info" and "message" in call.args[1]
-        ]
-        self.assertTrue(project_weeks)
-        self.assertEqual(set(project_weeks[-1]["projects"]), {self.managed_project})
+    def test_plain_employee_cannot_log_someone_elses_time(self):
+        with self.assertRaises(frappe.PermissionError):
+            self._log_as(PLAIN_EMPLOYEE_USER, self.member, self.managed_task)

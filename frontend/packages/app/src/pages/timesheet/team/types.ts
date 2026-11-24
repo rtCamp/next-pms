@@ -48,8 +48,6 @@ export type TeamMemberPayload = {
   rejection_unlocked_dates: string[];
   /** Whether the viewer may approve this week; absent on realtime rows. */
   can_approve?: boolean;
-  /** Whether the viewer may add or edit this member's time; absent on realtime rows. */
-  can_edit_time?: boolean;
 };
 
 export type TeamMembersPayload = {

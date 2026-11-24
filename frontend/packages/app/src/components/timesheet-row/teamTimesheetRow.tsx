@@ -12,6 +12,7 @@ import { Skeleton } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies
  */
+import { useCapability } from "@/hooks/useCapability";
 import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
 import { TEAM_TIMESHEET_HELP } from "@/pages/timesheet/team/help";
 import type { WeeklyApprovalTarget } from "@/pages/timesheet/team/weekly-approval/types";
@@ -37,7 +38,6 @@ export type TeamMember = {
   backdateRestrictedBefore: string | null;
   rejectionUnlockedDates: string[];
   canApprove: boolean;
-  canEditTime: boolean;
 };
 
 type TeamTimesheetRowProps = {
@@ -68,6 +68,7 @@ export const TeamTimesheetRow = ({
   openWeeklyApproval,
 }: TeamTimesheetRowProps) => {
   const { openAddTimeDialog } = useTimesheetOutletContext();
+  const canEditOthersTime = useCapability("edit_others_time");
   const teamMembersData = useMemo(() => {
     return teamMembers.map((member) => {
       const projects = groupTasksByProject(member.tasks);
@@ -115,7 +116,7 @@ export const TeamTimesheetRow = ({
                 backdateRestrictedBefore={member.backdateRestrictedBefore}
                 rejectionUnlockedDates={member.rejectionUnlockedDates}
                 onCellClick={
-                  member.canEditTime
+                  canEditOthersTime
                     ? (date) =>
                         openAddTimeDialog({
                           date,
@@ -148,7 +149,7 @@ export const TeamTimesheetRow = ({
                         }
                         rejectionUnlockedDates={member.rejectionUnlockedDates}
                         onCellClick={
-                          member.canEditTime
+                          canEditOthersTime
                             ? (date) =>
                                 openAddTimeDialog({
                                   date,
@@ -172,7 +173,7 @@ export const TeamTimesheetRow = ({
                               status={task.status}
                               className="pl-19.5"
                               disabled={
-                                !member.canEditTime ||
+                                !canEditOthersTime ||
                                 member.status === "Approved" ||
                                 member.status === "Processing Timesheet"
                               }

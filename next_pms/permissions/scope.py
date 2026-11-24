@@ -41,13 +41,6 @@ class EmployeeScope:
             return employee in self.project_members
         return False
 
-    def allows_entry(self, employee: str | None, project: str | None) -> bool:
-        """Whether one timesheet entry is in scope. Unlike `allows`, a project-scoped grant reaches
-        a non-report's time only on a project the user manages, never their other projects."""
-        if self.is_unrestricted or (employee and employee == self.employee) or employee in self.reports:
-            return True
-        return self.scope == REPORTS_AND_OWN_PROJECTS and project in self.managed_projects
-
     def employee_ids(self) -> set[str] | None:
         """Employees in scope, or None when the scope is unrestricted."""
         if self.is_unrestricted:

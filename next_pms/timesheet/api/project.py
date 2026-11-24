@@ -19,7 +19,6 @@ from .utils import (
     build_employee_week_details,
     employee_has_higher_access,
     get_project_approvable_employees,
-    get_project_editable_employees,
     get_week_dates,
     has_scoped_project_timesheets_before,
     normalize_status_filter,
@@ -373,14 +372,11 @@ def get_project_timesheet_data(
     # Resolved once for the page rather than per member, so the row only offers an approval
     # the endpoint would accept. Kept on the project rather than on the member because the
     # realtime payload replaces a member wholesale and would drop anything carried there.
-    members_by_project = {
-        project["project"]: {member["employee"] for member in project["members"]} for project in projects
-    }
-    approvable = get_project_approvable_employees(members_by_project)
-    editable = get_project_editable_employees(members_by_project)
+    approvable = get_project_approvable_employees(
+        {project["project"]: {member["employee"] for member in project["members"]} for project in projects}
+    )
     for project in projects:
         project["approvable_employees"] = approvable.get(project["project"], [])
-        project["editable_employees"] = editable.get(project["project"], [])
 
     response["projects"] = projects
     return response
