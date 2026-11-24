@@ -84,6 +84,7 @@ PMS_SET_KEYS: dict[str, tuple[PermKey, ...]] = {
     "Designation": (PermKey(PROJECTS_MANAGER),),
     "Territory": (PermKey(PROJECTS_MANAGER),),
     "ToDo": (PermKey(SYSTEM_MANAGER),),
+    "Employee": (PermKey("Delivery Manager", 1),),
 }
 
 _TIMESHEET_REVIEWER = "read write create delete submit cancel amend report export share print email"
@@ -147,6 +148,10 @@ PERMISSION_MAP: dict[str, tuple[PermRule, ...]] = {
         rule(PMS_LEADERSHIP, "select read write"),
     ),
     "ToDo": (rule(SYSTEM_MANAGER, "read write create delete report export share print email"),),
+    "Employee": (
+        rule("HR Manager", "read write", permlevel=1),
+        rule(PMS_LEADERSHIP, "read", permlevel=1),
+    ),
 }
 
 # Doctypes next_pms owns: their JSON is the source for PMS roles, so Custom DocPerm rows for
