@@ -48,6 +48,7 @@ const toTeamMember = (member: TeamMemberPayload): TeamMember => ({
   backdateRestrictedBefore: member.backdate_restricted_before,
   rejectionUnlockedDates: member.rejection_unlocked_dates,
   canApprove: member.can_approve ?? false,
+  canEditTime: member.can_edit_time ?? false,
 });
 
 export function useTeamWeekMembers({
@@ -161,7 +162,11 @@ export function useTeamWeekMembers({
             ...page.message!,
             members: currentMembers.map((m) =>
               m.employee === employee
-                ? { ...member, can_approve: m.can_approve }
+                ? {
+                    ...member,
+                    can_approve: m.can_approve,
+                    can_edit_time: m.can_edit_time,
+                  }
                 : m,
             ),
           },

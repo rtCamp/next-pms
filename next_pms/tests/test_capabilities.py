@@ -42,7 +42,7 @@ class TestCapabilities(UnitTestCase):
             self.assertEqual(capability_scope("view_project_financials", "pu@example.com"), ALL)
             self.assertFalse(has_capability("view_cost_and_invoice_burn", "pu@example.com"))
             self.assertFalse(has_capability("view_resource_cost", "pu@example.com"))
-            self.assertFalse(has_capability("edit_others_time", "pu@example.com"))
+            self.assertEqual(capability_scope("edit_others_time", "pu@example.com"), REPORTS_AND_OWN_PROJECTS)
 
     def test_widest_scope_wins_across_roles(self):
         with _as_roles(PROJECTS_USER, PROJECTS_MANAGER):
@@ -55,9 +55,16 @@ class TestCapabilities(UnitTestCase):
         with _as_roles(EMPLOYEE, PROJECTS_MANAGER):
             self.assertFalse(has_capability("leadership_dashboard", "pm@example.com"))
 
-    def test_only_system_manager_edits_others_time(self):
-        holders = {role for role, scope in CAPABILITIES["edit_others_time"].items() if scope}
-        self.assertEqual(holders, {SYSTEM_MANAGER})
+    def test_managers_edit_everyones_time_and_projects_user_their_scope(self):
+        self.assertEqual(
+            CAPABILITIES["edit_others_time"],
+            {
+                PROJECTS_USER: REPORTS_AND_OWN_PROJECTS,
+                PROJECTS_MANAGER: ALL,
+                PMS_LEADERSHIP: ALL,
+                SYSTEM_MANAGER: ALL,
+            },
+        )
 
     def test_legacy_roles_grant_nothing(self):
         with _as_roles("Timesheet Manager", "Timesheet User", "Delivery Manager", "Delivery User"):

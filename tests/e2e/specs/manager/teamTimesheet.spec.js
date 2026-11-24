@@ -39,12 +39,12 @@ test.describe("Manager: Team timesheet", () => {
     );
   });
 
-  /** Runs `body` with `team` on a page of the seeded System Manager, the only role that adds or edits another member's time. */
-  const asSystemManager = async (browser, body) => {
+  /** Runs `body` with `team` on a page of the seeded Projects Manager, who adds or edits any member's time. */
+  const asProjectsManager = async (browser, body) => {
     const context = await signedInContext(
       browser,
-      data.employees.TsAdmin.user,
-      "team-sysmgr",
+      data.employees.TsManager.user,
+      "team-projmgr",
     );
     try {
       team = new TeamTimesheetPage(await context.newPage());
@@ -305,7 +305,7 @@ test.describe("Manager: Team timesheet", () => {
   test("TC243: Clicking a day on a member's row opens Add time for that member and day", async ({
     browser,
   }) =>
-    asSystemManager(browser, async () => {
+    asProjectsManager(browser, async () => {
       allure.story("Team Timesheet");
       await team.goto({ search: member.TmDraft });
       await team.cells(team.memberRow(LAST, member.TmDraft)).nth(2).click();
@@ -328,7 +328,7 @@ test.describe("Manager: Team timesheet", () => {
   test("TC244: The days of an Approved week cannot be clicked to add time", async ({
     browser,
   }) =>
-    asSystemManager(browser, async () => {
+    asProjectsManager(browser, async () => {
       allure.story("Team Timesheet");
       await team.goto({ search: SEARCH });
       const cells = team.cells(team.memberRow(LAST, member.TmApproved));
@@ -354,7 +354,7 @@ test.describe("Manager: Team timesheet", () => {
   test("TC245: Add time with empty fields shows a message under each and creates nothing", async ({
     browser,
   }) =>
-    asSystemManager(browser, async () => {
+    asProjectsManager(browser, async () => {
       allure.story("Team Timesheet");
       const saves = [];
       team.page.on("request", (request) => {
@@ -386,7 +386,7 @@ test.describe("Manager: Team timesheet", () => {
   test("TC248: In Add time a duration longer than the hours left in the day is capped at the hours left", async ({
     browser,
   }) =>
-    asSystemManager(browser, async () => {
+    asProjectsManager(browser, async () => {
       allure.story("Team Timesheet");
       await team.goto({ search: member.TmAddTime });
       // Tuesday of last week holds nothing, so the whole working day is left.
@@ -499,7 +499,7 @@ test.describe("Manager: Team timesheet", () => {
   test("TC253: Saving an entry in the drawer without a comment asks for one and sends nothing", async ({
     browser,
   }) =>
-    asSystemManager(browser, async () => {
+    asProjectsManager(browser, async () => {
       allure.story("Team Timesheet");
       const updates = [];
       team.page.on("request", (request) => {

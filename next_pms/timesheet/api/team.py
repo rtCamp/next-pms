@@ -146,12 +146,15 @@ def get_team_timesheet_data(
 
     context = build_chunk_context(page_employees, [week], scope.parsed_filters)
     approver = get_employee_scope("approve_week")
+    editor = get_employee_scope("edit_others_time")
     # Per viewer, so it stays out of build_team_member_payload: the realtime publisher reuses
-    # that payload for every viewer.
+    # that payload for every viewer. A project-scoped editor edits a non-report's time on the
+    # Project timesheet, where the project is known, so the Team row offers it only for reports.
     response["members"] = [
         {
             **build_team_member_payload(employee, context, week, scope.has_filters),
             "can_approve": employee.name != approver.employee and approver.allows(employee.name),
+            "can_edit_time": editor.allows_entry(employee.name, None),
         }
         for employee in page_employees
     ]

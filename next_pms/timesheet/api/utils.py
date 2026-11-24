@@ -11,7 +11,6 @@ from frappe.utils.caching import redis_cache
 from next_pms.permissions.capabilities import (
     get_missing_manager_role,
     get_project_manager_fields,
-    has_capability,
 )
 from next_pms.permissions.scope import get_employee_scope
 from next_pms.resource_management.api.utils.query import get_employee_leaves
@@ -260,15 +259,14 @@ def get_holidays(employee: str, start_date: str, end_date: str):
     return holidays
 
 
-def employee_has_higher_access(employee: str, ptype: str = "read") -> bool:
+def employee_has_higher_access(employee: str, ptype: str = "read", project: str | None = None) -> bool:
     """Whether the session user may `ptype` the timesheets of `employee`. Reading follows
-    `view_others_timesheets`; writing someone else's entries needs `edit_others_time`."""
-    from .employee import get_employee_from_user
-
+    `view_others_timesheets`; writing follows `edit_others_time` for the entry's `project`, and
+    without a project reaches only the user's own and their reports' time."""
     if frappe.session.user == "Administrator":
         return True
     if ptype == "write":
-        return employee == get_employee_from_user() or has_capability("edit_others_time")
+        return get_employee_scope("edit_others_time").allows_entry(employee, project)
     return get_employee_scope("view_others_timesheets").allows(employee)
 
 
@@ -330,6 +328,16 @@ def get_project_approvable_employees(employee_by_project: dict) -> dict:
         project: sorted(
             employee for employee in employees if employee != scope.employee and scope.allows(employee, project)
         )
+        for project, employees in employee_by_project.items()
+    }
+
+
+def get_project_editable_employees(employee_by_project: dict) -> dict:
+    """`{project: [employee, ...]}` naming, per project, whose time entries the session user may
+    add or edit there - the edit counterpart of `get_project_approvable_employees`."""
+    scope = get_employee_scope("edit_others_time")
+    return {
+        project: sorted(employee for employee in employees if scope.allows_entry(employee, project))
         for project, employees in employee_by_project.items()
     }
 

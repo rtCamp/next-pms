@@ -344,15 +344,17 @@ def _attach_rejection_unlocked_dates(employee: str, weeks: dict):
 @error_logger
 def save(date: str, description: str, task: str, hours: float = 0, employee: str = None):
     """create time entry in Timesheet Detail child table."""
-    if not employee:
-        employee = get_employee_from_user()
-    elif not employee_has_higher_access(employee, ptype="write"):
-        frappe.throw(_("You are not authorized to log time entries for this employee."), frappe.PermissionError)
-
     if not task:
         throw(_("Task is mandatory for creating time entry."), frappe.MandatoryError)
 
     project = frappe.get_value("Task", task, "project")
+    if not employee:
+        employee = get_employee_from_user()
+    elif not employee_has_higher_access(employee, ptype="write", project=project):
+        frappe.throw(
+            _("You are not authorized to log time entries for this employee on this project."),
+            frappe.PermissionError,
+        )
     check_project_access(project)
 
     parent = frappe.db.get_value(
@@ -386,7 +388,7 @@ def save(date: str, description: str, task: str, hours: float = 0, employee: str
             "is_billable": custom_is_billable,
         },
     )
-    ignore_permissions = employee_has_higher_access(employee, ptype="write")
+    ignore_permissions = employee_has_higher_access(employee, ptype="write", project=project)
     timesheet.save(ignore_permissions=ignore_permissions)
     return _("New Timesheet created successfully.")
 
@@ -397,7 +399,7 @@ def delete(parent: str, name: str):
     """Delete single time entry (child table entry) from timesheet doctype."""
     parent_doc = frappe.get_doc("Timesheet", parent)
 
-    if not employee_has_higher_access(parent_doc.employee, ptype="write"):
+    if not employee_has_higher_access(parent_doc.employee, ptype="write", project=parent_doc.parent_project):
         frappe.throw(_("You are not allowed to edit this timesheet."), frappe.PermissionError)
     ignore_permissions = True
     for log in parent_doc.time_logs:
@@ -497,7 +499,7 @@ def update_timesheet_detail(
     """Update time entry in Timesheet Detail child table."""
     parent_doc = frappe.get_doc("Timesheet", parent)
 
-    if not employee_has_higher_access(parent_doc.employee, ptype="write"):
+    if not employee_has_higher_access(parent_doc.employee, ptype="write", project=parent_doc.parent_project):
         frappe.throw(_("You are not allowed to edit this timesheet."), frappe.PermissionError)
     ignore_permissions = True
     logs_to_remove = []
@@ -717,7 +719,6 @@ def get_timesheet(dates: list, employee: str, search: str | None = None, parsed_
     return [data, total_hours]
 
 
-@validate_current_employee(ptype="read")
 def get_timesheet_state(employee: str, start_date: str, end_date: str):
     status = frappe.db.get_value(
         "Timesheet",
@@ -735,7 +736,7 @@ def get_timesheet_state(employee: str, start_date: str, end_date: str):
 
 
 @frappe.whitelist(methods=["GET"])
-@validate_current_employee(ptype="write")
+@validate_current_employee(ptype="read")
 def get_remaining_hour_for_employee(employee: str, date: str):
     """Return the daily working-hour norm and the remaining available hours for the given employee on the given date."""
     from .employee import get_employee_working_hours

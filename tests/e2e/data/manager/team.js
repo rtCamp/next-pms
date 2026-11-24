@@ -114,9 +114,9 @@ module.exports = {
     // Dedicated employee: submitting a shared account's week breaks TC11 and
     // TC6, which both need an unsubmitted timesheet. Swept up at teardown by
     // deleteEmployeeByName() via the "Playwright-" prefix.
-    // Only a System Manager edits someone else's time entry.
+    // A Projects Manager edits anyone's time entry.
     payloadCreateWeekEmployees: {
-      EdTeam: { managed: false, user: { roles: ["System Manager"] } },
+      EdTeam: { managed: false, user: { roles: ["Projects Manager"] } },
     },
     payloadCreateReviewee: {
       first_name: "Playwright-",

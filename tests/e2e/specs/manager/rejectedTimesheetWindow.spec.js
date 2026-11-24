@@ -76,7 +76,7 @@ test.describe("Timesheet: rejected-day correction window", () => {
     if (!seeded) await reseedWeek(data, FIXTURE, WHO, weeksAgo);
   };
 
-  test("TC407: For a System Manager, the Team tab keeps a day rejected past the backdate limit open while the next old day stays locked", async ({
+  test("TC407: For a Projects Manager, the Team tab keeps a day rejected past the backdate limit open while the next old day stays locked", async ({
     browser,
   }) => {
     allure.story("Team Timesheet");

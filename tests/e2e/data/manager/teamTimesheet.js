@@ -83,8 +83,8 @@ module.exports = {
       // A manager may only book leave for someone who reports to them; no days off, so
       // today is always a working day for it.
       TmTimeOff: { holidayList: "E2E No Weekly Off" },
-      // Only a System Manager adds or edits another member's time.
-      TsAdmin: { managed: false, user: { roles: ["System Manager"] } },
+      // A Projects Manager adds or edits any member's time.
+      TsManager: { managed: false, user: { roles: ["Projects Manager"] } },
     },
     // Week statuses count working days, and some sites have no weekend off.
     payloadWeekendsOff: ["EMP"],
@@ -159,8 +159,8 @@ module.exports = {
         weekendsOff: true,
         user: { roles: ["Projects User"] },
       },
-      // Only a System Manager adds time to another member's day.
-      RwEditor: { managed: false, user: { roles: ["System Manager"] } },
+      // A Projects Manager adds time to any member's day.
+      RwEditor: { managed: false, user: { roles: ["Projects Manager"] } },
     },
     payloadCreateWeekTime: [
       {

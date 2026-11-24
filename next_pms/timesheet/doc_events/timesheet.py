@@ -545,6 +545,7 @@ def publish_timesheet_update(employee, start_date):
     from frappe.realtime import get_site_room
     from frappe.utils import get_date_str
 
+    from next_pms.permissions.scope import get_employee_scope
     from next_pms.timesheet.api.project import get_project_timesheet_member_week
     from next_pms.timesheet.api.team import get_team_timesheet_member_week
     from next_pms.timesheet.api.timesheet import build_timesheet_data
@@ -588,6 +589,12 @@ def publish_timesheet_update(employee, start_date):
         start_date=get_date_str(start_date),
         by_pass_access_check=True,
     )
+    # A project-scoped editor reads the member only on the projects they manage; a project left
+    # out of the payload is dropped from the page rather than shown.
+    reader = get_employee_scope("view_others_timesheets")
+    project_member["projects"] = {
+        project: row for project, row in project_member["projects"].items() if reader.allows_entry(employee, project)
+    }
     publish_realtime("project_timesheet_info", invalidation, after_commit=True, room=get_site_room())
     publish_realtime(
         "project_timesheet_info",

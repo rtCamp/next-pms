@@ -92,8 +92,8 @@ _FULL = "select read write create delete report export import share print email"
 # Rows next_pms grants on doctypes it does not own. Frappe unions the rows of every role a user
 # holds, and Projects Manager and PMS Leadership users also hold the role below them (see
 # IMPLIED_ROLES), so those roles only list the rights the role below lacks. Timesheet rows are
-# narrowed further by next_pms.timesheet.permission (own / reports / own projects; nobody but
-# System Manager writes someone else's timesheet).
+# narrowed further by next_pms.timesheet.permission (own / reports / own projects, for reading
+# and, through edit_others_time, for writing).
 PERMISSION_MAP: dict[str, tuple[PermRule, ...]] = {
     "Timesheet": (
         rule(EMPLOYEE, "read write create delete"),
