@@ -827,9 +827,7 @@ def _get_project_members(
 
     logged_hours_map = _get_member_logged_hours(project_name, [e.name for e in employees])
     salaries = (
-        get_employees_salary([e.name for e in employees], currency)
-        if currency and can_see_resource_cost()
-        else {}
+        get_employees_salary([e.name for e in employees], currency) if currency and can_see_resource_cost() else {}
     )
 
     def _hourly_rate(employee_name: str | None) -> float | None:
