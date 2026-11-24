@@ -48,7 +48,7 @@ _LEADERSHIP = (PMS_LEADERSHIP, SYSTEM_MANAGER)
 
 CAPABILITIES: dict[str, dict[str, Scope]] = {
     "open_app": _grant(ALL, *_EVERYONE),
-    "edit_others_time": _grant(ALL, SYSTEM_MANAGER),
+    "edit_others_time": _grant(ALL, *_MANAGERS),
     "view_others_timesheets": {PROJECTS_USER: REPORTS_AND_OWN_PROJECTS, **_grant(ALL, *_MANAGERS)},
     "approve_week": {PROJECTS_USER: REPORTS, **_grant(ALL, *_MANAGERS)},
     "approve_project_timesheets": {PROJECTS_USER: REPORTS_AND_OWN_PROJECTS, **_grant(ALL, *_MANAGERS)},

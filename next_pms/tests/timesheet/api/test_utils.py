@@ -83,13 +83,15 @@ class TestTimesheetAccess(IntegrationTestCase):
     def tearDown(self):
         frappe.set_user("Administrator")
 
-    def test_only_system_manager_writes_someone_elses_time(self):
-        frappe.set_user(MANAGER_USER)
-        self.assertFalse(employee_has_higher_access(self.other_employee, ptype="write"))
+    def test_projects_manager_and_above_write_everyones_time(self):
+        for user in (MANAGER_USER, ADMIN_USER):
+            frappe.set_user(user)
+            self.assertTrue(employee_has_higher_access(self.other_employee, ptype="write"), user)
+
+    def test_projects_user_writes_no_one_elses_time(self):
         frappe.set_user(REVIEWER_USER)
         self.assertFalse(employee_has_higher_access(self.report, ptype="write"))
-        frappe.set_user(ADMIN_USER)
-        self.assertTrue(employee_has_higher_access(self.other_employee, ptype="write"))
+        self.assertFalse(employee_has_higher_access(self.other_employee, ptype="write"))
 
     def test_projects_manager_reads_and_approves_everyone(self):
         frappe.set_user(MANAGER_USER)
@@ -218,10 +220,16 @@ class TestTimesheetAccess(IntegrationTestCase):
         self.assertIn(self.managed_project, conditions)
         self.assertNotIn(self.other_employee, conditions)
 
-    def test_desk_writes_on_someone_elses_timesheet_need_system_manager(self):
+    def test_desk_writes_on_someone_elses_timesheet_need_projects_manager(self):
         self.assertFalse(has_permission(self._timesheet(self.report), "write", REVIEWER_USER))
-        self.assertFalse(has_permission(self._timesheet(self.other_employee), "submit", MANAGER_USER))
+        self.assertFalse(
+            has_permission(self._timesheet(self.other_employee, self.managed_project), "write", REVIEWER_USER)
+        )
+        self.assertTrue(has_permission(self._timesheet(self.other_employee), "submit", MANAGER_USER))
         self.assertTrue(has_permission(self._timesheet(self.other_employee), "write", ADMIN_USER))
+        self.assertFalse(
+            has_permission(self._timesheet(self.other_employee, self.managed_project), "write", PLAIN_EMPLOYEE_USER)
+        )
 
     def test_desk_hr_manager_reads_every_timesheet(self):
         hr_manager = "ts-utils-hr-manager@example.com"

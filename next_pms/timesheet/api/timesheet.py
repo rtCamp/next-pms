@@ -717,7 +717,6 @@ def get_timesheet(dates: list, employee: str, search: str | None = None, parsed_
     return [data, total_hours]
 
 
-@validate_current_employee(ptype="read")
 def get_timesheet_state(employee: str, start_date: str, end_date: str):
     status = frappe.db.get_value(
         "Timesheet",
