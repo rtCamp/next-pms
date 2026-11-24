@@ -52,4 +52,3 @@ next_pms.next_pms.patches.migrate_pms_role_holders
 next_pms.next_pms.patches.retire_timesheet_roles
 next_pms.timesheet.patches.add_timesheet_parent_project_index #2026-11-20-property-setter
 next_pms.next_projects.patches.setup_delivery_accelerators
-next_pms.next_pms.patches.setup_employee_salary_docperms
