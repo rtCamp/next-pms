@@ -1,3 +1,4 @@
+import frappe
 from frappe import _, get_cached_doc, get_cached_value, get_value
 from frappe import throw as error
 from frappe.utils import flt, get_date_str
@@ -61,12 +62,94 @@ def get_employee_monthly_working_hours(employee: str):
     from next_pms.timesheet.api.employee import get_employee_working_hours
 
     work_info = get_employee_working_hours(employee)
-    if work_info.get("working_frequency") != "Per Day":
-        working_hours = work_info.get("working_hours", 8)
-        monthly_working_hours = working_hours * 4
-    else:
-        monthly_working_hours = 160
-    return monthly_working_hours
+    return get_monthly_working_hours(work_info.get("working_hour"), work_info.get("working_frequency"))
+
+
+def get_monthly_working_hours(working_hour: float, working_frequency: str) -> float:
+    """Return the monthly working hours for an employee's working hours and frequency.
+
+    Args:
+        working_hour (float): Employee.custom_working_hours, per day or per week.
+        working_frequency (str): Employee.custom_work_schedule, "Per Day" or "Per Week".
+
+    Returns:
+        float: 160 for "Per Day", otherwise four weeks of `working_hour`.
+    """
+    if working_frequency == "Per Day":
+        return 160
+    return flt(working_hour) * 4
+
+
+def get_salary_breakdown(employees: list[dict], to_currency: str | None = None, date: str | None = None) -> dict:
+    """Return the monthly and hourly salary of each Employee row, keyed by employee.
+
+    Args:
+        employees (list[dict]): Rows with name, ctc, salary_currency, custom_working_hours and
+            custom_work_schedule.
+        to_currency (str | None): Currency of the amounts; each employee's salary currency when None.
+        date (str | None): Exchange rate date; today when None.
+
+    Returns:
+        dict: {employee: {"monthly_salary": float, "hourly_salary": float, "currency": str}}.
+        A missing exchange rate gives 0.
+    """
+    from erpnext.setup.utils import get_exchange_rate
+
+    from next_pms.timesheet.api.employee import apply_working_hours_fallback
+
+    rows = [frappe._dict(row) for row in employees]
+    apply_working_hours_fallback(rows)
+
+    exchange_rates = {}
+    breakdown = {}
+    for row in rows:
+        currency = to_currency or row.salary_currency
+        ctc = flt(row.ctc)
+        if row.salary_currency != currency:
+            pair = (row.salary_currency, currency)
+            if pair not in exchange_rates:
+                exchange_rates[pair] = flt(get_exchange_rate(row.salary_currency, currency, date))
+            ctc *= exchange_rates[pair]
+
+        monthly_salary = ctc / 12
+        breakdown[row.name] = {
+            "monthly_salary": monthly_salary,
+            "hourly_salary": monthly_salary
+            / get_monthly_working_hours(row.custom_working_hours, row.custom_work_schedule),
+            "currency": currency,
+        }
+    return breakdown
+
+
+def get_employees_salary(employees: list[str], to_currency: str | None = None, date: str | None = None) -> dict:
+    """Return `get_salary_breakdown` for the given Employee IDs, read in one query."""
+    if not employees:
+        return {}
+
+    Employee = frappe.qb.DocType("Employee")
+    rows = (
+        frappe.qb.from_(Employee)
+        .select(
+            Employee.name,
+            Employee.ctc,
+            Employee.salary_currency,
+            Employee.custom_working_hours,
+            Employee.custom_work_schedule,
+        )
+        .where(Employee.name.isin(employees))
+        .run(as_dict=True)
+    )
+    return get_salary_breakdown(rows, to_currency, date)
+
+
+def get_income_tax_slab(employee: str) -> str | None:
+    """Return the income tax slab of the employee's latest submitted Salary Structure Assignment."""
+    return frappe.db.get_value(
+        "Salary Structure Assignment",
+        {"employee": employee, "docstatus": 1},
+        "income_tax_slab",
+        order_by="from_date desc",
+    )
 
 
 def convert_currency(

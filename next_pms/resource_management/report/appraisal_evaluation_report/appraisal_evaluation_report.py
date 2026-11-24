@@ -29,7 +29,7 @@ from next_pms.utils.employee import (
     generate_flat_tree,
     get_employee_joining_date_based_on_work_history,
     get_employee_leaves_and_holidays,
-    get_employee_salary,
+    get_employees_salary,
 )
 
 
@@ -205,6 +205,7 @@ def get_data(filters=None, has_bu_field=False):
 
     timesheets = get_employees_timesheet_hours(employee_names, start_date, end_date)
     billing_amount = get_employees_billable_amount(employee_names, start_date, end_date)
+    salaries = get_employees_salary(employee_names, currency)
 
     without_group_by_employees = []
 
@@ -234,7 +235,7 @@ def get_data(filters=None, has_bu_field=False):
 
         emp.age = employee_age_in_company(emp, end_date=getdate(end_date))
 
-        salary_info = get_employee_salary(emp.name, currency, throw=False)
+        salary_info = salaries.get(emp.name, {})
         emp.monthly_salary = salary_info.get("monthly_salary", 0)
         emp._monthly_salary = emp.monthly_salary
         emp.hourly_salary = salary_info.get("hourly_salary", 0)
