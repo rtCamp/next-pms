@@ -42,12 +42,12 @@ test.describe("Manager: Team timesheet actions", () => {
     );
   });
 
-  /** Runs `body` with `team` on a page of the seeded System Manager, the only role that adds or edits another member's time. */
-  const asSystemManager = async (browser, body) => {
+  /** Runs `body` with `team` on a page of the seeded Projects Manager, who adds or edits any member's time. */
+  const asProjectsManager = async (browser, body) => {
     const context = await signedInContext(
       browser,
-      data.employees.TsAdmin.user,
-      "team-sysmgr",
+      data.employees.TsManager.user,
+      "team-projmgr",
     );
     try {
       team = new TeamTimesheetPage(await context.newPage());
@@ -92,10 +92,10 @@ test.describe("Manager: Team timesheet actions", () => {
     return { context, page: await context.newPage() };
   };
 
-  test("TC246: A System Manager adds time for a member from the Team tab", async ({
+  test("TC246: A Projects Manager adds time for a member from the Team tab", async ({
     browser,
   }) =>
-    asSystemManager(browser, async () => {
+    asProjectsManager(browser, async () => {
       allure.story("Team Timesheet");
       test.setTimeout(180000);
       const employee = data.employees.TmAddTime.id;
@@ -110,7 +110,7 @@ test.describe("Manager: Team timesheet actions", () => {
           task: ALPHA_TASK,
           date: wednesday,
           duration: "02:00",
-          comment: "TC246 - added by a System Manager",
+          comment: "TC246 - added by a Projects Manager",
         });
         await team.addTimeDialog
           .getByRole("button", { name: "Save and close" })
@@ -132,7 +132,7 @@ test.describe("Manager: Team timesheet actions", () => {
   test("TC247: Save and add another keeps the member and date and clears the entry; Save and close closes the dialog", async ({
     browser,
   }) =>
-    asSystemManager(browser, async () => {
+    asProjectsManager(browser, async () => {
       allure.story("Team Timesheet");
       test.setTimeout(scaleTimeout(80000));
       const employee = data.employees.TmAddTime.id;

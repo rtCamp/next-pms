@@ -315,6 +315,51 @@ class TestRejectedTimesheetWindow(IntegrationTestCase):
         with self.assertRaisesRegex(frappe.ValidationError, "Backdated time entries are not allowed"):
             self.log_as_employee(self.other_old_day, self.task_a2)
 
+    # -- a manager editing the employee's time ---------------------------------
+
+    def log_as_manager(self, date, task, hours=1, description="Correction"):
+        frappe.set_user(MANAGER_USER)
+        try:
+            save_timesheet(date=str(date), description=description, task=task, hours=hours, employee=self.employee)
+        finally:
+            frappe.set_user("Administrator")
+
+    def test_manager_logs_for_the_employee_inside_the_manager_limit_only(self):
+        inside_manager_limit = add_days(self.today, -(EMPLOYEE_DAYS + 2))
+        with self.assertRaisesRegex(frappe.ValidationError, "Backdated time entries are not allowed"):
+            self.log_as_employee(inside_manager_limit, self.task_a2)
+        self.log_as_manager(inside_manager_limit, self.task_a2)
+        self.assertIsNotNone(self.parent(inside_manager_limit))
+
+        with self.assertRaisesRegex(frappe.ValidationError, "Backdated time entries are not allowed"):
+            self.log_as_manager(add_days(self.today, -(MANAGER_DAYS + 1)), self.task_a2)
+
+    def test_manager_can_log_the_correction_on_a_rejected_day_past_the_limit(self):
+        self.log_as_manager(self.old_day, self.task_a2)
+        self.assertIsNotNone(self.correction_row(self.old_day))
+
+    def test_manager_is_refused_for_other_old_days(self):
+        with self.assertRaisesRegex(frappe.ValidationError, "Backdated time entries are not allowed"):
+            self.log_as_manager(self.other_old_day, self.task_a2)
+
+    def test_manager_cannot_change_or_remove_rejected_rows(self):
+        self.log_as_employee(self.old_day, self.task_a2)
+        parent = self.parent(self.old_day).name
+        rejected = frappe.db.get_value("Timesheet Detail", {"parent": parent, "rejected_hours": [">", 0]}, "name")
+
+        frappe.set_user(MANAGER_USER)
+        with self.assertRaisesRegex(frappe.ValidationError, "Rejected time entries cannot be changed"):
+            update_timesheet_detail(
+                name=rejected,
+                parent=parent,
+                hours=8,
+                description="Rewritten",
+                task=self.task_a1,
+                date=str(self.old_day),
+            )
+        with self.assertRaisesRegex(frappe.ValidationError, "Rejected time entries cannot be changed"):
+            delete_time_entry(parent=parent, name=rejected)
+
     def test_window_counts_working_days_and_then_closes(self):
         self.rejected_on(self.old_day, WINDOW_DAYS)
         self.log_as_employee(self.old_day, self.task_a2)

@@ -108,7 +108,7 @@ test.describe("Manager: Team Tab", () => {
     expect(secondEmployeeRows).not.toEqual(firstEmployeeRows);
   });
 
-  test("TC47: A System Manager modifies or deletes an employee's time entries", async ({
+  test("TC47: A Projects Manager modifies or deletes an employee's time entries", async ({
     browser,
     jsonDir,
   }) => {

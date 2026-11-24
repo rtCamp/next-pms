@@ -55,9 +55,11 @@ class TestCapabilities(UnitTestCase):
         with _as_roles(EMPLOYEE, PROJECTS_MANAGER):
             self.assertFalse(has_capability("leadership_dashboard", "pm@example.com"))
 
-    def test_only_system_manager_edits_others_time(self):
-        holders = {role for role, scope in CAPABILITIES["edit_others_time"].items() if scope}
-        self.assertEqual(holders, {SYSTEM_MANAGER})
+    def test_projects_manager_and_above_edit_everyones_time(self):
+        self.assertEqual(
+            CAPABILITIES["edit_others_time"],
+            {PROJECTS_MANAGER: ALL, PMS_LEADERSHIP: ALL, SYSTEM_MANAGER: ALL},
+        )
 
     def test_legacy_roles_grant_nothing(self):
         with _as_roles("Timesheet Manager", "Timesheet User", "Delivery Manager", "Delivery User"):
