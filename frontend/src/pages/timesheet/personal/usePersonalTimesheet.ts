@@ -190,11 +190,15 @@ function createPersonalTimesheet() {
 
   const realtimeEvent = computed(() => `timesheet_update::${session.employee}`);
 
-  function onTimesheetUpdate(event: { message?: TimesheetData }) {
+  // Everyone gets the week's key; only the editor gets the week itself.
+  function onTimesheetUpdate(event: {
+    message?: TimesheetData;
+    week_key?: string;
+  }) {
     const payload = event?.message;
-    const weekKey = Object.keys(payload?.data ?? {})[0];
-    if (!payload || !weekKey) return;
-    if (filtersAreActive.value) refreshPagesWithWeek(weekKey);
+    const weekKey = Object.keys(payload?.data ?? {})[0] ?? event?.week_key;
+    if (!weekKey) return;
+    if (!payload || filtersAreActive.value) refreshPagesWithWeek(weekKey);
     else mergeWeek(payload, weekKey);
   }
 

@@ -100,7 +100,7 @@ describe("formFromRequest", () => {
     });
   });
 
-  it("edits a recurring or AI allocation whole, and approves it confirmed", () => {
+  it("edits a recurring or AI allocation whole, with an AI one pre-checked tentative", () => {
     const { form } = formFromRequest(
       "edit",
       { ...segment, isAiCreated: true },
@@ -111,8 +111,16 @@ describe("formFromRequest", () => {
       fromDate: "2026-10-19",
       toDate: "2026-10-23",
       hoursPerDay: 6,
-      isTentative: false,
+      isTentative: true,
     });
+    expect(
+      formFromRequest(
+        "edit",
+        { ...segment, isAiCreated: true, tentative: false },
+        "CUST-1",
+        today,
+      ).form.isTentative,
+    ).toBe(true);
     expect(
       formFromRequest("edit", { ...segment, recurrenceId: "R" }, "C", today)
         .form.recurrence,
@@ -286,13 +294,6 @@ describe("allocationPayload", () => {
     expect(
       allocationPayload(form, context({ isAiCreated: true })).is_ai_created,
     ).toBe(0);
-    expect(
-      allocationPayload(
-        { ...form, isTentative: false },
-        context({ isAiCreated: true }),
-        { saveAsTentative: true },
-      ).status,
-    ).toBe("Tentative");
   });
 });
 
@@ -355,17 +356,16 @@ describe("scheduleRequestFromForm", () => {
     });
   });
 
-  it("keeps a tentative AI allocation tentative, though its form shows it confirmed", () => {
+  it("keeps a tentative AI allocation tentative, whatever its checkbox says", () => {
     const { form, context } = formFromRequest(
       "edit",
       { ...segment, isAiCreated: true },
       "CUST-1",
       today,
     );
-    expect(form.isTentative).toBe(false);
     expect(
       scheduleRequestFromForm(
-        form,
+        { ...form, isTentative: false },
         context,
         allocationEditLocks("edit", context),
       ).isTentative,

@@ -9,7 +9,7 @@ from pypika import Criterion, Order
 from next_pms.timesheet.utils.constant import TASK_FILTER_OPERATORS, TASK_META_FIELDS
 
 from . import get_count
-from .project import get_project_filter_for_contractor
+from .project import check_project_access, get_accessible_project_names
 from .timesheet import _apply_qb_condition
 
 
@@ -142,26 +142,17 @@ def get_task_list(
         field_list = list(set(field_list))
         if "project_name" in field_list:
             field_list.remove("project_name")
-    #  Limit the task fetched based on the projects the user has access to.
     project_filters = {}
-
-    allowed_projects = set(get_project_filter_for_contractor(only_list=True) or [])
-    input_projects = set(projects or [])
-
-    if allowed_projects and input_projects:
-        # intersection of allowed and requested
-        filtered_projects = list(allowed_projects & input_projects)
-    elif allowed_projects:
-        # only allowed
-        filtered_projects = list(allowed_projects)
-    elif input_projects:
-        # no restriction, but user passed explicit projects
-        filtered_projects = list(input_projects)
-    else:
-        filtered_projects = []
-
+    accessible_projects = get_accessible_project_names()
+    filtered_projects = set(projects or [])
+    if accessible_projects is not None:
+        filtered_projects = (
+            filtered_projects & set(accessible_projects) if filtered_projects else set(accessible_projects)
+        )
+        if not filtered_projects:
+            return {"task": [], "total_count": 0, "has_more": False}
     if filtered_projects:
-        project_filters["name"] = ["in", filtered_projects]
+        project_filters["name"] = ["in", list(filtered_projects)]
 
     projects = frappe.get_list("Project", pluck="name", filters=project_filters)
 
@@ -271,6 +262,7 @@ def add_task(
     """API to add task, it will create a task under the given project with the given details."""
     if not frappe.db.exists("Project", project):
         frappe.throw(frappe._("Project '{0}' does not exist").format(project), frappe.DoesNotExistError)
+    check_project_access(project)
 
     task = frappe.get_doc(
         {
@@ -304,6 +296,7 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
     # if task has project field set.
     if project:
         frappe.has_permission(doctype="Project", doc=project, throw=True)
+        check_project_access(project)
     else:
         frappe.has_permission("Task", doc=task, ptype="read", throw=True)
 
@@ -346,28 +339,20 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
 @frappe.whitelist(methods=["GET"])
 def get_task_log(task: str, start_date: str = None, end_date: str = None, employee: str = None):
     """API to get the time log details for a task between the given start date and end date. with an optional parameter of passing in employee"""
-    from next_pms.timesheet.api.employee import get_employee_from_user
+    from next_pms.timesheet.api.employee import get_employee_detail_scope, get_employee_from_user
 
     project = frappe.db.get_value("Task", task, "project")
 
     if project:
         frappe.has_permission(doctype="Project", doc=project, throw=True)
+        check_project_access(project)
     else:
         frappe.has_permission("Task", doc=task, ptype="read", throw=True)
 
-    roles = set(frappe.get_roles(frappe.session.user))
-    manager_roles = {
-        "Projects Manager",
-        "Timesheet Manager",
-        "Timesheet User",
-        "Delivery Manager",
-        "Delivery User",
-        "HR Manager",
-        "HR User",
-        "System Manager",
-    }
-    if not (manager_roles & roles) and frappe.session.user != "Administrator":
+    detail_scope = get_employee_detail_scope()
+    if employee and not detail_scope.allows(employee):
         employee = get_employee_from_user()
+    visible_employees = None if employee else detail_scope.employee_ids()
 
     timesheet = DocType("Timesheet")
     timesheet_detail = DocType("Timesheet Detail")
@@ -393,6 +378,8 @@ def get_task_log(task: str, start_date: str = None, end_date: str = None, employ
 
     if employee:
         query = query.where(timesheet.employee == employee)
+    elif visible_employees is not None:
+        query = query.where(timesheet.employee.isin(list(visible_employees) or [""]))
 
     result = query.run(as_dict=True)
 

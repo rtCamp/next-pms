@@ -7,11 +7,7 @@ import { cn } from "@/utils/cn";
 import { errorMessage } from "@/utils/errors";
 import AddWidgetsDialog from "./AddWidgetsDialog.vue";
 import BudgetBurnWidget from "./BudgetBurnWidget.vue";
-import {
-  CUSTOMIZABLE_WIDGETS,
-  CUSTOMIZATION_ROLES,
-  ROW_COLUMNS,
-} from "./constants";
+import { BURN_WIDGETS, CUSTOMIZABLE_WIDGETS, ROW_COLUMNS } from "./constants";
 import CostBurnWidget from "./CostBurnWidget.vue";
 import FinancialsWidget from "./FinancialsWidget.vue";
 import { TRACKING_HELP } from "./help";
@@ -75,7 +71,7 @@ const trackingLayout = useTrackingLayout(projectId);
 const editing = ref(false);
 const addOpen = ref(false);
 
-const canCustomize = computed(() => session.hasAnyRole(CUSTOMIZATION_ROLES));
+const canCustomize = computed(() => session.can("project_admin"));
 const baseLayout = computed(() =>
   defaultLayout(tracking.tracking.value?.billing_type ?? ""),
 );
@@ -85,7 +81,12 @@ const hidden = computed(() =>
     : [],
 );
 const layout = computed(() =>
-  applyHiddenWidgets(baseLayout.value, hidden.value),
+  applyHiddenWidgets(
+    baseLayout.value,
+    session.can("view_cost_and_invoice_burn")
+      ? hidden.value
+      : [...hidden.value, ...BURN_WIDGETS],
+  ),
 );
 
 function customizable(key: WidgetKey) {

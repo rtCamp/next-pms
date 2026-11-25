@@ -15,6 +15,7 @@ const props = defineProps<{
   task: TimesheetTask;
   disabled?: boolean;
   backdateRestrictedBefore?: string | null;
+  rejectionUnlockedDates?: string[];
   /** Hours expected a day, the most the entry form allows. */
   dailyHours: number;
   /** Hours logged per day across the week's tasks and time off. */
@@ -43,6 +44,7 @@ const starred = computed(() => like.liked);
     :task="task"
     :disabled="disabled"
     :backdate-restricted-before="backdateRestrictedBefore"
+    :rejection-unlocked-dates="rejectionUnlockedDates"
     :starred="starred"
     :guard="unsavedChanges.requestGuardedAction"
     @star="like.toggle()"

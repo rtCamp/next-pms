@@ -2,14 +2,15 @@ import json
 
 import frappe
 from erpnext.setup.utils import get_exchange_rate
-from frappe import get_all, get_list, get_meta, get_value, only_for, whitelist
+from frappe import get_all, get_list, get_meta, get_value, whitelist
 from frappe.utils import add_days, flt, getdate
 
 from next_pms.api.utils import error_logger
+from next_pms.permissions.capabilities import has_capability, require_capability
+from next_pms.permissions.project import get_accessible_project_names
 from next_pms.timesheet.utils.constant import (
     MAX_PROJECT_TIMESHEET_PAGE_LENGTH,
     PROJECT_TIMESHEET_PAGE_LENGTH,
-    TIMESHEET_REVIEWER_ROLES,
 )
 
 from . import filter_employees, get_count
@@ -53,9 +54,9 @@ def get_projects(
         fields.append("custom_currency")
 
     if not filters:
-        filters = get_project_filter_for_contractor()
+        filters = get_accessible_project_filter()
     else:
-        filters += get_project_filter_for_contractor()
+        filters += get_accessible_project_filter()
     filters += get_project_filter_for_employee(employee)
     project_lists = get_list(
         "Project",
@@ -114,14 +115,21 @@ def convert(value, rate):
     return converted_value
 
 
-def get_project_filter_for_contractor(only_list=False):
-    if "Contractor" in frappe.get_roles() and frappe.session.user != "Administrator":
-        names = frappe.share.get_shared("Project", frappe.session.user, filters=[["everyone", "=", False]])
-        if only_list:
-            return names
-        return [["name", "in", names]]
+def get_accessible_project_filter() -> list:
+    names = get_accessible_project_names()
+    return [] if names is None else [["name", "in", names or [""]]]
 
-    return []
+
+def check_project_access(project: str | None) -> None:
+    names = get_accessible_project_names()
+    if project and names is not None and project not in names:
+        frappe.throw(frappe._("You can only work on tasks of projects shared with you."), frappe.PermissionError)
+
+
+def _can_view_employee_projects(employee: str) -> bool:
+    """Project membership is what the allocation dialog needs for any employee, so managing
+    allocations is enough; everyone else follows the timesheet read scope."""
+    return has_capability("manage_allocations") or employee_has_higher_access(employee, ptype="read")
 
 
 @whitelist(methods=["GET"])
@@ -130,7 +138,7 @@ def get_employee_project_ids(employee: str):
     """Return every Project name the given employee can access — individually shared, or via "everyone"."""
     if not employee:
         return []
-    if not employee_has_higher_access(employee, ptype="read"):
+    if not _can_view_employee_projects(employee):
         frappe.throw(frappe._("You are not authorized to view this employee's projects."), frappe.PermissionError)
 
     everyone_projects = get_all("DocShare", filters={"share_doctype": "Project", "everyone": 1}, pluck="share_name")
@@ -157,7 +165,7 @@ def get_project_filter_for_employee(employee: str | None):
 @error_logger
 def get_project_employee_access(project: str | None = None, employee: str | None = None):
     """Whether `project` has any member, whether `employee` has any project, and whether this pair is valid together."""
-    if employee and not employee_has_higher_access(employee, ptype="read"):
+    if employee and not _can_view_employee_projects(employee):
         frappe.throw(frappe._("You are not authorized to view this employee's project access."), frappe.PermissionError)
 
     def is_shared(share_filter):
@@ -211,6 +219,7 @@ def _build_project_member_payload(employee, employee_data: dict, project_tasks: 
         "holidays": employee_data["holidays"],
         "leaves": employee_data["leaves"],
         "backdate_restricted_before": employee_data["backdate_restricted_before"],
+        "rejection_unlocked_dates": employee_data["rejection_unlocked_dates"],
         "working_hour": working_hours.get("working_hour", 8),
         "working_frequency": working_hours.get("working_frequency", "Per Day"),
         # The employee's whole week, not this project's share of it: approving one project
@@ -252,6 +261,7 @@ def _collect_employee_week_data(employees: list, week: dict, context: dict, scop
             "holidays": list(context["holidays_by_employee"].get(employee.name, [])),
             "leaves": list(context["leaves_by_employee"].get(employee.name, [])),
             "backdate_restricted_before": context["backdate_boundary_by_employee"].get(employee.name),
+            "rejection_unlocked_dates": context["rejection_unlocked_dates_by_employee"].get(employee.name, []),
             "status": week_detail.get("status", "Not Submitted"),
             "project_tasks": project_tasks_map,
         }
@@ -277,7 +287,7 @@ def get_project_timesheet_data(
     counts. Both derive membership from `resolve_project_participation`, so this endpoint's
     `total_count` and that endpoint's `project_count` cannot drift.
     """
-    only_for(TIMESHEET_REVIEWER_ROLES, message=True)
+    require_capability("team_timesheet_pages")
 
     start = max(0, int(start))
     page_length = max(0, min(int(page_length), MAX_PROJECT_TIMESHEET_PAGE_LENGTH))
@@ -354,7 +364,7 @@ def get_project_timesheet_data(
         members = [
             _build_project_member_payload(employee, employee_data, employee_data["project_tasks"][project.name])
             for employee, employee_data in employee_data_map.items()
-            if project.name in employee_data["project_tasks"]
+            if project.name in employee_data["project_tasks"] and employee in employees_by_project.get(project.name, ())
         ]
         if members:
             projects.append({"project": project.name, "project_name": project.project_name, "members": members})
@@ -389,7 +399,7 @@ def get_project_timesheet_weeks(
     Pairs with that endpoint - both derive membership from `resolve_project_participation`,
     so this endpoint's `project_count` and its `total_count` cannot drift apart.
     """
-    only_for(TIMESHEET_REVIEWER_ROLES, message=True)
+    require_capability("team_timesheet_pages")
 
     max_week = int(max_week)
     approval_status = normalize_status_filter(approval_status, coerce_non_list=True)
@@ -458,7 +468,7 @@ def get_project_timesheet_member_week(employee: str, start_date: str, by_pass_ac
     Each `member` is exactly one element of `get_project_timesheet_data`'s `members`.
     """
     if not by_pass_access_check:
-        only_for(TIMESHEET_REVIEWER_ROLES, message=True)
+        require_capability("team_timesheet_pages")
 
     week = get_week_dates(date=start_date)
     employee_rows, _ = filter_employees(page_length=1, start=0, ids=[employee], ignore_default_filters=True)

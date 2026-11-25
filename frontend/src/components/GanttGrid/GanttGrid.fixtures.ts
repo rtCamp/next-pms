@@ -115,6 +115,7 @@ const BEN_ATLAS_REVIEW: Allocation = {
   startDate: day(28),
   endDate: day(3, 10),
   billable: false,
+  note: "  Reviews the first phase's designs.\n",
   createdOn: day(15),
   updatedOn: day(15),
 };

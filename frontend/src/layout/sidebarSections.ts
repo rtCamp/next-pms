@@ -1,4 +1,5 @@
-import { ROLE_ACCESS, hasAnyRole, type Role } from "@/session";
+import { hasCapability, type Capabilities, type Capability } from "@/session";
+import { WHATS_NEW_PATH } from "./constants";
 
 export interface NavItem {
   label: string;
@@ -26,18 +27,19 @@ function teamTimesheetLink(employeeId?: string | null): string {
 }
 
 /**
- * @param roles The user's roles
+ * @param capabilities The user's capabilities
  * @param employeeId The user's Employee ID; the Team timesheet link filters on
  *   their reports.
  */
 export function computeSections(
-  roles: readonly Role[],
+  capabilities: Capabilities,
   employeeId?: string | null,
 ): { topItems: (NavItem | NavAction)[]; sections: NavSection[] } {
-  const can = (allowed: readonly Role[]) => hasAnyRole(roles, allowed);
+  const can = (capability: Capability) =>
+    hasCapability(capabilities, capability);
 
   const dashboards: NavItem[] = [
-    ...(can(ROLE_ACCESS.leadershipDashboard)
+    ...(can("leadership_dashboard")
       ? [
           {
             label: "Leadership",
@@ -46,7 +48,7 @@ export function computeSections(
           },
         ]
       : []),
-    ...(can(ROLE_ACCESS.managerDashboard)
+    ...(can("manager_dashboard")
       ? [
           {
             label: "Manager",
@@ -58,7 +60,7 @@ export function computeSections(
   ];
 
   const team = teamTimesheetLink(employeeId);
-  const timesheets: NavItem[] = can(ROLE_ACCESS.reviewTimesheets)
+  const timesheets: NavItem[] = can("team_timesheet_pages")
     ? [
         { label: "Personal", icon: "lucide-clock", to: "/timesheet" },
         { label: "Team", icon: "lucide-users", to: team },
@@ -74,7 +76,7 @@ export function computeSections(
   const topItems: (NavItem | NavAction)[] = [
     { label: "Search", icon: "lucide-search", action: "search" },
     ...(timesheets.length === 1 ? timesheets : []),
-    ...(can(ROLE_ACCESS.notifications)
+    ...(can("notifications")
       ? [
           {
             label: "Notifications",
@@ -83,7 +85,7 @@ export function computeSections(
           },
         ]
       : []),
-    ...(can(ROLE_ACCESS.projects)
+    ...(can("projects_page")
       ? [
           {
             label: "Projects",
@@ -114,12 +116,15 @@ export interface SearchItem {
 /**
  * The pages the search palette offers the user, in the React app's order and wording.
  * @param employeeId The user's Employee ID; Timesheet - Team filters on their reports.
+ * @param hasReleaseNotes Whether the site has release notes, which lists What's new.
  */
 export function computeSearchItems(
-  roles: readonly Role[],
+  capabilities: Capabilities,
   employeeId?: string | null,
+  hasReleaseNotes = false,
 ): SearchItem[] {
-  const can = (allowed: readonly Role[]) => hasAnyRole(roles, allowed);
+  const can = (capability: Capability) =>
+    hasCapability(capabilities, capability);
   const team = teamTimesheetLink(employeeId);
 
   return [
@@ -127,16 +132,15 @@ export function computeSearchItems(
     { label: "Allocations - Team", to: "/allocations/team" },
     { label: "Allocations - Project", to: "/allocations/project" },
     { label: "Tasks", to: "/tasks" },
-    ...(can(ROLE_ACCESS.leadershipDashboard)
+    ...(hasReleaseNotes ? [{ label: "What's new", to: WHATS_NEW_PATH }] : []),
+    ...(can("leadership_dashboard")
       ? [{ label: "Dashboard - Leadership", to: "/dashboard/leadership" }]
       : []),
-    ...(can(ROLE_ACCESS.managerDashboard)
+    ...(can("manager_dashboard")
       ? [{ label: "Dashboard - Manager", to: "/dashboard/manager" }]
       : []),
-    ...(can(ROLE_ACCESS.projects)
-      ? [{ label: "Projects", to: "/projects" }]
-      : []),
-    ...(can(ROLE_ACCESS.reviewTimesheets)
+    ...(can("projects_page") ? [{ label: "Projects", to: "/projects" }] : []),
+    ...(can("team_timesheet_pages")
       ? [
           { label: "Timesheet - Team", to: team },
           { label: "Timesheet - Projects", to: "/timesheet/project" },

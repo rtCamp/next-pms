@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   computed,
+  h,
   onScopeDispose,
   ref,
   useTemplateRef,
@@ -18,10 +19,11 @@ import {
 import { HelpPanel } from "@/components/HelpPanel";
 import { NotificationTray } from "@/components/NotificationTray";
 import { useNotifications } from "@/composables/useNotifications";
-import type { Role } from "@/session";
+import { useWhatsNew } from "@/composables/useWhatsNew";
+import type { Capabilities, Role } from "@/session";
 import logo from "@/assets/logo.svg";
 import { rememberColorScheme } from "@/utils/theme";
-import { SIDEBAR_COLLAPSED_KEY } from "./constants";
+import { SIDEBAR_COLLAPSED_KEY, WHATS_NEW_PATH } from "./constants";
 import AppSidebarHeader from "./AppSidebarHeader.vue";
 import AppSidebarSection from "./AppSidebarSection.vue";
 import GlobalSearch from "./GlobalSearch.vue";
@@ -38,10 +40,14 @@ import {
   type NavAction,
   type NavItem,
 } from "./sidebarSections";
+import UnreadDot from "./UnreadDot.vue";
 import { usePreloadRoute } from "./usePreloadRoute";
+import WhatsNewMenuLabel from "./WhatsNewMenuLabel.vue";
 
 const props = defineProps<{
+  /** Matched with the capabilities against the help tips' `roles`. */
   roles: readonly Role[];
+  capabilities: Capabilities;
   employee?: string | null;
   employeeName?: string;
 }>();
@@ -54,8 +60,9 @@ const { resolvedColorScheme, toggleColorScheme } = useColorScheme();
 const preload = usePreloadRoute();
 const notifications = useNotifications();
 const { trayOpen } = notifications;
+const whatsNew = useWhatsNew();
 
-const nav = computed(() => computeSections(props.roles, props.employee));
+const nav = computed(() => computeSections(props.capabilities, props.employee));
 const topItems = computed(() => nav.value.topItems);
 const sections = computed(() => nav.value.sections);
 const hasNotifications = computed(() =>
@@ -71,7 +78,7 @@ function itemKey(item: NavItem | NavAction) {
 const settingsOpen = ref(false);
 const searchOpen = ref(false);
 const searchItems = computed(() =>
-  computeSearchItems(props.roles, props.employee),
+  computeSearchItems(props.capabilities, props.employee, whatsNew.available),
 );
 useKeyboardShortcut({
   combo: "Mod+K",
@@ -106,6 +113,10 @@ function focusHelpItem(event: Event) {
     ?.focus();
 }
 const pageTips = computed(() => tipsForRoute(route.name, route.query));
+const helpRoles = computed(() => [
+  ...props.roles,
+  ...Object.keys(props.capabilities),
+]);
 
 function runAction(action: NavAction["action"]) {
   if (action === "search") searchOpen.value = true;
@@ -159,6 +170,23 @@ const menuItems = computed(() => [
       settingsOpen.value = true;
     },
   },
+  ...(whatsNew.available
+    ? [
+        {
+          label: "What's new",
+          icon: "lucide-sparkles",
+          route: WHATS_NEW_PATH,
+          // Not `slots.item`: frappe-ui remounts an as-child row on every highlight
+          // change, so a pointer can't click it.
+          slots: whatsNew.unseen
+            ? {
+                label: () => h(WhatsNewMenuLabel),
+                suffix: () => h(UnreadDot, { placement: "menuItem" }),
+              }
+            : undefined,
+        },
+      ]
+    : []),
   {
     label: "Toggle Theme",
     icon: resolvedColorScheme.value === "dark" ? "lucide-sun" : "lucide-moon",
@@ -179,7 +207,12 @@ const menuItems = computed(() => [
       :logo="logo"
       :menu-items="menuItems"
       :collapsed="sidebarCollapsed"
-    />
+    >
+      <template v-if="whatsNew.unseen" #logo-badge>
+        <UnreadDot placement="logo" />
+        <span class="sr-only">New release</span>
+      </template>
+    </AppSidebarHeader>
 
     <div class="flex-1 overflow-y-auto px-2">
       <template v-for="item in topItems" :key="itemKey(item)">
@@ -232,13 +265,13 @@ const menuItems = computed(() => [
   </Sidebar>
 
   <GlobalSearch v-model:open="searchOpen" :items="searchItems" />
-  <SettingsModal v-model:open="settingsOpen" :roles="roles" />
+  <SettingsModal v-model:open="settingsOpen" :capabilities="capabilities" />
 
   <HelpPanel
     v-model:open="helpOpen"
     :page-tips="pageTips"
     :general-tips="GENERAL_TIPS"
-    :roles="roles"
+    :roles="helpRoles"
     :class="sidebarCollapsed ? 'left-12' : 'left-60'"
     @close-auto-focus="focusHelpItem"
   />

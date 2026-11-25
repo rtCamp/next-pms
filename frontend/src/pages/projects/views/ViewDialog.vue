@@ -2,6 +2,7 @@
 import { computed, reactive, ref, watch } from "vue";
 import { Button, Dialog, FormLabel, Switch, TextInput, toast } from "frappe-ui";
 import { InfoHoverCard } from "@/components/InfoHoverCard";
+import { useSession } from "@/session";
 import { errorMessage } from "@/utils/errors";
 import { DEFAULT_VIEW_ICON } from "./constants";
 import EmojiPicker from "./EmojiPicker.vue";
@@ -9,6 +10,7 @@ import { PUBLIC_VIEW_HELP } from "./help";
 import { useProjectViews } from "./useProjectViews";
 
 const views = useProjectViews();
+const session = useSession();
 
 const open = computed({
   get: () => views.viewDialog !== null,
@@ -85,7 +87,10 @@ async function submit() {
           />
         </div>
       </div>
-      <div class="flex min-w-0 items-center gap-1.5">
+      <div
+        v-if="session.can('public_views')"
+        class="flex min-w-0 items-center gap-1.5"
+      >
         <Switch
           v-model="form.isPublic"
           size="sm"

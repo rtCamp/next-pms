@@ -87,6 +87,10 @@ export function mapAllocation(record: AllocationRecord): Allocation {
  * overrides apply; each run is a bar pointing at the same allocation. Days booking
  * nothing end a run.
  *
+ * An AI allocation without weekends also breaks at every weekend, so the suggestion shows
+ * as the Mon-Fri pieces approval saves it as. Other allocations keep one bar per document:
+ * a bar for only part of a multi-week document would open the edit dialog on that part.
+ *
  * An allocation reduced to zero hours still blocks overlapping ones, so it keeps one
  * zero-hour placeholder (`fullyReduced`). That reads the backend's total, not the days
  * here, which include weekend days the allocation never books.
@@ -99,7 +103,8 @@ export function mapAllocationSegments(record: AllocationRecord): Allocation[] {
   const overrides = new Map(
     (record.override ?? []).map((entry) => [entry.date, entry]),
   );
-  if (!overrides.size) return [base];
+  const splitAtWeekends = base.isAiCreated && !base.includeWeekends;
+  if (!overrides.size && !splitAtWeekends) return [base];
 
   const segments: Allocation[] = [];
   let run: { start: Date; end: Date; hours: number } | null = null;
@@ -121,7 +126,10 @@ export function mapAllocationSegments(record: AllocationRecord): Allocation[] {
     day = day.add(1, "day")
   ) {
     const date = day.toDate();
-    const hours = dayHours(overrides.get(formatISODate(date)), base.hours);
+    const isSkippedWeekend = splitAtWeekends && [0, 6].includes(day.day());
+    const hours = isSkippedWeekend
+      ? 0
+      : dayHours(overrides.get(formatISODate(date)), base.hours);
     if (hours <= 0) {
       close();
     } else if (run && run.hours === hours) {

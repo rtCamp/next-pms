@@ -12,7 +12,6 @@ export const RISKS_HELP = {
     summary: "The person responsible for handling this risk.",
     details: [
       "They get a notification and an email when someone else assigns the risk to them.",
-      "A Projects User can edit the risk and post updates only while they are its Risk owner.",
       "If you leave it empty, the project's Project Manager becomes the Risk owner when you save.",
     ],
     wiki: "Project-Detail#create-risk",

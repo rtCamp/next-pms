@@ -9,12 +9,12 @@ from frappe.utils import (
 )
 
 from next_pms.api.utils import error_logger
+from next_pms.permissions.capabilities import has_capability
 from next_pms.resource_management.api.utils.query import get_employee_leaves
 from next_pms.timesheet.utils.constant import (
     ALLOWED_FILTER_FIELDS,
     EMP_TIMESHEET,
     FILTER_LOOKBACK_WEEKS,
-    TIMESHEET_REVIEWER_ROLES,
 )
 
 from .employee import (
@@ -23,13 +23,13 @@ from .employee import (
     get_employee_working_hours,
     validate_current_employee,
 )
+from .project import check_project_access
 from .utils import (
-    apply_role_permission_for_doctype,
     build_filters,
     employee_has_higher_access,
     get_holidays,
+    get_timesheet_approver_users,
     get_week_dates,
-    has_write_access,
     normalize_status_filter,
     parse_filters,
     update_weekly_status_of_timesheet,
@@ -170,9 +170,8 @@ def get_timesheet_data(
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
         employee = get_employee_from_user(throw_exception=frappe.session.user != "Administrator")
-    # Every role that opens the Team or Project timesheet reaches this endpoint from there to
-    # review a week, so gating it behind a narrower set would break that review.
-    apply_role_permission_for_doctype(TIMESHEET_REVIEWER_ROLES, "Employee", "read", employee)
+    if not employee_has_higher_access(employee, ptype="read"):
+        throw(_("You are not authorized to view this employee's timesheets."), frappe.PermissionError)
     return build_timesheet_data(
         employee=employee,
         start_date=start_date,
@@ -322,7 +321,23 @@ def build_timesheet_data(
     res["leaves"] = leaves
     res["holidays"] = holidays
     res["data"], res["has_more"] = generate_week_data(start_date, max_week, employee, leaves, holidays)
+    _attach_rejection_unlocked_dates(employee, res["data"])
     return res
+
+
+def _attach_rejection_unlocked_dates(employee: str, weeks: dict):
+    """Set each week's rejection_unlocked_dates. Kept out of the week cache on purpose: the
+    window closes with the passing of days, not with a write that would flush the cache."""
+    from next_pms.timesheet.doc_events.timesheet import get_rejection_unlocked_dates
+
+    if not weeks:
+        return
+    start_date = min(getdate(week["start_date"]) for week in weeks.values())
+    end_date = max(getdate(week["end_date"]) for week in weeks.values())
+    unlocked_dates = get_rejection_unlocked_dates([employee], start_date, end_date).get(employee, [])
+    for week_key, week in weeks.items():
+        week_dates = {str(date) for date in week["dates"]}
+        weeks[week_key] = {**week, "rejection_unlocked_dates": [d for d in unlocked_dates if d in week_dates]}
 
 
 @frappe.whitelist(methods=["POST"])
@@ -338,6 +353,7 @@ def save(date: str, description: str, task: str, hours: float = 0, employee: str
         throw(_("Task is mandatory for creating time entry."), frappe.MandatoryError)
 
     project = frappe.get_value("Task", task, "project")
+    check_project_access(project)
 
     parent = frappe.db.get_value(
         "Timesheet",
@@ -405,6 +421,8 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
 
     if not employee:
         employee = get_employee_from_user()
+    elif not employee_has_higher_access(employee, ptype="write"):
+        frappe.throw(_("You are not authorized to submit this employee's timesheet."), frappe.PermissionError)
 
     if not approver:
         reporting_manager = frappe.get_value("Employee", employee, "reports_to")
@@ -418,11 +436,11 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
             frappe.throw(_("You cannot select yourself as the approver."), frappe.PermissionError)
 
         reporting_manager = frappe.get_value("Employee", employee, "reports_to")
-        if approver != reporting_manager:
-            allowed_approver_roles = {"Projects Manager", "Timesheet Manager", "Timesheet User", "System Manager"}
+        if approver not in (reporting_manager, employee):
             approver_user = frappe.get_value("Employee", approver, "user_id")
-            approver_roles = set(frappe.get_roles(approver_user)) if approver_user else set()
-            if not (approver_roles & allowed_approver_roles) and approver_user != "Administrator":
+            if approver_user != "Administrator" and approver_user not in get_timesheet_approver_users(
+                employee, start_date
+            ):
                 frappe.throw(_("Selected approver is not authorized to approve timesheets."), frappe.PermissionError)
         reporting_manager = approver
 
@@ -485,6 +503,8 @@ def update_timesheet_detail(
     logs_to_remove = []
     new_logs = []
     task_project = frappe.get_value("Task", task, "project")
+    if task_project != parent_doc.parent_project:
+        check_project_access(task_project)
 
     for log in parent_doc.time_logs:
         if not name or log.name != name:
@@ -507,7 +527,7 @@ def update_timesheet_detail(
         log.description = description
         log.task = task
         # Only update value of billable if user has write access
-        if has_write_access() and is_billable is not None:
+        if has_capability("edit_project_billing") and is_billable is not None:
             log.is_billable = is_billable
         if getdate(log.from_time) != getdate(date):
             logs_to_remove.append(log)
@@ -534,7 +554,7 @@ def update_timesheet_detail(
                 "to_time": getdate(date),
                 "project": task_project,
             }
-            if has_write_access() and is_billable is not None:
+            if has_capability("edit_project_billing") and is_billable is not None:
                 log["is_billable"] = is_billable
             else:
                 log["is_billable"] = frappe.get_value("Task", task, "custom_is_billable")
@@ -697,7 +717,6 @@ def get_timesheet(dates: list, employee: str, search: str | None = None, parsed_
     return [data, total_hours]
 
 
-@validate_current_employee(ptype="read")
 def get_timesheet_state(employee: str, start_date: str, end_date: str):
     status = frappe.db.get_value(
         "Timesheet",

@@ -3,6 +3,8 @@ import { Button, PageHeaderBase } from "frappe-ui";
 import TimesheetBreadcrumbs from "./TimesheetBreadcrumbs.vue";
 import { useTimesheetDialogs } from "./useTimesheetDialogs";
 
+defineProps<{ canAddTime: boolean }>();
+
 const dialogs = useTimesheetDialogs();
 
 const canAddLeave =
@@ -21,6 +23,7 @@ const canAddLeave =
           @click="dialogs.openAddLeave()"
         />
         <Button
+          v-if="canAddTime"
           variant="solid"
           label="Add time"
           icon-left="lucide-plus"

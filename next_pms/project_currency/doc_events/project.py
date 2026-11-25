@@ -21,6 +21,44 @@ def copy_tech_stack_from_deal(doc):
 
 def validate(doc, method=None):
     validate_tech_stack(doc)
+    validate_manager_roles(doc)
+    remove_duplicate_delivery_accelerators(doc)
+
+
+def remove_duplicate_delivery_accelerators(doc):
+    rows = doc.get("delivery_accelerators") or []
+    seen = set()
+    unique = []
+    for row in rows:
+        if row.delivery_accelerator not in seen:
+            seen.add(row.delivery_accelerator)
+            unique.append(row)
+    if len(unique) == len(rows):
+        return
+    for idx, row in enumerate(unique, start=1):
+        row.idx = idx
+    doc.set("delivery_accelerators", unique)
+
+
+def validate_manager_roles(doc):
+    import frappe
+    from frappe import _
+    from frappe.utils import get_fullname
+
+    from next_pms.permissions.capabilities import get_missing_manager_role, get_project_manager_fields
+
+    for fieldname in get_project_manager_fields():
+        user = doc.get(fieldname)
+        if not user or not doc.has_value_changed(fieldname):
+            continue
+        if role := get_missing_manager_role(fieldname, user):
+            label = _(doc.meta.get_label(fieldname))
+            frappe.throw(
+                _("{0} needs at least the {1} role to be the {2}.").format(
+                    frappe.bold(get_fullname(user)), frappe.bold(role), label
+                ),
+                title=_("Missing role for {0}").format(label),
+            )
 
 
 def validate_tech_stack(doc):

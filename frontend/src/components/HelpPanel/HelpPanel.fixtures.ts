@@ -31,7 +31,7 @@ export const PAGE_TIPS: HelpTip[] = [
     id: "member-timesheet",
     title: "Review a member's timesheet",
     body: "Select a name in Timesheets to review and approve that member's time in Team Timesheet.",
-    roles: ["Timesheet Manager"],
+    roles: ["team_timesheet_pages"],
   },
 ];
 

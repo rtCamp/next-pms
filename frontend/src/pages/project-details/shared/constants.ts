@@ -8,20 +8,6 @@ export const ACTIVITY_URL =
 export const UPDATE_FOLLOW_URL =
   "/api/v2/method/frappe.desk.form.document_follow.update_follow";
 
-/** Roles that may edit and delete every owner-gated record. */
-export const MANAGE_ALL_ROLES = [
-  "System Manager",
-  "Projects Manager",
-  "Delivery Manager",
-  "Delivery User",
-  "Timesheet Manager",
-] as const satisfies readonly Role[];
-
-/** Roles that may edit an owner-gated record only when they own it. */
-export const OWNER_GATED_ROLES = [
-  "Projects User",
-] as const satisfies readonly Role[];
-
 /** The role that may edit or delete anyone's update. */
 export const UPDATE_ADMIN_ROLE: Role = "System Manager";
 

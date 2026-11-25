@@ -12,6 +12,7 @@ export const SYSTEM_SETTINGS: SystemSettings = {
   allow_backdated_entries_till_employee: 3,
   allow_backdated_entries_till_manager: 7,
   ignored_role: [{ role: "HR Manager" }],
+  allow_rejected_timesheet_edit_till: 3,
   allow_future_entries: 0,
   allow_weekend_entries: 1,
   auto_expand_weeks_by_default: 1,

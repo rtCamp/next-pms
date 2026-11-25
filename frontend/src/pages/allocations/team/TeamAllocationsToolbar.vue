@@ -23,7 +23,7 @@ import {
   resolveAllocationTypes,
 } from "@/pages/allocations/shared/filterParams";
 import { ALLOCATION_TYPE_HELP } from "@/pages/allocations/shared/help";
-import { ROLE_ACCESS, useSession } from "@/session";
+import { useSession } from "@/session";
 import {
   BUSINESS_UNIT_FIELD,
   TEAM_ALLOCATION_TYPE_OPTIONS,
@@ -38,9 +38,7 @@ const query = team.query;
 
 const guard = (action: () => void) => unsaved.requestGuardedAction(action);
 
-const showFilters = computed(() =>
-  session.hasAnyRole(ROLE_ACCESS.manageAllocations),
-);
+const showFilters = computed(() => session.can("filter_lookups"));
 
 const searchInput = shallowRef(query.search);
 watch(

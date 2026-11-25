@@ -2,7 +2,11 @@ import { computed, reactive } from "vue";
 import { toast, useCall } from "frappe-ui";
 import { redirectToLogin } from "@/boot";
 import { errorMessage } from "@/utils/errors";
-import { hasAnyRole } from "./roles";
+import {
+  hasCapability,
+  type Capabilities,
+  type Capability,
+} from "./capabilities";
 import type { AppData, EmployeeData, Role } from "./types";
 
 function cookie(name: string): string {
@@ -32,12 +36,16 @@ function createSession() {
   const roles = computed<Role[]>(
     () => app.data?.roles ?? window.boot?.user?.roles ?? [],
   );
+  const capabilities = computed<Capabilities>(
+    () => app.data?.capabilities ?? window.boot?.capabilities ?? {},
+  );
 
   return reactive({
     userId: cookie("user_id"),
     userName: cookie("full_name"),
     userImage: cookie("user_image"),
     roles,
+    capabilities,
     employee: computed(() => employee.data?.employee ?? null),
     employeeName: computed(() => employee.data?.employee_name ?? ""),
     reportsTo: computed(() => employee.data?.employee_report_to ?? null),
@@ -63,7 +71,7 @@ function createSession() {
     loading: computed(() => app.loading || employee.loading),
     error: computed(() => app.error ?? employee.error),
 
-    /** Loads the user's roles and employee record; later calls reuse the first load. */
+    /** Loads the user's roles, capabilities and employee record; later calls reuse the first load. */
     load(): Promise<void> {
       loading ??= Promise.all([app.fetch(), employee.fetch()]).then(() => {
         // A failed load may be retried on the next navigation.
@@ -71,8 +79,9 @@ function createSession() {
       });
       return loading;
     },
-    hasAnyRole(allowed: readonly Role[]) {
-      return hasAnyRole(roles.value, allowed);
+    /** Whether the user holds `capability`, at any scope. */
+    can(capability: Capability) {
+      return hasCapability(capabilities.value, capability);
     },
     loggingOut: computed(() => logout.loading),
     async logout() {
@@ -94,7 +103,7 @@ export type Session = ReturnType<typeof createSession>;
 // fetch only ties itself to an effect scope when there is one.
 let session: Session | undefined;
 
-/** The signed-in user: identity, roles and employee record, shared app-wide. */
+/** The signed-in user: identity, roles, capabilities and employee record, shared app-wide. */
 export function useSession(): Session {
   session ??= createSession();
   return session;

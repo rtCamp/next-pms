@@ -10,12 +10,9 @@ const props = defineProps<{
 }>();
 const open = defineModel<boolean>("open", { required: true });
 
-/** Roles that see everyone's time on the task; others see only their own. */
-const TEAM_VIEW_ROLES = ["Projects Manager", "Timesheet Manager"];
-
 const session = useSession();
 const view = computed(() =>
-  session.hasAnyRole(TEAM_VIEW_ROLES) ? "team" : "personal",
+  session.can("view_employee_details") ? "team" : "personal",
 );
 
 const { range, details, entries, loading } = useTaskLog({

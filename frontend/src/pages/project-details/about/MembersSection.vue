@@ -8,8 +8,6 @@ import ManagerField from "./ManagerField.vue";
 import MemberRow from "./MemberRow.vue";
 import { useProjectSidebar } from "./useProjectSidebar";
 
-const PROJECT_MANAGER_ROLES = ["Projects Manager"];
-
 const { sidebar, projectManager, engineeringManager, teamMembers } =
   useProjectSidebar();
 
@@ -29,12 +27,15 @@ const addOpen = ref(false);
         manager-role="project_manager"
         label="Project Manager"
         :manager="projectManager"
-        :roles="PROJECT_MANAGER_ROLES"
+        :roles="sidebar?.manager_roles.project_manager"
+        :missing-role="sidebar?.missing_manager_roles.project_manager"
       />
       <ManagerField
         manager-role="engineering_manager"
         label="Lead Engineer"
         :manager="engineeringManager"
+        :roles="sidebar?.manager_roles.engineering_manager"
+        :missing-role="sidebar?.missing_manager_roles.engineering_manager"
       />
     </div>
 

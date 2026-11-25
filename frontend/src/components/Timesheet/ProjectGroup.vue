@@ -12,6 +12,7 @@ const props = withDefaults(defineProps<ProjectGroupProps>(), {
   disabled: false,
   lockApproved: true,
   backdateRestrictedBefore: null,
+  rejectionUnlockedDates: () => [],
   highlightTimeEntries: false,
   defaultCollapsed: false,
 });
@@ -39,6 +40,7 @@ const project = computed(() =>
         disabled: props.disabled,
         lockApproved: props.lockApproved,
         backdateRestrictedBefore: props.backdateRestrictedBefore,
+        rejectionUnlockedDates: props.rejectionUnlockedDates,
       }),
 );
 </script>

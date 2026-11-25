@@ -141,6 +141,30 @@ export const BackdateLimitLocksEarlierDays: Story = {
   },
 };
 
+export const RejectedDayStaysOpenPastBackdateLimit: Story = {
+  args: {
+    backdateRestrictedBefore: WEEK_DATES[2],
+    rejectionUnlockedDates: [WEEK_DATES[1]],
+  },
+  play: async ({ canvasElement }) => {
+    const total = within(canvasElement)
+      .getByText("Projects")
+      .closest("div.flex.w-full") as HTMLElement;
+    const cells = within(total).getAllByRole("button");
+    await expect(cells[1]).toBeDisabled();
+    await expect(cells[2]).toBeEnabled();
+    const task = within(canvasElement)
+      .getByText("API Documentation")
+      .closest("div.flex.w-full") as HTMLElement;
+    await expect(
+      within(task).getAllByRole("button", { name: "Add time" })[0],
+    ).toHaveAttribute("aria-disabled", "true");
+    await expect(
+      within(task).getByRole("button", { name: /01:00/ }),
+    ).not.toHaveAttribute("aria-disabled", "true");
+  },
+};
+
 export const ApprovedEntriesLockProjectDay: Story = {
   play: async ({ canvasElement }) => {
     const project = within(canvasElement)

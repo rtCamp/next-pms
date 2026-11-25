@@ -17,8 +17,8 @@ interface KanbanColumnsResponse {
 }
 
 // Detached, so the shared call outlives the component that first asks for it.
-// Read from the kanban view's columns: every projects role may call it, while Project
-// Phase itself isn't readable by all of them (Timesheet Manager).
+// Read from the kanban view's columns: everyone on the Projects page may call it,
+// while Project Phase itself may not be readable by all of them.
 function createPhasesCall() {
   return effectScope(true).run(() => {
     const call = useCall<

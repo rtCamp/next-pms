@@ -124,12 +124,19 @@ export function compareHours(hours: number, expected: number): HoursComparison {
 /**
  * Whether `date` is before the backdated-entry limit. The boundary comes from the
  * server, which already allows for holidays, weekly offs, leave and the manager limit.
+ * `unlockedDates` are days past it that a recent rejection keeps open for correction
+ * and review.
  */
 export function isDateBackdateRestricted(
   date: string,
   restrictedBefore: string | null | undefined,
+  unlockedDates: string[] = [],
 ): boolean {
-  return Boolean(restrictedBefore) && date < restrictedBefore!;
+  return (
+    Boolean(restrictedBefore) &&
+    date < restrictedBefore! &&
+    !unlockedDates.includes(date)
+  );
 }
 
 /** Whether any of `tasks` has a submitted (approved) entry on `date`. */
@@ -255,6 +262,7 @@ export interface ProjectCellsInput {
   /** Turns off the days with an approved entry. */
   lockApproved?: boolean;
   backdateRestrictedBefore?: string | null;
+  rejectionUnlockedDates?: string[];
 }
 
 /** A project's hours per day, with days locked by approval or the backdate limit. */
@@ -264,6 +272,7 @@ export function computeProjectCells({
   disabled = false,
   lockApproved = true,
   backdateRestrictedBefore,
+  rejectionUnlockedDates,
 }: ProjectCellsInput): { total: number; cells: DayCell[] } {
   let total = 0;
   const cells = dates.map((date) => {
@@ -275,7 +284,11 @@ export function computeProjectCells({
       disabled:
         disabled ||
         (lockApproved && hasApprovedTimeEntry(tasks, date)) ||
-        isDateBackdateRestricted(date, backdateRestrictedBefore),
+        isDateBackdateRestricted(
+          date,
+          backdateRestrictedBefore,
+          rejectionUnlockedDates,
+        ),
     };
   });
   return { total, cells };
@@ -322,6 +335,7 @@ export interface TaskCellsInput {
   /** Turns every cell off (the member's week is approved or processing). */
   disabled?: boolean;
   backdateRestrictedBefore?: string | null;
+  rejectionUnlockedDates?: string[];
 }
 
 export interface TaskCells {
@@ -343,6 +357,7 @@ export function computeTaskCells({
   task,
   disabled = false,
   backdateRestrictedBefore,
+  rejectionUnlockedDates,
 }: TaskCellsInput): TaskCells {
   const tasks = { [task.name]: task };
   let total = 0;
@@ -362,7 +377,11 @@ export function computeTaskCells({
       disabled:
         disabled ||
         state.fullyApproved ||
-        isDateBackdateRestricted(date, backdateRestrictedBefore),
+        isDateBackdateRestricted(
+          date,
+          backdateRestrictedBefore,
+          rejectionUnlockedDates,
+        ),
       status: hours === 0 && rejectedHours > 0 ? "Rejected" : state.status,
       rejectionReason: state.rejectionReason,
     };

@@ -1,12 +1,3 @@
-# Permission helpers
-ALLOWED_ROLES = [
-    "Projects Manager",
-    "Projects User",
-    "Timesheet Manager",
-    "Delivery Manager",
-    "System Manager",
-]
-
 # Task.status values counted in get_project_tracking task totals (excludes Template, Cancelled)
 TASK_TRACKING_TOTAL_STATUSES = (
     "Open",

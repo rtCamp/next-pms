@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import { Button, PageHeaderBase } from "frappe-ui";
 import { useUnsavedChanges } from "@/composables/useUnsavedChanges";
-import { ROLE_ACCESS, useSession } from "@/session";
+import { useSession } from "@/session";
 import AllocationsBreadcrumbs from "./AllocationsBreadcrumbs.vue";
 import { useAllocationDialogs } from "./useAllocationDialogs";
 
@@ -10,9 +10,7 @@ const session = useSession();
 const unsaved = useUnsavedChanges();
 const dialogs = useAllocationDialogs();
 
-const canManageAllocations = computed(() =>
-  session.hasAnyRole(ROLE_ACCESS.manageAllocations),
-);
+const canManageAllocations = computed(() => session.can("manage_allocations"));
 
 function addAllocation() {
   unsaved.requestGuardedAction(() => dialogs.openAdd());

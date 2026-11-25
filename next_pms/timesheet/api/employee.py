@@ -5,6 +5,8 @@ from functools import wraps
 import frappe
 from frappe.utils import flt
 
+from next_pms.permissions.capabilities import ALL, HR_ROLES, has_capability
+from next_pms.permissions.scope import EmployeeScope, get_employee_scope
 from next_pms.timesheet.utils.constant import (
     DEFAULT_DAILY_WORKING_HOURS,
     DEFAULT_WORKING_FREQUENCY,
@@ -115,20 +117,7 @@ def get_employee_working_hours(employee: str | None = None) -> dict:
         # daily hours = 40.0 / 5 = 8.0
         ```
     """
-    roles = set(frappe.get_roles(frappe.session.user))
-    manager_roles = {
-        "Projects Manager",
-        "Timesheet Manager",
-        "Timesheet User",
-        "Delivery Manager",
-        "Delivery User",
-        "HR Manager",
-        "HR User",
-        "System Manager",
-    }
-    if not (manager_roles & roles) and frappe.session.user != "Administrator":
-        employee = get_employee_from_user()
-    elif not employee:
+    if not employee or not get_employee_detail_scope().allows(employee):
         employee = get_employee_from_user()
 
     if not employee:
@@ -176,7 +165,9 @@ def get_employee_list(
     roles: str | list[str] | None = None,
     ignore_default_filters: bool = False,
 ):
-    """Get a paginated list of employees for the employee dropdown in the timesheet entry form, respecting user permissions."""
+    """Paginated employees for the app's employee pickers. Holders of `filter_lookups` get
+    the whole directory: HRMS limits each user to their own Employee record, which would
+    otherwise empty every picker. Everyone else follows their Employee permissions."""
     from . import filter_employees
 
     if roles and isinstance(roles, str):
@@ -194,7 +185,7 @@ def get_employee_list(
         user_group=user_group,
         reports_to=reports_to,
         roles=roles,
-        ignore_permissions=False,
+        ignore_permissions=has_capability("filter_lookups"),
         ignore_default_filters=ignore_default_filters,
         extra_fields=["user_id"],
     )
@@ -238,6 +229,15 @@ def get_workable_days_for_employee(employee: str, start_date: str | datetime.dat
         "total_working_days": date_diff(end_date, start_date) + 1 - total_leave_hours - len(holidays),
         "leave_days": total_leave_hours + len(holidays),
     }
+
+
+def get_employee_detail_scope() -> EmployeeScope:
+    """Whose working hours and task time logs the session user may see. HR roles keep
+    seeing everyone, as they did before the PMS roles moved to capabilities."""
+    scope = get_employee_scope("view_employee_details")
+    if HR_ROLES & set(frappe.get_roles()):
+        return EmployeeScope(scope=ALL, employee=scope.employee)
+    return scope
 
 
 def validate_current_employee(ptype: str = "read"):

@@ -115,9 +115,9 @@ class _ProjectViewBase(IntegrationTestCase):
         )
         if project_type:
             doc.project_type = project_type
-        if project_manager:
-            doc.custom_project_manager = project_manager
         doc.insert(ignore_permissions=True)
+        if project_manager:
+            doc.db_set("custom_project_manager", project_manager)
         for tag in tags:
             doc.add_tag(tag)
         return doc.name
@@ -211,6 +211,10 @@ class TestProjectViewProjectListFilters(_ProjectViewBase):
         cls.p_completed = cls._make_project("PV Gamma Portal", cls.c_main, status="Completed")
         cls.p_cancelled = cls._make_project("PV Delta Portal", cls.c_main, status="Cancelled")
         cls.p_other = cls._make_project("PV Epsilon Portal", cls.c_other)
+        # An Employee-only caller lists only the projects shared with them.
+        frappe.share.add_docshare(
+            "Project", cls.p_alpha, READ_ONLY_USER, read=1, flags={"ignore_share_permission": True}
+        )
 
         frappe.clear_cache()
 

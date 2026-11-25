@@ -36,7 +36,7 @@ test.describe("Employee: Settings", () => {
     await expect(page).toHaveURL(/\/next-pms\/timesheet/);
   });
 
-  test("TC380: Without System Manager or Delivery Manager the dialog has only User Configuration", async ({
+  test("TC380: Without System Manager or PMS Leadership the dialog has only User Configuration", async ({
     browser,
   }) => {
     allure.story("Settings");
@@ -54,7 +54,7 @@ test.describe("Employee: Settings", () => {
 
     await only(settings.page);
 
-    // The manager has Projects Manager and Timesheet Manager, which are not system roles.
+    // The manager has Projects Manager, which is not a system role.
     const context = await signedInAsRole(browser, "manager");
     try {
       const page = await context.newPage();

@@ -1,5 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { fn } from "storybook/test";
+import {
+  EMPLOYEE_CAPABILITIES,
+  PMS_LEADERSHIP_CAPABILITIES,
+  PROJECTS_MANAGER_CAPABILITIES,
+  PROJECTS_USER_CAPABILITIES,
+} from "@/session/capabilities.fixtures";
+import { useWhatsNew } from "@/composables/useWhatsNew";
 import AppSidebar from "./AppSidebar.vue";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
 
@@ -9,7 +16,8 @@ const meta = {
   tags: ["autodocs"],
   parameters: { layout: "fullscreen" },
   args: {
-    roles: [],
+    roles: ["Employee"],
+    capabilities: EMPLOYEE_CAPABILITIES,
     employee: "HR-EMP-00042",
     employeeName: "Asha Rao",
     onLogout: fn(),
@@ -17,6 +25,9 @@ const meta = {
   beforeEach: () => {
     // Each story starts expanded, whatever an earlier one stored.
     localStorage.removeItem(SIDEBAR_COLLAPSED_KEY);
+    const whatsNew = useWhatsNew();
+    whatsNew.available = false;
+    whatsNew.unseen = false;
   },
   render: (args) => ({
     components: { AppSidebar },
@@ -32,22 +43,37 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** An employee without review or project roles: their own timesheet, tasks and allocations. */
+/** An employee: their own timesheet, tasks, allocations and notifications. */
 export const Employee: Story = {};
 
-/** A timesheet reviewer gets a Timesheet section. */
+/** A release the user hasn't seen: a dot on the logo and on the What's new menu item. */
+export const NewRelease: Story = {
+  beforeEach: () => {
+    const whatsNew = useWhatsNew();
+    whatsNew.available = true;
+    whatsNew.unseen = true;
+  },
+};
+
+/** A Projects User gets a Timesheet section and Projects. */
 export const TimesheetReviewer: Story = {
-  args: { roles: ["Timesheet User"] },
+  args: { roles: ["Projects User"], capabilities: PROJECTS_USER_CAPABILITIES },
 };
 
 /** A projects manager sees open projects and their dashboard. */
 export const ProjectsManager: Story = {
-  args: { roles: ["Projects Manager"] },
+  args: {
+    roles: ["Projects Manager"],
+    capabilities: PROJECTS_MANAGER_CAPABILITIES,
+  },
 };
 
 /** Two dashboards go into their own section. */
 export const Leadership: Story = {
-  args: { roles: ["Delivery Manager"] },
+  args: {
+    roles: ["PMS Leadership"],
+    capabilities: PMS_LEADERSHIP_CAPABILITIES,
+  },
 };
 
 /** On a phone the sidebar collapses by itself. */

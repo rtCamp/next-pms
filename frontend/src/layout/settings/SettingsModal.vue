@@ -17,7 +17,7 @@ import {
 } from "frappe-ui";
 import { UnsavedChangesDialog } from "@/components/UnsavedChangesDialog";
 import { usePmsSettings, type PmsSettings } from "@/composables/usePmsSettings";
-import { ROLE_ACCESS, hasAnyRole, type Role } from "@/session";
+import { hasCapability, type Capabilities } from "@/session";
 import { errorMessage } from "@/utils/errors";
 import ProfilePanel from "./ProfilePanel.vue";
 import ResourceManagementPanel from "./ResourceManagementPanel.vue";
@@ -31,14 +31,14 @@ import {
 } from "./systemSettings";
 import TimesheetsPanel from "./TimesheetsPanel.vue";
 
-const props = defineProps<{ roles: readonly Role[] }>();
+const props = defineProps<{ capabilities: Capabilities }>();
 
 defineOptions({ inheritAttrs: false });
 
 const open = defineModel<boolean>("open", { default: false });
 const tab = ref("profile");
 const canManageSystem = computed(() =>
-  hasAnyRole(props.roles, ROLE_ACCESS.systemSettings),
+  hasCapability(props.capabilities, "system_settings"),
 );
 
 const pms = usePmsSettings();

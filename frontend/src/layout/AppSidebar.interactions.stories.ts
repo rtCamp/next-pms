@@ -2,6 +2,13 @@ import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { expect, fn, screen, userEvent, waitFor, within } from "storybook/test";
 import { onUnmounted } from "vue";
 import { useRouter } from "vue-router";
+import {
+  EMPLOYEE_CAPABILITIES,
+  PMS_LEADERSHIP_CAPABILITIES,
+  PROJECTS_MANAGER_CAPABILITIES,
+  PROJECTS_USER_CAPABILITIES,
+} from "@/session/capabilities.fixtures";
+import { useWhatsNew } from "@/composables/useWhatsNew";
 import AppSidebar from "./AppSidebar.vue";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
 
@@ -11,7 +18,8 @@ const meta = {
   tags: ["interaction"],
   parameters: { layout: "fullscreen" },
   args: {
-    roles: [],
+    roles: ["Employee"],
+    capabilities: EMPLOYEE_CAPABILITIES,
     employee: "HR-EMP-00042",
     employeeName: "Asha Rao",
     onLogout: fn(),
@@ -19,6 +27,9 @@ const meta = {
   beforeEach: () => {
     // Each story starts expanded, whatever an earlier one stored.
     localStorage.removeItem(SIDEBAR_COLLAPSED_KEY);
+    const whatsNew = useWhatsNew();
+    whatsNew.available = false;
+    whatsNew.unseen = false;
   },
   render: (args) => ({
     components: { AppSidebar },
@@ -34,7 +45,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** An employee without review or project roles: their own timesheet, tasks and allocations. */
+/** An employee: their own timesheet, tasks, allocations and notifications. */
 export const Employee: Story = {
   play: async ({ canvas }) => {
     await expect(
@@ -56,14 +67,23 @@ export const Employee: Story = {
       canvas.getByRole("button", { name: "Allocations" }),
     ).toBeInTheDocument();
     await expect(
+      canvas.getByRole("button", { name: "Notifications" }),
+    ).toBeInTheDocument();
+  },
+};
+
+/** Without the notifications capability there's no Notifications item. */
+export const NoNotifications: Story = {
+  args: { capabilities: {} },
+  play: async ({ canvas }) => {
+    await expect(
       canvas.queryByRole("button", { name: "Notifications" }),
     ).not.toBeInTheDocument();
   },
 };
 
-/** Projects and delivery roles get Notifications, which opens the tray beside the sidebar. */
+/** Notifications opens the tray beside the sidebar. */
 export const Notifications: Story = {
-  args: { roles: ["Projects User"] },
   play: async ({ canvas }) => {
     await userEvent.click(
       canvas.getByRole("button", { name: "Notifications" }),
@@ -75,9 +95,9 @@ export const Notifications: Story = {
   },
 };
 
-/** A timesheet reviewer gets a Timesheet section; Team opens on their reports. */
+/** A Projects User gets a Timesheet section, Team opening on their reports, and Projects. */
 export const TimesheetReviewer: Story = {
-  args: { roles: ["Timesheet User"] },
+  args: { roles: ["Projects User"], capabilities: PROJECTS_USER_CAPABILITIES },
   play: async ({ canvas }) => {
     await userEvent.click(canvas.getByRole("button", { name: "Timesheet" }));
     await expect(
@@ -88,14 +108,19 @@ export const TimesheetReviewer: Story = {
       "/timesheet/team?reportsTo=HR-EMP-00042",
     );
     await expect(
-      canvas.getByRole("link", { name: "Projects" }),
-    ).toHaveAttribute("href", "/timesheet/project");
+      canvas
+        .getAllByRole("link", { name: "Projects" })
+        .map((link) => link.getAttribute("href")),
+    ).toEqual(["/projects?status=Open", "/timesheet/project"]);
   },
 };
 
 /** A projects manager sees open projects and, with one dashboard, has it at the top. */
 export const ProjectsManager: Story = {
-  args: { roles: ["Projects Manager"] },
+  args: {
+    roles: ["Projects Manager"],
+    capabilities: PROJECTS_MANAGER_CAPABILITIES,
+  },
   play: async ({ canvas }) => {
     await expect(
       canvas.getByRole("link", { name: "Projects" }),
@@ -112,7 +137,10 @@ export const ProjectsManager: Story = {
 
 /** Two dashboards go into their own section. */
 export const Leadership: Story = {
-  args: { roles: ["Delivery Manager"] },
+  args: {
+    roles: ["PMS Leadership"],
+    capabilities: PMS_LEADERSHIP_CAPABILITIES,
+  },
   play: async ({ canvas }) => {
     const section = canvas.getByRole("button", { name: "Dashboards" });
     await userEvent.click(section);
@@ -254,9 +282,102 @@ export const PreloadsPageCode: Story = {
 
 let storyRouter: ReturnType<typeof useRouter> | undefined;
 
+const renderWithRouter: Story["render"] = (args) => ({
+  components: { AppSidebar },
+  setup() {
+    storyRouter = useRouter();
+    return { args };
+  },
+  template: `
+    <div class="flex h-[600px]">
+      <AppSidebar v-bind="args" />
+    </div>
+  `,
+});
+
+/** An unseen release: dots on the logo ("New release") and the menu item, which opens What's new. */
+export const WhatsNewUnseen: Story = {
+  beforeEach: () => {
+    const whatsNew = useWhatsNew();
+    whatsNew.available = true;
+    whatsNew.unseen = true;
+  },
+  render: renderWithRouter,
+  play: async ({ canvas }) => {
+    const header = canvas.getByRole("button", { name: /Next PMS/ });
+    await expect(within(header).getByText("New release")).toBeInTheDocument();
+    await userEvent.click(header);
+    await screen.findByRole("menu");
+    // The visible labels; the What's new row also holds its name for screen readers.
+    const labels = screen.getAllByRole("menuitem").map((item) => {
+      const visible = item.cloneNode(true) as HTMLElement;
+      visible.querySelectorAll(".sr-only").forEach((node) => node.remove());
+      return visible.textContent?.trim();
+    });
+    await expect(labels).toEqual([
+      "Apps",
+      "Switch To Desk",
+      "Settings",
+      "What's new",
+      "Toggle Theme",
+      "Logout",
+    ]);
+    await userEvent.click(
+      screen.getByRole("menuitem", { name: "What's new, new release" }),
+    );
+    await waitFor(() =>
+      expect(storyRouter?.currentRoute.value.fullPath).toBe("/whats-new"),
+    );
+  },
+};
+
+/** Once the release is seen, the dots go and the menu item is plain "What's new". */
+export const WhatsNewSeen: Story = {
+  beforeEach: () => {
+    useWhatsNew().available = true;
+  },
+  play: async ({ canvas }) => {
+    const header = canvas.getByRole("button", { name: /Next PMS/ });
+    await expect(within(header).queryByText("New release")).toBeNull();
+    await userEvent.click(header);
+    await expect(
+      await screen.findByRole("menuitem", { name: "What's new" }),
+    ).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+  },
+};
+
+/** With release notes on the site, the search palette lists What's new. */
+export const SearchWhatsNew: Story = {
+  beforeEach: () => {
+    useWhatsNew().available = true;
+  },
+  render: renderWithRouter,
+  play: async () => {
+    await userEvent.keyboard("{Control>}k{/Control}");
+    const palette = await screen.findByRole("dialog", { name: "Search" });
+    await userEvent.keyboard("what");
+    await waitFor(() =>
+      expect(
+        within(palette)
+          .getAllByRole("option")
+          .map((option) => option.textContent?.trim()),
+      ).toEqual(["What's new"]),
+    );
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() =>
+      expect(storyRouter?.currentRoute.value.fullPath).toBe("/whats-new"),
+    );
+  },
+};
+
 /** Ctrl+K opens the search palette; it lists the user's pages and goes to the picked one. */
 export const Search: Story = {
-  args: { roles: ["Projects Manager"] },
+  args: {
+    roles: ["Projects Manager"],
+    capabilities: PROJECTS_MANAGER_CAPABILITIES,
+  },
   render: (args) => ({
     components: { AppSidebar },
     setup() {

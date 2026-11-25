@@ -133,8 +133,16 @@ after_app_install = "next_pms.install.after_app_install"
 # Permissions evaluated in scripted ways
 
 
+permission_query_conditions = {
+    "Timesheet": "next_pms.timesheet.permission.get_permission_query_conditions",
+    "Project": "next_pms.permissions.project.get_permission_query_conditions",
+    "NextPMS Notifications": "next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications.get_permission_query_conditions",
+}
+
 has_permission = {
-    "Risk": "next_pms.next_pms.doctype.risk.risk.has_permission",
+    "Timesheet": "next_pms.timesheet.permission.has_permission",
+    "Project": "next_pms.permissions.project.has_permission",
+    "NextPMS Notifications": "next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications.has_permission",
     "Resource Allocation": "next_pms.resource_management.doctype.resource_allocation.resource_allocation.has_permission",
     "PMS Growth Initiative": "next_pms.next_pms.doctype.pms_growth_initiative.pms_growth_initiative.has_permission",
 }
@@ -178,13 +186,12 @@ fixtures = [
 
 # DocType Class
 # ---------------
-# Override standard doctype classes
+# Extend standard doctype classes
 
-override_doctype_class = {  # nosemgrep - existing legacy overrides; migration tracked separately
-    "Project": "next_pms.project_currency.overrides.project.ProjectOverwrite",
-    "Customize Form": "next_pms.project_currency.overrides.customize_form.CustomizeFormOverride",
-    "Timesheet": "next_pms.project_currency.overrides.timesheet.TimesheetOverwrite",
-    "Task": "next_pms.project_currency.overrides.task.TaskOverride",
+extend_doctype_class = {
+    "Project": ["next_pms.project_currency.overrides.project.ProjectOverwrite"],
+    "Timesheet": ["next_pms.project_currency.overrides.timesheet.TimesheetOverwrite"],
+    "Task": ["next_pms.project_currency.overrides.task.TaskOverride"],
 }
 
 
@@ -215,13 +222,9 @@ before_tests = "next_pms.tests.setup"
 
 after_install = "next_pms.install.after_install"
 
+after_migrate = ["next_pms.api.whats_new.refresh_releases"]
 
-# Overriding Methods
-# ------------------------------
-#
-override_whitelisted_methods = {
-    "erpnext.projects.doctype.project.project.recalculate_project_total_purchase_cost": "next_pms.project_currency.overrides.project.recalculate_project_total_purchase_cost"
-}
+persistent_cache_keys = ["next_pms:whats_new:*"]
 
 doc_events = {
     "Timesheet": {
@@ -328,6 +331,7 @@ doc_events = {
         "on_trash": "next_pms.next_projects.doc_events.todo.on_trash",
     },
     "Customer": {"validate": "next_pms.resource_management.doc_events.customer.validate_abbr"},
+    "User": {"validate": "next_pms.permissions.doc_events.user.validate"},
     "Employee": {
         "on_update": [
             "next_pms.timesheet.doc_events.employee.on_update",

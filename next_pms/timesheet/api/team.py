@@ -11,7 +11,6 @@ from frappe import (
     get_doc,
     get_value,
     log_error,
-    only_for,
     sendmail,
     session,
     throw,
@@ -20,6 +19,8 @@ from frappe import (
 from frappe.utils.data import add_days, flt, getdate
 
 from next_pms.api.utils import error_logger
+from next_pms.permissions.capabilities import require_capability
+from next_pms.permissions.scope import get_employee_scope
 from next_pms.timesheet.doc_events.timesheet import (
     flush_cache,
     get_date_restriction_message,
@@ -30,7 +31,6 @@ from next_pms.timesheet.utils.constant import (
     MAX_TEAM_TIMESHEET_PAGE_LENGTH,
     NOT_SUBMITTED_STATUS,
     TEAM_TIMESHEET_PAGE_LENGTH,
-    TIMESHEET_REVIEWER_ROLES,
 )
 
 from . import filter_employees
@@ -39,8 +39,8 @@ from .utils import (
     build_chunk_context,
     build_employee_week_details,
     can_approve_project_timesheets,
+    can_approve_week,
     employee_condition_kwargs,
-    employee_has_higher_access,
     get_week_dates,
     has_scoped_timesheets_before,
     resolve_team_employee_scope,
@@ -75,6 +75,7 @@ def build_team_member_payload(employee, context, week, has_filters):
         "leaves": list(context["leaves_by_employee"].get(employee.name, [])),
         "holidays": list(context["holidays_by_employee"].get(employee.name, [])),
         "backdate_restricted_before": context["backdate_boundary_by_employee"].get(employee.name),
+        "rejection_unlocked_dates": context["rejection_unlocked_dates_by_employee"].get(employee.name, []),
     }
 
 
@@ -98,7 +99,7 @@ def get_team_timesheet_data(
     counts. Both derive membership from `resolve_team_members`, so this endpoint's
     `total_count` and that endpoint's `member_count` cannot drift.
     """
-    only_for(TIMESHEET_REVIEWER_ROLES, message=True)
+    require_capability("team_timesheet_pages")
 
     start = int(start)
     page_length = max(0, min(int(page_length), MAX_TEAM_TIMESHEET_PAGE_LENGTH))
@@ -144,8 +145,15 @@ def get_team_timesheet_data(
     )
 
     context = build_chunk_context(page_employees, [week], scope.parsed_filters)
+    approver = get_employee_scope("approve_week")
+    # Per viewer, so it stays out of build_team_member_payload: the realtime publisher reuses
+    # that payload for every viewer.
     response["members"] = [
-        build_team_member_payload(employee, context, week, scope.has_filters) for employee in page_employees
+        {
+            **build_team_member_payload(employee, context, week, scope.has_filters),
+            "can_approve": employee.name != approver.employee and approver.allows(employee.name),
+        }
+        for employee in page_employees
     ]
     response["has_more"] = start + page_length < total_count
     return response
@@ -169,7 +177,7 @@ def get_team_timesheet_weeks(
     a Task or Timesheet Detail filter does reach the detail rows, since qualifying a week
     against it cannot be answered from the Timesheet table alone.
     """
-    only_for(TIMESHEET_REVIEWER_ROLES, message=True)
+    require_capability("team_timesheet_pages")
 
     max_week = int(max_week)
     scope = resolve_team_employee_scope(
@@ -230,7 +238,7 @@ def get_team_timesheet_member_week(employee: str, start_date: str, by_pass_acces
     update replaces a single row instead of forcing a reload of the whole week.
     """
     if not by_pass_access_check:
-        only_for(TIMESHEET_REVIEWER_ROLES, message=True)
+        require_capability("team_timesheet_pages")
 
     week = get_week_dates(date=start_date)
     employee_rows, _ = filter_employees(page_length=1, start=0, ids=[employee], ignore_default_filters=True)
@@ -253,8 +261,6 @@ def approve_or_reject_timesheet(
     employee, day and project, so the subset is a plain filter on `parent_project` rather
     than a partial write to a shared document.
     """
-    only_for(TIMESHEET_REVIEWER_ROLES, message=True)
-
     # No role approves its own week - a reviewer role is permission to review someone else.
     if employee == get_employee_from_user():
         return throw(_("You cannot approve or reject your own timesheets."))
@@ -265,6 +271,11 @@ def approve_or_reject_timesheet(
     if project and not can_approve_project_timesheets(project, employee):
         return throw(
             _("You are not authorized to approve or reject timesheets for this project."),
+            exc=PermissionError,
+        )
+    if not project and not can_approve_week(employee):
+        return throw(
+            _("You are not authorized to approve or reject this employee's timesheets."),
             exc=PermissionError,
         )
 
@@ -478,11 +489,6 @@ def _approve_or_reject_timesheet(
 
     db.begin()
     try:
-        # Calculate permission once instead of per timesheet. A project manager deciding a
-        # project of someone who does not report to them has no higher access to the
-        # employee, but the endpoint has already authorised this decision.
-        has_permission = employee_has_higher_access(employee, ptype="write") or bool(project)
-
         for timesheet in timesheets_to_process:
             doc = get_doc("Timesheet", timesheet.name)
             doc.custom_approval_status = status
@@ -490,7 +496,9 @@ def _approve_or_reject_timesheet(
                 if flt(log.rejected_hours):
                     continue
                 log.custom_rejection_reason = note if status == "Rejected" else None
-            doc.save(ignore_permissions=has_permission)
+            # ignore_permissions: approve_or_reject_timesheet already checked that the caller may
+            # decide this week or project; approvers hold no write on others' timesheets.
+            doc.save(ignore_permissions=True)
             if status == "Approved":
                 doc.submit()
 

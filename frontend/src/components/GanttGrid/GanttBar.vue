@@ -43,7 +43,7 @@ const props = withDefaults(
     crosshatch?: boolean;
     /** `false` adds the non-billable dot. */
     billable?: boolean;
-    /** AI-created: an "Ai" tag at the end. */
+    /** AI-created: an "AI" tag at the end. */
     ai?: boolean;
     /** A dashed outline, for a resized bar waiting to be saved. */
     outline?: boolean;
@@ -72,7 +72,7 @@ const emit = defineEmits<{
 }>();
 
 defineSlots<{
-  /** Replaces the label, the "Ai" tag and the billable dot. */
+  /** Replaces the label, the "AI" tag and the billable dot. */
   default?: () => unknown;
   /** Replaces the label text. */
   label?: () => unknown;
@@ -111,7 +111,7 @@ const hatched = computed(
         v-if="ai"
         class="ml-auto shrink-0 text-end text-2xs-semibold leading-tighter text-ink-amber-8"
       >
-        Ai
+        AI
       </span>
       <span
         v-if="billable === false"

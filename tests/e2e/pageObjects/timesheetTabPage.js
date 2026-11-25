@@ -1,4 +1,5 @@
 import { expect } from "allure-playwright";
+import { dateInWeek } from "../utils/dateUtils";
 import { scaleTimeout } from "../utils/timeouts";
 import {
   dayCells,
@@ -8,6 +9,22 @@ import {
   weekHeaders,
   weekRegion,
 } from "./timesheetGrid";
+
+/**
+ * URL state for a tab's goto() that shows only the week `weeksAgo`, opened: a Date range
+ * filter. Without one the tabs open just their first four weeks.
+ */
+export const onlyWeek = (weeksAgo) => ({
+  compositeFilters: JSON.stringify([
+    {
+      id: "filter-1",
+      field: "date",
+      operator: "between",
+      value: [dateInWeek(weeksAgo, "Mon"), dateInWeek(weeksAgo, "Sun")],
+      fieldCategory: "",
+    },
+  ]),
+});
 
 /**
  * What the Personal and Project timesheet tabs share: the weeks they list, the

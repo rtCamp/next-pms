@@ -4,13 +4,14 @@
 from typing import Literal
 
 import frappe
-from frappe import only_for, whitelist
+from frappe import whitelist
 from frappe.query_builder.functions import Count
 from frappe.utils import cint, getdate, today
 
 from next_pms.api.utils import error_logger
-from next_pms.next_projects.api.constant import ALLOWED_ROLES, TIMELINE_ITEM_FIELDS
+from next_pms.next_projects.api.constant import TIMELINE_ITEM_FIELDS
 from next_pms.next_projects.api.utils import get_user_image_map
+from next_pms.permissions.capabilities import require_capability
 from next_pms.utils.linked_todos import LINKED_TODO_DOCTYPE
 
 
@@ -154,7 +155,7 @@ def get_project_timeline_items(
     Returns:
         {"data": [...], "total_count": int, "has_more": bool}
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
 
     if not project:
         frappe.throw(frappe._("project is required"))
@@ -245,7 +246,7 @@ def create_project_timeline_item(
     Returns:
         The created item's name, title, type, and dates.
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
 
     title = (title or "").strip()
     item_owner = (item_owner or "").strip()
@@ -325,7 +326,7 @@ def edit_project_timeline_item(
     Returns:
         Dict : The updated item's key fields.
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
 
     if not name:
         frappe.throw(frappe._("Name is required"))
@@ -400,7 +401,7 @@ def mark_timeline_item_complete(name: str, is_complete: int = 1):
     Returns:
         {"name": str, "is_complete": int, "actual_end_date": str | None}
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
 
     if not name:
         frappe.throw(frappe._("Name is required"))

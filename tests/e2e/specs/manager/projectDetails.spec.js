@@ -180,21 +180,37 @@ test.describe("Manager: Project details", () => {
       .catch(() => null);
     await details.openInDesk.click();
     const opened = (await popup) ?? page;
-    await expect(opened).toHaveURL(new RegExp(`/desk/project/${project}`));
+    // Desk may put the workspace in the path: /desk/projects/project/<name>.
+    await expect(opened).toHaveURL(
+      new RegExp(`/desk/(?:[\\w-]+/)?project/${project}`),
+    );
   });
 
-  test("TC329: The Project Manager and Lead Engineer chosen in the sidebar show on the project and in the Projects list", async ({
+  test("TC329: The Lead Engineer picker offers only Projects User or higher, and the Project Manager and Lead Engineer chosen show on the project and in the Projects list", async ({
     page,
   }) => {
     allure.story("Projects");
+    const engineer = data.employees.PrjEngineer;
     await restore();
     try {
       await details.goto(project);
+      // EMP3 holds no PMS role, so they cannot be a Lead Engineer.
+      const offered = await details.searchPerson(
+        details.leadEngineer,
+        process.env.EMP3_NAME,
+      );
+      await expect(
+        offered.filter({ hasText: process.env.EMP3_NAME }),
+      ).toHaveCount(0);
+      // The picker is not a plain input while open; Escape closes it. The field is still
+      // empty here, so clearing it on close changes nothing.
+      await page.keyboard.press("Escape");
+
       await details.pickPerson(
         details.projectManager,
         process.env.REP_MAN_NAME,
       );
-      await details.pickPerson(details.leadEngineer, process.env.EMP3_NAME);
+      await details.pickPerson(details.leadEngineer, engineer.name);
       await expect
         .poll(async () => {
           const saved = await getDocument("Project", project);
@@ -203,7 +219,7 @@ test.describe("Manager: Project details", () => {
             saved.custom_engineering_manager,
           ];
         })
-        .toEqual([process.env.REP_MAN_EMAIL, process.env.EMP3_EMAIL]);
+        .toEqual([process.env.REP_MAN_EMAIL, engineer.user.email]);
 
       const list = new ProjectsListPage(page);
       await list.open({ search: DETAIL });
@@ -211,7 +227,7 @@ test.describe("Manager: Project details", () => {
         process.env.REP_MAN_NAME,
       );
       await expect(await list.cell(DETAIL, "Lead engineer")).toContainText(
-        process.env.EMP3_NAME,
+        engineer.name,
       );
     } finally {
       await restore();

@@ -1,6 +1,6 @@
 import type { HelpTip } from "./types";
 
-/** The tips a user with `roles` may see: those without `roles`, or sharing one of them. */
+/** The tips a user holding `roles` (roles and capabilities) may see: those without `roles`, or sharing one of them. */
 export function visibleTips(
   tips: readonly HelpTip[],
   roles: readonly string[],

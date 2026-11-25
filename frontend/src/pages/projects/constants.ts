@@ -17,6 +17,14 @@ export const DEFAULT_PROJECT_SORT: SortState = {
 /** Sorts that need a currency, since the server converts the amounts into it. */
 export const MONETARY_SORT_FIELDS = ["burn_rate_per_week", "total_budget"];
 
+/** Advanced filter fields that are Project child tables, as their `[doctype, field]`. */
+export const CHILD_TABLE_FILTER_FIELDS: Record<string, [string, string]> = {
+  delivery_accelerators: [
+    "Project Delivery Accelerator",
+    "delivery_accelerator",
+  ],
+};
+
 export const RAG_STATUSES: RagStatus[] = ["red", "amber", "green"];
 
 export const RAG_OPTIONS = [
@@ -161,6 +169,11 @@ export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
     defaultHidden: true,
   },
 ];
+
+/** Columns and sort fields only those who can see cost and invoice burn get. */
+export const BURN_COLUMN_KEYS: ReadonlySet<string> = new Set([
+  "cost_burn_percent",
+]);
 
 export const PROJECT_SORT_FIELDS = [
   { field: "project_name", label: "Project name" },

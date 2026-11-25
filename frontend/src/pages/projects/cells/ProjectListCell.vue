@@ -42,6 +42,9 @@ const text = computed(() => {
       ? formatPercentage(project.profit_margin)
       : "N/A";
   }
+  if (key === "cost_burn_percent") {
+    return project.cost_burn ? null : "N/A";
+  }
   if ((TEXT_KEYS as readonly string[]).includes(key)) {
     return project[key as (typeof TEXT_KEYS)[number]] || "N/A";
   }
@@ -49,6 +52,7 @@ const text = computed(() => {
 });
 
 const costBurn = computed(() => {
+  if (!props.project.cost_burn) return null;
   const { cost_accrued, cost_forecasted, target_cost, total_budget } =
     props.project.cost_burn;
   const percent = (value: number) =>
@@ -69,7 +73,10 @@ const costBurn = computed(() => {
     :rag-status="project.rag_status"
   />
   <PhaseCell v-else-if="column.key === 'phase'" :phase="project.phase" />
-  <div v-else-if="column.key === 'cost_burn_percent'" class="w-full pr-2">
+  <div
+    v-else-if="column.key === 'cost_burn_percent' && costBurn"
+    class="w-full pr-2"
+  >
     <BudgetBurnBar v-bind="costBurn" size="sm" />
   </div>
   <DateCell

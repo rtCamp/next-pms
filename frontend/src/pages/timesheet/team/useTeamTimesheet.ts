@@ -32,8 +32,14 @@ interface Page {
 /** A new query (first page, earlier weeks kept on screen) or the next page. */
 type RequestKind = "query" | "next";
 
-/** Swaps a member's row in the week it belongs to. */
-export type MemberRefreshHandler = (member: TeamMember) => void;
+/**
+ * Updates `employee`'s row in the week it belongs to: swaps in `member`, or reloads
+ * the week when the event carried no row (it goes to everyone, not only the editor).
+ */
+export type MemberRefreshHandler = (
+  employee: string,
+  member: TeamMember | null,
+) => void;
 
 function createTeamTimesheet() {
   const socket = useSocket();
@@ -169,11 +175,11 @@ function createTeamTimesheet() {
 
   function onTimesheetInfo(event: TimesheetInfoEvent) {
     const startDate = event?.start_date;
-    if (!startDate) return;
+    const employee = event?.employee;
+    if (!startDate || !employee) return;
     const week = weeks.value.find((week) => week.dates.includes(startDate));
     if (!week) return;
-    const refresh = memberRefreshers.get(week.start_date);
-    if (refresh && event.message) refresh(event.message);
+    memberRefreshers.get(week.start_date)?.(employee, event.message ?? null);
     refreshWeeks();
   }
 

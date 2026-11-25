@@ -71,6 +71,21 @@ export const BackdateLimitLocksEarlierDays: Story = {
   },
 };
 
+export const RejectedDayStaysOpenPastBackdateLimit: Story = {
+  args: {
+    backdateRestrictedBefore: WEEK_DATES[2],
+    rejectionUnlockedDates: [WEEK_DATES[1]],
+  },
+  play: async ({ canvasElement, args }) => {
+    const button = within(canvasElement).getByRole("button", {
+      name: "04:00",
+    });
+    await expect(button).toBeEnabled();
+    await userEvent.click(button);
+    await expect(args.onCellClick).toHaveBeenCalledWith(WEEK_DATES[1]);
+  },
+};
+
 export const ActionEmits: Story = {
   play: async ({ canvasElement, args }) => {
     await userEvent.click(

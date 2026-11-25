@@ -72,6 +72,7 @@ function submitForApproval() {
     :working-hour="workingHour"
     :working-frequency="workingFrequency"
     :backdate-restricted-before="session.backdateRestrictedBefore"
+    :rejection-unlocked-dates="week.rejection_unlocked_dates"
     :default-collapsed="defaultCollapsed"
     @submit="submitForApproval"
   >
@@ -106,6 +107,7 @@ function submitForApproval() {
         :hide-time="hideTotalRow"
         :disabled="disabled"
         :backdate-restricted-before="session.backdateRestrictedBefore"
+        :rejection-unlocked-dates="week.rejection_unlocked_dates"
         @cell-click="
           (date) =>
             dialogs.openAddTime({
@@ -124,6 +126,7 @@ function submitForApproval() {
           :task="task"
           :disabled="disabled"
           :backdate-restricted-before="session.backdateRestrictedBefore"
+          :rejection-unlocked-dates="week.rejection_unlocked_dates"
           :daily-hours="dailyHours"
           :hours-per-day="hoursPerDay"
           @label-click="emit('labelClick', $event)"

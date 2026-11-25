@@ -8,6 +8,8 @@ const EMPLOYEE_TARGETS = [
   "Allocations - Team",
   "Allocations - Project",
   "Tasks",
+  // Listed once the site has release notes cached.
+  "What's new",
 ];
 
 const sorted = (list) => [...list].sort();
@@ -66,17 +68,14 @@ test.describe("Employee: Global search", () => {
       "Timesheet - Personal",
     ]);
 
-    // The manager holds Projects Manager and Timesheet Manager.
+    // The manager holds Projects Manager.
     const context = await signedInAsRole(browser, "manager");
     try {
       const manager = new NavigationPage(await context.newPage());
       await manager.goto("/timesheet");
       await manager.openSearch();
       const found = async (query) => sorted(await manager.searchFor(query));
-      expect(await found("Dashboard")).toEqual([
-        "Dashboard - Leadership",
-        "Dashboard - Manager",
-      ]);
+      expect(await found("Dashboard")).toEqual(["Dashboard - Manager"]);
       expect(await found("Timesheet")).toEqual([
         "Timesheet - Personal",
         "Timesheet - Projects",

@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { AddTimeDialog } from "@/components/AddTime";
 import { UnsavedChangesDialog } from "@/components/UnsavedChangesDialog";
 import { provideUnsavedChanges } from "@/composables/useUnsavedChanges";
+import { useSession } from "@/session";
 import AddLeaveDialog from "./AddLeaveDialog.vue";
 import SubmitApprovalDialog from "./SubmitApprovalDialog.vue";
 import TimesheetHeader from "./TimesheetHeader.vue";
@@ -9,7 +11,7 @@ import { provideTimesheetDialogs } from "./useTimesheetDialogs";
 
 defineOptions({ inheritAttrs: false });
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     /** The dialogs log time and time off for a picked employee (team and project pages). */
     pickEmployee?: boolean;
@@ -17,14 +19,19 @@ withDefaults(
   { pickEmployee: false },
 );
 
+const session = useSession();
+const canAddTime = computed(
+  () => !props.pickEmployee || session.can("edit_others_time"),
+);
 const dialogs = provideTimesheetDialogs();
 const unsavedChanges = provideUnsavedChanges();
 </script>
 
 <template>
-  <TimesheetHeader />
+  <TimesheetHeader :can-add-time="canAddTime" />
   <slot />
   <AddTimeDialog
+    v-if="canAddTime"
     v-model:open="dialogs.state.addTime.open"
     :prefill="dialogs.state.addTime.prefill"
     :pick-employee="pickEmployee"

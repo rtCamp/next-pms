@@ -43,6 +43,8 @@ export interface ProjectMember {
   holidays: TimesheetHoliday[];
   leaves: TimesheetLeave[];
   backdate_restricted_before: string | null;
+  /** Days past the backdate limit that a recent rejection keeps open. */
+  rejection_unlocked_dates?: string[];
   working_hour: number;
   working_frequency: WorkingFrequency;
   /** The member's whole week, not just this project's share of it. */

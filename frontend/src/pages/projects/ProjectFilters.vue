@@ -9,6 +9,7 @@ import { useProjectPhases } from "@/composables/useProjectPhases";
 import { useSession } from "@/session";
 import {
   BILLING_TYPE_OPTIONS,
+  BURN_COLUMN_KEYS,
   MAX_PINNED_COLUMNS,
   MONETARY_SORT_FIELDS,
   PIN_LIMIT_TOOLTIP,
@@ -20,6 +21,7 @@ import { CURRENCY_HELP, CURRENCY_SORT_TOOLTIP } from "./help";
 import type { ProjectStatus, RagStatus } from "./types";
 import {
   AVAILABLE_PROJECT_COLUMNS,
+  AVAILABLE_PROJECT_COLUMNS_WITHOUT_BURN,
   useProjectColumns,
 } from "./useProjectColumns";
 import { useProjectFilters } from "./useProjectFilters";
@@ -85,6 +87,14 @@ const FILTER_FIELDS: FilterField[] = [
   employeeField("custom_engineering_manager", "Engineering Manager"),
   employeeField("custom_account_manager_", "Account Manager"),
   linkField("custom_host", "Host", { doctype: "Host" }),
+  // A child-table filter with != would still match projects that also have the value.
+  {
+    name: "delivery_accelerators",
+    label: "Delivery Accelerator",
+    type: "link",
+    link: { doctype: "Delivery Accelerator" },
+    operators: [{ label: "Equals", value: "=" }],
+  },
   linkField("tag", "Tags", { doctype: "Tag" }),
 ];
 
@@ -164,8 +174,11 @@ const advanced = computed({
   set: setAdvanced,
 });
 
+const canViewBurn = computed(() => session.can("view_cost_and_invoice_burn"));
 const sortFields = computed(() =>
-  PROJECT_SORT_FIELDS.map((field) => {
+  PROJECT_SORT_FIELDS.filter(
+    (field) => canViewBurn.value || !BURN_COLUMN_KEYS.has(field.field),
+  ).map((field) => {
     const disabled =
       !filters.value.currency && MONETARY_SORT_FIELDS.includes(field.field);
     return {
@@ -251,7 +264,11 @@ const externalFilterCount = computed(
       <ColumnSelector
         v-if="!props.kanban"
         v-model="selectedColumns"
-        :available-columns="AVAILABLE_PROJECT_COLUMNS"
+        :available-columns="
+          canViewBurn
+            ? AVAILABLE_PROJECT_COLUMNS
+            : AVAILABLE_PROJECT_COLUMNS_WITHOUT_BURN
+        "
         pinnable
         :max-pinned="MAX_PINNED_COLUMNS"
         :labels="{ pinLimit: PIN_LIMIT_TOOLTIP }"

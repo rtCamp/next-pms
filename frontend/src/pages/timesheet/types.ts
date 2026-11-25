@@ -19,6 +19,8 @@ export interface TimesheetWeek {
   total_hours: number;
   tasks: TimesheetTasks;
   status: ApprovalStatusValue;
+  /** Days past the backdate limit that a recent rejection keeps open. */
+  rejection_unlocked_dates?: string[];
   /** Label shown on the week row, added on the client. */
   label?: string;
 }

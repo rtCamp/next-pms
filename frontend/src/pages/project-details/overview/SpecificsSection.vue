@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { MultiSelect, Select } from "frappe-ui";
 import { useDoctypeLinkLookup } from "@/composables/useDoctypeLinkLookup";
+import { useSession } from "@/session";
 import {
   COMPLEXITY_OPTIONS,
   EMPTY,
@@ -14,6 +15,9 @@ import OverviewSection from "./OverviewSection.vue";
 import { useOverview } from "./useOverview";
 
 const { values, draft, editing, saving } = useOverview();
+const session = useSession();
+
+const ENABLED_FILTER = [["disabled", "=", 0]];
 
 const hostLookup = ({ query, selected }: LinkLookupInputs) =>
   useDoctypeLinkLookup({ doctype: "Host", query, selected });
@@ -21,7 +25,7 @@ const hostLookup = ({ query, selected }: LinkLookupInputs) =>
 const techStackQuery = ref("");
 const techStackLookup = useDoctypeLinkLookup({
   doctype: "Technology",
-  filters: [["disabled", "=", 0]],
+  filters: ENABLED_FILTER,
   enabled: editing,
   query: techStackQuery,
 });
@@ -39,6 +43,32 @@ const techStack = computed({
   get: () => draft.value?.tech_stack ?? [],
   set: (next: (string | number)[]) => {
     if (draft.value) draft.value.tech_stack = next.map(String);
+  },
+});
+
+const canEditDeliveryAccelerators = computed(() =>
+  session.can("project_admin"),
+);
+const deliveryAcceleratorQuery = ref("");
+const deliveryAcceleratorLookup = useDoctypeLinkLookup({
+  doctype: "Delivery Accelerator",
+  filters: ENABLED_FILTER,
+  enabled: () => editing.value && canEditDeliveryAccelerators.value,
+  query: deliveryAcceleratorQuery,
+});
+const deliveryAcceleratorOptions = computed(() => {
+  const picked = draft.value?.delivery_accelerators ?? [];
+  return [
+    ...picked.map((value) => ({ label: value, value })),
+    ...deliveryAcceleratorLookup.options.filter(
+      (option) => !picked.includes(option.value),
+    ),
+  ];
+});
+const deliveryAccelerators = computed({
+  get: () => draft.value?.delivery_accelerators ?? [],
+  set: (next: (string | number)[]) => {
+    if (draft.value) draft.value.delivery_accelerators = next.map(String);
   },
 });
 </script>
@@ -118,6 +148,22 @@ const techStack = computed({
           :filterable="false"
           :disabled="saving"
           placeholder="Select tech stack"
+        />
+      </OverviewField>
+      <OverviewField
+        icon="lucide-zap"
+        label="Delivery accelerators"
+        :value="values.delivery_accelerators.join(', ') || EMPTY"
+        :editing="editing && canEditDeliveryAccelerators"
+      >
+        <MultiSelect
+          v-model="deliveryAccelerators"
+          v-model:query="deliveryAcceleratorQuery"
+          :options="deliveryAcceleratorOptions"
+          :loading="deliveryAcceleratorLookup.loading"
+          :filterable="false"
+          :disabled="saving"
+          placeholder="Select delivery accelerators"
         />
       </OverviewField>
     </div>

@@ -12,6 +12,7 @@ defineOptions({ inheritAttrs: false });
 const props = withDefaults(defineProps<TaskWeekRowProps>(), {
   disabled: false,
   backdateRestrictedBefore: null,
+  rejectionUnlockedDates: () => [],
   starred: false,
   hideStarButton: false,
   guard: (action: () => void) => action(),
@@ -48,6 +49,7 @@ const week = computed(() =>
     task: props.task,
     disabled: props.disabled,
     backdateRestrictedBefore: props.backdateRestrictedBefore,
+    rejectionUnlockedDates: props.rejectionUnlockedDates,
   }),
 );
 </script>

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Button, Dropdown } from "frappe-ui";
-import { useOwnerGatedPermissions } from "@/pages/project-details/shared/useOwnerGatedPermissions";
+import { useRiskPermissions } from "@/pages/project-details/shared/useOwnerGatedPermissions";
 import { riskTitle } from "./risks";
 import type { RiskRow } from "./types";
 import { useRisks } from "./useRisks";
 
 const props = defineProps<{
-  risk: Pick<RiskRow, "name" | "risk_category" | "risk_owner">;
+  risk: Pick<RiskRow, "name" | "risk_category">;
   /** Adds Follow / Unfollow, as on the detail. */
   showFollow?: boolean;
   following?: boolean;
@@ -16,7 +16,7 @@ const props = defineProps<{
 const emit = defineEmits<{ toggleFollow: [] }>();
 
 const { openEdit, requestDelete } = useRisks();
-const permissions = useOwnerGatedPermissions(() => props.risk.risk_owner);
+const permissions = useRiskPermissions();
 
 const options = computed(() => [
   ...(permissions.value.canEdit

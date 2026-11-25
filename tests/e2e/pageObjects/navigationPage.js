@@ -38,6 +38,11 @@ export class NavigationPage {
       name: "Close notifications tray",
     });
 
+    // The unread dot on the sidebar logo carries this screen-reader text.
+    this.newReleaseDot = this.headerMenu.getByText("New release", {
+      exact: true,
+    });
+
     this.helpButton = page.getByRole("button", { name: "Help", exact: true });
     this.helpPanel = page.getByRole("dialog", { name: "Help", exact: true });
     this.closeHelp = this.helpPanel.getByRole("button", { name: "Close help" });
@@ -133,9 +138,13 @@ export class NavigationPage {
     return this.trayItems.filter({ hasText: title });
   }
 
+  menuItem(name) {
+    return this.page.getByRole("menuitem", { name, exact: true });
+  }
+
   async chooseFromMenu(item) {
     await this.headerMenu.click();
-    await this.page.getByRole("menuitem", { name: item, exact: true }).click();
+    await this.menuItem(item).click();
   }
 
   // --------------------------------------

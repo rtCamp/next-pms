@@ -2,11 +2,11 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe import _, only_for, whitelist
+from frappe import _, whitelist
 
 from next_pms.api.utils import error_logger
-from next_pms.next_projects.api.constant import ALLOWED_ROLES
 from next_pms.next_projects.api.utils import get_user_details_map
+from next_pms.permissions.capabilities import require_capability
 from next_pms.utils.linked_todos import LINKED_TODO_OWNERS, get_todo_owner_rows
 
 TODO_FIELDS = (
@@ -245,7 +245,7 @@ def to_linkable_record(doctype: str, record: dict) -> dict:
 
 def check_project_access(project: str):
     """Throw unless the user can open the project page: a project role plus read on the project."""
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
     if not frappe.db.exists("Project", project):
         frappe.throw(_("Project {0} not found").format(project), frappe.DoesNotExistError)
     frappe.has_permission("Project", doc=project, ptype="read", throw=True)

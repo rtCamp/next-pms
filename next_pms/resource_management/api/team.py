@@ -4,6 +4,8 @@ import frappe
 from frappe.core.doctype.recorder.recorder import redis_cache
 from frappe.utils import DATE_FORMAT, cint, strip_html_tags
 
+from next_pms.permissions.capabilities import require_capability
+from next_pms.permissions.scope import get_employee_scope
 from next_pms.resource_management.api.utils.helpers import (
     _parse_multi_select_filter,
     add_customer_data_if_not_exists,
@@ -442,12 +444,7 @@ def _get_resource_management_team_view_data(
             else:
                 ids = matching_emp_ids
 
-    roles = set(frappe.get_roles(frappe.session.user))
-    can_see_comp = (
-        bool(roles & {"HR Manager", "HR User", "Accounts Manager", "System Manager"})
-        or frappe.session.user == "Administrator"
-    )
-    privileged_fields = ["ctc", "salary_currency"] if can_see_comp else []
+    privileged_fields = ["ctc", "salary_currency"] if permissions["view_cost"] else []
     employees, total_count = filter_employees(
         employee_name,
         business_unit=business_unit,
@@ -769,14 +766,8 @@ def get_leave_information(employee: str, start_date: str, end_date: str):
     """
     from next_pms.timesheet.api.employee import get_workable_days_for_employee
 
-    frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
-
-    roles = set(frappe.get_roles(frappe.session.user))
-    if not (roles & {"Timesheet Manager", "Projects Manager"}) and frappe.session.user != "Administrator":
-        own_employee = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
-        if not own_employee or own_employee != employee:
-            frappe.throw(
-                frappe._("Not permitted to view leave information for other employees"), frappe.PermissionError
-            )
+    require_capability("view_team_leaves")
+    if not get_employee_scope("view_team_leaves").allows(employee):
+        frappe.throw(frappe._("Not permitted to view leave information for this employee"), frappe.PermissionError)
 
     return get_workable_days_for_employee(employee, start_date, end_date)

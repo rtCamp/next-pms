@@ -53,7 +53,7 @@ class _ProjectTimesheetDataBase(IntegrationTestCase):
         super().setUpClass()
         cls.company = get_default_company()
         cls.write_user = cls._make_user(WRITE_USER)
-        frappe.get_doc("User", cls.write_user).add_roles("Timesheet Manager")
+        frappe.get_doc("User", cls.write_user).add_roles("Projects Manager")
 
         # Week start is a global default — capture the prior value so
         # tearDownClass can restore it instead of leaking into other test modules.

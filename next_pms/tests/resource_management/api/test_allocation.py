@@ -5,6 +5,7 @@ from frappe.utils import add_days, getdate
 
 from next_pms.resource_management.api.allocation import (
     AllocationPayload,
+    apply_day_overrides,
     delete_day_override,
     edit_allocation,
     get_over_allocated_dates,
@@ -589,6 +590,12 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
         self.assertEqual(allocation.total_allocated_hours, 14 * DAILY_HOURS)
 
     def test_approving_ai_allocation_shares_project_with_employee(self):
+        self._assert_ai_approval_shares_project(approved_status="Confirmed")
+
+    def test_approving_ai_allocation_as_tentative_shares_project_with_employee(self):
+        self._assert_ai_approval_shares_project(approved_status="Tentative")
+
+    def _assert_ai_approval_shares_project(self, approved_status: str):
         user_email = "leave-aware-allocation-user@example.com"
         user = frappe.db.get_value("User", {"email": user_email}, "name")
         previous_user = frappe.db.get_value("Employee", self.employee, "user_id")
@@ -637,7 +644,7 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
                     allocation_end_date=FRI,
                     hours_allocated_per_day=DAILY_HOURS,
                     include_weekends=False,
-                    status="Confirmed",
+                    status=approved_status,
                     is_ai_created=0,
                 ),
             )
@@ -686,6 +693,161 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
         self.assertEqual(allocation.is_ai_created, 0)
         self.assertEqual(self._overrides(allocation)[PUBLIC_HOLIDAY].cancelled, 1)
         self.assertEqual(allocation.total_allocated_hours, 4 * DAILY_HOURS)
+        self.assertEqual(frappe.db.count("Resource Allocation", {"employee": self.employee}), 1)
+
+    def _ai_allocation(self, start, end, **fields):
+        return frappe.get_doc(
+            {
+                "doctype": "Resource Allocation",
+                "employee": self.employee,
+                "project": self.project,
+                "customer": self.customer,
+                "allocation_start_date": start,
+                "allocation_end_date": end,
+                "hours_allocated_per_day": DAILY_HOURS,
+                "include_weekends": 0,
+                "status": "Tentative",
+                "is_ai_created": 1,
+                **fields,
+            }
+        ).insert(ignore_permissions=True)
+
+    def _approve(self, allocation, day_overrides=None, **payload_fields):
+        edit_allocation(
+            name=allocation.name,
+            edit_mode="only_this",
+            allocation=AllocationPayload(
+                doctype="Resource Allocation",
+                employee=self.employee,
+                customer=self.customer,
+                allocation_start_date=str(allocation.allocation_start_date),
+                allocation_end_date=str(allocation.allocation_end_date),
+                hours_allocated_per_day=DAILY_HOURS,
+                include_weekends=False,
+                is_ai_created=0,
+                **payload_fields,
+            ),
+            day_overrides=day_overrides,
+        )
+
+    def _approve_ai_allocation(self, start, end, status="Tentative", manual_override=None):
+        allocation = self._ai_allocation(start, end)
+        self._approve(
+            allocation,
+            day_overrides=[manual_override] if manual_override else None,
+            project=self.project,
+            status=status,
+        )
+        return allocation
+
+    def _weekly_allocations(self):
+        return frappe.get_all(
+            "Resource Allocation",
+            filters={"employee": self.employee},
+            fields=["name", "allocation_start_date", "allocation_end_date", "status", "is_ai_created"],
+            order_by="allocation_start_date asc",
+        )
+
+    def test_approving_multi_week_ai_allocation_saves_one_allocation_per_week(self):
+        """Approved, it has to look exactly like the add flow's output: Mon-Fri documents."""
+        manual_day = "2026-09-01"
+        allocation = self._approve_ai_allocation(MON, HOLIDAY_FRI, manual_override={"date": manual_day, "hours": 2.0})
+
+        weeks = self._weekly_allocations()
+        self.assertEqual(
+            [(str(week.allocation_start_date), str(week.allocation_end_date)) for week in weeks],
+            [(MON, FRI), ("2026-08-31", "2026-09-04"), (HOLIDAY_MON, HOLIDAY_FRI)],
+        )
+        # The approved document becomes week one, so its name and history survive.
+        self.assertEqual(weeks[0].name, allocation.name)
+        self.assertTrue(all(week.status == "Tentative" and not week.is_ai_created for week in weeks))
+
+        second_week, third_week = (frappe.get_doc("Resource Allocation", week.name) for week in weeks[1:])
+        manual_row = self._overrides(second_week)[manual_day]
+        self.assertEqual((manual_row.hours, manual_row.source), (2.0, MANUAL_SOURCE))
+        self.assertEqual(self._overrides(third_week)[PUBLIC_HOLIDAY].cancelled, 1)
+        self.assertEqual(self._overrides(allocation), {})
+
+        total = sum(frappe.db.get_value("Resource Allocation", week.name, "total_allocated_hours") for week in weeks)
+        # 15 weekdays, less the holiday, less the 6 hours the manual day gave up.
+        self.assertEqual(total, 14 * DAILY_HOURS - 6)
+
+    def test_approving_a_single_week_ai_allocation_trims_it_to_weekdays(self):
+        """The add flow never saves a weekends-off allocation ending on a weekend day; nor may approval."""
+        allocation = self._approve_ai_allocation(MON, "2026-08-30")
+
+        weeks = self._weekly_allocations()
+        self.assertEqual(
+            [(week.name, str(week.allocation_start_date), str(week.allocation_end_date)) for week in weeks],
+            [(allocation.name, MON, FRI)],
+        )
+
+    def test_approved_weeks_keep_fields_the_approve_request_left_out(self):
+        allocation = self._ai_allocation(MON, HOLIDAY_FRI, is_billable=1, note="from the AI service")
+
+        self._approve(allocation)
+
+        weeks = frappe.get_all(
+            "Resource Allocation",
+            filters={"employee": self.employee},
+            fields=["project", "status", "is_billable", "note"],
+        )
+        self.assertEqual(len(weeks), 3)
+        for week in weeks:
+            self.assertEqual(
+                (week.project, week.status, week.is_billable, week.note),
+                (self.project, "Tentative", 1, "from the AI service"),
+            )
+
+    def test_approving_keeps_a_cancelled_day_free_for_another_allocation(self):
+        """A day the manager cancelled may already hold another allocation on the same project."""
+        cancelled_day = "2026-09-01"
+        allocation = self._ai_allocation(MON, HOLIDAY_FRI)
+        apply_day_overrides(allocation.name, [{"date": cancelled_day, "cancelled": 1}], None)
+        other = self._allocate(start=cancelled_day, end=cancelled_day)
+
+        self._approve(allocation, project=self.project)
+
+        second_week = frappe.get_doc(
+            "Resource Allocation",
+            {"employee": self.employee, "allocation_start_date": "2026-08-31"},
+        )
+        self.assertEqual(self._overrides(second_week)[cancelled_day].cancelled, 1)
+        self.assertTrue(frappe.db.exists("Resource Allocation", other.name))
+
+    def test_editing_without_approving_keeps_an_ai_allocation_whole(self):
+        allocation = frappe.get_doc(
+            {
+                "doctype": "Resource Allocation",
+                "employee": self.employee,
+                "project": self.project,
+                "customer": self.customer,
+                "allocation_start_date": MON,
+                "allocation_end_date": HOLIDAY_FRI,
+                "hours_allocated_per_day": DAILY_HOURS,
+                "include_weekends": 0,
+                "status": "Tentative",
+                "is_ai_created": 1,
+            }
+        ).insert(ignore_permissions=True)
+
+        edit_allocation(
+            name=allocation.name,
+            edit_mode="only_this",
+            allocation=AllocationPayload(
+                doctype="Resource Allocation",
+                employee=self.employee,
+                customer=self.customer,
+                project=self.project,
+                allocation_start_date=MON,
+                allocation_end_date=HOLIDAY_FRI,
+                hours_allocated_per_day=DAILY_HOURS,
+                include_weekends=False,
+                note="still under review",
+            ),
+        )
+
+        self.assertEqual(len(self._weekly_allocations()), 1)
 
     def test_whole_series_edit_persists_include_holidays(self):
         """`include_holidays` is a non-date field, so a series edit has to carry it to every doc."""

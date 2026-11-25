@@ -11,6 +11,7 @@ from next_pms.next_pms.doctype.pms_project_update_subscription.pms_project_updat
     get_project_account_manager,
     get_project_subscribers,
 )
+from next_pms.permissions.capabilities import CAPABILITIES, has_capability
 
 MENTION_EMAIL_TEMPLATE = "next_pms/templates/mention_notification.html"
 
@@ -87,22 +88,6 @@ def get_reviewer(employee):
     return reports_to, frappe.db.get_value("Employee", reports_to, "user_id")
 
 
-NOTIFICATION_TRAY_ROLES = [
-    "Delivery Manager",
-    "Delivery User",
-    "Projects Manager",
-    "Projects User",
-    "System Manager",
-]
-
-MANAGER_DASHBOARD_ROLES = [
-    "Projects Manager",
-    "Projects User",
-    "Delivery Manager",
-    "Timesheet Manager",
-    "System Manager",
-]
-
 MANAGER_DASHBOARD_URL = "/next-pms/dashboard/manager"
 
 
@@ -135,7 +120,7 @@ def leave_application_after_insert(doc, method=None):
 def _leave_notification_recipients(doc):
     """Users to notify about a leave request, and which of them can see it on the manager dashboard.
 
-    Returns ``(recipients, dashboard_users)``. The actor and duplicates are dropped: the leave
+    Returns ``(recipients, dashboard_users)``. The actor, the requester and duplicates are dropped: the leave
     approver, the employee's reporting manager and the notify users can all be the same person.
     The dashboard lists a leave only for the reporting manager and the notify users, so a
     designated approver outside both is sent to Desk instead.
@@ -148,6 +133,7 @@ def _leave_notification_recipients(doc):
     users = dashboard_users | {doc.leave_approver}
     users.discard(None)
     users.discard(frappe.session.user)
+    users.discard(frappe.db.get_value("Employee", doc.employee, "user_id"))
     if not users:
         return set(), set()
 
@@ -156,8 +142,8 @@ def _leave_notification_recipients(doc):
         filters={"name": ["in", list(users)], "enabled": 1},
         pluck="name",
     )
-    recipients = {user for user in enabled_users if _has_any_role(user, NOTIFICATION_TRAY_ROLES)}
-    dashboard_users = {user for user in recipients & dashboard_users if _has_any_role(user, MANAGER_DASHBOARD_ROLES)}
+    recipients = {user for user in enabled_users if has_capability("notifications", user)}
+    dashboard_users = {user for user in recipients & dashboard_users if has_capability("manager_dashboard", user)}
     return recipients, dashboard_users
 
 
@@ -557,7 +543,7 @@ def send_review_reminders():
 
 
 def ai_allocation_after_insert(doc, method=None):
-    """Notify Delivery Managers when an AI allocation is created."""
+    """Notify everyone who manages AI allocations when one is created."""
     if not getattr(doc, "is_ai_created", 0):
         return
 
@@ -565,18 +551,18 @@ def ai_allocation_after_insert(doc, method=None):
 
 
 def sync_ai_allocation_notifications(project=None, new_doc=None):
-    delivery_managers = frappe.get_all(
+    ai_allocation_managers = frappe.get_all(
         "Has Role",
-        filters={"role": "Delivery Manager", "parenttype": "User"},
+        filters={"role": ["in", list(CAPABILITIES["manage_ai_allocations"])], "parenttype": "User"},
         pluck="parent",
     )
-    if not delivery_managers:
+    if not ai_allocation_managers:
         return
 
     active_users = frappe.get_all(
         "User",
         filters={
-            "name": ["in", list(set(delivery_managers))],
+            "name": ["in", list(set(ai_allocation_managers))],
             "enabled": 1,
             "user_type": "System User",
         },

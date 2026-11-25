@@ -44,9 +44,13 @@ export const RICH_TEXT_FIELDS = [
   "custom_key_goals",
 ] as const satisfies readonly OverviewField[];
 
-/** The Overview's values as the editors hold them: every field a string, the tech stack a list of `Technology` names. */
+/**
+ * The Overview's values as the editors hold them: every field a string, the tech stack
+ * and delivery accelerators lists of `Technology` and `Delivery Accelerator` names.
+ */
 export type OverviewDraft = Record<OverviewField, string> & {
   tech_stack: string[];
+  delivery_accelerators: string[];
 };
 
 const ESCAPES: Record<string, string> = {
@@ -79,6 +83,8 @@ export function toEditorHtml(value: string): string {
 export function toDraft(doc: ProjectDoc): OverviewDraft {
   const draft = {
     tech_stack: doc.tech_stack?.map((row) => row.technology) ?? [],
+    delivery_accelerators:
+      doc.delivery_accelerators?.map((row) => row.delivery_accelerator) ?? [],
   } as OverviewDraft;
   for (const field of OVERVIEW_FIELDS) {
     const value = doc[field];
@@ -133,6 +139,14 @@ export function changedFields(
   }
   if (draft.tech_stack.join("\n") !== seed.tech_stack.join("\n")) {
     changes.tech_stack = draft.tech_stack.map((technology) => ({ technology }));
+  }
+  if (
+    draft.delivery_accelerators.join("\n") !==
+    seed.delivery_accelerators.join("\n")
+  ) {
+    changes.delivery_accelerators = draft.delivery_accelerators.map(
+      (delivery_accelerator) => ({ delivery_accelerator }),
+    );
   }
   return changes as Partial<ProjectDoc>;
 }
