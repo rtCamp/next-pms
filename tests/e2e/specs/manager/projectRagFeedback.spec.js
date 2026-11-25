@@ -135,7 +135,7 @@ test.describe("Manager: Project RAG stats and Feedback", () => {
     await open("Feedback");
     await expect(page).toHaveURL(/tab=feedback/);
     await expect(
-      page.getByRole("button", { name: "Client feedback" }),
+      page.getByRole("button", { name: "Client feedback", exact: true }),
     ).toBeVisible();
     await expect(page.getByText("Schedule Feedback").first()).toBeVisible();
   });
@@ -145,7 +145,9 @@ test.describe("Manager: Project RAG stats and Feedback", () => {
   }) => {
     allure.story("Projects");
     await open("Feedback");
-    await page.getByRole("button", { name: "Client feedback" }).click();
+    await page
+      .getByRole("button", { name: "Client feedback", exact: true })
+      .click();
     await page
       .getByRole("menuitem", { name: "Team feedback" })
       .or(page.getByRole("option", { name: "Team feedback" }))
