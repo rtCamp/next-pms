@@ -162,6 +162,11 @@ export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
   },
 ];
 
+/** Columns and sort fields only those who can see cost and invoice burn get. */
+export const BURN_COLUMN_KEYS: ReadonlySet<string> = new Set([
+  "cost_burn_percent",
+]);
+
 export const PROJECT_SORT_FIELDS = [
   { field: "project_name", label: "Project name" },
   { field: "custom_project_phase", label: "Phase" },

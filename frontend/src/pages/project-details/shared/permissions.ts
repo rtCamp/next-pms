@@ -1,25 +1,32 @@
 import type { EmployeeLookupOption } from "@/composables/useEmployeeLookup";
-import {
-  MANAGE_ALL_ROLES,
-  OWNER_GATED_ROLES,
-  UPDATE_ADMIN_ROLE,
-} from "./constants";
+import { hasCapability, type Capabilities } from "@/session";
+import { UPDATE_ADMIN_ROLE } from "./constants";
 import type { OwnerGatedPermissions, Person, UserDetails } from "./types";
 
 /**
- * What the session may do with an owner-gated record (a risk, a growth initiative):
- * manage-all roles edit and delete any; an owner-gated role edits only its own.
+ * What the session may do with an owner-gated record (a growth initiative): project
+ * admins edit and delete any; other Projects page users edit only their own.
  */
 export function ownerGatedPermissions(
-  roles: readonly string[],
+  capabilities: Capabilities,
   userId: string,
   ownerId?: string | null,
 ): OwnerGatedPermissions {
-  const managesAll = MANAGE_ALL_ROLES.some((role) => roles.includes(role));
+  const managesAll = hasCapability(capabilities, "project_admin");
   const isOwner =
-    OWNER_GATED_ROLES.some((role) => roles.includes(role)) &&
+    hasCapability(capabilities, "projects_page") &&
     ownerId?.toLowerCase() === userId.toLowerCase();
   return { canEdit: managesAll || isOwner, canDelete: managesAll };
+}
+
+/** What the session may do with a risk: Projects page users edit any, project admins also delete. */
+export function riskPermissions(
+  capabilities: Capabilities,
+): OwnerGatedPermissions {
+  return {
+    canEdit: hasCapability(capabilities, "projects_page"),
+    canDelete: hasCapability(capabilities, "project_admin"),
+  };
 }
 
 /** Whether the session may edit or delete an update: its author, or a System Manager, on a record it may edit. */

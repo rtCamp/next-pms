@@ -6,7 +6,7 @@ import {
   useDocumentWrite,
 } from "@/pages/project-details/shared/useDocumentWrite";
 import { useFollow } from "@/pages/project-details/shared/useFollow";
-import { useOwnerGatedPermissions } from "@/pages/project-details/shared/useOwnerGatedPermissions";
+import { useRiskPermissions } from "@/pages/project-details/shared/useOwnerGatedPermissions";
 import {
   useAttachments,
   useFollowers,
@@ -62,7 +62,7 @@ export function useRiskDetail(riskId: string) {
     if (await updateFollow(riskId, isFollowing.value)) followers.reload();
   }
 
-  const permissions = useOwnerGatedPermissions(() => risk.value?.risk_owner);
+  const permissions = useRiskPermissions();
 
   function canManage(update: RiskUpdate) {
     return canManageUpdate(

@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+  EMPLOYEE_CAPABILITIES,
+  PMS_LEADERSHIP_CAPABILITIES,
+  PROJECTS_MANAGER_CAPABILITIES,
+  PROJECTS_USER_CAPABILITIES,
+} from "@/session/capabilities.fixtures";
+import {
   canManageUpdate,
   ownerGatedPermissions,
+  riskPermissions,
   toEmployeeUserOptions,
   toPerson,
 } from "./permissions";
@@ -10,33 +17,48 @@ const ME = "me@example.com";
 
 describe("ownerGatedPermissions", () => {
   it.each([
-    "System Manager",
-    "Projects Manager",
-    "Delivery Manager",
-    "Delivery User",
-    "Timesheet Manager",
-  ])("lets %s edit and delete any record", (role) => {
-    expect(ownerGatedPermissions([role], ME, "other@example.com")).toEqual({
-      canEdit: true,
-      canDelete: true,
-    });
+    ["Projects Manager", PROJECTS_MANAGER_CAPABILITIES],
+    ["PMS Leadership", PMS_LEADERSHIP_CAPABILITIES],
+  ])("lets %s edit and delete any record", (_, capabilities) => {
+    expect(
+      ownerGatedPermissions(capabilities, ME, "other@example.com"),
+    ).toEqual({ canEdit: true, canDelete: true });
   });
 
   it("lets a Projects User edit only their own record, ignoring case", () => {
+    const capabilities = PROJECTS_USER_CAPABILITIES;
+    expect(ownerGatedPermissions(capabilities, ME, "ME@example.com")).toEqual({
+      canEdit: true,
+      canDelete: false,
+    });
     expect(
-      ownerGatedPermissions(["Projects User"], ME, "ME@example.com"),
-    ).toEqual({ canEdit: true, canDelete: false });
-    expect(
-      ownerGatedPermissions(["Projects User"], ME, "other@example.com"),
+      ownerGatedPermissions(capabilities, ME, "other@example.com"),
     ).toEqual({ canEdit: false, canDelete: false });
-    expect(ownerGatedPermissions(["Projects User"], ME, null)).toEqual({
+    expect(ownerGatedPermissions(capabilities, ME, null)).toEqual({
       canEdit: false,
       canDelete: false,
     });
   });
 
-  it("gives other roles nothing", () => {
-    expect(ownerGatedPermissions(["Employee"], ME, ME)).toEqual({
+  it("gives an employee nothing", () => {
+    expect(ownerGatedPermissions(EMPLOYEE_CAPABILITIES, ME, ME)).toEqual({
+      canEdit: false,
+      canDelete: false,
+    });
+  });
+});
+
+describe("riskPermissions", () => {
+  it("lets Projects page users edit any risk and project admins delete it", () => {
+    expect(riskPermissions(PROJECTS_USER_CAPABILITIES)).toEqual({
+      canEdit: true,
+      canDelete: false,
+    });
+    expect(riskPermissions(PROJECTS_MANAGER_CAPABILITIES)).toEqual({
+      canEdit: true,
+      canDelete: true,
+    });
+    expect(riskPermissions(EMPLOYEE_CAPABILITIES)).toEqual({
       canEdit: false,
       canDelete: false,
     });

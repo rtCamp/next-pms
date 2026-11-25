@@ -11,11 +11,17 @@ Precedence: [`PHILOSOPHY.md`](PHILOSOPHY.md) > this file > existing code.
 record is sent to `/no-employee`.
 _Avoid_: member, resource (as a noun for a person), staff.
 
-**Role** — a Frappe role that gates pages and actions, e.g. `Projects Manager`, `Timesheet Manager`,
-`Delivery Manager`. Pages check roles in the router; the backend enforces permissions again.
+**Role** — a Frappe role: `Employee`, `Projects User`, `Projects Manager`, `PMS Leadership` (each stacking on the
+one before) and `System Manager`. Roles grant capabilities; the app checks capabilities, not role names.
 _Avoid_: permission (for a role), group.
 
-**Session** — the signed-in user as the app sees them: user id and name, roles and employee record, from
+**Capability** — something the user may do, like `projects_page` or `edit_others_time`, with a scope (`own`,
+`reports`, `reports_and_own_projects`, `all`). The server resolves them from the user's roles
+(`next_pms/permissions/capabilities.py`) into `boot.capabilities`; the router, the sidebar and the pages check them
+with `session.can()`, and the backend enforces them again.
+_Avoid_: permission, access level.
+
+**Session** — the signed-in user as the app sees them: user id and name, roles, capabilities and employee record, from
 `useSession()`.
 _Avoid_: user store, auth, current user (for the whole object).
 
@@ -247,10 +253,10 @@ in their stored order with their `updated_by` (`toUpdateLogRows` in `pages/proje
 newest first.
 _Avoid_: history, activity (that's the record's Version log).
 
-**Owner-gated permission** — the access rule of risks and growth initiatives: System Manager, Projects Manager,
-Delivery Manager, Delivery User and Timesheet Manager edit and delete any; a Projects User edits only the ones they
-own (the risk owner, the activity owner) and deletes none. The backend enforces it in `has_permission`; the page
-hides the actions with `useOwnerGatedPermissions()`.
+**Owner-gated permission** — the access rule of growth initiatives: those with `project_admin` edit and delete any;
+other Projects page users edit only the ones they own (the activity owner) and delete none. Risks aren't owner-gated:
+anyone with `projects_page` edits any risk, and `project_admin` deletes them. The backend enforces it in
+`has_permission`; the page hides the actions with `useOwnerGatedPermissions()` and `useRiskPermissions()`.
 _Avoid_: owner permission, record permission.
 
 **Follower** — a user following a document through Frappe's document follow (`Document Follow`), notified of its

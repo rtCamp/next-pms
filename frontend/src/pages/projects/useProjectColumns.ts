@@ -2,8 +2,10 @@ import { computed } from "vue";
 import { useRoute } from "vue-router";
 import type { SelectorColumn } from "@/components/ColumnSelector";
 import { useQueryPatch } from "@/composables/useQueryPatch";
+import { useSession } from "@/session";
 import { parseColumnKeys, queryString } from "@/utils/query";
 import {
+  BURN_COLUMN_KEYS,
   COLUMN_ORDER_PARAM,
   MAX_PINNED_COLUMNS,
   PINNED_COLUMNS_PARAM,
@@ -22,6 +24,12 @@ const KNOWN_KEYS: ReadonlySet<string> = new Set(COLUMN_BY_KEY.keys());
 /** Every column, in the shape the column selector offers. */
 export const AVAILABLE_PROJECT_COLUMNS: SelectorColumn[] =
   PROJECT_LIST_COLUMNS.map(({ key, label }) => ({ value: key, label }));
+
+/** The columns offered to those who can't see cost and invoice burn. */
+export const AVAILABLE_PROJECT_COLUMNS_WITHOUT_BURN: SelectorColumn[] =
+  AVAILABLE_PROJECT_COLUMNS.filter(
+    (column) => !BURN_COLUMN_KEYS.has(column.value),
+  );
 
 /** The known column keys in a saved list or comma-separated param. */
 export function parseKeys(value: unknown): string[] {
@@ -62,13 +70,19 @@ export function layoutParams(layout: Partial<ColumnLayout>) {
 export function useProjectColumns() {
   const route = useRoute();
   const patchQuery = useQueryPatch();
+  const session = useSession();
+
+  const shown = (keys: string[]) =>
+    session.can("view_cost_and_invoice_burn")
+      ? keys
+      : keys.filter((key) => !BURN_COLUMN_KEYS.has(key));
 
   const order = computed(() => {
     const keys = parseKeys(queryString(route.query[COLUMN_ORDER_PARAM]));
-    return keys.length > 0 ? keys : DEFAULT_COLUMN_ORDER;
+    return shown(keys.length > 0 ? keys : DEFAULT_COLUMN_ORDER);
   });
   const pinned = computed(() =>
-    parseKeys(queryString(route.query[PINNED_COLUMNS_PARAM])),
+    shown(parseKeys(queryString(route.query[PINNED_COLUMNS_PARAM]))),
   );
 
   const columns = computed<ProjectListColumn[]>(() => {
@@ -97,7 +111,9 @@ export function useProjectColumns() {
   });
 
   const isDefault = computed(
-    () => pinned.value.length === 0 && isDefaultOrder(order.value),
+    () =>
+      pinned.value.length === 0 &&
+      order.value.join(",") === shown(DEFAULT_COLUMN_ORDER).join(","),
   );
 
   function setLayout(layout: Partial<ColumnLayout>) {
