@@ -1,0 +1,158 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:CFS-{YYYY}-{#####}",
+ "creation": "2024-10-23 11:50:23.716484",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "customer",
+  "feedback_from_date",
+  "feedback_to_date",
+  "feedback_by",
+  "column_break_dqgf",
+  "feedback_type",
+  "status",
+  "email_template",
+  "schedule_unique_token",
+  "amended_from",
+  "team_section",
+  "resources",
+  "section_break_nhkg",
+  "projects"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "feedback_from_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Feedback From Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "feedback_to_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Feedback To Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "feedback_by",
+   "fieldtype": "Link",
+   "label": "Feedback By",
+   "options": "Contact",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_dqgf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Resource",
+   "fieldname": "feedback_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Feedback Type",
+   "options": "Resource\nProject",
+   "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Pending\nCompleted\nCancelled",
+   "reqd": 1
+  },
+  {
+   "fieldname": "email_template",
+   "fieldtype": "Link",
+   "label": "Email Template",
+   "options": "Email Template",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Customer Feedback Schedule",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "depends_on": "eval:doc.feedback_type == 'Resource';",
+   "fieldname": "team_section",
+   "fieldtype": "Section Break",
+   "label": "Team"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "schedule_unique_token",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Schedule Unique Token",
+   "read_only": 1
+  },
+  {
+   "fieldname": "resources",
+   "fieldtype": "Table",
+   "label": "Resources",
+   "options": "Customer Feedback Employee"
+  },
+  {
+   "depends_on": "eval:doc.feedback_type == 'Project';",
+   "fieldname": "section_break_nhkg",
+   "fieldtype": "Section Break",
+   "label": "Projects"
+  },
+  {
+   "depends_on": "eval:doc.feedback_type == 'Project';",
+   "fieldname": "projects",
+   "fieldtype": "Table",
+   "label": "Projects",
+   "options": "Customer Feedback Project"
+  }
+ ],
+ "is_submittable": 1,
+ "links": [
+  {
+   "link_doctype": "Customer Feedback",
+   "link_fieldname": "customer_feedback_schedule"
+  }
+ ],
+ "modified": "2024-12-16 11:50:32.498018",
+ "modified_by": "Administrator",
+ "module": "Customer Feedback",
+ "name": "Customer Feedback Schedule",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

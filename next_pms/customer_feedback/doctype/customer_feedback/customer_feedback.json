@@ -1,0 +1,368 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-10-22 12:21:54.895163",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_v5ik",
+  "feedback_for",
+  "feedback_for_name",
+  "feedback_from_date",
+  "feedback_to_date",
+  "feedback_by",
+  "contact_email",
+  "column_break_vkgf",
+  "customer",
+  "evaluation_type",
+  "customer_feedback_schedule",
+  "projects",
+  "amended_from",
+  "engineer_ratings_section",
+  "e_ability_to_provide_soln",
+  "e_ability_to_meet_deadlines",
+  "e_responsiveness",
+  "e_proactiveness",
+  "project_ratings_section",
+  "p_overall_satisfaction",
+  "p_delivery_quality",
+  "p_communication_responsiveness",
+  "p_confidence_engagement",
+  "p_suggestion",
+  "p_reccomendation",
+  "quality_engineer_ratings_section",
+  "qe_able_to_identify_bugs",
+  "qe_follows_coding_standards",
+  "qe_clear_and_descriptive_information",
+  "project_manager_ratings_section",
+  "pm_overall_outcome",
+  "pm_ability_to_meet_goals",
+  "pm_planning_documenting",
+  "pm_contribute_ideas",
+  "pm_effective_communication",
+  "project_coordinator_ratings_section",
+  "pc_assigning_and_monitoring",
+  "pc_sharing_frequent_updates",
+  "pc_able_to_provide_clear",
+  "pc_ability_to_foster_collab",
+  "section_break_uxjq",
+  "additional_comments__feedback",
+  "token"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_v5ik",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Customer Feedback",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "feedback_from_date",
+   "fieldtype": "Date",
+   "label": "Feedback From Date"
+  },
+  {
+   "fieldname": "feedback_to_date",
+   "fieldtype": "Date",
+   "label": "Feedback To Date"
+  },
+  {
+   "fieldname": "feedback_by",
+   "fieldtype": "Link",
+   "label": "Feedback By",
+   "options": "Contact"
+  },
+  {
+   "depends_on": "eval:doc.evaluation_type != 'Project';",
+   "fieldname": "feedback_for",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "label": "Feedback For",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "column_break_vkgf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "evaluation_type",
+   "fieldtype": "Select",
+   "label": "Evaluation Type",
+   "options": "Engineer\nProject\nProject Manager\nProject Coordinator\nQuality Engineer"
+  },
+  {
+   "fieldname": "customer_feedback_schedule",
+   "fieldtype": "Link",
+   "label": "Customer Feedback Schedule",
+   "options": "Customer Feedback Schedule",
+   "search_index": 1
+  },
+  {
+   "depends_on": "eval:doc.evaluation_type == 'Engineer';",
+   "fieldname": "engineer_ratings_section",
+   "fieldtype": "Section Break",
+   "label": "Engineer Ratings"
+  },
+  {
+   "fieldname": "e_ability_to_provide_soln",
+   "fieldtype": "Rating",
+   "label": "Ability to provide technical solutions",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Engineer';",
+   "options": "4"
+  },
+  {
+   "fieldname": "e_ability_to_meet_deadlines",
+   "fieldtype": "Rating",
+   "label": "Ability to meet task deadlines",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Engineer';",
+   "options": "4"
+  },
+  {
+   "fieldname": "e_responsiveness",
+   "fieldtype": "Rating",
+   "label": "General responsiveness and availability",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Engineer';",
+   "options": "4"
+  },
+  {
+   "fieldname": "e_proactiveness",
+   "fieldtype": "Rating",
+   "label": "Proactiveness and task ownership",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Engineer';",
+   "options": "4"
+  },
+  {
+   "depends_on": "eval:doc.evaluation_type == 'Project';",
+   "fieldname": "project_ratings_section",
+   "fieldtype": "Section Break",
+   "label": "Project Ratings"
+  },
+  {
+   "depends_on": "eval:doc.evaluation_type == 'Quality Engineer';",
+   "fieldname": "quality_engineer_ratings_section",
+   "fieldtype": "Section Break",
+   "label": "Quality Engineer Ratings"
+  },
+  {
+   "depends_on": "eval:doc.evaluation_type == 'Project Manager';",
+   "fieldname": "project_manager_ratings_section",
+   "fieldtype": "Section Break",
+   "label": "Project Manager Ratings"
+  },
+  {
+   "fieldname": "pm_overall_outcome",
+   "fieldtype": "Rating",
+   "label": "Satisfied with overall outcome of the project's handled",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Project Manager';",
+   "options": "4"
+  },
+  {
+   "fieldname": "pm_ability_to_meet_goals",
+   "fieldtype": "Rating",
+   "label": "Ability to meet project timelines and goals",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Project Manager';",
+   "options": "4"
+  },
+  {
+   "fieldname": "pm_planning_documenting",
+   "fieldtype": "Rating",
+   "label": "Performance in workload planning, documentation and engineer grooming",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Project Manager';",
+   "options": "4"
+  },
+  {
+   "fieldname": "pm_contribute_ideas",
+   "fieldtype": "Rating",
+   "label": "Ability to contribute to project ideas",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Project Manager';",
+   "options": "4"
+  },
+  {
+   "fieldname": "pm_effective_communication",
+   "fieldtype": "Rating",
+   "label": "Effective communication throughout the project",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Project Manager';",
+   "options": "4"
+  },
+  {
+   "depends_on": "eval:doc.evaluation_type == 'Project Coordinator';",
+   "fieldname": "project_coordinator_ratings_section",
+   "fieldtype": "Section Break",
+   "label": "Project Coordinator Ratings"
+  },
+  {
+   "fieldname": "pc_assigning_and_monitoring",
+   "fieldtype": "Rating",
+   "label": "Assigning and monitoring daily tasks and communication",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Project Coordinator';",
+   "options": "4"
+  },
+  {
+   "fieldname": "pc_sharing_frequent_updates",
+   "fieldtype": "Rating",
+   "label": "Sharing frequent updates and reports",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Project Coordinator';",
+   "options": "4"
+  },
+  {
+   "fieldname": "pc_able_to_provide_clear",
+   "fieldtype": "Rating",
+   "label": "Able to provide clear and effective communication across all the projects",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Project Coordinator';",
+   "options": "4"
+  },
+  {
+   "depends_on": "eval:doc.evaluation_type == 'Project Coordinator';",
+   "fieldname": "pc_ability_to_foster_collab",
+   "fieldtype": "Rating",
+   "label": "Ability to foster team collaboration and encourage active participation throughout the project?",
+   "options": "4"
+  },
+  {
+   "fieldname": "section_break_uxjq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "If there are no areas for improvement, please add \"Not applicable\".",
+   "fieldname": "additional_comments__feedback",
+   "fieldtype": "Small Text",
+   "label": "Areas for Improvement",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.evaluation_type != 'Project';",
+   "fetch_from": "feedback_for.employee_name",
+   "fieldname": "feedback_for_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.evaluation_type == 'Project';",
+   "fieldname": "projects",
+   "fieldtype": "HTML",
+   "label": "Projects"
+  },
+  {
+   "fetch_from": "feedback_by.email_id",
+   "fieldname": "contact_email",
+   "fieldtype": "Data",
+   "label": "Contact Email",
+   "options": "Email",
+   "read_only": 1
+  },
+  {
+   "fieldname": "qe_able_to_identify_bugs",
+   "fieldtype": "Rating",
+   "label": "Able to correctly identify the UI and functional bugs",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Quality Engineer';",
+   "options": "4"
+  },
+  {
+   "fieldname": "qe_follows_coding_standards",
+   "fieldtype": "Rating",
+   "label": "Follows proper coding standards while writing the tests",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Quality Engineer';",
+   "options": "4"
+  },
+  {
+   "fieldname": "qe_clear_and_descriptive_information",
+   "fieldtype": "Rating",
+   "label": "Clear and descriptive information in the issue, easier for the developer to understand",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Quality Engineer';",
+   "options": "4"
+  },
+  {
+   "fieldname": "p_overall_satisfaction",
+   "fieldtype": "Rating",
+   "label": "Overall, how satisfied are you with our work this month?",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Project';",
+   "options": "4"
+  },
+  {
+   "fieldname": "p_delivery_quality",
+   "fieldtype": "Rating",
+   "label": "How satisfied are you with the quality and reliability of deliverables this month?",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Project';",
+   "options": "4"
+  },
+  {
+   "fieldname": "p_communication_responsiveness",
+   "fieldtype": "Rating",
+   "label": "How satisfied are you with communication and response times?",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Project';",
+   "options": "4"
+  },
+  {
+   "fieldname": "p_confidence_engagement",
+   "fieldtype": "Rating",
+   "label": "How confident do you feel about the engagement moving forward?",
+   "mandatory_depends_on": "eval:doc.evaluation_type == 'Project';",
+   "options": "4"
+  },
+  {
+   "fieldname": "p_suggestion",
+   "fieldtype": "Text",
+   "label": "Do you have any additional thoughts or suggestions?"
+  },
+  {
+   "fieldname": "p_reccomendation",
+   "fieldtype": "Select",
+   "label": "Would you recommend us to a peer?",
+   "options": "\nYes\nNo\nMay be"
+  },
+  {
+   "description": "Transport only: carries the emailed feedback token from the web form to before_insert, which validates and spends it. Never stored. Do not delete.",
+   "fieldname": "token",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "is_virtual": 1,
+   "label": "Token",
+   "no_copy": 1,
+   "print_hide": 1
+  }
+ ],
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-11-23 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Customer Feedback",
+ "name": "Customer Feedback",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

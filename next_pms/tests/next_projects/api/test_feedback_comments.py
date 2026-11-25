@@ -1,5 +1,3 @@
-import unittest
-
 import frappe
 from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
@@ -45,8 +43,6 @@ class TestFeedbackComments(IntegrationTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        if not frappe.db.exists("DocType", "Customer Feedback"):
-            raise unittest.SkipTest("Customer Feedback doctypes not installed on this site")
         cls.feedback = cls.make_feedback()
         customer = frappe.db.get_value("Customer Feedback", cls.feedback, "customer")
         cls.project = (

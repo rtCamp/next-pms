@@ -324,9 +324,6 @@ doc_events = {
     "Project Status Update": {
         "on_update": "next_pms.next_pms.notifications.project_status_update_on_update",
     },
-    "Customer Feedback": {
-        "on_submit": "next_pms.next_pms.notifications.customer_feedback_on_submit",
-    },
     "ToDo": {
         "validate": "next_pms.next_projects.doc_events.todo.validate",
         "on_trash": "next_pms.next_projects.doc_events.todo.on_trash",
