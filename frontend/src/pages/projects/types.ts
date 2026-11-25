@@ -50,7 +50,8 @@ export interface ProjectListItem {
   currency: string | null;
   project_type: string | null;
   burn_rate_per_week: number | null;
-  cost_burn: CostBurn;
+  /** Null without the view_cost_and_invoice_burn capability. */
+  cost_burn: CostBurn | null;
   total_budget: number | null;
   profit_margin: number | null;
   start_date: string | null;
