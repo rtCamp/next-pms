@@ -83,6 +83,8 @@ export interface ProjectDoc {
   custom_host?: string | null;
   /** `Technology` names. */
   tech_stack?: { technology: string }[];
+  /** `Delivery Accelerator` names; only `project_admin` can edit them (permlevel 1). */
+  delivery_accelerators?: { delivery_accelerator: string }[];
   /** A `UTM Source` name. Optional field, see `hasProjectField`. */
   custom_source?: string | null;
   /** A `Territory` name. Optional field. */

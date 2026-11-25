@@ -87,6 +87,14 @@ const FILTER_FIELDS: FilterField[] = [
   employeeField("custom_engineering_manager", "Engineering Manager"),
   employeeField("custom_account_manager_", "Account Manager"),
   linkField("custom_host", "Host", { doctype: "Host" }),
+  // A child-table filter with != would still match projects that also have the value.
+  {
+    name: "delivery_accelerators",
+    label: "Delivery Accelerator",
+    type: "link",
+    link: { doctype: "Delivery Accelerator" },
+    operators: [{ label: "Equals", value: "=" }],
+  },
   linkField("tag", "Tags", { doctype: "Tag" }),
 ];
 

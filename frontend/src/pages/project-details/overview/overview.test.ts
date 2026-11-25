@@ -44,6 +44,7 @@ describe("toDraft", () => {
 
   it("reads the tech stack as Technology names, empty when unset", () => {
     expect(toDraft(DOC).tech_stack).toEqual([]);
+    expect(toDraft(DOC).delivery_accelerators).toEqual([]);
     expect(
       toDraft({
         ...DOC,
@@ -112,6 +113,27 @@ describe("changedFields", () => {
     });
     expect(changedFields({ ...seed, tech_stack: [] }, seed, all)).toEqual({
       tech_stack: [],
+    });
+  });
+
+  it("saves changed delivery accelerators as their rows", () => {
+    const seed = toDraft({
+      ...doc,
+      delivery_accelerators: [{ delivery_accelerator: "Garuda" }],
+    });
+    expect(seed.delivery_accelerators).toEqual(["Garuda"]);
+    expect(changedFields({ ...seed }, seed, all)).toEqual({});
+    expect(
+      changedFields(
+        { ...seed, delivery_accelerators: ["Garuda", "FE pipeline"] },
+        seed,
+        all,
+      ),
+    ).toEqual({
+      delivery_accelerators: [
+        { delivery_accelerator: "Garuda" },
+        { delivery_accelerator: "FE pipeline" },
+      ],
     });
   });
 
