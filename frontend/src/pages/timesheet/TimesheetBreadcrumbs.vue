@@ -2,15 +2,13 @@
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 import { Dropdown } from "frappe-ui";
-import { ROLE_ACCESS, useSession } from "@/session";
+import { useSession } from "@/session";
 import { TIMESHEET_VIEWS } from "./constants";
 
 const route = useRoute();
 const session = useSession();
 
-const canReview = computed(() =>
-  session.hasAnyRole(ROLE_ACCESS.reviewTimesheets),
-);
+const canReview = computed(() => session.can("team_timesheet_pages"));
 
 const activeView = computed(
   () =>

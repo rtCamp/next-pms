@@ -58,9 +58,9 @@ export const Closed: Story = {};
 
 export const Open: Story = { args: { open: true } };
 
-/** Tips limited to a role show once the user holds it. */
+/** Tips limited to a role or capability show once the user holds it. */
 export const WithRoleTips: Story = {
-  args: { open: true, roles: ["Timesheet Manager"] },
+  args: { open: true, roles: ["team_timesheet_pages"] },
 };
 
 export const NoPageTips: Story = { args: { open: true, pageTips: [] } };

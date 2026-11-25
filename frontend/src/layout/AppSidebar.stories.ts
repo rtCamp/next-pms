@@ -1,5 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { fn } from "storybook/test";
+import {
+  EMPLOYEE_CAPABILITIES,
+  PMS_LEADERSHIP_CAPABILITIES,
+  PROJECTS_MANAGER_CAPABILITIES,
+  PROJECTS_USER_CAPABILITIES,
+} from "@/session/capabilities.fixtures";
 import AppSidebar from "./AppSidebar.vue";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
 
@@ -9,7 +15,8 @@ const meta = {
   tags: ["autodocs"],
   parameters: { layout: "fullscreen" },
   args: {
-    roles: [],
+    roles: ["Employee"],
+    capabilities: EMPLOYEE_CAPABILITIES,
     employee: "HR-EMP-00042",
     employeeName: "Asha Rao",
     onLogout: fn(),
@@ -32,22 +39,28 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** An employee without review or project roles: their own timesheet, tasks and allocations. */
+/** An employee: their own timesheet, tasks, allocations and notifications. */
 export const Employee: Story = {};
 
-/** A timesheet reviewer gets a Timesheet section. */
+/** A Projects User gets a Timesheet section and Projects. */
 export const TimesheetReviewer: Story = {
-  args: { roles: ["Timesheet User"] },
+  args: { roles: ["Projects User"], capabilities: PROJECTS_USER_CAPABILITIES },
 };
 
 /** A projects manager sees open projects and their dashboard. */
 export const ProjectsManager: Story = {
-  args: { roles: ["Projects Manager"] },
+  args: {
+    roles: ["Projects Manager"],
+    capabilities: PROJECTS_MANAGER_CAPABILITIES,
+  },
 };
 
 /** Two dashboards go into their own section. */
 export const Leadership: Story = {
-  args: { roles: ["Delivery Manager"] },
+  args: {
+    roles: ["PMS Leadership"],
+    capabilities: PMS_LEADERSHIP_CAPABILITIES,
+  },
 };
 
 /** On a phone the sidebar collapses by itself. */

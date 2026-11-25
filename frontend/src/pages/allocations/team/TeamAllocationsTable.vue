@@ -10,7 +10,7 @@ import {
   REMAINING_HOURS_TOOLTIP,
 } from "@/pages/allocations/shared/help";
 import { useAllocationDialogs } from "@/pages/allocations/shared/useAllocationDialogs";
-import { ROLE_ACCESS, useSession } from "@/session";
+import { useSession } from "@/session";
 import TeamAllocationsToolbar from "./TeamAllocationsToolbar.vue";
 import { provideTeamAllocations } from "./useTeamAllocations";
 
@@ -18,11 +18,9 @@ const team = provideTeamAllocations();
 const dialogs = useAllocationDialogs();
 const session = useSession();
 
-const canManageAllocations = computed(() =>
-  session.hasAnyRole(ROLE_ACCESS.manageAllocations),
-);
+const canManageAllocations = computed(() => session.can("manage_allocations"));
 const canManageAiAllocations = computed(() =>
-  session.hasAnyRole(ROLE_ACCESS.manageAiAllocations),
+  session.can("manage_ai_allocations"),
 );
 const showWeekend = window.boot?.allow_weekend_entries ?? false;
 const hasRows = computed(() => team.employees.length > 0);

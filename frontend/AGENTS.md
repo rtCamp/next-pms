@@ -50,9 +50,10 @@ src/
   boot.ts          login check and boot data (fetched from the server on the dev server)
   socket.ts        realtime socket; use useSocket() in components
   versionUpdate.ts the "New version available" toast on the realtime version-update event
-  router.ts        routes, based at /next-pms, and the navigation guards (employee and role checks)
-  router-meta.d.ts route meta: title, roles, standalone
-  session/         useSession(): the signed-in user, roles and employee record; ROLE_ACCESS, hasAnyRole
+  router.ts        routes, based at /next-pms, and the navigation guards (employee and capability checks)
+  router-meta.d.ts route meta: title, capability, standalone
+  session/         useSession(): the signed-in user, roles, capabilities (`can()`) and employee record; the
+                   capability types, hasCapability, and per-role capability fixtures for stories and tests
   layout/          AppSidebar (frappe-ui Sidebar) with the search palette (GlobalSearch, Mod+K), the notification
                    tray, the Settings dialog (Mod+Shift+Comma) and the Help panel (each page's tips, by route, in
                    help.ts); AppSidebarHeader, AppSidebarSection, the nav links and search pages
@@ -98,9 +99,9 @@ src/
 **Imports.** `@/` is `src/` (set in `vite.config.ts` and `tsconfig.json`). Import from another folder with `@/`, e.g.
 `import { useSession } from "@/session"`; keep `./` for files in the same folder, and never climb with `../`.
 
-**Routes.** Give each route a `meta.title` (the tab title), and `meta.roles` from `ROLE_ACCESS` when only some
-roles may open it. The `beforeEach` guard in `router.ts` sends users without an Employee record to `/no-employee`
-and users without a route's role to `/not-found`, as React does (unknown paths redirect there too); when the session lookups fail, `App.vue` shows SessionError (Retry,
+**Routes.** Give each route a `meta.title` (the tab title), and `meta.capability` when only some users may open
+it. The `beforeEach` guard in `router.ts` sends users without an Employee record to `/no-employee`
+and users without a route's capability to `/not-found`, as React does (unknown paths redirect there too); when the session lookups fail, `App.vue` shows SessionError (Retry,
 Log out) instead of the page. `meta.standalone` marks a status page: no sidebar, no guard checks.
 `meta.scroll: false` hands scrolling to the page (DesktopShell stops scrolling it), for pages whose header or toolbar
 stays put while a pane scrolls, like the task list's rows. The note editor routes are children of `project-details`:

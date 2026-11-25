@@ -2,7 +2,6 @@ import type { HelpTip } from "@/components/HelpPanel";
 import type { FieldHelp } from "@/components/InfoHoverCard";
 import { PROJECT_LIST_HELP } from "@/pages/projects/help";
 import type { ProjectTabKey } from "./constants";
-import { CUSTOMIZATION_ROLES } from "./tracking/constants";
 
 const COST_BURN = PROJECT_LIST_HELP.cost_burn_percent;
 const COST_BURN_DETAILS = COST_BURN.details ?? [];
@@ -86,7 +85,7 @@ export const PROJECT_DETAIL_TIPS: Partial<Record<ProjectTabKey, HelpTip[]>> = {
         "Select Done.",
       ],
       wiki: "Project-Detail#hide-or-restore-a-tracking-card",
-      roles: CUSTOMIZATION_ROLES,
+      roles: ["project_admin"],
       motion: () =>
         import("@/assets/motions/hide-restore-tracking-cards?motion"),
     },

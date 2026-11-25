@@ -1,4 +1,3 @@
-import type { Role } from "@/session";
 import type { WidgetKey } from "./types";
 
 export const TRACKING_METHOD =
@@ -6,8 +5,8 @@ export const TRACKING_METHOD =
 export const VIEW_API =
   "/api/v2/method/next_pms.timesheet.doctype.pms_view_setting.pms_view_setting";
 
-/** Who may change the layout; the backend's `TRACKING_LAYOUT_ROLES`. */
-export const CUSTOMIZATION_ROLES: Role[] = ["Projects Manager"];
+/** Hidden from those who can't see cost and invoice burn. */
+export const BURN_WIDGETS: WidgetKey[] = ["cost_burn", "invoice_burn"];
 
 export const CUSTOMIZABLE_WIDGETS: { key: WidgetKey; label: string }[] = [
   { key: "task_completion", label: "Task completion" },

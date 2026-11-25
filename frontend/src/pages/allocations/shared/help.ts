@@ -6,7 +6,6 @@ import {
 } from "@/components/GanttGrid";
 import type { HelpTip } from "@/components/HelpPanel";
 import type { FieldHelp, LegendItem } from "@/components/InfoHoverCard";
-import { ROLE_ACCESS } from "@/session";
 
 const SAMPLE_DAY = new Date(2026, 0, 5);
 
@@ -229,7 +228,7 @@ const VARY_HOURS_TIP: HelpTip = {
     "Set Edit hours / day or Edit total hours, check the Schedule summary, then select Save changes.",
   ],
   wiki: "Team-Allocations#vary-the-hours-day-by-day",
-  roles: ROLE_ACCESS.manageAllocations,
+  roles: ["manage_allocations"],
 };
 
 export const TEAM_ALLOCATION_TIPS: HelpTip[] = [
@@ -245,7 +244,7 @@ export const TEAM_ALLOCATION_TIPS: HelpTip[] = [
       "Set Repeat for if it's recurring, then select Allocate.",
     ],
     wiki: "Team-Allocations#add-allocation",
-    roles: ROLE_ACCESS.manageAllocations,
+    roles: ["manage_allocations"],
     motion: () => import("@/assets/motions/add-allocation?motion"),
   },
   {
@@ -257,7 +256,7 @@ export const TEAM_ALLOCATION_TIPS: HelpTip[] = [
       "Finish in Add allocation and select Allocate.",
     ],
     wiki: "Team-Allocations#inline-editing",
-    roles: ROLE_ACCESS.manageAllocations,
+    roles: ["manage_allocations"],
     motion: () => import("@/assets/motions/drag-to-allocate?motion"),
   },
   {
@@ -270,7 +269,7 @@ export const TEAM_ALLOCATION_TIPS: HelpTip[] = [
       "Check the dates in Edit allocation and select Save Changes.",
     ],
     wiki: "Team-Allocations#resize-a-booking-on-the-grid",
-    roles: ROLE_ACCESS.manageAllocations,
+    roles: ["manage_allocations"],
     motion: () => import("@/assets/motions/resize-allocation?motion"),
   },
   {
@@ -288,7 +287,7 @@ export const TEAM_ALLOCATION_TIPS: HelpTip[] = [
     title: "Allocate a member to another project",
     body: "Expand the member and select Add project under their project rows. Add allocation opens with the member filled in.",
     wiki: "Team-Allocations#expanding-a-member-row",
-    roles: ROLE_ACCESS.manageAllocations,
+    roles: ["manage_allocations"],
   },
 ];
 
@@ -302,7 +301,7 @@ export const PROJECT_ALLOCATION_TIPS: HelpTip[] = [
       "Finish in Add allocation and select Allocate.",
     ],
     wiki: "Team-Allocations#inline-editing",
-    roles: ROLE_ACCESS.manageAllocations,
+    roles: ["manage_allocations"],
     motion: () => import("@/assets/motions/drag-to-allocate-project?motion"),
   },
   {
@@ -315,7 +314,7 @@ export const PROJECT_ALLOCATION_TIPS: HelpTip[] = [
       "Check the dates in Edit allocation and select Save Changes.",
     ],
     wiki: "Project-Allocations#resize-a-booking-on-the-grid",
-    roles: ROLE_ACCESS.manageAllocations,
+    roles: ["manage_allocations"],
     motion: () => import("@/assets/motions/resize-allocation-project?motion"),
   },
   {
@@ -333,7 +332,7 @@ export const PROJECT_ALLOCATION_TIPS: HelpTip[] = [
     title: "Allocate someone new to a project",
     body: "Expand the project and select Add member under its member rows. Add allocation opens with the project filled in.",
     wiki: "Project-Allocations#the-projects-grid",
-    roles: ROLE_ACCESS.manageAllocations,
+    roles: ["manage_allocations"],
   },
 ];
 
@@ -343,6 +342,6 @@ export const ALLOCATION_DIALOG_TIPS: HelpTip[] = [
     title: "Can't find someone in Employee or Project?",
     body: "Once you pick a project, Employee only lists the people on that project's team. Once you pick an employee, Project only lists the projects they're on. To allocate someone who isn't on the team, add them to the project's team first.",
     wiki: "Team-Allocations#add-allocation",
-    roles: ROLE_ACCESS.manageAllocations,
+    roles: ["manage_allocations"],
   },
 ];

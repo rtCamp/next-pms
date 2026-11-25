@@ -1,3 +1,5 @@
+import type { Capabilities } from "./capabilities";
+
 /** A Frappe role name, e.g. `"Projects Manager"`. */
 export type Role = string;
 
@@ -6,6 +8,7 @@ export type WorkingFrequency = "Per Day" | "Per Week";
 /** Response of `next_pms.timesheet.api.app.get_data`. */
 export interface AppData {
   roles: Role[];
+  capabilities: Capabilities;
   currencies: string[];
   has_business_unit: boolean;
   has_industry: boolean;

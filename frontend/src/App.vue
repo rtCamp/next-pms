@@ -11,12 +11,12 @@ import { provideNotifications } from "@/composables/useNotifications";
 import AppSidebar from "./layout/AppSidebar.vue";
 import SessionError from "./layout/SessionError.vue";
 import StatusMessage from "./layout/StatusMessage.vue";
-import { ROLE_ACCESS, useSession } from "./session";
+import { useSession } from "./session";
 
 const route = useRoute();
 const router = useRouter();
 const session = useSession();
-provideNotifications(() => session.hasAnyRole(ROLE_ACCESS.notifications));
+provideNotifications(() => session.can("notifications"));
 
 // The first navigation waits for the session in the router guard.
 const starting = computed(() => route.matched.length === 0);
@@ -89,6 +89,7 @@ function viewKey(viewRoute: RouteLocationNormalizedLoaded) {
           <ErrorFallback>
             <AppSidebar
               :roles="session.roles"
+              :capabilities="session.capabilities"
               :employee="session.employee"
               :employee-name="session.employeeName"
               @logout="session.logout()"

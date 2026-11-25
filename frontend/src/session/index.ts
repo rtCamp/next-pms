@@ -1,3 +1,4 @@
 export { useSession, type Session } from "./session";
-export { ROLE_ACCESS, hasAnyRole } from "./roles";
+export { hasCapability } from "./capabilities";
+export type * from "./capabilities";
 export type * from "./types";

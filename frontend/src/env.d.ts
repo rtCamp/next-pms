@@ -10,6 +10,8 @@ interface Boot {
     can_create?: string[];
   };
   currencies?: string[];
+  /** The user's capabilities and their scopes. */
+  capabilities?: import("./session/capabilities").Capabilities;
   /** The user's Desk theme: `Light`, `Dark` or `Automatic`. */
   desk_theme?: string;
   sysdefaults?: { currency?: string };

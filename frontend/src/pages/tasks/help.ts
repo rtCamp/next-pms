@@ -42,7 +42,7 @@ export const TASKS_TIPS: HelpTip[] = [
     title: "Open a task's time log from its subject",
     body: "Select a task's subject to see the time logged on it and how that compares with its expected time.",
     wiki: "Tasks#task-log-dialog",
-    roles: ["Projects Manager", "Timesheet Manager"],
+    roles: ["view_employee_details"],
     motion: () => import("@/assets/motions/open-task-log?motion"),
   },
 ];

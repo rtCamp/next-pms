@@ -42,9 +42,6 @@ const COLUMN_HELP: Partial<Record<string, FieldHelp>> = {
   status: TASK_LIST_HELP.status,
 };
 
-/** Roles that may delete any task; others may delete only their own. */
-const MANAGER_ROLES = ["Projects Manager", "Delivery Manager", "Delivery User"];
-
 const SORT_FIELD_BY_COLUMN = new Map<string, string>(
   TASK_SORTABLE_FIELDS.map(({ column, field }) => [column, field]),
 );
@@ -85,7 +82,7 @@ function formatDueDate(date: string | null) {
 }
 
 function canDelete(task: TaskListItem) {
-  return session.hasAnyRole(MANAGER_ROLES) || task.owner === session.userId;
+  return session.can("project_admin") || task.owner === session.userId;
 }
 
 function confirmDelete(task: TaskListItem) {

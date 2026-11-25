@@ -125,7 +125,7 @@ export const ExpandsOneTipAtATime: Story = {
   },
 };
 
-/** Tips limited to some roles are hidden from everyone else. */
+/** Tips limited to some roles or capabilities are hidden from everyone else. */
 export const FiltersTipsByRole: Story = {
   play: async () => {
     const pageGroup = within(
@@ -141,7 +141,7 @@ export const FiltersTipsByRole: Story = {
 };
 
 export const ShowsRoleTipsToTheirRoles: Story = {
-  args: { roles: ["Timesheet Manager"] },
+  args: { roles: ["team_timesheet_pages"] },
   play: async () => {
     const pageGroup = within(
       within(await panel()).getByRole("group", { name: "On this page" }),

@@ -12,7 +12,7 @@ export interface HelpTip {
   wiki?: string;
   /** Lazy import of the motion that shows the task, played under the text. */
   motion?: MotionLoader;
-  /** Only shown to users who hold one of these roles. */
+  /** Only shown to users who hold one of these roles or capabilities. */
   roles?: readonly string[];
 }
 
@@ -23,6 +23,6 @@ export interface HelpPanelProps {
   pageTips: HelpTip[];
   /** Tips for every page, listed under "Everywhere". */
   generalTips: HelpTip[];
-  /** The user's roles, matched against each tip's `roles`. */
+  /** The user's roles and capabilities, matched against each tip's `roles`. */
   roles: readonly string[];
 }

@@ -6,7 +6,7 @@ import {
   type RouteRecordRaw,
 } from "vue-router";
 import { NOTE_EDITOR_ROUTES } from "./pages/project-details/notes/constants";
-import { ROLE_ACCESS, useSession } from "./session";
+import { useSession } from "./session";
 
 const routes: RouteRecordRaw[] = [
   { path: "/", redirect: { name: "timesheet-personal" } },
@@ -22,7 +22,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import("./pages/timesheet/team/TeamTimesheet.vue"),
     meta: {
       title: "Team Timesheet",
-      roles: ROLE_ACCESS.reviewTimesheets,
+      capability: "team_timesheet_pages",
       scroll: false,
     },
   },
@@ -32,7 +32,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import("./pages/timesheet/project/ProjectTimesheet.vue"),
     meta: {
       title: "Project Timesheet",
-      roles: ROLE_ACCESS.reviewTimesheets,
+      capability: "team_timesheet_pages",
       scroll: false,
     },
   },
@@ -40,13 +40,13 @@ const routes: RouteRecordRaw[] = [
     path: "/projects",
     name: "project",
     component: () => import("./pages/projects/Projects.vue"),
-    meta: { title: "Projects", roles: ROLE_ACCESS.projects, scroll: false },
+    meta: { title: "Projects", capability: "projects_page", scroll: false },
   },
   {
     path: "/projects/:projectId",
     name: "project-details",
     component: () => import("./pages/project-details/ProjectDetails.vue"),
-    meta: { title: "Project", roles: ROLE_ACCESS.projects, scroll: false },
+    meta: { title: "Project", capability: "projects_page", scroll: false },
     children: [
       { path: "notes/new", name: NOTE_EDITOR_ROUTES.new },
       { path: "notes/:noteId/edit", name: NOTE_EDITOR_ROUTES.edit },
@@ -84,14 +84,14 @@ const routes: RouteRecordRaw[] = [
     component: () => import("./pages/dashboard/LeadershipDashboard.vue"),
     meta: {
       title: "Leadership Dashboard",
-      roles: ROLE_ACCESS.leadershipDashboard,
+      capability: "leadership_dashboard",
     },
   },
   {
     path: "/dashboard/manager",
     name: "dashboard-manager",
     component: () => import("./pages/dashboard/ManagerDashboard.vue"),
-    meta: { title: "Manager Dashboard", roles: ROLE_ACCESS.managerDashboard },
+    meta: { title: "Manager Dashboard", capability: "manager_dashboard" },
   },
   {
     path: "/no-employee",
@@ -126,7 +126,7 @@ router.beforeEach(async (to): Promise<RouteLocationRaw | true> => {
   if (session.error) return true;
 
   if (!session.hasEmployee) return { name: "no-employee", replace: true };
-  if (to.meta.roles && !session.hasAnyRole(to.meta.roles)) {
+  if (to.meta.capability && !session.can(to.meta.capability)) {
     return { name: "not-found", replace: true };
   }
   return true;

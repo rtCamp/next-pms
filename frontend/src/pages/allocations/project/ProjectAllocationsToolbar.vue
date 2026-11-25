@@ -20,7 +20,7 @@ import {
   PROJECT_ALLOCATION_TYPE_OPTIONS,
 } from "@/pages/allocations/shared/filterParams";
 import { ALLOCATION_TYPE_HELP } from "@/pages/allocations/shared/help";
-import { ROLE_ACCESS, useSession } from "@/session";
+import { useSession } from "@/session";
 import { PROJECT_FILTER_FIELDS } from "./constants";
 import { useProjectAllocations } from "./useProjectAllocations";
 
@@ -31,9 +31,7 @@ const query = project.query;
 
 const guard = (action: () => void) => unsaved.requestGuardedAction(action);
 
-const showFilters = computed(() =>
-  session.hasAnyRole(ROLE_ACCESS.manageAllocations),
-);
+const showFilters = computed(() => session.can("filter_lookups"));
 
 const searchInput = shallowRef(query.search);
 watch(

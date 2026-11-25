@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { Button, Dropdown } from "frappe-ui";
+import { useSession } from "@/session";
 import type { ProjectView } from "./types";
 import { useProjectViews } from "./useProjectViews";
 import ViewIcon from "./ViewIcon.vue";
 
 const views = useProjectViews();
+const session = useSession();
 const menuOpen = ref(false);
 
 /** Runs a saved view's action and closes the views menu it was picked from. */
@@ -66,13 +68,20 @@ function savedViewActions(view: ProjectView) {
                 icon: "lucide-pencil",
                 onClick: closing(() => views.editView(view)),
               },
-              {
-                label: view.public ? "Make Private" : "Make Public",
-                icon: "lucide-lock",
-                onClick: closing(() =>
-                  views.updateView({ ...view, public: view.public ? 0 : 1 }),
-                ),
-              },
+              ...(view.public || session.can("public_views")
+                ? [
+                    {
+                      label: view.public ? "Make Private" : "Make Public",
+                      icon: "lucide-lock",
+                      onClick: closing(() =>
+                        views.updateView({
+                          ...view,
+                          public: view.public ? 0 : 1,
+                        }),
+                      ),
+                    },
+                  ]
+                : []),
             ]
           : []),
       ],

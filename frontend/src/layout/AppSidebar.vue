@@ -18,7 +18,7 @@ import {
 import { HelpPanel } from "@/components/HelpPanel";
 import { NotificationTray } from "@/components/NotificationTray";
 import { useNotifications } from "@/composables/useNotifications";
-import type { Role } from "@/session";
+import type { Capabilities, Role } from "@/session";
 import logo from "@/assets/logo.svg";
 import { rememberColorScheme } from "@/utils/theme";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
@@ -41,7 +41,9 @@ import {
 import { usePreloadRoute } from "./usePreloadRoute";
 
 const props = defineProps<{
+  /** Matched with the capabilities against the help tips' `roles`. */
   roles: readonly Role[];
+  capabilities: Capabilities;
   employee?: string | null;
   employeeName?: string;
 }>();
@@ -55,7 +57,7 @@ const preload = usePreloadRoute();
 const notifications = useNotifications();
 const { trayOpen } = notifications;
 
-const nav = computed(() => computeSections(props.roles, props.employee));
+const nav = computed(() => computeSections(props.capabilities, props.employee));
 const topItems = computed(() => nav.value.topItems);
 const sections = computed(() => nav.value.sections);
 const hasNotifications = computed(() =>
@@ -71,7 +73,7 @@ function itemKey(item: NavItem | NavAction) {
 const settingsOpen = ref(false);
 const searchOpen = ref(false);
 const searchItems = computed(() =>
-  computeSearchItems(props.roles, props.employee),
+  computeSearchItems(props.capabilities, props.employee),
 );
 useKeyboardShortcut({
   combo: "Mod+K",
@@ -106,6 +108,10 @@ function focusHelpItem(event: Event) {
     ?.focus();
 }
 const pageTips = computed(() => tipsForRoute(route.name, route.query));
+const helpRoles = computed(() => [
+  ...props.roles,
+  ...Object.keys(props.capabilities),
+]);
 
 function runAction(action: NavAction["action"]) {
   if (action === "search") searchOpen.value = true;
@@ -232,13 +238,13 @@ const menuItems = computed(() => [
   </Sidebar>
 
   <GlobalSearch v-model:open="searchOpen" :items="searchItems" />
-  <SettingsModal v-model:open="settingsOpen" :roles="roles" />
+  <SettingsModal v-model:open="settingsOpen" :capabilities="capabilities" />
 
   <HelpPanel
     v-model:open="helpOpen"
     :page-tips="pageTips"
     :general-tips="GENERAL_TIPS"
-    :roles="roles"
+    :roles="helpRoles"
     :class="sidebarCollapsed ? 'left-12' : 'left-60'"
     @close-auto-focus="focusHelpItem"
   />

@@ -2,6 +2,12 @@ import type { Meta, StoryObj } from "@storybook/vue3-vite";
 import { expect, fn, screen, userEvent, waitFor, within } from "storybook/test";
 import { onUnmounted } from "vue";
 import { useRouter } from "vue-router";
+import {
+  EMPLOYEE_CAPABILITIES,
+  PMS_LEADERSHIP_CAPABILITIES,
+  PROJECTS_MANAGER_CAPABILITIES,
+  PROJECTS_USER_CAPABILITIES,
+} from "@/session/capabilities.fixtures";
 import AppSidebar from "./AppSidebar.vue";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
 
@@ -11,7 +17,8 @@ const meta = {
   tags: ["interaction"],
   parameters: { layout: "fullscreen" },
   args: {
-    roles: [],
+    roles: ["Employee"],
+    capabilities: EMPLOYEE_CAPABILITIES,
     employee: "HR-EMP-00042",
     employeeName: "Asha Rao",
     onLogout: fn(),
@@ -34,7 +41,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** An employee without review or project roles: their own timesheet, tasks and allocations. */
+/** An employee: their own timesheet, tasks, allocations and notifications. */
 export const Employee: Story = {
   play: async ({ canvas }) => {
     await expect(
@@ -56,14 +63,23 @@ export const Employee: Story = {
       canvas.getByRole("button", { name: "Allocations" }),
     ).toBeInTheDocument();
     await expect(
+      canvas.getByRole("button", { name: "Notifications" }),
+    ).toBeInTheDocument();
+  },
+};
+
+/** Without the notifications capability there's no Notifications item. */
+export const NoNotifications: Story = {
+  args: { capabilities: {} },
+  play: async ({ canvas }) => {
+    await expect(
       canvas.queryByRole("button", { name: "Notifications" }),
     ).not.toBeInTheDocument();
   },
 };
 
-/** Projects and delivery roles get Notifications, which opens the tray beside the sidebar. */
+/** Notifications opens the tray beside the sidebar. */
 export const Notifications: Story = {
-  args: { roles: ["Projects User"] },
   play: async ({ canvas }) => {
     await userEvent.click(
       canvas.getByRole("button", { name: "Notifications" }),
@@ -75,9 +91,9 @@ export const Notifications: Story = {
   },
 };
 
-/** A timesheet reviewer gets a Timesheet section; Team opens on their reports. */
+/** A Projects User gets a Timesheet section, Team opening on their reports, and Projects. */
 export const TimesheetReviewer: Story = {
-  args: { roles: ["Timesheet User"] },
+  args: { roles: ["Projects User"], capabilities: PROJECTS_USER_CAPABILITIES },
   play: async ({ canvas }) => {
     await userEvent.click(canvas.getByRole("button", { name: "Timesheet" }));
     await expect(
@@ -88,14 +104,19 @@ export const TimesheetReviewer: Story = {
       "/timesheet/team?reportsTo=HR-EMP-00042",
     );
     await expect(
-      canvas.getByRole("link", { name: "Projects" }),
-    ).toHaveAttribute("href", "/timesheet/project");
+      canvas
+        .getAllByRole("link", { name: "Projects" })
+        .map((link) => link.getAttribute("href")),
+    ).toEqual(["/projects?status=Open", "/timesheet/project"]);
   },
 };
 
 /** A projects manager sees open projects and, with one dashboard, has it at the top. */
 export const ProjectsManager: Story = {
-  args: { roles: ["Projects Manager"] },
+  args: {
+    roles: ["Projects Manager"],
+    capabilities: PROJECTS_MANAGER_CAPABILITIES,
+  },
   play: async ({ canvas }) => {
     await expect(
       canvas.getByRole("link", { name: "Projects" }),
@@ -112,7 +133,10 @@ export const ProjectsManager: Story = {
 
 /** Two dashboards go into their own section. */
 export const Leadership: Story = {
-  args: { roles: ["Delivery Manager"] },
+  args: {
+    roles: ["PMS Leadership"],
+    capabilities: PMS_LEADERSHIP_CAPABILITIES,
+  },
   play: async ({ canvas }) => {
     const section = canvas.getByRole("button", { name: "Dashboards" });
     await userEvent.click(section);
@@ -256,7 +280,10 @@ let storyRouter: ReturnType<typeof useRouter> | undefined;
 
 /** Ctrl+K opens the search palette; it lists the user's pages and goes to the picked one. */
 export const Search: Story = {
-  args: { roles: ["Projects Manager"] },
+  args: {
+    roles: ["Projects Manager"],
+    capabilities: PROJECTS_MANAGER_CAPABILITIES,
+  },
   render: (args) => ({
     components: { AppSidebar },
     setup() {
