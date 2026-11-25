@@ -131,6 +131,31 @@ describe("mapAllocationSegments", () => {
     expect(segments[0].allocationEndDate).toEqual(new Date(2026, 9, 23));
   });
 
+  it("splits an AI allocation without weekends at each weekend", () => {
+    const span = (segments: ReturnType<typeof mapAllocationSegments>) =>
+      segments.map(({ startDate, endDate }) => [
+        startDate.getDate(),
+        endDate.getDate(),
+      ]);
+    const twoWeeks = {
+      allocation_start_date: "2026-10-19",
+      allocation_end_date: "2026-10-30",
+      total_allocated_hours: 80,
+    };
+    expect(
+      span(mapAllocationSegments(record({ ...twoWeeks, is_ai_created: 1 }))),
+    ).toEqual([
+      [19, 23],
+      [26, 30],
+    ]);
+    expect(
+      mapAllocationSegments(
+        record({ ...twoWeeks, is_ai_created: 1, include_weekends: 1 }),
+      ),
+    ).toHaveLength(1);
+    expect(mapAllocationSegments(record(twoWeeks))).toHaveLength(1);
+  });
+
   it("keeps a zero-hour placeholder for an allocation reduced to nothing", () => {
     const [segment, ...rest] = mapAllocationSegments(
       record({
