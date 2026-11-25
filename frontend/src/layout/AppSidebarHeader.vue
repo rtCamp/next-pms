@@ -8,6 +8,11 @@ defineProps<{
   menuItems: NonNullable<SidebarHeaderProps["menuItems"]>;
   collapsed: boolean;
 }>();
+
+defineSlots<{
+  /** Drawn over the logo's corner, e.g. an unread dot. */
+  "logo-badge"?: () => unknown;
+}>();
 </script>
 
 <template>
@@ -25,11 +30,10 @@ defineProps<{
                 : 'px-2 hover:bg-surface-gray-3'
           "
         >
-          <img
-            :src="logo"
-            alt=""
-            class="size-8 shrink-0 rounded-6 object-cover"
-          />
+          <span class="relative size-8 shrink-0">
+            <img :src="logo" alt="" class="size-full rounded-6 object-cover" />
+            <slot name="logo-badge" />
+          </span>
           <div
             class="flex flex-1 flex-col truncate text-left duration-300 ease-in-out"
             :class="

@@ -6,6 +6,7 @@ import {
   PROJECTS_MANAGER_CAPABILITIES,
   PROJECTS_USER_CAPABILITIES,
 } from "@/session/capabilities.fixtures";
+import { useWhatsNew } from "@/composables/useWhatsNew";
 import AppSidebar from "./AppSidebar.vue";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
 
@@ -24,6 +25,9 @@ const meta = {
   beforeEach: () => {
     // Each story starts expanded, whatever an earlier one stored.
     localStorage.removeItem(SIDEBAR_COLLAPSED_KEY);
+    const whatsNew = useWhatsNew();
+    whatsNew.available = false;
+    whatsNew.unseen = false;
   },
   render: (args) => ({
     components: { AppSidebar },
@@ -41,6 +45,15 @@ type Story = StoryObj<typeof meta>;
 
 /** An employee: their own timesheet, tasks, allocations and notifications. */
 export const Employee: Story = {};
+
+/** A release the user hasn't seen: a dot on the logo and on the What's new menu item. */
+export const NewRelease: Story = {
+  beforeEach: () => {
+    const whatsNew = useWhatsNew();
+    whatsNew.available = true;
+    whatsNew.unseen = true;
+  },
+};
 
 /** A Projects User gets a Timesheet section and Projects. */
 export const TimesheetReviewer: Story = {

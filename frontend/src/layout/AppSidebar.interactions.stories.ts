@@ -8,6 +8,7 @@ import {
   PROJECTS_MANAGER_CAPABILITIES,
   PROJECTS_USER_CAPABILITIES,
 } from "@/session/capabilities.fixtures";
+import { useWhatsNew } from "@/composables/useWhatsNew";
 import AppSidebar from "./AppSidebar.vue";
 import { SIDEBAR_COLLAPSED_KEY } from "./constants";
 
@@ -26,6 +27,9 @@ const meta = {
   beforeEach: () => {
     // Each story starts expanded, whatever an earlier one stored.
     localStorage.removeItem(SIDEBAR_COLLAPSED_KEY);
+    const whatsNew = useWhatsNew();
+    whatsNew.available = false;
+    whatsNew.unseen = false;
   },
   render: (args) => ({
     components: { AppSidebar },
@@ -277,6 +281,93 @@ export const PreloadsPageCode: Story = {
 };
 
 let storyRouter: ReturnType<typeof useRouter> | undefined;
+
+const renderWithRouter: Story["render"] = (args) => ({
+  components: { AppSidebar },
+  setup() {
+    storyRouter = useRouter();
+    return { args };
+  },
+  template: `
+    <div class="flex h-[600px]">
+      <AppSidebar v-bind="args" />
+    </div>
+  `,
+});
+
+/** An unseen release: dots on the logo ("New release") and the menu item, which opens What's new. */
+export const WhatsNewUnseen: Story = {
+  beforeEach: () => {
+    const whatsNew = useWhatsNew();
+    whatsNew.available = true;
+    whatsNew.unseen = true;
+  },
+  render: renderWithRouter,
+  play: async ({ canvas }) => {
+    const header = canvas.getByRole("button", { name: /Next PMS/ });
+    await expect(within(header).getByText("New release")).toBeInTheDocument();
+    await userEvent.click(header);
+    await screen.findByRole("menu");
+    const labels = screen
+      .getAllByRole("menuitem")
+      .map((item) => item.textContent?.trim());
+    await expect(labels).toEqual([
+      "Apps",
+      "Switch To Desk",
+      "Settings",
+      "What's new",
+      "Toggle Theme",
+      "Logout",
+    ]);
+    await userEvent.click(
+      screen.getByRole("menuitem", { name: "What's new, new release" }),
+    );
+    await waitFor(() =>
+      expect(storyRouter?.currentRoute.value.fullPath).toBe("/whats-new"),
+    );
+  },
+};
+
+/** Once the release is seen, the dots go and the menu item is plain "What's new". */
+export const WhatsNewSeen: Story = {
+  beforeEach: () => {
+    useWhatsNew().available = true;
+  },
+  play: async ({ canvas }) => {
+    const header = canvas.getByRole("button", { name: /Next PMS/ });
+    await expect(within(header).queryByText("New release")).toBeNull();
+    await userEvent.click(header);
+    await expect(
+      await screen.findByRole("menuitem", { name: "What's new" }),
+    ).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+  },
+};
+
+/** With release notes on the site, the search palette lists What's new. */
+export const SearchWhatsNew: Story = {
+  beforeEach: () => {
+    useWhatsNew().available = true;
+  },
+  render: renderWithRouter,
+  play: async () => {
+    await userEvent.keyboard("{Control>}k{/Control}");
+    const palette = await screen.findByRole("dialog", { name: "Search" });
+    await userEvent.keyboard("what");
+    await waitFor(() =>
+      expect(
+        within(palette)
+          .getAllByRole("option")
+          .map((option) => option.textContent?.trim()),
+      ).toEqual(["What's new"]),
+    );
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() =>
+      expect(storyRouter?.currentRoute.value.fullPath).toBe("/whats-new"),
+    );
+  },
+};
 
 /** Ctrl+K opens the search palette; it lists the user's pages and goes to the picked one. */
 export const Search: Story = {

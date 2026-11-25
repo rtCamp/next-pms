@@ -36,6 +36,12 @@ interface Boot {
    * `{ custom_source: true }`. Read it through `hasProjectField()`.
    */
   optional_project_fields?: Record<string, boolean>;
+  /** Whether release notes are cached, so the What's new entry points show. */
+  whats_new_available?: boolean;
+  /** Whether a release is newer than the last one the user saw: shows the unread dots. */
+  whats_new_unseen?: boolean;
+  /** The newest release the user saw on the What's new page, e.g. `"2.14.0"`. */
+  whats_new_last_seen?: string | null;
   [key: string]: unknown;
 }
 

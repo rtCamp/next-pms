@@ -1,4 +1,5 @@
 import { hasCapability, type Capabilities, type Capability } from "@/session";
+import { WHATS_NEW_PATH } from "./constants";
 
 export interface NavItem {
   label: string;
@@ -115,10 +116,12 @@ export interface SearchItem {
 /**
  * The pages the search palette offers the user, in the React app's order and wording.
  * @param employeeId The user's Employee ID; Timesheet - Team filters on their reports.
+ * @param hasReleaseNotes Whether the site has release notes, which lists What's new.
  */
 export function computeSearchItems(
   capabilities: Capabilities,
   employeeId?: string | null,
+  hasReleaseNotes = false,
 ): SearchItem[] {
   const can = (capability: Capability) =>
     hasCapability(capabilities, capability);
@@ -129,6 +132,7 @@ export function computeSearchItems(
     { label: "Allocations - Team", to: "/allocations/team" },
     { label: "Allocations - Project", to: "/allocations/project" },
     { label: "Tasks", to: "/tasks" },
+    ...(hasReleaseNotes ? [{ label: "What's new", to: WHATS_NEW_PATH }] : []),
     ...(can("leadership_dashboard")
       ? [{ label: "Dashboard - Leadership", to: "/dashboard/leadership" }]
       : []),

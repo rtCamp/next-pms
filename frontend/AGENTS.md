@@ -89,7 +89,8 @@ src/
   components/      components frappe-ui lacks, one folder each; see components/Components.md
   composables/     shared use* composables: lookups, the like toggle, URL query updates, editor attributes,
                    values saved in localStorage (useSavedState), notifications (useNotifications reads the shell's),
-                   the user's PMS settings (usePmsSettings), infinite scroll, project phases,
+                   the user's PMS settings (usePmsSettings), the What's new dots (useWhatsNew), infinite scroll,
+                   project phases,
                    the unsaved changes guard, realtime updates (useDocUpdates for one document,
                    useDoctypeListUpdates for a doctype's list)
   icons/           custom icons lucide lacks, as Vue SFCs exported from icons/index.ts; everything else uses lucide-* (P4)

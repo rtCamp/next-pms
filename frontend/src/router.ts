@@ -94,6 +94,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: "Manager Dashboard", capability: "manager_dashboard" },
   },
   {
+    path: "/whats-new",
+    name: "whats-new",
+    component: () => import("./pages/whats-new/WhatsNew.vue"),
+    meta: { title: "What's new" },
+  },
+  {
     path: "/no-employee",
     name: "no-employee",
     component: () => import("./pages/NoEmployee.vue"),

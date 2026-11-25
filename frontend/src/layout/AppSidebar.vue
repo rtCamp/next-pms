@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   computed,
+  h,
   onScopeDispose,
   ref,
   useTemplateRef,
@@ -18,10 +19,11 @@ import {
 import { HelpPanel } from "@/components/HelpPanel";
 import { NotificationTray } from "@/components/NotificationTray";
 import { useNotifications } from "@/composables/useNotifications";
+import { useWhatsNew } from "@/composables/useWhatsNew";
 import type { Capabilities, Role } from "@/session";
 import logo from "@/assets/logo.svg";
 import { rememberColorScheme } from "@/utils/theme";
-import { SIDEBAR_COLLAPSED_KEY } from "./constants";
+import { SIDEBAR_COLLAPSED_KEY, WHATS_NEW_PATH } from "./constants";
 import AppSidebarHeader from "./AppSidebarHeader.vue";
 import AppSidebarSection from "./AppSidebarSection.vue";
 import GlobalSearch from "./GlobalSearch.vue";
@@ -38,7 +40,9 @@ import {
   type NavAction,
   type NavItem,
 } from "./sidebarSections";
+import UnreadDot from "./UnreadDot.vue";
 import { usePreloadRoute } from "./usePreloadRoute";
+import WhatsNewMenuItem from "./WhatsNewMenuItem.vue";
 
 const props = defineProps<{
   /** Matched with the capabilities against the help tips' `roles`. */
@@ -56,6 +60,7 @@ const { resolvedColorScheme, toggleColorScheme } = useColorScheme();
 const preload = usePreloadRoute();
 const notifications = useNotifications();
 const { trayOpen } = notifications;
+const whatsNew = useWhatsNew();
 
 const nav = computed(() => computeSections(props.capabilities, props.employee));
 const topItems = computed(() => nav.value.topItems);
@@ -73,7 +78,7 @@ function itemKey(item: NavItem | NavAction) {
 const settingsOpen = ref(false);
 const searchOpen = ref(false);
 const searchItems = computed(() =>
-  computeSearchItems(props.capabilities, props.employee),
+  computeSearchItems(props.capabilities, props.employee, whatsNew.available),
 );
 useKeyboardShortcut({
   combo: "Mod+K",
@@ -165,6 +170,17 @@ const menuItems = computed(() => [
       settingsOpen.value = true;
     },
   },
+  ...(whatsNew.available
+    ? [
+        {
+          label: "What's new",
+          route: WHATS_NEW_PATH,
+          slots: {
+            item: () => h(WhatsNewMenuItem, { unseen: whatsNew.unseen }),
+          },
+        },
+      ]
+    : []),
   {
     label: "Toggle Theme",
     icon: resolvedColorScheme.value === "dark" ? "lucide-sun" : "lucide-moon",
@@ -185,7 +201,12 @@ const menuItems = computed(() => [
       :logo="logo"
       :menu-items="menuItems"
       :collapsed="sidebarCollapsed"
-    />
+    >
+      <template v-if="whatsNew.unseen" #logo-badge>
+        <UnreadDot placement="logo" />
+        <span class="sr-only">New release</span>
+      </template>
+    </AppSidebarHeader>
 
     <div class="flex-1 overflow-y-auto px-2">
       <template v-for="item in topItems" :key="itemKey(item)">
