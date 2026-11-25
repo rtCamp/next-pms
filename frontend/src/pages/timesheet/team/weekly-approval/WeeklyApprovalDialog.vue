@@ -20,6 +20,7 @@ import {
   DialogRoot,
   DialogTitle,
 } from "reka-ui";
+import { useSession } from "@/session";
 import { errorMessage } from "@/utils/errors";
 import { floatToTime } from "@/utils/format";
 import type { TimesheetData } from "@/pages/timesheet/types";
@@ -34,6 +35,7 @@ const props = defineProps<{ target: WeeklyApprovalTarget }>();
 
 defineOptions({ inheritAttrs: false });
 const open = defineModel<boolean>("open", { required: true });
+const session = useSession();
 
 const view = ref<"approval" | "rejection">("approval");
 const reason = ref("");
@@ -331,7 +333,11 @@ const fade = {
                   v-for="entry in day.entries"
                   :key="entry.name"
                   :entry="entry"
-                  :read-only="isReadOnly || day.isDecided"
+                  :read-only="
+                    !session.can('edit_others_time') ||
+                    isReadOnly ||
+                    day.isDecided
+                  "
                   :max-duration="week.dailyHours"
                   @save="saveEntry(entry, $event)"
                 />

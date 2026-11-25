@@ -9,6 +9,7 @@ import {
   WeekGroup,
 } from "@/components/Timesheet";
 import { useTimesheetDialogs } from "@/pages/timesheet/useTimesheetDialogs";
+import { useSession } from "@/session";
 import TeamTaskRow from "./TeamTaskRow.vue";
 import type { TeamFilterArgs, TeamMember, TeamWeekSummary } from "./types";
 import { useTeamTimesheet } from "./useTeamTimesheet";
@@ -30,6 +31,8 @@ const emit = defineEmits<{
 
 const timesheet = useTeamTimesheet();
 const dialogs = useTimesheetDialogs();
+const session = useSession();
+const canEditTime = computed(() => session.can("edit_others_time"));
 
 const opened = ref(!props.defaultCollapsed);
 
@@ -102,8 +105,8 @@ function review(member: TeamMember) {
       :working-hour="member.working_hour"
       :working-frequency="member.working_frequency"
       :status="member.status"
-      :hide-action="member.status === 'Not Submitted'"
-      :disabled="member.status === 'Approved'"
+      :hide-action="member.status === 'Not Submitted' || !member.can_approve"
+      :disabled="!canEditTime || member.status === 'Approved'"
       :backdate-restricted-before="member.backdate_restricted_before"
       @cell-click="(date) => addTime(member, { date })"
       @action="review(member)"
@@ -116,7 +119,7 @@ function review(member: TeamMember) {
           :label="project.projectName || project.project"
           :dates="week.dates"
           :tasks="project.tasks"
-          :disabled="member.status === 'Approved'"
+          :disabled="!canEditTime || member.status === 'Approved'"
           :backdate-restricted-before="member.backdate_restricted_before"
           @cell-click="
             (date) =>
@@ -136,6 +139,7 @@ function review(member: TeamMember) {
             :task="task"
             :employee-id="member.employee"
             :disabled="
+              !canEditTime ||
               member.status === 'Approved' ||
               member.status === 'Processing Timesheet'
             "

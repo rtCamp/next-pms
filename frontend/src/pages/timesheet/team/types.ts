@@ -50,6 +50,8 @@ export interface TeamMember {
   leaves: TimesheetLeave[];
   holidays: TimesheetHoliday[];
   backdate_restricted_before: string | null;
+  /** Whether the viewer may approve this week; absent on realtime rows. */
+  can_approve?: boolean;
 }
 
 /** Response of `next_pms.timesheet.api.team.get_team_timesheet_data`. */
