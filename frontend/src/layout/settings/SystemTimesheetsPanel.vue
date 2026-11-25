@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Checkbox, Select, TextInput } from "frappe-ui";
+import { Checkbox, FormLabel, Select, TextInput } from "frappe-ui";
 import { InfoHoverCard } from "@/components/InfoHoverCard";
 import { WEEK_DAY_OPTIONS } from "./constants";
 import { SETTINGS_HELP } from "./help";
@@ -17,6 +17,7 @@ const approvalReminder = flag("send_reminder_on_approval_request");
 const weeklyReminder = flag("send_weekly_approval_reminder");
 const employeeDays = number("allow_backdated_entries_till_employee");
 const managerDays = number("allow_backdated_entries_till_manager");
+const rejectedWindow = number("allow_rejected_timesheet_edit_till");
 const expandedWeeks = number("auto_expand_weeks_by_default");
 const exemptRoles = table("ignored_role", "role");
 const departments = table("allowed_departments", "department");
@@ -52,6 +53,22 @@ const departments = table("allowed_departments", "department");
             doctype="Role"
           />
         </template>
+        <div class="space-y-1.5">
+          <div class="flex min-w-0 items-center gap-1.5">
+            <FormLabel
+              id="rejected-timesheet-window"
+              label="Rejected timesheet edit/approval window (working days)"
+            />
+            <InfoHoverCard :help="SETTINGS_HELP.rejectedTimesheetWindow" />
+          </div>
+          <TextInput
+            id="rejected-timesheet-window"
+            v-model="rejectedWindow"
+            type="number"
+            min="0"
+            step="1"
+          />
+        </div>
         <Checkbox v-model="futureEntries" label="Allow Future Entries" />
         <Checkbox v-model="weekendEntries" label="Allow Weekend Entries" />
         <TextInput

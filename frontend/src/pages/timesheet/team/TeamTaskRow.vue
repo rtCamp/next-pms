@@ -13,6 +13,7 @@ defineProps<{
   employeeId: string;
   disabled?: boolean;
   backdateRestrictedBefore?: string | null;
+  rejectionUnlockedDates?: string[];
   /** The member's expected hours a day, the most the entry form allows. */
   dailyHours: number;
   /** Hours the member logged per day across the week. */
@@ -30,6 +31,7 @@ const unsavedChanges = useUnsavedChanges();
     :task="task"
     :disabled="disabled"
     :backdate-restricted-before="backdateRestrictedBefore"
+    :rejection-unlocked-dates="rejectionUnlockedDates"
     hide-star-button
     :guard="unsavedChanges.requestGuardedAction"
     @label-click="emit('labelClick', taskKey)"

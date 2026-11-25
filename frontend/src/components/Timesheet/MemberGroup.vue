@@ -12,6 +12,7 @@ const props = withDefaults(defineProps<MemberGroupProps>(), {
   status: undefined,
   disabled: false,
   backdateRestrictedBefore: null,
+  rejectionUnlockedDates: () => [],
   hideAction: false,
   defaultCollapsed: true,
 });
@@ -47,7 +48,11 @@ const cells = computed(() =>
     disabled:
       props.disabled ||
       cell.disabled ||
-      isDateBackdateRestricted(cell.date ?? "", props.backdateRestrictedBefore),
+      isDateBackdateRestricted(
+        cell.date ?? "",
+        props.backdateRestrictedBefore,
+        props.rejectionUnlockedDates,
+      ),
   })),
 );
 </script>

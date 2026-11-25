@@ -29,6 +29,7 @@ const props = withDefaults(defineProps<WeekGroupProps>(), {
   workingHour: 0,
   workingFrequency: "Per Day",
   backdateRestrictedBefore: null,
+  rejectionUnlockedDates: () => [],
   approvalPendingCount: 0,
   defaultCollapsed: false,
 });
@@ -85,7 +86,11 @@ const totalCells = computed(() =>
     ...cell,
     disabled:
       cell.disabled ||
-      isDateBackdateRestricted(cell.date ?? "", props.backdateRestrictedBefore),
+      isDateBackdateRestricted(
+        cell.date ?? "",
+        props.backdateRestrictedBefore,
+        props.rejectionUnlockedDates,
+      ),
   })),
 );
 

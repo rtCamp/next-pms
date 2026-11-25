@@ -256,6 +256,8 @@ export interface WeekGroupProps {
   workingFrequency?: WorkingFrequency;
   /** Days before this `YYYY-MM-DD` date take no new time. */
   backdateRestrictedBefore?: string | null;
+  /** Days before the backdate limit that a recent rejection keeps open. */
+  rejectionUnlockedDates?: string[];
   /** Adds `· N pending approvals` after the label. */
   approvalPendingCount?: number;
   /** Whether the week starts collapsed. */
@@ -279,6 +281,8 @@ export interface MemberGroupProps {
   disabled?: boolean;
   /** Days before this `YYYY-MM-DD` date take no new time. */
   backdateRestrictedBefore?: string | null;
+  /** Days before the backdate limit that a recent rejection keeps open. */
+  rejectionUnlockedDates?: string[];
   /** Hides the approval button. */
   hideAction?: boolean;
   /** Whether the member starts collapsed. */
@@ -300,6 +304,8 @@ export interface ProjectGroupProps {
   lockApproved?: boolean;
   /** Days before this `YYYY-MM-DD` date take no new time. */
   backdateRestrictedBefore?: string | null;
+  /** Days before the backdate limit that a recent rejection keeps open. */
+  rejectionUnlockedDates?: string[];
   /** Shows the logged hours in the strong text colour. */
   highlightTimeEntries?: boolean;
   /** Whether the project starts collapsed. */
@@ -315,6 +321,8 @@ export interface TaskWeekRowProps {
   disabled?: boolean;
   /** Days before this `YYYY-MM-DD` date take no new time. */
   backdateRestrictedBefore?: string | null;
+  /** Days before the backdate limit that a recent rejection keeps open. */
+  rejectionUnlockedDates?: string[];
   /** Whether the task is starred. */
   starred?: boolean;
   /** Hides the star button. */

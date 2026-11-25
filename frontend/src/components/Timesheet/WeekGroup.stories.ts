@@ -85,18 +85,21 @@ const meta = {
               :dates="args.dates"
               :tasks="cmsTasks"
               :backdate-restricted-before="args.backdateRestrictedBefore"
+              :rejection-unlocked-dates="args.rejectionUnlockedDates"
             >
               <TaskWeekRow
                 class="pl-13.5"
                 :dates="args.dates"
                 :task="responsiveness"
                 :backdate-restricted-before="args.backdateRestrictedBefore"
+                :rejection-unlocked-dates="args.rejectionUnlockedDates"
               />
               <TaskWeekRow
                 class="pl-13.5"
                 :dates="args.dates"
                 :task="docs"
                 :backdate-restricted-before="args.backdateRestrictedBefore"
+                :rejection-unlocked-dates="args.rejectionUnlockedDates"
               />
             </ProjectGroup>
             <ProjectGroup
@@ -105,12 +108,14 @@ const meta = {
               :dates="args.dates"
               :tasks="atlasTasks"
               :backdate-restricted-before="args.backdateRestrictedBefore"
+              :rejection-unlocked-dates="args.rejectionUnlockedDates"
             >
               <TaskWeekRow
                 class="pl-13.5"
                 :dates="args.dates"
                 :task="triage"
                 :backdate-restricted-before="args.backdateRestrictedBefore"
+                :rejection-unlocked-dates="args.rejectionUnlockedDates"
               />
             </ProjectGroup>
             <TimeOffWeekRow

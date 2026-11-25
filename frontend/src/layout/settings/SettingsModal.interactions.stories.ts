@@ -97,6 +97,30 @@ export const SavesChangedSystemFields: Story = {
   },
 };
 
+/** The rejected-day window saves as a number. */
+export const SavesRejectedTimesheetWindow: Story = {
+  ...SystemManager,
+  play: async () => {
+    await userEvent.click(
+      (await screen.findAllByRole("tab", { name: "Timesheets" }))[1],
+    );
+    const panel = await screen.findByRole("tabpanel");
+    const field = await within(panel).findByLabelText(
+      "Rejected timesheet edit/approval window (working days)",
+    );
+    await expect(field).toHaveValue(3);
+    await userEvent.clear(field);
+    await userEvent.type(field, "5");
+    await userEvent.click(within(panel).getByRole("button", { name: "Save" }));
+
+    await waitFor(() =>
+      expect(requests.at(-1)?.body).toEqual({
+        allow_rejected_timesheet_edit_till: 5,
+      }),
+    );
+  },
+};
+
 /** Closing with unsaved edits asks first; Discard drops them and closes. */
 export const AsksBeforeClosing: Story = {
   ...SystemManager,

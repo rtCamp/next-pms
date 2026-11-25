@@ -137,6 +137,7 @@ function review(member: ProjectMember, projectId: string, projectName: string) {
         :hide-action="!canReview"
         :disabled="!canEditTime || member.status === 'Approved'"
         :backdate-restricted-before="member.backdate_restricted_before"
+        :rejection-unlocked-dates="member.rejection_unlocked_dates"
         @cell-click="
           (date) =>
             dialogs.openAddTime({
@@ -164,6 +165,7 @@ function review(member: ProjectMember, projectId: string, projectName: string) {
               member.status === 'Processing Timesheet'
             "
             :backdate-restricted-before="member.backdate_restricted_before"
+            :rejection-unlocked-dates="member.rejection_unlocked_dates"
             :daily-hours="dailyHours"
             :hours-per-day="hoursPerDay"
           />

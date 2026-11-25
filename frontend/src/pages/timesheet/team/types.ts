@@ -50,6 +50,8 @@ export interface TeamMember {
   leaves: TimesheetLeave[];
   holidays: TimesheetHoliday[];
   backdate_restricted_before: string | null;
+  /** Days past the backdate limit that a recent rejection keeps open. */
+  rejection_unlocked_dates?: string[];
   /** Whether the viewer may approve this week; absent on realtime rows. */
   can_approve?: boolean;
 }

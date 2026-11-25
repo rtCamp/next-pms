@@ -108,6 +108,7 @@ function review(member: TeamMember) {
       :hide-action="member.status === 'Not Submitted' || !member.can_approve"
       :disabled="!canEditTime || member.status === 'Approved'"
       :backdate-restricted-before="member.backdate_restricted_before"
+      :rejection-unlocked-dates="member.rejection_unlocked_dates"
       @cell-click="(date) => addTime(member, { date })"
       @action="review(member)"
     >
@@ -121,6 +122,7 @@ function review(member: TeamMember) {
           :tasks="project.tasks"
           :disabled="!canEditTime || member.status === 'Approved'"
           :backdate-restricted-before="member.backdate_restricted_before"
+          :rejection-unlocked-dates="member.rejection_unlocked_dates"
           @cell-click="
             (date) =>
               addTime(member, {
@@ -144,6 +146,7 @@ function review(member: TeamMember) {
               member.status === 'Processing Timesheet'
             "
             :backdate-restricted-before="member.backdate_restricted_before"
+            :rejection-unlocked-dates="member.rejection_unlocked_dates"
             :daily-hours="dailyHours"
             :hours-per-day="hoursPerDay"
             @label-click="emit('labelClick', $event)"
