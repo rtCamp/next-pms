@@ -24,6 +24,7 @@ const grid = useGanttGrid();
 const bar = computed(() => props.entry.bar);
 const text = computed(() => allocationSummaryText(bar.value));
 const billable = computed(() => bar.value.billable ?? true);
+const note = computed(() => bar.value.note?.trim());
 const canManage = computed(() =>
   bar.value.isAiCreated
     ? grid.canManageAiAllocations.value
@@ -115,6 +116,18 @@ const history = computed(() => {
         </span>
         <span class="text-sm text-ink-gray-6">
           {{ billable ? "Billable" : "Non-billable" }}
+        </span>
+      </div>
+      <div v-if="note" class="flex items-start gap-2">
+        <span
+          class="lucide-file-text -mt-px size-4 shrink-0 text-ink-gray-5"
+          aria-hidden="true"
+        />
+        <span
+          class="line-clamp-4 min-w-0 whitespace-pre-line break-words text-sm text-ink-gray-6"
+          :title="note"
+        >
+          {{ note }}
         </span>
       </div>
 

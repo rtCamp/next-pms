@@ -327,6 +327,9 @@ export const StackedAllocationsShareACard: Story = {
     // The non-billable allocation under it is listed too.
     await expect(screen.getByText("Oct 28, 2026 – Nov 3, 2026")).toBeVisible();
     await expect(screen.getByText("AI created on Oct 14")).toBeVisible();
+    await expect(
+      screen.getByText("Reviews the first phase's designs."),
+    ).toHaveAttribute("title", "Reviews the first phase's designs.");
   },
 };
 
