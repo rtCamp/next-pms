@@ -321,12 +321,12 @@ export const StackedAllocationsShareACard: Story = {
   play: async ({ canvasElement }) => {
     await expand(canvasElement, "Ben Ito");
     const ai = await within(canvasElement).findByRole("button", {
-      name: "6h/day for 5 days Ai",
+      name: "6h/day for 5 days AI",
     });
     await openCard(ai, "Oct 26, 2026 – Oct 30, 2026");
     // The non-billable allocation under it is listed too.
     await expect(screen.getByText("Oct 28, 2026 – Nov 3, 2026")).toBeVisible();
-    await expect(screen.getByText("Ai created on Oct 14")).toBeVisible();
+    await expect(screen.getByText("AI created on Oct 14")).toBeVisible();
   },
 };
 
@@ -421,7 +421,7 @@ export const AiAllocationsNeedTheirOwnPermission: Story = {
   play: async ({ canvasElement }) => {
     await expand(canvasElement, "Ben Ito");
     const ai = await within(canvasElement).findByRole("button", {
-      name: "6h/day for 5 days Ai",
+      name: "6h/day for 5 days AI",
     });
     await openCard(ai, "Oct 26, 2026 – Oct 30, 2026");
     // Only the allocation the user made by hand can be changed.

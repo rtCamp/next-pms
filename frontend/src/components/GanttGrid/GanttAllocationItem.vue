@@ -44,7 +44,7 @@ const formatDay = (date: Date) => dayjs(date).format("MMM D");
 const history = computed(() => {
   const { createdOn, updatedOn } = bar.value;
   if (bar.value.isAiCreated) {
-    return createdOn ? `Ai created on ${formatDay(createdOn)}` : "Ai created";
+    return createdOn ? `AI created on ${formatDay(createdOn)}` : "AI created";
   }
   if (updatedOn && createdOn && updatedOn.getTime() !== createdOn.getTime()) {
     return `Last edited on ${formatDay(updatedOn)}`;

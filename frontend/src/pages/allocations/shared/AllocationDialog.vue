@@ -148,7 +148,7 @@ function avatarOf(option: unknown) {
         <span class="text-lg-medium text-ink-gray-7">{{ title }}</span>
         <span v-if="isAi" class="text-sm text-ink-gray-5">
           This allocation was created by
-          <span class="text-ink-amber-8">Ai</span>
+          <span class="text-ink-amber-8">AI</span>
         </span>
       </div>
     </template>

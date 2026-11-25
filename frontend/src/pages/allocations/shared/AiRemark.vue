@@ -24,7 +24,7 @@ onScopeDispose(() => observer.disconnect());
 
 <template>
   <div class="flex flex-col gap-1 rounded-6 bg-surface-amber-1 px-3 py-2">
-    <span class="text-xs font-medium text-ink-amber-7">Ai remark</span>
+    <span class="text-xs font-medium text-ink-amber-7">AI remark</span>
     <p
       ref="text"
       class="whitespace-pre-line break-words text-sm text-ink-gray-7"
