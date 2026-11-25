@@ -6,7 +6,7 @@ from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, get_first_day_of_week, getdate, today
 
-from next_pms.install import setup_timesheet_rejected_on_field
+from next_pms.setup import install_custom_fields
 from next_pms.tests.utils import make_employee
 from next_pms.timesheet.api.project import get_project_timesheet_data
 from next_pms.timesheet.api.team import (
@@ -56,7 +56,7 @@ class TestRejectedTimesheetWindow(IntegrationTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        setup_timesheet_rejected_on_field()
+        install_custom_fields()
         company = get_default_company()
 
         cls.previous_first_day = frappe.db.get_default("first_day_of_the_week")

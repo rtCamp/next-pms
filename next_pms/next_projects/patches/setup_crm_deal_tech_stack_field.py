@@ -1,5 +1,5 @@
-from next_pms.install import setup_crm_deal_tech_stack_field
+from next_pms.install import add_tech_stack_to_crm_deal_layout
 
 
 def execute():
-    setup_crm_deal_tech_stack_field()
+    add_tech_stack_to_crm_deal_layout()

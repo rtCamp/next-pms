@@ -5,11 +5,7 @@ from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, getdate
 
-from next_pms.install import (
-    setup_timesheet_rejected_hours_field,
-    setup_timesheet_rejection_reason_field,
-    setup_timesheet_weekly_rejection_reason_field,
-)
+from next_pms.setup import install_custom_fields
 from next_pms.tests.utils import make_employee, make_holiday_list
 from next_pms.timesheet.api.team import _approve_or_reject_timesheet, get_team_timesheet_data
 from next_pms.timesheet.api.timesheet import get_timesheet_data, submit_for_approval
@@ -51,9 +47,7 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
         # Week start is read via frappe.db.get_default, not System Settings directly.
         frappe.db.set_default("first_day_of_the_week", "Monday")
 
-        setup_timesheet_rejection_reason_field()
-        setup_timesheet_weekly_rejection_reason_field()
-        setup_timesheet_rejected_hours_field()
+        install_custom_fields()
 
         weekends = []
         date = getdate("2026-01-01")

@@ -1,5 +1,5 @@
-from next_pms.install import setup_project_target_hours_field
+from next_pms.setup import install_custom_fields
 
 
 def execute():
-    setup_project_target_hours_field()
+    install_custom_fields()

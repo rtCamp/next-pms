@@ -2,7 +2,7 @@ import frappe
 from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
 
-from next_pms.install import setup_timesheet_rejected_hours_field
+from next_pms.setup import install_custom_fields
 from next_pms.tests.utils import make_employee
 from next_pms.timesheet.api.team import _approve_or_reject_timesheet
 from next_pms.timesheet.api.timesheet import delete as delete_time_entry
@@ -31,7 +31,7 @@ class TestRejectedTimesheetHours(IntegrationTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        setup_timesheet_rejected_hours_field()
+        install_custom_fields()
         company = get_default_company()
 
         cls.previous_first_day = frappe.db.get_default("first_day_of_the_week")

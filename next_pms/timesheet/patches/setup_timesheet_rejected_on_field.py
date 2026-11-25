@@ -1,13 +1,13 @@
 import frappe
 from frappe.query_builder.functions import Date
 
-from next_pms.install import setup_timesheet_rejected_on_field
+from next_pms.setup import install_custom_fields
 
 
 def execute():
     """Add Rejected On, date the drafts already sitting in Rejected from their last change so they
     get the correction window too, and store the window's default on sites that predate it."""
-    setup_timesheet_rejected_on_field()
+    install_custom_fields()
 
     timesheet = frappe.qb.DocType("Timesheet")
     (

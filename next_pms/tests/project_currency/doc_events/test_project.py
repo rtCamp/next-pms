@@ -1,7 +1,7 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from next_pms.install import setup_crm_deal_tech_stack_field
+from next_pms.setup import install_custom_fields
 from next_pms.tests.utils import make_tech_stack
 
 
@@ -57,7 +57,7 @@ class TestProjectTechStackFromDeal(IntegrationTestCase):
         super().setUpClass()
         if not frappe.db.exists("DocType", "CRM Deal") or not frappe.get_meta("Project").has_field("custom_deal"):
             raise cls.skipTest(cls, "CRM is not installed")
-        setup_crm_deal_tech_stack_field()
+        install_custom_fields()
 
     def new_deal(self, *technologies):
         rows = [row for technology in technologies for row in make_tech_stack(technology)]

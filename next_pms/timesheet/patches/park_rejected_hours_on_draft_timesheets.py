@@ -1,11 +1,14 @@
 import frappe
 from frappe.utils import flt
 
+from next_pms.setup import install_custom_fields
+
 
 def execute():
     """Park the hours of rows rejected before rejected_hours existed, so they stop counting.
     Only drafts still marked Rejected qualify: a resubmitted day keeps stale reasons on rows the
     employee has already corrected, and rows without a reason were logged after the rejection."""
+    install_custom_fields()
     names = frappe.get_all("Timesheet", filters={"docstatus": 0, "custom_approval_status": "Rejected"}, pluck="name")
     for name in names:
         doc = frappe.get_doc("Timesheet", name)
