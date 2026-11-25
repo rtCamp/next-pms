@@ -8,6 +8,8 @@ const EMPLOYEE_TARGETS = [
   "Allocations - Team",
   "Allocations - Project",
   "Tasks",
+  // Listed once the site has release notes cached.
+  "What's new",
 ];
 
 const sorted = (list) => [...list].sort();
