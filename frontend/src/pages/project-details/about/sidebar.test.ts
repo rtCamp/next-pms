@@ -62,6 +62,11 @@ function sidebar(overrides: Partial<ProjectSidebar> = {}): ProjectSidebar {
     billing_team: [
       { name: "Biller", employee_id: "EMP-bill", user_id: "bill" },
     ],
+    manager_roles: {
+      project_manager: ["Projects User", "System Manager"],
+      engineering_manager: ["Projects User", "System Manager"],
+    },
+    missing_manager_roles: { project_manager: null, engineering_manager: null },
     is_shared_with_everyone: false,
     ...overrides,
   };

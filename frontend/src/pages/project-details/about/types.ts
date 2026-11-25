@@ -63,6 +63,10 @@ export interface ProjectSidebar {
     employee_id: string;
     user_id: string | null;
   }[];
+  /** Per manager, the roles that qualify someone for it. */
+  manager_roles: Record<ManagerRole, string[]>;
+  /** Per manager, the role the current one lacks to approve the project's timesheets. */
+  missing_manager_roles: Record<ManagerRole, string | null>;
   is_shared_with_everyone: boolean;
 }
 

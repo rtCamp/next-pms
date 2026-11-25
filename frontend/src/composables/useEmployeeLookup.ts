@@ -19,7 +19,7 @@ export interface EmployeeLookupOptions {
   query: MaybeRefOrGetter<string>;
   selected?: MaybeRefOrGetter<EmployeeLookupOption | null | undefined>;
   /** Only employees whose user has one of these roles. */
-  roles?: string[];
+  roles?: MaybeRefOrGetter<string[] | undefined>;
   /** Only the employees on this project's team. */
   projectId?: MaybeRefOrGetter<string | null | undefined>;
 }
@@ -41,13 +41,12 @@ export function useEmployeeLookup(options: EmployeeLookupOptions) {
     selected: options.selected,
     params: (query) => {
       const project = projectId();
+      const roles = toValue(options.roles);
       return {
         employee_name: query || undefined,
         page_length: 20,
         start: 0,
-        roles: options.roles?.length
-          ? JSON.stringify(options.roles)
-          : undefined,
+        roles: roles?.length ? JSON.stringify(roles) : undefined,
         project: project ? JSON.stringify([project]) : undefined,
       };
     },

@@ -14,8 +14,10 @@ const props = defineProps<{
   managerRole: ManagerRole;
   label: string;
   manager?: AboutMember;
-  /** Only employees whose user has one of these roles. */
+  /** Only employees whose user has one of these roles; none offers no one. */
   roles?: string[];
+  /** The role the current manager lacks to approve the project's timesheets. */
+  missingRole?: string | null;
 }>();
 
 const { updateManager, isBusy } = useProjectSidebar();
@@ -25,10 +27,10 @@ const open = ref(false);
 const menuHost = ref<HTMLElement>();
 
 const lookup = useEmployeeLookup({
-  enabled: open,
+  enabled: () => open.value && Boolean(props.roles?.length),
   // In input mode the combobox puts the selected label in the query; not a search.
   query: () => (query.value === props.manager?.name ? "" : query.value),
-  roles: props.roles,
+  roles: () => props.roles,
 });
 
 const options = computed(() => managerOptions(lookup.options, props.manager));
@@ -83,6 +85,9 @@ const value = computed({
         </template>
       </Combobox>
       <!-- eslint-enable better-tailwindcss/no-restricted-classes -->
+      <p v-if="missingRole" class="col-span-2 text-sm text-ink-amber-7">
+        Needs the {{ missingRole }} role to approve this project's timesheets.
+      </p>
     </div>
   </MemberHoverCard>
   <!-- Outside the hover card's trigger, so leaving the field for the list still closes the card. -->
