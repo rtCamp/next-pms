@@ -10,7 +10,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "letterhead": null,
- "modified": "2025-06-16 11:01:24.822588",
+ "modified": "2026-11-13 18:25:27.570118",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "Spare Capacity Report",
@@ -24,7 +24,7 @@
    "role": "System Manager"
   },
   {
-   "role": "Delivery Manager"
+   "role": "PMS Leadership"
   },
   {
    "role": "Projects Manager"

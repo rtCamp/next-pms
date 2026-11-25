@@ -19,6 +19,7 @@ from next_pms.tests.utils import assign_empty_holiday_list, make_employee
 WRITE_USER = "priya.sharma@example.com"
 READ_ONLY_USER = "arjun.mehta@example.com"
 RATE_CURRENCY_USER = "rate.currency@example.com"
+PROJECTS_USER = "pu.no.cost@example.com"
 
 START_DATE = "2026-06-15"
 END_DATE = "2026-06-19"
@@ -54,15 +55,19 @@ class TestEmployeeResourceDataCacheIsolation(IntegrationTestCase):
         cls.company = get_default_company()
         cls.project = cls._make_project()
 
-        # Projects User grants write permission.
+        # Projects Manager grants write permission and sees employee cost.
         cls.write_user = cls._make_user(WRITE_USER)
-        frappe.get_doc("User", cls.write_user).add_roles("Projects User")
+        frappe.get_doc("User", cls.write_user).add_roles("Projects Manager")
 
         # The read-only user clears the endpoint's role gate through the Employee role,
         # which ERPNext grants by linking a User to an Employee.
         cls.read_only_user = cls._make_user(READ_ONLY_USER)
         cls.employee = cls._make_employee("Arjun Mehta", user_id=cls.read_only_user)
         cls._make_allocation(cls.employee, cls.project, is_billable=0)
+        # An Employee-only caller sees only the projects shared with them.
+        frappe.share.add_docshare(
+            "Project", cls.project, READ_ONLY_USER, read=1, flags={"ignore_share_permission": True}
+        )
 
         # A second, billable allocation so the is_billable filter has something to
         # include/exclude.
@@ -174,6 +179,15 @@ class TestEmployeeResourceDataCacheIsolation(IntegrationTestCase):
         entry = self._employee_entry(result)
         for field in PRIVILEGED_FIELDS:
             self.assertIn(field, entry)
+
+    def test_projects_user_writes_but_gets_no_employee_cost(self):
+        frappe.set_user("Administrator")
+        frappe.get_doc("User", self._make_user(PROJECTS_USER)).add_roles("Projects User")
+        result = self._call_as(PROJECTS_USER)
+        self.assertTrue(result["permissions"]["write"])
+        entry = self._employee_entry(result)
+        for field in PRIVILEGED_FIELDS:
+            self.assertNotIn(field, entry)
 
     def test_read_only_user_excluded_from_privileged_fields(self):
         result = self._call_as(READ_ONLY_USER)

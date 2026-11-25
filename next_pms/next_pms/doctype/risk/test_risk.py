@@ -11,13 +11,13 @@ IGNORE_TEST_RECORD_DEPENDENCIES = ["User", "Project"]
 
 OWNER_USER = "test.risk.gated.owner@example.com"
 OTHER_GATED_USER = "test.risk.other.gated@example.com"
-TIMESHEET_MANAGER_USER = "test.risk.tm@example.com"
 PROJECTS_USER = "test.risk.pu@example.com"
 PROJECTS_MANAGER_USER = "test.risk.pm@example.com"
-DELIVERY_MANAGER_USER = "test.risk.dm@example.com"
-DELIVERY_USER_USER = "test.risk.du@example.com"
+LEADERSHIP_USER = "test.risk.pl@example.com"
+SYSTEM_MANAGER_USER = "test.risk.sm@example.com"
+EMPLOYEE_USER = "test.risk.employee@example.com"
 
-UNRESTRICTED_USERS = (PROJECTS_MANAGER_USER, DELIVERY_MANAGER_USER, DELIVERY_USER_USER, TIMESHEET_MANAGER_USER)
+UNRESTRICTED_USERS = (PROJECTS_MANAGER_USER, LEADERSHIP_USER, SYSTEM_MANAGER_USER)
 
 
 class IntegrationTestRisk(IntegrationTestCase):
@@ -27,20 +27,16 @@ class IntegrationTestRisk(IntegrationTestCase):
         create_default_risk_masters()
         cls._make_user(OWNER_USER, ["Projects User"])
         cls._make_user(OTHER_GATED_USER, ["Projects User"])
-        cls._make_user(TIMESHEET_MANAGER_USER, ["Timesheet Manager"])
         cls._make_user(PROJECTS_USER, ["Projects User"])
         cls._make_user(PROJECTS_MANAGER_USER, ["Projects Manager"])
-        cls._make_user(DELIVERY_MANAGER_USER, ["Delivery Manager"])
-        cls._make_user(DELIVERY_USER_USER, ["Delivery User"])
+        cls._make_user(LEADERSHIP_USER, ["PMS Leadership"])
+        cls._make_user(SYSTEM_MANAGER_USER, ["System Manager"])
         frappe.clear_cache()
 
-        cls.project = frappe.get_doc(
-            {
-                "doctype": "Project",
-                "project_name": "Risk Permission Test Project",
-                "custom_project_manager": OWNER_USER,
-            }
-        ).insert(ignore_permissions=True)
+        cls.project = frappe.get_doc({"doctype": "Project", "project_name": "Risk Permission Test Project"}).insert(
+            ignore_permissions=True
+        )
+        cls.project.db_set("custom_project_manager", OWNER_USER)
 
     @classmethod
     def tearDownClass(cls):
@@ -175,6 +171,24 @@ class IntegrationTestRisk(IntegrationTestCase):
         risk.reload()
         self.assertEqual(get_datetime(risk.mitigated_on), get_datetime(remitigated_at))
 
+    def test_projects_user_can_create_a_risk(self):
+        frappe.set_user(PROJECTS_USER)
+        risk = frappe.get_doc(
+            {
+                "doctype": "Risk",
+                "project": self.project.name,
+                "status": "To-do",
+                "risk_level": "Low",
+                "risk_owner": PROJECTS_USER,
+            }
+        ).insert()
+        self.addCleanup(frappe.delete_doc, "Risk", risk.name, force=True, ignore_permissions=True)
+        self.assertEqual(risk.owner, PROJECTS_USER)
+
+    def test_employee_cannot_create_a_risk(self):
+        self._make_user(EMPLOYEE_USER, ["Employee"])
+        self.assertFalse(frappe.has_permission("Risk", "create", user=EMPLOYEE_USER))
+
     def test_gated_roles_can_read_any_risk(self):
         risk = self._make_risk()
         for user in (OWNER_USER, OTHER_GATED_USER, PROJECTS_USER):
@@ -192,17 +206,39 @@ class IntegrationTestRisk(IntegrationTestCase):
         doc.reload()
         self.assertEqual(doc.summary, "Updated by owner")
 
-    def test_non_owner_gated_role_cannot_write(self):
+    def test_projects_user_can_update_a_risk_they_do_not_own(self):
         risk = self._make_risk()
-        for user in (OTHER_GATED_USER, PROJECTS_USER):
-            with self.subTest(user=user):
-                self.assertFalse(frappe.has_permission("Risk", "write", doc=risk, user=user))
-                frappe.set_user(user)
-                doc = frappe.get_doc("Risk", risk.name)
-                doc.summary = "Hacked"
-                with self.assertRaises(frappe.PermissionError):
-                    doc.save()
-                frappe.set_user("Administrator")
+        frappe.set_user(PROJECTS_USER)
+        doc = frappe.get_doc("Risk", risk.name)
+        doc.append("risk_update_log", {"status": "In Progress", "note": "Picked up"})
+        doc.save()
+        doc.reload()
+        self.assertEqual(doc.status, "In Progress")
+        self.assertEqual(doc.risk_update_log[-1].updated_by, PROJECTS_USER)
+
+    def test_projects_user_edits_and_deletes_only_their_own_update_rows(self):
+        risk = self._make_risk()
+        frappe.set_user(PROJECTS_USER)
+        doc = frappe.get_doc("Risk", risk.name)
+        doc.append("risk_update_log", {"status": "In Progress", "note": "Mine"})
+        doc.save()
+
+        doc.risk_update_log[-1].note = "Mine, edited"
+        doc.save()
+        doc.risk_update_log.pop()
+        doc.save()
+
+        doc.risk_update_log[0].note = "Rewriting the seeded row"
+        with self.assertRaises(frappe.PermissionError):
+            doc.save()
+        doc = frappe.get_doc("Risk", risk.name)
+        doc.risk_update_log.pop(0)
+        with self.assertRaises(frappe.PermissionError):
+            doc.save()
+
+    def test_projects_user_cannot_delete_a_risk(self):
+        risk = self._make_risk()
+        self.assertFalse(frappe.has_permission("Risk", "delete", doc=risk, user=PROJECTS_USER))
 
     def test_unrestricted_roles_can_write_any_risk(self):
         risk = self._make_risk()
@@ -216,14 +252,3 @@ class IntegrationTestRisk(IntegrationTestCase):
                 doc.reload()
                 self.assertEqual(doc.summary, f"Updated by {user}")
                 frappe.set_user("Administrator")
-
-    def test_gated_risk_owner_cannot_reassign(self):
-        risk = self._make_risk()
-        frappe.set_user(OWNER_USER)
-        doc = frappe.get_doc("Risk", risk.name)
-        doc.risk_owner = OTHER_GATED_USER
-        self.assertFalse(frappe.has_permission("Risk", "write", doc=doc, user=OWNER_USER))
-        with self.assertRaises(frappe.PermissionError):
-            doc.save()
-        risk.reload()
-        self.assertEqual(risk.risk_owner, OWNER_USER)

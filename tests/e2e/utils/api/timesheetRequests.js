@@ -70,9 +70,10 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
 /**
  * Create a new timesheet entry.
  */
+// Only a System Manager logs time for someone else, so seeding books it as admin.
 export const createTimesheet = async (
   { task, description, hours, date, employee },
-  role = "manager",
+  role = "admin",
 ) => {
   const endpoint = `/api/method/next_pms.timesheet.api.timesheet.save`;
   const options = {

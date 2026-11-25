@@ -2,8 +2,18 @@
 // License: GNU General Public License v3. See license.txtxe
 frappe.ui.form.on("Project", {
   setup: function (frm) {
-    frm.set_query("tech_stack", function () {
-      return { filters: { disabled: 0 } };
+    ["tech_stack", "delivery_accelerators"].forEach((fieldname) => {
+      frm.set_query(fieldname, () => ({ filters: { disabled: 0 } }));
+    });
+    [
+      "custom_project_manager",
+      "custom_engineering_manager",
+      "custom_account_manager_",
+    ].forEach((fieldname) => {
+      frm.set_query(fieldname, () => ({
+        query: "next_pms.permissions.queries.manager_user_query",
+        filters: { fieldname },
+      }));
     });
     frm.set_query("custom_client_point_of_contact", function () {
       if (!frm.doc.customer) {

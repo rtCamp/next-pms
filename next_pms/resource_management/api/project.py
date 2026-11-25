@@ -6,6 +6,7 @@ from frappe.core.doctype.recorder.recorder import redis_cache
 from frappe.email.doctype.auto_email_report.auto_email_report import DATE_FORMAT
 from frappe.utils import add_days, cint
 
+from next_pms.permissions.project import get_project_scope
 from next_pms.resource_management.api.utils.helpers import (
     add_customer_data_if_not_exists,
     allocation_hours_for_date,
@@ -156,6 +157,7 @@ def get_resource_management_project_view_data(
         project_id,
         filters,
         is_ai_created,
+        project_scope=json.dumps(get_project_scope()),
     )
 
 
@@ -178,6 +180,7 @@ def _get_resource_management_project_view_data(
     project_id: str | list | None = None,
     filters: str | list | None = None,
     is_ai_created: int | bool | str | None = None,
+    project_scope: str = "null",
 ):
     permissions = json.loads(permissions)
     if not permissions["write"]:
@@ -208,6 +211,10 @@ def _get_resource_management_project_view_data(
     )
     if filter_is_billable is not None:
         is_billable = filter_is_billable
+
+    scoped_projects = json.loads(project_scope)
+    if scoped_projects is not None:
+        project_conditions.append(["name", "in", scoped_projects or [""]])
 
     ids = None
 
@@ -287,7 +294,7 @@ def _get_resource_management_project_view_data(
 
     resource_allocation_map = {}
     user_info_cache = {}
-    privileged_emp_fields = ["ctc", "salary_currency"] if permissions["write"] else []
+    privileged_emp_fields = ["ctc", "salary_currency"] if permissions["view_cost"] else []
     emp_fields = [
         "employee_name",
         "name",
@@ -441,6 +448,7 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
     reported even when nothing is allocated or worked on it.
     """
     permissions = resource_api_permissions_check()
+    frappe.has_permission("Project", "select", project, throw=True)
     return _get_employees_resrouce_data_for_given_project(
         json.dumps(permissions),
         project,
@@ -515,7 +523,7 @@ def _get_employees_resrouce_data_for_given_project(
     start_date = getdate(start_date)
     end_date = getdate(end_date)
 
-    privileged_emp_fields = ["ctc", "salary_currency"] if permissions["write"] else []
+    privileged_emp_fields = ["ctc", "salary_currency"] if permissions["view_cost"] else []
     emp_fields = [
         "employee_name",
         "name",

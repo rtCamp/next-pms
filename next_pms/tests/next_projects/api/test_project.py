@@ -1,5 +1,6 @@
 import json
 from datetime import date
+from unittest.mock import patch
 
 import frappe
 from erpnext import get_default_company
@@ -26,7 +27,7 @@ from next_pms.project_currency.billing_rate import (
     resolve_billing_rate,
 )
 from next_pms.resource_management.api.allocation import upsert_day_override
-from next_pms.tests.utils import assign_empty_holiday_list, make_tech_stack
+from next_pms.tests.utils import assign_empty_holiday_list, make_employee, make_tech_stack
 
 # Unique marker so `search` scopes every call to this suite's fixtures only.
 FIXTURE_PREFIX = "CompSort"
@@ -800,6 +801,35 @@ class TestSidebarBillingTeamGate(IntegrationTestCase):
     def test_other_billing_types_return_empty(self):
         for suffix in ("FIXED", "RETAINER"):
             self.assertEqual(get_project_sidebar(self.projects[suffix])["billing_team"], [], msg=suffix)
+
+
+class TestSidebarMemberCostGate(IntegrationTestCase):
+    """get_project_sidebar returns a member's CTC-derived hourly cost only to
+    viewers who may see cost per resource.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.member = "sidebar-cost-member@example.com"
+        make_employee(cls.member)
+        project = frappe.get_doc(
+            {"doctype": "Project", "project_name": "SidebarCost Project", "company": get_default_company()}
+        ).insert(ignore_permissions=True)
+        project.db_set("custom_project_manager", cls.member)
+        cls.project = project.name
+        frappe.set_user("Administrator")
+
+    def _member_rate(self, can_view_cost):
+        with patch("next_pms.next_projects.api.project.can_see_resource_cost", return_value=can_view_cost):
+            members = get_project_sidebar(self.project)["members"]
+        return next(member["hourly_rate"] for member in members if member["user"] == self.member)
+
+    def test_cost_viewer_gets_the_hourly_cost(self):
+        self.assertGreater(self._member_rate(True), 0)
+
+    def test_others_get_no_hourly_cost(self):
+        self.assertIsNone(self._member_rate(False))
 
 
 class TestTrackingBillingTables(IntegrationTestCase):

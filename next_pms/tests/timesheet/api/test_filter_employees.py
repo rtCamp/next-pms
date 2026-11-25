@@ -12,7 +12,7 @@ MEMBER_A_NAME = "FE Member Alpha"
 MEMBER_B_NAME = "FE Member Beta"
 MEMBER_A_USER = "fe.member.alpha@example.com"
 MEMBER_B_USER = "fe.member.beta@example.com"
-TIMESHEET_USER = "fe.timesheet.user@example.com"
+MANAGER_USER = "fe.projects.manager@example.com"
 
 
 class TestFilterEmployeesMembership(IntegrationTestCase):
@@ -32,7 +32,7 @@ class TestFilterEmployeesMembership(IntegrationTestCase):
         cls.everyone_project = cls._make_project(EVERYONE_PROJECT_NAME)
         frappe.share.add("Project", cls.shared_project, cls.user_a, read=1)
         frappe.share.add("Project", cls.everyone_project, everyone=1, read=1)
-        frappe.get_doc("User", cls._make_user(TIMESHEET_USER)).add_roles("Timesheet User")
+        frappe.get_doc("User", cls._make_user(MANAGER_USER)).add_roles("Projects Manager")
 
         frappe.clear_cache()
 
@@ -138,8 +138,8 @@ class TestFilterEmployeesMembership(IntegrationTestCase):
         self.assertIn(self.member_a, self._names(employees))
         self.assertIn(self.member_b, self._names(employees))
 
-    def test_timesheet_user_sees_every_active_employee(self):
-        frappe.set_user(TIMESHEET_USER)
+    def test_projects_manager_sees_every_active_employee(self):
+        frappe.set_user(MANAGER_USER)
         try:
             employees, count = filter_employees(page_length=self._active_count())
         finally:

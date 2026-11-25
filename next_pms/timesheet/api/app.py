@@ -2,6 +2,8 @@ import frappe
 from frappe import _dict, get_all, whitelist
 from frappe.utils.caching import redis_cache
 
+from next_pms.permissions.capabilities import get_user_capabilities
+
 
 @frappe.whitelist(methods=["GET"])
 def has_bu_field():
@@ -24,6 +26,7 @@ def get_data():
     """returns roles.currencies, has_business_unit, has_industry  data for the current user or passed in user"""
     return {
         "roles": get_current_user_roles(),
+        "capabilities": get_user_capabilities(),
         "currencies": get_currencies(),
         "has_business_unit": has_bu_field(),
         "has_industry": has_industry_field(),

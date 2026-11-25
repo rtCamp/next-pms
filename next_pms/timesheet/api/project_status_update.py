@@ -1,7 +1,7 @@
 from typing import Any
 
 import frappe
-from frappe import _, enqueue, only_for
+from frappe import _, enqueue
 from frappe.types import DF
 from frappe.utils import cint, now_datetime
 from frappe.utils.user import get_user_fullname
@@ -12,7 +12,7 @@ from next_pms.next_pms.doctype.pms_project_update_subscription.pms_project_updat
     get_project_account_manager,
 )
 from next_pms.next_pms.notifications import send_mention_notifications
-from next_pms.next_projects.api.constant import ALLOWED_ROLES
+from next_pms.permissions.capabilities import require_capability
 
 
 @frappe.whitelist(methods=["POST"])
@@ -37,7 +37,7 @@ def create_project_status_update(
     Returns:
         Dict[str, Any]: Created document data
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
 
     if not frappe.db.exists("Project", project):
         frappe.throw(_("Project '{project}' does not exist").format(project=project))
@@ -72,7 +72,7 @@ def get_project_status_update(name: str) -> dict[str, Any]:
     Returns:
         Dict[str, Any]: Project Status Update data with comments
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
 
     if not frappe.db.exists("Project Status Update", name):
         frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
@@ -93,7 +93,7 @@ def get_project_status_updates_by_project(project: str, author: str | None = Non
     Returns:
         List[Dict[str, Any]]: List of Project Status Updates
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
 
     if not frappe.db.exists("Project", project):
         frappe.throw(_("Project '{project}' does not exist").format(project=project))
@@ -151,7 +151,7 @@ def update_project_status_update(
     Returns:
         Dict[str, Any]: Updated document data
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
 
     if not frappe.db.exists("Project Status Update", name):
         frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
@@ -184,7 +184,7 @@ def delete_project_status_update(name: str) -> dict[str, Any]:
     Returns:
         Dict[str, Any]: The name of the deleted document
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
 
     if not frappe.db.exists("Project Status Update", name):
         frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
@@ -213,7 +213,7 @@ def add_comment_to_project_status_update(name: str, comment: str, reply_to: str 
     Returns:
         Dict[str, Any]: Updated document data
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
 
     if not frappe.db.exists("Project Status Update", name):
         frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
@@ -258,7 +258,7 @@ def update_comment_in_project_status_update(
     Returns:
         Dict[str, Any]: Updated document data
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
 
     if not comment_name:
         frappe.throw(_("Comment name is required"))
@@ -304,7 +304,7 @@ def delete_comment_from_project_status_update(name: str, comment_name: str) -> d
     Returns:
         Dict[str, Any]: Updated document data
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
 
     if not comment_name:
         frappe.throw(_("Comment name is required"))
@@ -351,7 +351,7 @@ def get_project_update_subscription(project: str) -> dict[str, bool]:
     Returns:
         Dict[str, bool]: ``subscribed`` (opted in) and ``is_account_manager`` (notified by default)
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
     _check_project_read_permission(project)
 
     return _get_subscription_state(project)
@@ -370,7 +370,7 @@ def set_project_update_subscription(project: str, subscribed: DF.Check) -> dict[
     Returns:
         Dict[str, bool]: Subscription state after the change, as returned by ``get_project_update_subscription``
     """
-    only_for(ALLOWED_ROLES, message=True)
+    require_capability("projects_page")
     _check_project_read_permission(project)
 
     filters = {"project": project, "user": frappe.session.user}

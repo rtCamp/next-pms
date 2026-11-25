@@ -269,6 +269,16 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
         for date in (MON, THU, FRI):
             assert_day(date, "Approval Pending", None)
 
+    def test_administrator_may_name_the_employee_as_their_own_approver(self):
+        self.delete_test_week_timesheets()
+        for date in WEEK_DATES:
+            save_timesheet(
+                date=date, description=f"Work logged on {date}", task=self.task, hours=2, employee=self.employee
+            )
+        submit_for_approval(start_date=MON, employee=self.employee, approver=self.employee)
+        statuses = {row.custom_approval_status for row in self.get_timesheets_by_date().values()}
+        self.assertEqual(statuses, {"Approval Pending"})
+
     def test_endpoints_expose_parent_approval_fields(self):
         # Reject Tuesday (with a reason) and approve Wednesday; the rest stay pending.
         self.decide_timesheets("Rejected", [TUE], note=TUE_REASON)

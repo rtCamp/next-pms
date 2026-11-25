@@ -5,6 +5,9 @@ const project = (label, postfix = "", sharedWith = []) => ({
   [`payloadCreateProject${postfix}`]: {
     project_name: `TM ${label}`,
     company: COMPANY,
+    // The members here do not report to the manager, so their weeks reach him as this
+    // project's manager.
+    custom_project_manager: process.env.REP_MAN_EMAIL,
     customer: "QA-INR",
     project_type: "Fixed Cost",
     business_unit: "Jupiter",
@@ -80,6 +83,8 @@ module.exports = {
       // A manager may only book leave for someone who reports to them; no days off, so
       // today is always a working day for it.
       TmTimeOff: { holidayList: "E2E No Weekly Off" },
+      // A Projects Manager adds or edits any member's time.
+      TsManager: { managed: false, user: { roles: ["Projects Manager"] } },
     },
     // Week statuses count working days, and some sites have no weekend off.
     payloadWeekendsOff: ["EMP"],
@@ -140,6 +145,42 @@ module.exports = {
       { employee: "TmOld", weeksAgo: "pastBackdateLimit", status: "pending" },
       { employee: "MANAGER", weeksAgo: 2, status: "pending" },
       { employee: "EMP", weeksAgo: 4, status: "pending" },
+    ],
+  },
+
+  // The rejected-day correction window (TC407 to TC409): a week past the backdate limit
+  // whose Monday is rejected today, which reopens Monday alone. Projects User lets the
+  // employee see the task to log against.
+  TC407: {
+    ...project("Reopen"),
+    payloadCreateWeekEmployees: {
+      RwEmployee: {
+        managed: false,
+        weekendsOff: true,
+        user: { roles: ["Projects User"] },
+      },
+      // A Projects Manager adds time to any member's day.
+      RwEditor: { managed: false, user: { roles: ["Projects Manager"] } },
+    },
+    payloadCreateWeekTime: [
+      {
+        employee: "RwEmployee",
+        project: "",
+        subject: "TM Reopen task",
+        weeksAgo: "pastBackdateLimit",
+        days: ["Mon", "Tue"],
+        hours: 1,
+        role: "admin",
+      },
+    ],
+    payloadWeekStatus: [
+      {
+        employee: "RwEmployee",
+        weeksAgo: "pastBackdateLimit",
+        status: "rejected",
+        days: ["Mon"],
+        note: "TC407 - Monday needs a clearer comment",
+      },
     ],
   },
 };

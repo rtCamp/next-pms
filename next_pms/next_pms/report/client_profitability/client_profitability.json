@@ -10,7 +10,7 @@
  "is_standard": "Yes",
  "letter_head": null,
  "letterhead": null,
- "modified": "2025-01-31 12:02:35.153726",
+ "modified": "2026-11-13 21:01:51.152983",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "Client Profitability",
@@ -21,7 +21,10 @@
  "report_type": "Script Report",
  "roles": [
   {
-   "role": "Delivery Manager"
+   "role": "PMS Leadership"
+  },
+  {
+   "role": "System Manager"
   }
  ],
  "timeout": 0

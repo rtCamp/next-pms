@@ -63,6 +63,18 @@ module.exports = {
       business_unit: "NB",
       estimated_cost: 100000,
     },
+    payloadShareProject: [
+      {
+        doctype: "Project",
+        name: "filled-automatically-from-createProjects",
+        user: process.env.EMP2_EMAIL,
+        readValue: 1,
+        writeValue: 1,
+        submitValue: 0,
+        shareValue: 0,
+        notifyValue: 1,
+      },
+    ],
     payloadDeleteProject: {
       projectId: "filled-automatically-from-createProjects",
     },
@@ -150,6 +162,18 @@ module.exports = {
       business_unit: "NB",
       estimated_cost: 100000,
     },
+    payloadShareProject: [
+      {
+        doctype: "Project",
+        name: "filled-automatically-from-createProjects",
+        user: process.env.EMP3_EMAIL,
+        readValue: 1,
+        writeValue: 1,
+        submitValue: 0,
+        shareValue: 0,
+        notifyValue: 1,
+      },
+    ],
     payloadDeleteProject: {
       projectId: "filled-automatically-from-createProjects",
     },
