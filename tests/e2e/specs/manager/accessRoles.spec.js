@@ -12,6 +12,7 @@ import {
   createDocument,
   deleteDocument,
   getDocList,
+  updateDocument,
 } from "../../utils/api/apiClient";
 import { apiRequest } from "../../utils/api/timesheetRequests";
 import { getFormattedDate, weekLabel } from "../../utils/dateUtils";
@@ -43,13 +44,6 @@ const NOT_FIELDS = new Set([
   "Button",
   "Heading",
   "Image",
-]);
-const ZERO_WHEN_HIDDEN = new Set([
-  "Check",
-  "Int",
-  "Float",
-  "Currency",
-  "Percent",
 ]);
 
 test.describe("Access & Roles", () => {
@@ -126,30 +120,6 @@ test.describe("Access & Roles", () => {
     const seen = await projectAs(context);
     for (const [field, value] of Object.entries(expected)) {
       expect(seen[field], field).toEqual(value);
-    }
-  };
-
-  /** The signed-in user reads nothing from the fields above permission level `maxLevel`. */
-  const expectHiddenAbove = async (context, maxLevel) => {
-    const meta = await apiRequest(
-      "/api/method/frappe.desk.form.load.getdoctype?doctype=Project",
-      { method: "GET" },
-      "admin",
-    );
-    const { fields } = (meta.docs ?? meta.message.docs).find(
-      (doc) => doc.name === "Project",
-    );
-    const hidden = fields.filter(
-      (field) => field.permlevel > maxLevel && !NOT_FIELDS.has(field.fieldtype),
-    );
-    expect(hidden.length).toBeGreaterThan(0);
-    const seen = await projectAs(context);
-    for (const { fieldname, fieldtype } of hidden) {
-      // A number or checkbox the user cannot read comes back as 0, not null.
-      const blank = ZERO_WHEN_HIDDEN.has(fieldtype)
-        ? [null, undefined, 0]
-        : [null, undefined];
-      expect(blank, fieldname).toContain(seen[fieldname]);
     }
   };
 
@@ -241,14 +211,14 @@ test.describe("Access & Roles", () => {
     );
   });
 
-  test("TC394: A Delivery Manager reaches both dashboards and Projects, with the financial fields up to permission level 2", async ({
+  test("TC394: A PMS Leadership user reaches both dashboards and Projects, with every financial field", async ({
     browser,
   }) => {
     allure.story("Access & Roles");
     await signedInAs(
       browser,
-      persona("AcDelMgr"),
-      "delmgr",
+      persona("AcLeader"),
+      "leader",
       async ({ context, nav }) => {
         await nav.goto("/timesheet");
         await expect(nav.sectionHeading("Dashboards")).toBeVisible();
@@ -256,21 +226,20 @@ test.describe("Access & Roles", () => {
 
         await reaches(nav, [...DASHBOARDS, ["/projects", "Projects"]]);
 
-        await expectGuardedValues(context, 2);
-        await expectHiddenAbove(context, 2);
+        await expectGuardedValues(context, 3);
       },
     );
   });
 
-  test("TC395: A Timesheet Manager reaches both dashboards and posts a project status update", async ({
+  test("TC395: A PMS Leadership user reaches both dashboards and posts a project status update", async ({
     browser,
   }) => {
     allure.story("Access & Roles");
     const title = `E2E Access status ${Date.now()}`;
     await signedInAs(
       browser,
-      persona("AcTsMgr"),
-      "tsmgr",
+      persona("AcLeader"),
+      "leader-notes",
       async ({ page, nav }) => {
         await nav.goto("/timesheet");
         await reaches(nav, DASHBOARDS);
@@ -279,7 +248,7 @@ test.describe("Access & Roles", () => {
         await notes.goto(projectId);
         await notes.createNote({
           title,
-          body: "Posted by a Timesheet Manager.",
+          body: "Posted by a PMS Leadership user.",
         });
         await expect(notes.toast("Note saved")).toBeVisible();
         await expect(notes.card(title)).toBeVisible();
@@ -301,7 +270,7 @@ test.describe("Access & Roles", () => {
     );
   });
 
-  test("TC396: A Timesheet User opens the Team timesheet and approves a member's week", async ({
+  test("TC396: A Projects User opens the Team timesheet and approves a direct report's week", async ({
     browser,
   }) => {
     allure.story("Access & Roles");
@@ -309,8 +278,8 @@ test.describe("Access & Roles", () => {
     const member = data.employees.AcMember;
     await signedInAs(
       browser,
-      persona("AcTsUser"),
-      "tsuser",
+      persona("AcProjUser"),
+      "projuser-approve",
       async ({ page, nav }) => {
         await nav.goto("/timesheet");
         await expect(nav.link("/timesheet/team")).toBeVisible();
@@ -335,6 +304,67 @@ test.describe("Access & Roles", () => {
             { timeout: scaleTimeout(90000), intervals: [3000] },
           )
           .toBe(true);
+      },
+    );
+  });
+
+  test("TC416: A Projects User who manages a project sees its members' weeks on the Team timesheet but is offered review only on a direct report's", async ({
+    browser,
+  }) => {
+    allure.story("Access & Roles");
+    test.setTimeout(scaleTimeout(120000));
+    const week = weekLabel(1);
+    const report = data.employees.AcMember;
+    const member = data.employees.AcProjMember;
+    await updateDocument("Project", projectId, {
+      custom_engineering_manager: persona("AcProjUser").email,
+    });
+    try {
+      await signedInAs(
+        browser,
+        persona("AcProjUser"),
+        "projuser-team-action",
+        async ({ page }) => {
+          const team = new TeamTimesheetPage(page);
+          await team.goto({ search: member.name });
+          const memberRow = team.memberRow(week, member.name);
+          await expect(memberRow).toBeVisible();
+          expect(await team.memberStatus(week, member.name)).toBe(
+            "Approval pending",
+          );
+          // Week approval covers direct reports only; project entries go through the
+          // Project timesheet.
+          await expect(team.reviewButton(memberRow)).toHaveCount(0);
+
+          await team.goto({ search: report.name });
+          await expect(
+            team.reviewButton(team.memberRow(week, report.name)),
+          ).toBeVisible();
+        },
+      );
+    } finally {
+      await updateDocument("Project", projectId, {
+        custom_engineering_manager: "",
+      });
+    }
+  });
+
+  test("TC417: A Projects User reads a project's past reports but is not offered report generation", async ({
+    browser,
+  }) => {
+    allure.story("Access & Roles");
+    await signedInAs(
+      browser,
+      persona("AcProjUser"),
+      "projuser-reports",
+      async ({ page }) => {
+        const risks = new ProjectRisksPage(page);
+        await risks.goto(projectId, { tab: "reports" });
+        await expect(
+          page.getByText("Project Reports", { exact: true }),
+        ).toBeVisible();
+        await expect(page.getByText("Done", { exact: true })).toBeVisible();
+        await expect(risks.generateReport).toHaveCount(0);
       },
     );
   });
@@ -370,7 +400,7 @@ test.describe("Access & Roles", () => {
     return items.filter((item) => item !== "Follow");
   };
 
-  test("TC397: A Timesheet Manager sees Edit and Delete on a risk and a growth initiative that someone else owns", async ({
+  test("TC397: A PMS Leadership user sees Edit and Delete on a risk and a growth initiative that someone else owns", async ({
     browser,
   }) => {
     allure.story("Access & Roles");
@@ -385,8 +415,8 @@ test.describe("Access & Roles", () => {
     try {
       await signedInAs(
         browser,
-        persona("AcTsMgr"),
-        "tsmgr-risks",
+        persona("AcLeader"),
+        "leader-risks",
         async ({ page }) => {
           const risks = new ProjectRisksPage(page);
           await risks.goto(projectId);
@@ -427,7 +457,7 @@ test.describe("Access & Roles", () => {
     );
   });
 
-  test("TC399: A Projects User can edit a risk or growth initiative only when they own it and is never offered Delete; a Projects Manager can edit and delete any", async ({
+  test("TC399: A Projects User can edit any risk but a growth initiative only when they own it, and is never offered Delete; a Projects Manager can edit and delete any", async ({
     browser,
   }) => {
     allure.story("Access & Roles");
@@ -460,7 +490,7 @@ test.describe("Access & Roles", () => {
         ),
       };
       const growth = new GrowthPage(page);
-      await growth.goto(projectId, { canCreate: false });
+      await growth.goto(projectId);
       seen.growthOwn = await offered(
         page,
         growth.row(label("growth", "own", stamp)),
@@ -480,7 +510,7 @@ test.describe("Access & Roles", () => {
         async ({ page }) => {
           expect(await menus(page)).toEqual({
             riskOwn: ["Edit"],
-            riskOther: [],
+            riskOther: ["Edit"],
             growthOwn: ["Edit"],
             growthOther: [],
           });
