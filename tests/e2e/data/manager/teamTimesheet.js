@@ -140,7 +140,11 @@ module.exports = {
         note: "TC262 - Monday needs a clearer comment",
       },
       ...["TmApprove", "TmQueued", "TmLocked", "TmOneDay", "TmLeave"].map(
-        (employee) => ({ employee, weeksAgo: 1, status: "pending" }),
+        (employee) => ({
+          employee,
+          weeksAgo: 1,
+          status: "pending",
+        }),
       ),
       { employee: "TmOld", weeksAgo: "pastBackdateLimit", status: "pending" },
       { employee: "MANAGER", weeksAgo: 2, status: "pending" },
@@ -148,10 +152,10 @@ module.exports = {
     ],
   },
 
-  // The rejected-day correction window (TC407 to TC409): a week past the backdate limit
+  // The rejected-day correction window (TC418 to TC420): a week past the backdate limit
   // whose Monday is rejected today, which reopens Monday alone. Projects User lets the
   // employee see the task to log against.
-  TC407: {
+  TC418: {
     ...project("Reopen"),
     payloadCreateWeekEmployees: {
       RwEmployee: {
@@ -179,7 +183,7 @@ module.exports = {
         weeksAgo: "pastBackdateLimit",
         status: "rejected",
         days: ["Mon"],
-        note: "TC407 - Monday needs a clearer comment",
+        note: "TC418 - Monday needs a clearer comment",
       },
     ],
   },

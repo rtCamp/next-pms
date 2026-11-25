@@ -11,7 +11,8 @@ export class WhatsNewPage {
   constructor(page) {
     this.page = page;
     this.heading = page.getByRole("heading", { level: 1, name: "What's new" });
-    this.installedVersion = page.getByText(/^You're on v/);
+    // Not anchored: the Vue template leaves spaces around the text.
+    this.installedVersion = page.getByText(/You're on v\d/);
     // Each card is a <section> named by its version heading.
     this.releases = page.getByRole("region", { name: /^v\d+\.\d+\.\d+/ });
   }

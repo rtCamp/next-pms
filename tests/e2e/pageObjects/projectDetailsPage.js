@@ -86,6 +86,19 @@ export class ProjectDetailsPage {
     await this.page.getByRole("option", { name }).first().click();
   }
 
+  /** Types `name` into a person picker and returns its options once the lookup has answered. */
+  async searchPerson(combobox, name) {
+    await combobox.click();
+    const lookup = this.page.waitForResponse(
+      (res) =>
+        res.url().includes("get_employee_list") &&
+        res.url().includes("employee_name"),
+    );
+    await this.page.keyboard.type(name);
+    await lookup;
+    return this.page.getByRole("option");
+  }
+
   /** Clicks Add or Remove on the one row the dialog's search narrows to. */
   async toggleInDialog(dialog, search, name, action) {
     await dialog

@@ -15,7 +15,7 @@ module.exports = {
       customer: "QA-INR",
       project_type: "Fixed Cost",
       custom_project_manager: process.env.REP_MAN_EMAIL,
-      // A past report for TC415 to list.
+      // A past report for TC417 to list.
       custom_enable_project_report_generation: 1,
       custom_project_reports: [
         {
@@ -37,7 +37,7 @@ module.exports = {
       AcProjUser: persona(["Projects User"]),
       // Reports to the Projects User, with a week for them to approve.
       AcMember: { managed: false, weekendsOff: true, reportsTo: "AcProjUser" },
-      // Logs time on the project without reporting to anyone here (TC414).
+      // Logs time on the project without reporting to anyone here (TC416).
       AcProjMember: { managed: false, weekendsOff: true },
     },
     // A user with no Employee record behind it.
@@ -77,8 +77,8 @@ module.exports = {
     })),
   },
 
-  // What's new (TC411 to TC413): a user of its own, whose last seen release the cases set.
-  TC411: {
+  // What's new (TC422 to TC424): a user of its own, whose last seen release the cases set.
+  TC422: {
     payloadCreateWeekEmployees: { WnReader: persona([]) },
   },
 };
