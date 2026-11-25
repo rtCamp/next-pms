@@ -1,5 +1,4 @@
 import json
-import re
 
 import frappe
 from frappe.utils import cint
@@ -56,12 +55,6 @@ def get_context(context):
     )
     boot.update(get_whats_new_boot(frappe.session.user))
     boot_json = frappe.as_json(boot, indent=None, separators=(",", ":"))
-    boot_json = re.sub(
-        r"<script\b[^>]*>.*?</script\s*>",
-        "",
-        boot_json,
-        flags=re.DOTALL | re.IGNORECASE,
-    )
 
     context.boot = {"csrf_token": csrf_token, "boot": json.loads(boot_json)}
 
@@ -95,12 +88,6 @@ def get_boot():
     )
     boot.update(get_whats_new_boot(frappe.session.user))
     boot_json = frappe.as_json(boot, indent=None, separators=(",", ":"))
-    boot_json = re.sub(
-        r"<script\b[^>]*>.*?</script\s*>",
-        "",
-        boot_json,
-        flags=re.DOTALL | re.IGNORECASE,
-    )
     boot_json = json.dumps(boot_json)
     return boot_json
 
