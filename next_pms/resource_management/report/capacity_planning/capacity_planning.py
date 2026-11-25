@@ -19,7 +19,7 @@ from next_pms.resource_management.report.utils import (
     calculate_employee_hours,
     get_employee_allocations_for_date,
 )
-from next_pms.utils.employee import get_employee_salary
+from next_pms.utils.employee import get_employees_salary
 
 CURRENCY = "USD"
 
@@ -300,6 +300,7 @@ def calculate_hours_and_revenue(employees, resource_allocations, start_date, end
     exchange_rates = batch_fetch_exchange_rates(project_data)
     emp_work_map = batch_fetch_employee_work_data(employee_names)
     all_leaves_holidays = batch_get_leaves_and_holidays(employee_names, start_date, end_date)
+    salaries = get_employees_salary(employee_names, CURRENCY)
 
     for employee in employees:
         employee_allocations = resource_allocation_map.get(employee.employee, [])
@@ -319,7 +320,9 @@ def calculate_hours_and_revenue(employees, resource_allocations, start_date, end
         employee_free_hours = calculate_employee_available_hours(
             daily_hours, start_date, end_date, employee_allocations, holidays, leaves
         )
-        free_hours_revenue = calculate_and_convert_free_hour_revenue(employee.employee, employee_free_hours)
+        free_hours_revenue = calculate_free_hour_revenue(
+            salaries.get(employee.employee, {}).get("hourly_salary", 0), employee_free_hours
+        )
         employee_billable_hours = calculate_employee_hours(
             daily_hours, start_date, end_date, billable_allocations, holidays, leaves
         )
@@ -476,8 +479,7 @@ def calculate_and_convert_revenue(
     return total_revenue
 
 
-def calculate_and_convert_free_hour_revenue(employee: str, free_hours: float):
-    hourly_salary = get_employee_salary(employee, CURRENCY, throw=False).get("hourly_salary", 0)
+def calculate_free_hour_revenue(hourly_salary: float, free_hours: float) -> float:
     return (hourly_salary * 3) * free_hours
 
 
