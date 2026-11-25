@@ -446,17 +446,9 @@ function avatarOf(option: unknown) {
             @click="state.close"
           />
           <Button
-            v-if="isAi"
-            variant="outline"
-            label="Save"
-            :loading="state.submitting && state.savingAsTentative"
-            :disabled="state.submitting"
-            @click="state.saveAsTentative"
-          />
-          <Button
             variant="solid"
             :label="submitLabel"
-            :loading="state.submitting && !state.savingAsTentative"
+            :loading="state.submitting"
             :disabled="!state.canSubmit"
             @click="state.submit"
           />

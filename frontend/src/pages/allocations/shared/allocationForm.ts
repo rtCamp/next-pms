@@ -146,8 +146,7 @@ export function formFromRequest(
         data.hoursPerDay ??
         empty.hoursPerDay,
       isBillable: data.billable ?? empty.isBillable,
-      // Approving makes it a confirmed allocation.
-      isTentative: data.isAiCreated ? false : Boolean(data.tentative),
+      isTentative: Boolean(data.isAiCreated || data.tentative),
       includeWeekends: Boolean(data.includeWeekends),
       includeHolidays: Boolean(data.includeHolidays),
       note: data.note ?? "",
@@ -306,11 +305,9 @@ export interface AllocationPayload {
   note: string;
 }
 
-/** `saveAsTentative` saves an AI allocation as Tentative, whatever the checkbox says. */
 export function allocationPayload(
   form: AllocationForm,
   context: AllocationFormContext,
-  { saveAsTentative = false }: { saveAsTentative?: boolean } = {},
 ): AllocationPayload {
   return {
     doctype: "Resource Allocation",
@@ -323,7 +320,7 @@ export function allocationPayload(
     include_weekends: form.includeWeekends,
     include_holidays: form.includeHolidays,
     is_billable: Number(form.isBillable),
-    status: saveAsTentative || form.isTentative ? "Tentative" : "Confirmed",
+    status: form.isTentative ? "Tentative" : "Confirmed",
     ...(context.isAiCreated ? { is_ai_created: 0 } : {}),
     note: form.note ?? "",
   };
