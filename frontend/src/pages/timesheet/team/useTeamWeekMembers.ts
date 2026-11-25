@@ -27,8 +27,15 @@ interface UseTeamWeekMembersOptions {
 
 /** One team week's members, 20 a page, loaded when the week first opens. */
 export function useTeamWeekMembers(options: UseTeamWeekMembersOptions) {
+  const url =
+    "/api/v2/method/next_pms.timesheet.api.team.get_team_timesheet_data";
   const call = useCall<TeamMembersPayload, MembersParams>({
-    url: "/api/v2/method/next_pms.timesheet.api.team.get_team_timesheet_data",
+    url,
+    immediate: false,
+  });
+  // Realtime reloads go through their own call, so they don't abort a page load.
+  const reloadCall = useCall<TeamMembersPayload, MembersParams>({
+    url,
     immediate: false,
   });
 
@@ -74,13 +81,42 @@ export function useTeamWeekMembers(options: UseTeamWeekMembersOptions) {
     fetchPage(pages.value.length);
   }
 
-  function refreshMember(member: TeamMember) {
+  /** Reloads the loaded pages, unless a new page arrived meanwhile. */
+  async function reload() {
+    const count = pages.value.length;
+    const reloaded: TeamMembersPayload[] = [];
+    for (let index = 0; index < count; index++) {
+      const page = await reloadCall
+        .submit({
+          ...options.filterArgs,
+          start_date: options.startDate,
+          page_length: TEAM_MEMBER_PAGE_LENGTH,
+          start: index * TEAM_MEMBER_PAGE_LENGTH,
+        })
+        .catch(() => null);
+      if (!page) return;
+      reloaded.push(page);
+    }
+    if (pages.value.length === count) pages.value = reloaded;
+  }
+
+  function refreshMember(employee: string, member: TeamMember | null) {
+    const loaded = pages.value.some((page) =>
+      page.members.some((current) => current.employee === employee),
+    );
+    if (!loaded) return;
+    if (!member) {
+      reload();
+      return;
+    }
     pages.value = pages.value.map((page) =>
-      page.members.some((current) => current.employee === member.employee)
+      page.members.some((current) => current.employee === employee)
         ? {
             ...page,
             members: page.members.map((current) =>
-              current.employee === member.employee ? member : current,
+              current.employee === employee
+                ? { ...member, can_approve: current.can_approve }
+                : current,
             ),
           }
         : page,
