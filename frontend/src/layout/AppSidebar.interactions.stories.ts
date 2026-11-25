@@ -308,9 +308,12 @@ export const WhatsNewUnseen: Story = {
     await expect(within(header).getByText("New release")).toBeInTheDocument();
     await userEvent.click(header);
     await screen.findByRole("menu");
-    const labels = screen
-      .getAllByRole("menuitem")
-      .map((item) => item.textContent?.trim());
+    // The visible labels; the What's new row also holds its name for screen readers.
+    const labels = screen.getAllByRole("menuitem").map((item) => {
+      const visible = item.cloneNode(true) as HTMLElement;
+      visible.querySelectorAll(".sr-only").forEach((node) => node.remove());
+      return visible.textContent?.trim();
+    });
     await expect(labels).toEqual([
       "Apps",
       "Switch To Desk",

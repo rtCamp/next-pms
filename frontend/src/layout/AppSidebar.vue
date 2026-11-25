@@ -42,7 +42,7 @@ import {
 } from "./sidebarSections";
 import UnreadDot from "./UnreadDot.vue";
 import { usePreloadRoute } from "./usePreloadRoute";
-import WhatsNewMenuItem from "./WhatsNewMenuItem.vue";
+import WhatsNewMenuLabel from "./WhatsNewMenuLabel.vue";
 
 const props = defineProps<{
   /** Matched with the capabilities against the help tips' `roles`. */
@@ -174,10 +174,16 @@ const menuItems = computed(() => [
     ? [
         {
           label: "What's new",
+          icon: "lucide-sparkles",
           route: WHATS_NEW_PATH,
-          slots: {
-            item: () => h(WhatsNewMenuItem, { unseen: whatsNew.unseen }),
-          },
+          // Not `slots.item`: frappe-ui remounts an as-child row on every highlight
+          // change, so a pointer can't click it.
+          slots: whatsNew.unseen
+            ? {
+                label: () => h(WhatsNewMenuLabel),
+                suffix: () => h(UnreadDot, { placement: "menuItem" }),
+              }
+            : undefined,
         },
       ]
     : []),
