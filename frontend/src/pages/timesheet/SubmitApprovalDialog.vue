@@ -45,14 +45,16 @@ watch(
 );
 watch(approver, () => (approverError.value = ""));
 
-const approvers = useCall<Approver[]>({
-  url: "/api/v2/method/next_pms.timesheet.api.get_approver_details",
+// The user's reporting manager and the managers of the week's projects.
+const approvers = useCall<Approver[], { start_date: string }>({
+  url: "/api/v2/method/next_pms.timesheet.api.get_timesheet_approvers",
+  params: () => ({ start_date: props.week.startDate }),
   immediate: false,
 });
 watch(
   open,
   (isOpen) => {
-    if (isOpen && !approvers.data) approvers.fetch();
+    if (isOpen && props.week.startDate) approvers.fetch();
   },
   { immediate: true },
 );
