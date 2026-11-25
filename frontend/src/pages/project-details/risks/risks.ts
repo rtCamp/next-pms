@@ -272,6 +272,10 @@ export function editedUpdateLog(
   );
 }
 
+/** The update log without `name`, oldest first, so the newest update stays the risk's status. */
 export function deletedUpdateLog(risk: RiskDoc, name: string) {
-  return withoutUpdate(risk.risk_update_log ?? [], RISK_UPDATE_FIELDS, name);
+  const oldestFirst = [...(risk.risk_update_log ?? [])].sort((a, b) =>
+    (a.updated_at ?? "").localeCompare(b.updated_at ?? ""),
+  );
+  return withoutUpdate(oldestFirst, RISK_UPDATE_FIELDS, name);
 }

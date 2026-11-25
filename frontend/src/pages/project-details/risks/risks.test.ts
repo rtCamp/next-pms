@@ -288,6 +288,22 @@ describe("the update form and log", () => {
     });
   });
 
+  it("orders the remaining updates oldest first, so the newest stays last", () => {
+    const risk = doc();
+    const [u1, u2] = risk.risk_update_log ?? [];
+    const third = {
+      ...u1,
+      name: "u3",
+      updated_at: "2026-10-03 10:00:00",
+      idx: 3,
+    };
+    const log = deletedUpdateLog(
+      doc({ risk_update_log: [third, u2, u1] }),
+      "u1",
+    );
+    expect(log.map((update) => update.name)).toEqual(["u2", "u3"]);
+  });
+
   it("deletes the latest update, leaving the earlier one last", () => {
     const log = deletedUpdateLog(doc(), "u2");
     expect(log).toEqual([
