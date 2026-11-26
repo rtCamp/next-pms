@@ -45,10 +45,6 @@ function ProjectDetailBody() {
 
   let finalTabs = TABS;
   let finalTabKeys = [...TAB_KEYS];
-  if (!window.frappe?.boot?.has_customer_feedback) {
-    finalTabs = finalTabs.filter((tab) => tab.label !== "Feedback");
-    finalTabKeys = finalTabKeys.filter((key) => key !== "feedback");
-  }
   if (!window.frappe?.boot?.show_rag_trigger_page) {
     finalTabs = finalTabs.filter((tab) => tab.label !== "RAG stats");
     finalTabKeys = finalTabKeys.filter((key) => key !== "rag-stats");

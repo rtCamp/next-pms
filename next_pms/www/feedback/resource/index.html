@@ -1,0 +1,152 @@
+---
+title: Resource Feedback
+metatags:
+  description: Please rate your experience with the resources and help us grow.
+---
+
+{% extends "templates/web.html" %} {% block page_content %}
+<div class="sidebar">
+  <div>
+    <h1 class="title">
+      <div class="logo">
+        <img src="{{ brand_logo }}" alt="{{ brand_title or _('Logo') }}" width="40px" />
+        <p>{{ _("Employee Feedback") }}</p>
+      </div>
+      <!-- info button -->
+    </h1>
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% elif employees %}
+    <div class="dropdown">
+      <div class="dropdown-title">
+        <img src="/assets/next_pms/images/user.svg" alt="user" width="20px" />
+        <p id="dropdown-select-title" class="mb-0">Select Employee</p>
+      </div>
+      <img id="chevron-down" src="/assets/next_pms/images/chevrondown.svg" alt="" />
+    </div>
+    <ul class="list-group" id="employee-list">
+      {% for employee in employees %}
+      <li
+        class="list-group-item custom-employee-row"
+        data-employee="{{ employee.employee }}"
+        data-link="{{ employee.feedback_link }}"
+        data-is_submitted="{{ employee.is_submitted }}"
+      >
+        <div class="employee">
+          <div class="employee-container mr-1">
+            <strong class="w-full truncate">{{ employee.employee_name }}</strong><br />
+            <small class="w-full truncate text-muted">{{ employee.designation }}</small>
+          </div>
+          <div class="badge">
+            {% if employee.is_submitted %}
+            <span class="custom-submitted-btn flex-shrink-0">
+              {{ _("Submitted") }}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                fill="currentColor"
+                class="bi bi-person-check-fill"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M15.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L12.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0"
+                />
+                <path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
+              </svg>
+            </span>
+            {% else %}
+            <span class="custom-pending-btn flex-shrink-0">
+              {{ _("Pending") }}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                fill="currentColor"
+                class="bi ml-1 bi-clock"
+                viewBox="0 0 16 16"
+              >
+                <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z" />
+                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0" />
+              </svg>
+            </span>
+            {% endif %}
+          </div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    <!-- Welcome Text for smaller devices  -->
+    <div id="initial-text-small" class="initial-text small-devices">
+      <h2>{{ _("Welcome to Employee Feedback") }}</h2>
+      <p>{{ _("Please select an employee from the dropdown to view or provide feedback.") }}</p>
+      <ul>
+        <li>{{ _("Click on an employee's name to open their feedback form.") }}</li>
+        <li>{{ _("Green 'Submitted' badge indicates completed feedback.") }}</li>
+        <li>{{ _("Orange 'Pending' badge indicates feedback yet to be submitted.") }}</li>
+      </ul>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">{{ _("No employees found.") }}</div>
+    {% endif %}
+  </div>
+  <div class="context-info mt-2">
+    <h5 class="mt-1">{{ _("Feedback Details") }}</h5>
+    <ul class="list-unstyled">
+      <div class="feedback-row mt-5">
+        <div class="rt-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
+        </div>
+        <div class="content">
+          <h2>Feedback Period</h2>
+          <p>{{ feedback_from_date or "N/A" }} - {{ feedback_to_date or "N/A" }}</p>
+        </div>
+      </div>
+      <div class="feedback-row">
+        <div class="rt-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="content">
+          <h2>Feedback By</h2>
+          <p>{{ feedback_by or "N/A" }}</p>
+        </div>
+      </div>
+      <div class="feedback-row">
+        <div class="rt-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building-2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+        </div>
+        <div class="content">
+          <h2>Customer</h2>
+          <p>{{ customer or "N/A" }}</p>
+        </div>
+      </div>
+    </ul>
+  </div>
+</div>
+<div class="main-content">
+  <div class="info-content">
+    <p>1 ★: Consistently fails to meet job requirements, frequent errors, missed deadlines, and requires constant supervision.</p>
+    <p>2★: Often falls short of expectations with inconsistent performance and a need for more supervision; improvement is needed.</p>
+    <p>3★: Reliably performs tasks to expected standards with normal supervision and occasional guidance for complex tasks.</p>
+    <p>4★: Exceeds assigned duties, takes on additional responsibilities, assists team members, and shows strong skills and initiative with minimal supervision.</p>
+  </div>
+  <div id="initial-text-large" class="initial-text large-devices">
+    <h2>{{ _("Welcome to Employee Feedback") }}</h2>
+    <p>{{ _("Please select an employee from the sidebar to view or provide feedback.") }}</p>
+    <ul>
+      <li>{{ _("Click on an employee's name to open their feedback form.") }}</li>
+      <li>{{ _("Green 'Submitted' badge indicates completed feedback.") }}</li>
+      <li>{{ _("Orange 'Pending' badge indicates feedback yet to be submitted.") }}</li>
+    </ul>
+  </div>
+  <div id="feedback-form-container">
+    <div id="loading-spinner">
+      <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
+    </div>
+    <iframe id="feedback-form"></iframe>
+  </div>
+</div>
+{% endblock %}

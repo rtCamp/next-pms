@@ -192,7 +192,6 @@ extend_doctype_class = {
     "Project": ["next_pms.project_currency.overrides.project.ProjectOverwrite"],
     "Timesheet": ["next_pms.project_currency.overrides.timesheet.TimesheetOverwrite"],
     "Task": ["next_pms.project_currency.overrides.task.TaskOverride"],
-    "Employee": ["next_pms.next_pms.overrides.employee.EmployeeOverride"],
 }
 
 
@@ -210,6 +209,7 @@ scheduler_events = {
         "next_pms.timesheet.tasks.send_weekly_reminder.send_reminder",
         "next_pms.resource_management.tasks.no_allocation_reminder.send_reminder",
         "next_pms.next_pms.notifications.send_review_reminders",
+        "next_pms.tasks.employee_salary.update_employee_salaries",
     ],
     "weekly": [
         "next_pms.project_currency.tasks.reminde_project_threshold.send_reminder_mail",
@@ -324,9 +324,6 @@ doc_events = {
     "Project Status Update": {
         "on_update": "next_pms.next_pms.notifications.project_status_update_on_update",
     },
-    "Customer Feedback": {
-        "on_submit": "next_pms.next_pms.notifications.customer_feedback_on_submit",
-    },
     "ToDo": {
         "validate": "next_pms.next_projects.doc_events.todo.validate",
         "on_trash": "next_pms.next_projects.doc_events.todo.on_trash",
@@ -334,10 +331,11 @@ doc_events = {
     "Customer": {"validate": "next_pms.resource_management.doc_events.customer.validate_abbr"},
     "User": {"validate": "next_pms.permissions.doc_events.user.validate"},
     "Employee": {
+        "before_save": "next_pms.next_pms.doc_events.employee.before_save",
         "on_update": [
             "next_pms.timesheet.doc_events.employee.on_update",
             "next_pms.next_projects.doc_events.employee.on_update",
-        ]
+        ],
     },
     "Employee Promotion": {
         "on_submit": "next_pms.next_projects.doc_events.employee_promotion.on_submit",

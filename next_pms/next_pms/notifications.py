@@ -445,30 +445,6 @@ def render_note_published_email(user, context):
     }
 
 
-def customer_feedback_on_submit(doc, method=None):
-    """Notify the project manager(s) of the related project(s) when customer feedback is received."""
-    if doc.flags.get("next_pms_customer_feedback_notified"):
-        return
-    doc.flags.next_pms_customer_feedback_notified = True
-
-    projects = frappe.get_all(
-        "Customer Feedback Project",
-        filters={"parent": doc.customer_feedback_schedule, "parenttype": "Customer Feedback Schedule"},
-        pluck="project",
-    )
-
-    date = formatdate(getdate(doc.feedback_to_date), "dd/mm/yyyy")
-    for project in projects:
-        manager = frappe.db.get_value("Project", project, "custom_project_manager")
-        if not manager:
-            continue
-        project_name = frappe.db.get_value("Project", project, "project_name")
-        label = _("{0} client feedback received for {1}").format(date, project_name)
-        title = _("Client feedback available")
-        url = f"/next-pms/projects/{project}?tab=feedback"
-        create_notification(manager, title, label, "Customer Feedback", doc.name, url=url)
-
-
 def send_review_reminders():
     """Nightly: notify each reviewer of how many timesheets are pending their review."""
     active_employees = frappe.get_all("Employee", filters={"status": "Active"}, pluck="name")

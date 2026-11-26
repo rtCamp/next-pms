@@ -1,0 +1,55 @@
+{
+ "actions": [],
+ "creation": "2026-11-23 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "brand_title",
+  "brand_logo",
+  "support_email"
+ ],
+ "fields": [
+  {
+   "description": "Shown in the feedback questions in place of \"us\", for example \"Would you recommend Acme to a peer?\".",
+   "fieldname": "brand_title",
+   "fieldtype": "Data",
+   "label": "Brand Title"
+  },
+  {
+   "description": "Shown on the public feedback pages. Falls back to the Website Settings app logo.",
+   "fieldname": "brand_logo",
+   "fieldtype": "Attach Image",
+   "label": "Brand Logo",
+   "make_attachment_public": 1
+  },
+  {
+   "description": "Shown on the public feedback pages when a link is invalid or expired.",
+   "fieldname": "support_email",
+   "fieldtype": "Data",
+   "label": "Support Email",
+   "options": "Email"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-11-23 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Customer Feedback",
+ "name": "Customer Feedback Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

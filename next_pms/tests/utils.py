@@ -110,3 +110,23 @@ def assign_empty_holiday_list(employee, name="Test Empty Holiday List"):
             "from_date": "2020-01-01",
         }
     ).insert(ignore_permissions=True).submit()
+
+
+def make_test_employee(**fields):
+    """Insert an Employee with only the mandatory fields filled and return its name."""
+    if not frappe.db.exists("Gender", "Male"):
+        frappe.get_doc({"doctype": "Gender", "gender": "Male"}).insert(ignore_permissions=True)
+    employee = frappe.get_doc(
+        {
+            "doctype": "Employee",
+            "first_name": "_Test",
+            "last_name": "Employee",
+            "gender": "Male",
+            "date_of_birth": "1990-05-08",
+            "date_of_joining": "2013-01-01",
+            "company": get_default_company(),
+            "status": "Active",
+            **fields,
+        }
+    )
+    return employee.insert(ignore_permissions=True).name

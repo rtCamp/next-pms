@@ -78,15 +78,11 @@ test.describe("Manager: Project details", () => {
     await details.goto(data.payloadDeleteProject.projectId);
     await expect(details.tab("Reports")).toHaveCount(0);
 
-    // Feedback and RAG stats follow site-wide switches (on where the rtcamp app is installed).
-    for (const [tab, flag] of [
-      ["Feedback", "has_customer_feedback"],
-      ["RAG stats", "show_rag_trigger_page"],
-    ]) {
-      await expect(details.tab(tab), tab).toHaveCount(
-        (await details.boot(flag)) ? 1 : 0,
-      );
-    }
+    // Feedback is always offered; RAG stats follows a site-wide switch (on where the rtcamp app is installed).
+    await expect(details.tab("Feedback")).toBeVisible();
+    await expect(details.tab("RAG stats")).toHaveCount(
+      (await details.boot("show_rag_trigger_page")) ? 1 : 0,
+    );
   });
 
   test("TC325: The Overview shows the project's details, members and customers", async ({

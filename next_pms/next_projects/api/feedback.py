@@ -24,38 +24,12 @@ from next_pms.next_projects.api.utils import (
 from next_pms.permissions.capabilities import require_capability
 
 
-def is_customer_feedback_available() -> bool:
-    """Whether the rtcamp Customer Feedback module is available on this site."""
-    return "rtcamp" in frappe.get_installed_apps()
-
-
-def ensure_customer_feedback_available():
-    """Guard: refuse to run unless the rtcamp Customer Feedback module is installed."""
-    if not is_customer_feedback_available():
-        frappe.throw(_("Customer Feedback module (rtcamp) is not installed"))
-
-
 def _mean(values: list) -> float | None:
     """Mean of the non-null values, or ``None`` when there is nothing to average."""
     nums = [v for v in values if v is not None]
     if not nums:
         return None
     return sum(nums) / len(nums)
-
-
-@frappe.whitelist(methods=["GET"])
-@frappe.read_only()
-def get_customer_feedback_availability():
-    """Report whether the Customer Feedback feature can be used on this site.
-
-    Lets the frontend decide whether to render the dashboards without triggering a guard
-    error on the data endpoints.
-
-    Returns:
-        dict: ``{ available: bool }`` — ``True`` when the rtcamp app is installed.
-    """
-    require_capability("projects_page")
-    return {"available": is_customer_feedback_available()}
 
 
 @frappe.whitelist(methods=["GET"])
@@ -79,7 +53,6 @@ def get_project_feedback_timeline(
         the Customer Feedback name to pass to ``get_project_feedback_breakdown``.
     """
     require_capability("projects_page")
-    ensure_customer_feedback_available()
     if not project:
         frappe.throw(_("Project is required"))
     if not frappe.db.exists("Project", project):
@@ -145,7 +118,6 @@ def get_project_feedback_breakdown(feedback_name: str):
         star_max }`` and ``responses`` a list of ``{ fieldname, label, answer }``.
     """
     require_capability("projects_page")
-    ensure_customer_feedback_available()
 
     rating_fields = RATING_FIELDS["Project"]
     text_fields = TEXT_FIELDS["Project"]
@@ -215,7 +187,6 @@ def get_team_feedback_list(project: str, start: int = 0, limit: int = 20):
         the raw rating columns are not exposed.
     """
     require_capability("projects_page")
-    ensure_customer_feedback_available()
     if not project:
         frappe.throw(_("Project is required"))
     if not frappe.db.exists("Project", project):
@@ -304,7 +275,6 @@ def get_team_feedback_breakdown(feedback_name: str):
         star_max, percent }``.
     """
     require_capability("projects_page")
-    ensure_customer_feedback_available()
 
     evaluation_type = frappe.db.get_value("Customer Feedback", feedback_name, "evaluation_type")
     if not evaluation_type:
@@ -381,7 +351,6 @@ def get_feedback_comments(feedback: str):
         edited, deleted, deleted_at, reply_count and nested replies.
     """
     require_capability("projects_page")
-    ensure_customer_feedback_available()
     ensure_feedback_exists(feedback)
     return get_feedback_comment_tree(feedback)
 
@@ -404,7 +373,6 @@ def add_comment_to_feedback(feedback: str, comment: str, project: str, reply_to:
         list[dict]: The refreshed comment tree, as in get_feedback_comments.
     """
     require_capability("projects_page")
-    ensure_customer_feedback_available()
     ensure_feedback_exists(feedback)
     ensure_feedback_belongs_to_project(feedback, project)
     if is_blank(comment):
@@ -461,7 +429,6 @@ def update_comment_in_feedback(comment_name: str, comment: str):
         list[dict]: The refreshed comment tree, as in get_feedback_comments.
     """
     require_capability("projects_page")
-    ensure_customer_feedback_available()
     doc = get_feedback_comment_doc(comment_name)
     ensure_comment_author(doc)
     if is_blank(doc.content):
@@ -490,7 +457,6 @@ def delete_comment_from_feedback(comment_name: str):
         list[dict]: The refreshed comment tree, as in get_feedback_comments.
     """
     require_capability("projects_page")
-    ensure_customer_feedback_available()
     doc = get_feedback_comment_doc(comment_name)
     ensure_comment_author(doc)
     if is_blank(doc.content):

@@ -113,7 +113,6 @@ declare global {
         has_business_unit?: boolean;
         has_industry?: boolean;
         has_repository_connections?: boolean;
-        has_customer_feedback?: boolean;
         show_rag_trigger_page?: boolean;
         desk_theme?: string;
         has_todo_custom_fields?: boolean;
