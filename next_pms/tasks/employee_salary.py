@@ -57,18 +57,31 @@ def update_salary_fields(employees: list[str]) -> None:
         .run(as_dict=True)
     )
 
-    salaried = [row for row in rows if row.ctc and row.salary_currency]
-    # None is each employee's own salary currency
-    breakdowns = {currency: get_salary_breakdown(salaried, currency) for currency in (None, *CONVERSION_CURRENCIES)}
-    tax_slabs = get_income_tax_slabs([row.name for row in salaried])
-
+    calculated = calculate_salary_values(rows)
     updates = {}
     for row in rows:
-        values = get_salary_values(row, breakdowns, tax_slabs)
+        values = calculated[row.name]
         if any(is_changed(row[fieldname], value) for fieldname, value in values.items()):
             updates[row.name] = values
 
     frappe.db.bulk_update("Employee", updates, chunk_size=BATCH_SIZE, update_modified=False)
+
+
+def calculate_salary_values(rows: list[dict]) -> dict[str, dict]:
+    """Return the salary breakdown field values of each Employee row, keyed by employee.
+
+    Args:
+        rows (list[dict]): frappe._dict rows with name, ctc, salary_currency, custom_working_hours
+            and custom_work_schedule.
+
+    Returns:
+        dict: {employee: {fieldname: value}} for every field in SALARY_FIELDS.
+    """
+    salaried = [row for row in rows if row.ctc and row.salary_currency]
+    # None is each employee's own salary currency
+    breakdowns = {currency: get_salary_breakdown(salaried, currency) for currency in (None, *CONVERSION_CURRENCIES)}
+    tax_slabs = get_income_tax_slabs([row.name for row in salaried])
+    return {row.name: get_salary_values(row, breakdowns, tax_slabs) for row in rows}
 
 
 def get_salary_values(row: dict, breakdowns: dict[str | None, dict], tax_slabs: dict[str, str | None]) -> dict:
