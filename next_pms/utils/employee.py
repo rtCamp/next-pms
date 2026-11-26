@@ -152,6 +152,30 @@ def get_income_tax_slab(employee: str) -> str | None:
     )
 
 
+def get_income_tax_slabs(employees: list[str]) -> dict[str, str | None]:
+    """Return `get_income_tax_slab` for the given Employee IDs, read in one query.
+
+    Args:
+        employees (list[str]): Employee IDs.
+
+    Returns:
+        dict: {employee: income_tax_slab}, only for employees with a submitted Salary Structure Assignment.
+    """
+    if not employees:
+        return {}
+
+    Assignment = frappe.qb.DocType("Salary Structure Assignment")
+    rows = (
+        frappe.qb.from_(Assignment)
+        .select(Assignment.employee, Assignment.income_tax_slab)
+        .where(Assignment.employee.isin(employees) & (Assignment.docstatus == 1))
+        .orderby(Assignment.from_date)
+        .run(as_dict=True)
+    )
+    # Ordered by from_date, so each employee's latest assignment is the one kept
+    return {row.employee: row.income_tax_slab for row in rows}
+
+
 def convert_currency(
     amount: float,
     from_currency: str,

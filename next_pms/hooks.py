@@ -192,7 +192,6 @@ extend_doctype_class = {
     "Project": ["next_pms.project_currency.overrides.project.ProjectOverwrite"],
     "Timesheet": ["next_pms.project_currency.overrides.timesheet.TimesheetOverwrite"],
     "Task": ["next_pms.project_currency.overrides.task.TaskOverride"],
-    "Employee": ["next_pms.next_pms.overrides.employee.EmployeeOverride"],
 }
 
 
@@ -210,6 +209,7 @@ scheduler_events = {
         "next_pms.timesheet.tasks.send_weekly_reminder.send_reminder",
         "next_pms.resource_management.tasks.no_allocation_reminder.send_reminder",
         "next_pms.next_pms.notifications.send_review_reminders",
+        "next_pms.tasks.employee_salary.update_employee_salaries",
     ],
     "weekly": [
         "next_pms.project_currency.tasks.reminde_project_threshold.send_reminder_mail",
