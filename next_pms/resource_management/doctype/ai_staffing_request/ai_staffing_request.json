@@ -1,0 +1,120 @@
+{
+ "actions": [],
+ "autoname": "field:deal",
+ "creation": "2026-11-18 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "deal",
+  "status",
+  "column_break_project",
+  "project",
+  "sow_link",
+  "error_section",
+  "error",
+  "summary_section",
+  "summary",
+  "summary_html"
+ ],
+ "fields": [
+  {
+   "fieldname": "deal",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "CRM Deal",
+   "read_only": 1,
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Pending\nIn Progress\nAllocated\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_project",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Project",
+   "options": "Project",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sow_link",
+   "fieldtype": "Data",
+   "label": "SOW Sheet",
+   "read_only": 1
+  },
+  {
+   "depends_on": "error",
+   "fieldname": "error_section",
+   "fieldtype": "Section Break",
+   "label": "Error"
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Long Text",
+   "label": "Error",
+   "read_only": 1
+  },
+  {
+   "depends_on": "summary",
+   "fieldname": "summary_section",
+   "fieldtype": "Section Break",
+   "label": "Staffing Summary"
+  },
+  {
+   "fieldname": "summary",
+   "fieldtype": "Markdown Editor",
+   "label": "Summary",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "summary_html",
+   "fieldtype": "HTML",
+   "label": "Summary"
+  }
+ ],
+ "links": [],
+ "modified": "2026-11-23 13:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Resource Management",
+ "name": "AI Staffing Request",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "PMS Leadership"
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 0,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "deal",
+ "track_changes": 1
+}

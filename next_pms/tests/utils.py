@@ -78,6 +78,13 @@ def make_tech_stack(technology="Frappe"):
     return [{"technology": technology}]
 
 
+def make_sales_stage(stage="Prospecting"):
+    """A fresh site has no Sales Stages, and frappe_crm_xt gives every new CRM Deal "Prospecting"."""
+    if not frappe.db.exists("Sales Stage", stage):
+        frappe.get_doc({"doctype": "Sales Stage", "stage_name": stage}).insert(ignore_permissions=True)
+    return stage
+
+
 def assign_empty_holiday_list(employee, name="Test Empty Holiday List"):
     """Pin an employee to a holiday list that holds no holidays.
 

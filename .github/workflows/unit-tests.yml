@@ -151,6 +151,7 @@ jobs:
           bench get-app india_compliance https://github.com/resilient-tech/india-compliance --branch v16.11.0 --skip-assets
           bench get-app frappe_hrms_xt https://github.com/rtCamp/frappe-hrms-xt --branch develop --skip-assets
           bench get-app rtcamp "https://${RTCAMP_APP}" --branch develop --skip-assets
+          bench get-app frappe_crm_xt https://github.com/rtCamp/frappe_crm_xt --branch develop --skip-assets
           git config --global --unset "url.https://rtbot:${RTBOT_TOKEN}@github.com/rtCamp/.insteadOf"
           bench --site test_site install-app $PRIVATE_APPS
         env:
@@ -163,6 +164,12 @@ jobs:
         run: |
           bench get-app next_pms "$GITHUB_WORKSPACE" --skip-assets
           bench --site test_site install-app next_pms
+          # frappe_crm_xt's deal fields link to next_pms (Host) and rtcamp (Service Type) doctypes, so it goes last
+          if [ -n "$PRIVATE_APPS" ]; then
+            bench --site test_site install-app frappe_crm_xt
+            # Production runs CRM's ERPNext integration, which adds CRM Deal erpnext_customer (read on every deal save)
+            bench --site test_site execute "frappe.get_single('ERPNext CRM Settings').update({'enabled': 1, 'sync_products': 0}).save()"
+          fi
         env:
           CI: "Yes"
 
