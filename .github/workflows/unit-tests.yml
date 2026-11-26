@@ -59,7 +59,8 @@ jobs:
         id: bench-key
         run: |
           if [ -n "$RTBOT_TOKEN" ]; then
-            echo "PRIVATE_APPS=telephony helpdesk crm frappe_appointment india_compliance frappe_hrms_xt rtcamp" >> "$GITHUB_ENV"
+            # rtcamp is installed after next_pms (see "Install rtcamp"), not with these
+            echo "PRIVATE_APPS=telephony helpdesk crm frappe_appointment india_compliance frappe_hrms_xt" >> "$GITHUB_ENV"
           else
             echo "RTBOT_TOKEN unavailable (fork PR) — skipping private rtcamp app; rtcamp-gated tests will skip"
             echo "> [!WARNING]" >> "$GITHUB_STEP_SUMMARY"
@@ -162,6 +163,15 @@ jobs:
         run: |
           bench get-app next_pms "$GITHUB_WORKSPACE" --skip-assets
           bench --site test_site install-app next_pms
+        env:
+          CI: "Yes"
+
+      # rtcamp's customisations link to next_pms doctypes such as Customer Feedback, so it is
+      # installed after next_pms; it was fetched in "Install private apps".
+      - name: Install rtcamp
+        if: env.PRIVATE_APPS != ''
+        working-directory: /home/runner/frappe-bench
+        run: bench --site test_site install-app rtcamp
         env:
           CI: "Yes"
 
