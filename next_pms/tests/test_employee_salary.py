@@ -5,6 +5,7 @@ from frappe.permissions import add_permission
 from frappe.tests import IntegrationTestCase
 
 from next_pms.api.employee import get_own_salary_summary
+from next_pms.next_pms.doc_events import employee as employee_events
 from next_pms.tasks import employee_salary
 from next_pms.tests.utils import make_employee
 from next_pms.timesheet.utils.constant import EMP_WOKING_DETAILS
@@ -161,3 +162,25 @@ class TestEmployeeSalary(IntegrationTestCase):
         frappe.set_user("Guest")
 
         self.assertRaises(frappe.PermissionError, frappe.client.get, "Employee", self.own_employee)
+
+    def test_saving_a_new_ctc_updates_salary_fields(self):
+        self.addCleanup(frappe.db.set_value, "Employee", self.own_employee, "ctc", 1_200_000)
+        employee = frappe.get_doc("Employee", self.own_employee)
+        employee.ctc = 2_400_000
+
+        with patch(EXCHANGE_RATE_PATH, return_value=0.012):
+            employee.save()
+
+        values = frappe.db.get_value(
+            "Employee", self.own_employee, ["custom_monthly_salary", "custom_monthly_salary_usd"], as_dict=True
+        )
+        self.assertEqual(values, {"custom_monthly_salary": 200_000, "custom_monthly_salary_usd": 2_400})
+
+    def test_saving_other_fields_skips_the_salary_calculation(self):
+        employee = frappe.get_doc("Employee", self.own_employee)
+        employee.middle_name = "Unchanged Salary"
+
+        with patch.object(employee_events, "calculate_salary_values") as calculate:
+            employee.save()
+
+        calculate.assert_not_called()
