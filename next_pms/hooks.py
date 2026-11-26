@@ -331,10 +331,11 @@ doc_events = {
     "Customer": {"validate": "next_pms.resource_management.doc_events.customer.validate_abbr"},
     "User": {"validate": "next_pms.permissions.doc_events.user.validate"},
     "Employee": {
+        "before_save": "next_pms.next_pms.doc_events.employee.before_save",
         "on_update": [
             "next_pms.timesheet.doc_events.employee.on_update",
             "next_pms.next_projects.doc_events.employee.on_update",
-        ]
+        ],
     },
     "Employee Promotion": {
         "on_submit": "next_pms.next_projects.doc_events.employee_promotion.on_submit",
