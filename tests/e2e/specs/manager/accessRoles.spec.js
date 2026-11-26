@@ -147,7 +147,9 @@ test.describe("Access & Roles", () => {
         });
         await expect(nav.noEmployeeHeading).toBeVisible();
         await expect(
-          page.getByText("You are not an employee in this company."),
+          page.getByText(
+            "Next PMS needs an Employee record linked to your user.",
+          ),
         ).toBeVisible();
         await expect(
           page.getByRole("button", { name: "Log out" }),
@@ -306,7 +308,7 @@ test.describe("Access & Roles", () => {
     );
   });
 
-  test("TC414: A Projects User who manages a project sees its members' weeks on the Team timesheet but is offered review only on a direct report's", async ({
+  test("TC416: A Projects User who manages a project sees its members' weeks on the Team timesheet but is offered review only on a direct report's", async ({
     browser,
   }) => {
     allure.story("Access & Roles");
@@ -347,7 +349,7 @@ test.describe("Access & Roles", () => {
     }
   });
 
-  test("TC415: A Projects User reads a project's past reports but is not offered report generation", async ({
+  test("TC417: A Projects User reads a project's past reports but is not offered report generation", async ({
     browser,
   }) => {
     allure.story("Access & Roles");

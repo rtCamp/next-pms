@@ -6,7 +6,8 @@ const API = "next_pms.api.dashboard.";
 
 /**
  * The Manager and Leadership dashboards. Widgets are plain divs, so most areas are
- * found from their heading; the multi-selects all share the name "Select options".
+ * found from their heading; a multi-select's trigger is a button named by its summary
+ * ("All roles", "2 roles selected").
  */
 export class DashboardPage {
   /**
@@ -87,7 +88,9 @@ export class DashboardPage {
         predicate(new URL(r.url())),
       { timeout: scaleTimeout(45000) },
     );
-    return (await res.json()).message;
+    // The Vue app calls /api/v2, which answers `data` instead of `message`.
+    const body = await res.json();
+    return "data" in body ? body.data : body.message;
   }
 
   /** Reloads the page and returns the endpoints' answers, as goto does. */
@@ -111,7 +114,7 @@ export class DashboardPage {
   // Widget and stat cards share the card surface class; nothing else names them.
   card(inner) {
     return inner.locator(
-      "xpath=ancestor::*[self::div or self::a][contains(@class,'bg-surface-cards')][1]",
+      "xpath=ancestor::*[self::div or self::a][contains(@class,'bg-surface-elevation-1')][1]",
     );
   }
 
@@ -121,15 +124,13 @@ export class DashboardPage {
 
   /** A multi-select, told apart by what its trigger reads. */
   picker(text) {
-    return this.page
-      .getByRole("combobox", { name: "Select options" })
-      .filter({ hasText: text });
+    return this.page.getByRole("button", { name: text });
   }
 
   /** A widget's own multi-select, inside the card under its heading. */
   sectionPicker(heading) {
-    return this.section(heading).getByRole("combobox", {
-      name: "Select options",
+    return this.section(heading).getByRole("button", {
+      name: /^(All \w+|\d+ \w+ selected)$/,
     });
   }
 
@@ -195,37 +196,32 @@ export class DashboardPage {
   /** Opens the range's date picker and picks a day; the range then starts on its Monday. */
   async pickCalendarDate(isoDate) {
     const date = new Date(`${isoDate}T00:00:00`);
-    const caption = date.toLocaleDateString("en-US", {
-      month: "short",
-      year: "numeric",
-    });
     await this.rangeButton.click();
-    const picker = this.page.getByRole("dialog").filter({
-      has: this.page.getByRole("grid", { name: "Calendar dates" }),
+    // frappe-ui's DatePicker names its header and arrows by their internal labels.
+    const shown = this.page.getByRole("button", {
+      name: "cycle-calendar-view",
     });
-    const shown = picker.getByRole("button", { name: "Toggle calendar view" });
+    const day = this.page
+      .getByRole("grid", { name: "Calendar dates" })
+      .getByRole("gridcell", { name: new RegExp(`^${isoDate}`) });
     for (let step = 0; step < 24; step++) {
+      if (await day.isVisible()) break;
       const text = (await shown.innerText()).trim();
-      if (text === caption) break;
-      await picker
+      await this.page
         .getByRole("button", {
-          name: new Date(`${text} 1`) > date ? "Previous month" : "Next month",
+          name: new Date(`${text} 1`) > date ? "previous" : "next",
+          exact: true,
         })
         .click();
     }
-    // Days of the next and previous months spill into the grid.
-    const days = picker.getByRole("gridcell", {
-      name: String(date.getDate()),
-      exact: true,
-    });
-    await (date.getDate() <= 15 ? days.first() : days.last()).click();
+    await day.click();
   }
 
-  // Managed projects and Timesheets: list rows are grids found from their name.
+  // Managed projects and Timesheets: frappe-ui lists, a row per item with the name first.
   listRow(heading, name) {
     return this.section(heading)
-      .getByText(name, { exact: true })
-      .locator("xpath=ancestor::div[contains(@class,'grid')][1]");
+      .getByRole("row")
+      .filter({ has: this.page.getByText(name, { exact: true }) });
   }
 
   async listRowValues(heading, name) {
@@ -235,13 +231,17 @@ export class DashboardPage {
       .filter((line) => /^-?[\d.]+h$/.test(line));
   }
 
-  /** The names a list widget shows, in order: Timesheets links them, Managed projects does not. */
+  /** The names a list widget shows, in order: Timesheets links them past an avatar. */
   listNames(heading) {
-    const names =
-      heading === "Timesheets"
-        ? this.section(heading).getByRole("link")
-        : this.section(heading).locator("div.grid span.font-medium");
-    return names.allInnerTexts();
+    return this.section(heading)
+      .getByRole("row")
+      .filter({ has: this.page.getByRole("cell") })
+      .evaluateAll((rows) =>
+        rows.map((row) => {
+          const cell = row.querySelector('[role="cell"]');
+          return (cell.querySelector("a") ?? cell).innerText.trim();
+        }),
+      );
   }
 
   async choosePeriod(label) {
@@ -286,8 +286,8 @@ export class DashboardPage {
 
   // Leadership KPI cards: label, month picker, then the value.
   kpiMonth(label) {
-    return this.kpiCard(label).getByRole("button", {
-      name: /^[A-Z][a-z]+ \d{4}$/,
+    return this.page.getByRole("button", {
+      name: new RegExp(`^${escapeRegExp(label)} month, `),
     });
   }
 
@@ -306,17 +306,17 @@ export class DashboardPage {
   /** Picks a month in a KPI card's month picker; `year` steps the picker when needed. */
   async chooseKpiMonth(label, monthShort, year) {
     await this.kpiMonth(label).click();
+    // The picker's middle button reads the year it shows.
     const yearToggle = this.page.getByRole("button", {
-      name: "Toggle between month and year selection",
+      name: /^\d{4}, choose year$/,
     });
     for (let step = 0; step < 5; step++) {
       const shown = Number((await yearToggle.innerText()).trim());
       if (shown === year) break;
       await this.page
         .getByRole("button", {
-          name: shown > year ? "Previous month" : "Next month",
+          name: shown > year ? "Previous year" : "Next year",
         })
-        .last()
         .click();
     }
     await this.page

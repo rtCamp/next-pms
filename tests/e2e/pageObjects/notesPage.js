@@ -86,8 +86,7 @@ export class NotesPage {
   async openCardMenu(title, item) {
     await this.card(title)
       .locator("xpath=ancestor::*[contains(@class,'border')][1]")
-      .getByRole("button")
-      .first()
+      .getByRole("button", { name: "Note actions" })
       .click();
     await this.page.getByRole("menuitem", { name: item }).click();
   }
@@ -173,7 +172,10 @@ export class NotesPage {
     await this.commentInput.click();
     await this.commentEditor.click();
     await this.page.keyboard.type(`@${mention.split(" ")[0]}`);
-    await this.page.getByText(mention, { exact: true }).first().click();
+    const option = this.page.getByText(mention, { exact: true }).first();
+    await option.click();
+    // Keys typed while the suggestion list closes are lost.
+    await option.waitFor({ state: "hidden" });
     await this.page.keyboard.type(` ${text}`);
     await this.postButton.click();
   }

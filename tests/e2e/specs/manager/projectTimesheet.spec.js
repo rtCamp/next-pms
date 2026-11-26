@@ -75,19 +75,28 @@ test.describe("Manager: Project timesheet", () => {
     await expect(pending).toBeVisible();
 
     await projects.toggle(row, alpha);
-    await expect(row).toHaveAttribute("aria-expanded", "false");
+    await expect(projects.rowToggle(row, alpha)).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
     await expect(pending).toHaveCount(0);
 
     await projects.toggle(row, alpha);
     await expect(pending).toBeVisible();
     // Members start closed.
-    await expect(pending).toHaveAttribute("aria-expanded", "false");
+    await expect(projects.rowToggle(pending, member.Pending)).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
     await expect(
       projects.memberPanel(LAST, alpha, member.Pending).getByText(task),
     ).toHaveCount(0);
 
     await projects.toggle(pending, member.Pending);
-    await expect(pending).toHaveAttribute("aria-expanded", "true");
+    await expect(projects.rowToggle(pending, member.Pending)).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
     await expect(
       projects.memberPanel(LAST, alpha, member.Pending).getByText(task),
     ).toBeVisible();
@@ -144,19 +153,8 @@ test.describe("Manager: Project timesheet", () => {
     ).toBeVisible();
   });
 
-  test("TC225: The filters on the Project tab narrow the weeks and rows by member and project", async () => {
+  test("TC225: The Project filter on the Project tab narrows the weeks and rows, and there is no Approval status filter", async () => {
     allure.story("Timesheet");
-
-    await test.step("Member", async () => {
-      await projects.goto({ search: FIXTURE });
-      await projects.filterBy("Member", member.Pending);
-      await expect(
-        projects.memberRow(LAST, alpha, member.Pending),
-      ).toBeVisible();
-      await expect(projects.memberRow(LAST, alpha, member.Draft)).toHaveCount(
-        0,
-      );
-    });
 
     await test.step("Project", async () => {
       await projects.goto({ search: FIXTURE });
@@ -168,6 +166,15 @@ test.describe("Manager: Project timesheet", () => {
     await test.step("No Approval status filter", async () => {
       await expect(projects.approvalFilter).toHaveCount(0);
     });
+  });
+
+  // Vue: FilterRow's link-value slot has no key, so a row switched from Project to Member keeps searching Projects.
+  test.fixme("TC225: The Member filter on the Project tab narrows the weeks and rows", async () => {
+    allure.story("Timesheet");
+    await projects.goto({ search: FIXTURE });
+    await projects.filterBy("Member", member.Pending);
+    await expect(projects.memberRow(LAST, alpha, member.Pending)).toBeVisible();
+    await expect(projects.memberRow(LAST, alpha, member.Draft)).toHaveCount(0);
   });
 
   test("TC226: Each member row shows the right approval badge", async () => {

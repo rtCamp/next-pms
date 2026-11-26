@@ -15,9 +15,9 @@ import { dateInWeek, weekLabel } from "../../utils/dateUtils";
 import { readJSONFile } from "../../utils/fileUtils";
 import { scaleTimeout } from "../../utils/timeouts";
 
-// TC407 (data/manager/teamTimesheet.js) seeds a week past the backdate limit whose Monday
+// TC418 (data/manager/teamTimesheet.js) seeds a week past the backdate limit whose Monday
 // was rejected today: Monday is open for its correction, Tuesday stays locked.
-const FIXTURE = "TC407";
+const FIXTURE = "TC418";
 const WHO = "RwEmployee";
 const TASK = "TM Reopen task";
 const BACKDATED =
@@ -76,7 +76,7 @@ test.describe("Timesheet: rejected-day correction window", () => {
     if (!seeded) await reseedWeek(data, FIXTURE, WHO, weeksAgo);
   };
 
-  test("TC407: For a Projects Manager, the Team tab keeps a day rejected past the backdate limit open while the next old day stays locked", async ({
+  test("TC418: For a Projects Manager, the Team tab keeps a day rejected past the backdate limit open while the next old day stays locked", async ({
     browser,
   }) => {
     allure.story("Team Timesheet");
@@ -99,7 +99,7 @@ test.describe("Timesheet: rejected-day correction window", () => {
     }
   });
 
-  test("TC408: The employee logs the correction on a day rejected past the backdate limit, and the next old day is still refused", async ({
+  test("TC419: The employee logs the correction on a day rejected past the backdate limit, and the next old day is still refused", async ({
     browser,
   }) => {
     allure.story("Timesheet");
@@ -119,7 +119,7 @@ test.describe("Timesheet: rejected-day correction window", () => {
         project,
         task: TASK,
         duration: "01:00",
-        comment: "TC408 - the corrected Monday",
+        comment: "TC419 - the corrected Monday",
       });
       await expect(weeks.addTimeDialog).toBeHidden();
       await expect.poll(async () => (await weekState())[monday]?.hours).toBe(1);
@@ -133,7 +133,7 @@ test.describe("Timesheet: rejected-day correction window", () => {
       await weeks.addTimeDialog
         .locator("[contenteditable]")
         .first()
-        .fill("TC408 - Tuesday is past the limit");
+        .fill("TC419 - Tuesday is past the limit");
       await weeks.addTimeDialog
         .getByRole("button", { name: "Save and close" })
         .click();
@@ -144,7 +144,7 @@ test.describe("Timesheet: rejected-day correction window", () => {
     }
   });
 
-  test("TC409: The manager approves the correction of a day rejected past the backdate limit, but not with the next old day ticked", async ({
+  test("TC420: The manager approves the correction of a day rejected past the backdate limit, but not with the next old day ticked", async ({
     page,
   }) => {
     allure.story("Team Timesheet");
@@ -158,7 +158,7 @@ test.describe("Timesheet: rejected-day correction window", () => {
     await createTimesheet(
       {
         task,
-        description: "<p>TC409 - the corrected Monday</p>",
+        description: "<p>TC420 - the corrected Monday</p>",
         hours: "1",
         date: monday,
         employee: employee.id,
@@ -169,7 +169,7 @@ test.describe("Timesheet: rejected-day correction window", () => {
       {
         start_date: monday,
         end_date: dateInWeek(weeksAgo, "Sun"),
-        notes: "TC409 - correction",
+        notes: "TC420 - correction",
         approver: process.env.REP_MAN_ID,
         employee: employee.id,
       },

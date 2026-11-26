@@ -1,20 +1,25 @@
 /**
- * Vite plugin: `import("./motions/add-time?motion")` loads a help motion
+ * Vite plugin: `import("@/assets/motions/add-time?motion")` loads a help motion
  * folder as one lazy chunk. base.css is scoped to [data-motion="<name>"] and
  * each scene-<id>.js is wrapped as `export default function (kit) { … }`.
  */
-
-/**
- * External dependencies.
- */
-import { existsSync, readFileSync } from "fs";
-import { basename, dirname, join, resolve } from "path";
+import { existsSync, readFileSync } from "node:fs";
 import type { Plugin } from "vite";
 
 const MOTION = "?motion";
 const SCENE = "?motion-scene";
 const STYLE = "?motion-style";
 const PREFIX = "\0motion:";
+
+// The project has no Node types, so paths are joined by hand (POSIX only, like
+// the ids Vite passes plugins).
+const dirname = (path: string) => path.slice(0, path.lastIndexOf("/"));
+const basename = (path: string) => path.slice(path.lastIndexOf("/") + 1);
+const resolvePath = (from: string, to: string) =>
+  decodeURIComponent(new URL(to, `file://${from}/`).pathname).replace(
+    /\/$/,
+    "",
+  );
 
 export default function motionPlugin(): Plugin {
   return {
@@ -24,7 +29,7 @@ export default function motionPlugin(): Plugin {
       if (!source.endsWith(MOTION) || !importer) return null;
       return (
         PREFIX +
-        resolve(
+        resolvePath(
           dirname(importer.split("?")[0]),
           source.slice(0, -MOTION.length),
         )
@@ -35,7 +40,7 @@ export default function motionPlugin(): Plugin {
       const dir = id.slice(PREFIX.length);
       const name = basename(dir);
       const path = (file: string) => {
-        const full = join(dir, file);
+        const full = `${dir}/${file}`;
         if (!existsSync(full))
           this.error(`Motion "${name}": ${file} is missing`);
         return full;
@@ -58,7 +63,7 @@ export default function motionPlugin(): Plugin {
       const scenePaths = manifest.scenes.map(({ id }) =>
         path(`scene-${id}.js`),
       );
-      const cssPath = join(dir, "base.css");
+      const cssPath = `${dir}/base.css`;
 
       return [
         existsSync(cssPath) && `import ${JSON.stringify(cssPath + STYLE)};`,

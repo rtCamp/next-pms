@@ -46,10 +46,6 @@ jobs:
         with:
           node-version-file: frontend/.nvmrc
 
-      - uses: pnpm/action-setup@v6
-        with:
-          version: 10
-
       - uses: actions/cache@v6
         with:
           path: |
@@ -58,11 +54,9 @@ jobs:
           key: ${{ runner.os }}-pip-uv-${{ hashFiles('**/pyproject.toml') }}
           restore-keys: ${{ runner.os }}-pip-
 
-      # --- frontend: built in the workspace (has the frappe-ui-react submodule), artifacts copied into the bench copy
+      # --- frontend: built in the workspace, artifacts copied into the bench copy
       - name: Build frontend
-        run: |
-          (cd frappe-ui-react && pnpm install --frozen-lockfile && pnpm build)
-          (cd frontend && npm ci && npm run build:app)
+        run: cd frontend && npm ci && npm run build
 
       # --- bench + site
       - name: Setup bench

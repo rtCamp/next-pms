@@ -10,7 +10,9 @@ import {
 import { deleteProject } from "../../utils/api/projectRequests";
 import { readJSONFile } from "../../utils/fileUtils";
 
-// TC299 seeds the projects; see data/manager/projects.js.
+// TC299 seeds the projects; see data/manager/projects.js. Named so a run of this spec alone
+// seeds it.
+const FIXTURE = "TC299";
 const KANBAN = "E2E Prj Kanban";
 const PHASES = [
   "Delivery Prep",
@@ -33,8 +35,15 @@ test.describe("Manager: Projects Kanban and Add project", () => {
 
   test.beforeEach(async ({ page, jsonDir }) => {
     list = new ProjectsListPage(page);
-    data = (await readJSONFile(path.join(jsonDir, "TC299.json"))).TC299;
+    data = (await readJSONFile(path.join(jsonDir, `${FIXTURE}.json`)))[FIXTURE];
     kanbanId = data.payloadDeleteProject4.projectId;
+    await updateDocument("Project", kanbanId, {
+      custom_project_phase: "Discovery",
+    });
+  });
+
+  // The drag case leaves the project in Kick Off, where the views cases filter by phase.
+  test.afterEach(async () => {
     await updateDocument("Project", kanbanId, {
       custom_project_phase: "Discovery",
     });
@@ -96,7 +105,9 @@ test.describe("Manager: Projects Kanban and Add project", () => {
     await board(COLOURED);
     await expect(list.kanbanColumn("Discovery")).toContainText(KANBAN);
 
-    await page.route(`**/api/resource/Project/${kanbanId}`, (route) =>
+    // Matches both /api/resource and the /api/v2/document route the Vue board saves through.
+    const projectDoc = `**/api/**/Project/${kanbanId}`;
+    await page.route(projectDoc, (route) =>
       route.request().method() === "PUT"
         ? route.fulfill({ status: 500, body: "{}" })
         : route.continue(),
@@ -106,7 +117,7 @@ test.describe("Manager: Projects Kanban and Add project", () => {
       page.getByText(`Error updating the phase for ${KANBAN}`).first(),
     ).toBeVisible();
     await expect(list.kanbanColumn("Discovery")).toContainText(KANBAN);
-    await page.unroute(`**/api/resource/Project/${kanbanId}`);
+    await page.unroute(projectDoc);
 
     await list.dragCard(KANBAN, "Kick Off");
     await expect(list.kanbanColumn("Kick Off")).toContainText(KANBAN);
@@ -136,7 +147,9 @@ test.describe("Manager: Projects Kanban and Add project", () => {
     page.on("request", (req) => {
       if (
         req.method() === "POST" &&
-        req.url().endsWith("/api/resource/Project")
+        /\/api\/(resource|v2\/document)\/Project$/.test(
+          new URL(req.url()).pathname,
+        )
       )
         posted.push(req.url());
     });

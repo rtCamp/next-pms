@@ -12,9 +12,9 @@ import {
 import { apiRequest } from "../../utils/api/timesheetRequests";
 import { readJSONFile } from "../../utils/fileUtils";
 
-// TC411 (data/manager/access.js) seeds a user of its own; each case first sets the last
+// TC422 (data/manager/access.js) seeds a user of its own; each case first sets the last
 // release that user saw, so the cases run in order.
-const FIXTURE = "TC411";
+const FIXTURE = "TC422";
 const SETTING = "PMS User Setting";
 const UNSEEN = "What's new, new release";
 const SEEN = "What's new";
@@ -81,7 +81,7 @@ test.describe("Global & Navigation: What's new", () => {
     }
   };
 
-  test("TC411: An unseen release shows a dot on the logo and the menu item, the page lists the installed releases newest first, and opening it clears the dots for good", async ({
+  test("TC422: An unseen release shows a dot on the logo and the menu item, the page lists the installed releases newest first, and opening it clears the dots for good", async ({
     browser,
   }) => {
     allure.story("Global & Navigation");
@@ -120,7 +120,7 @@ test.describe("Global & Navigation: What's new", () => {
     });
   });
 
-  test("TC412: Global search opens What's new; older releases start closed and open and close from their header, the latest has no toggle", async ({
+  test("TC423: Global search opens What's new; older releases start closed and open and close from their header, the latest has no toggle", async ({
     browser,
   }) => {
     allure.story("Global & Navigation");
@@ -148,7 +148,7 @@ test.describe("Global & Navigation: What's new", () => {
     });
   });
 
-  test("TC413: The dot follows the last release the user saw: none once the latest is seen, back when only an older one is", async ({
+  test("TC424: The dot follows the last release the user saw: none once the latest is seen, back when only an older one is", async ({
     browser,
   }) => {
     allure.story("Global & Navigation");

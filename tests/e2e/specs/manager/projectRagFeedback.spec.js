@@ -4,6 +4,9 @@ import path from "path";
 import { ProjectDetailsPage } from "../../pageObjects/projectDetailsPage";
 import { readJSONFile } from "../../utils/fileUtils";
 
+// Seeded by global setup; named here so a run of this spec alone seeds it.
+const FIXTURE = "TC299";
+
 // RAG stats and Feedback come from the rtcamp app: where it is not installed (a fresh
 // site, CI) the tabs are absent and these cases skip. TC299 seeds the project.
 test.describe.configure({ mode: "serial" });
@@ -14,7 +17,9 @@ test.describe("Manager: Project RAG stats and Feedback", () => {
 
   test.beforeEach(async ({ page, jsonDir }) => {
     details = new ProjectDetailsPage(page);
-    const data = (await readJSONFile(path.join(jsonDir, "TC299.json"))).TC299;
+    const data = (await readJSONFile(path.join(jsonDir, `${FIXTURE}.json`)))[
+      FIXTURE
+    ];
     project = data.payloadDeleteProject5.projectId;
   });
 
@@ -135,7 +140,7 @@ test.describe("Manager: Project RAG stats and Feedback", () => {
     await open("Feedback");
     await expect(page).toHaveURL(/tab=feedback/);
     await expect(
-      page.getByRole("button", { name: "Client feedback", exact: true }),
+      page.getByRole("button", { name: "View: Client feedback", exact: true }),
     ).toBeVisible();
     await expect(page.getByText("Schedule Feedback").first()).toBeVisible();
   });
@@ -146,7 +151,7 @@ test.describe("Manager: Project RAG stats and Feedback", () => {
     allure.story("Projects");
     await open("Feedback");
     await page
-      .getByRole("button", { name: "Client feedback", exact: true })
+      .getByRole("button", { name: "View: Client feedback", exact: true })
       .click();
     await page
       .getByRole("menuitem", { name: "Team feedback" })

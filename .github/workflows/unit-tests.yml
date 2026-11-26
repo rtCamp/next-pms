@@ -138,6 +138,15 @@ jobs:
           path: ~/site-cache
           key: site-${{ steps.bench-key.outputs.key }}
 
+      # rtcamp sets up next_pms's Customer Feedback doctype, so next_pms goes first.
+      - name: Install next_pms
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench get-app next_pms "$GITHUB_WORKSPACE" --skip-assets
+          bench --site test_site install-app next_pms
+        env:
+          CI: "Yes"
+
       - name: Install private apps
         if: env.PRIVATE_APPS != ''
         working-directory: /home/runner/frappe-bench
@@ -156,14 +165,6 @@ jobs:
           CI: "Yes"
           RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
           RTCAMP_APP: ${{ secrets.RTCAMP_APP }}
-
-      - name: Install next_pms
-        working-directory: /home/runner/frappe-bench
-        run: |
-          bench get-app next_pms "$GITHUB_WORKSPACE" --skip-assets
-          bench --site test_site install-app next_pms
-        env:
-          CI: "Yes"
 
       - name: Run tests
         working-directory: /home/runner/frappe-bench

@@ -6,7 +6,7 @@ import { NavigationPage } from "../../pageObjects/navigationPage";
 const EMPLOYEE_TARGETS = [
   "Timesheet - Personal",
   "Allocations - Team",
-  "Allocations - project",
+  "Allocations - Project",
   "Tasks",
   // Listed once the site has release notes cached.
   "What's new",
@@ -33,8 +33,8 @@ test.describe("Employee: Global search", () => {
     );
 
     expect(sorted(await nav.searchFor("Allocations"))).toEqual([
+      "Allocations - Project",
       "Allocations - Team",
-      "Allocations - project",
     ]);
     await nav.searchFor("zzz-no-such-page");
     await expect(nav.noSearchResults).toBeVisible();
@@ -50,7 +50,7 @@ test.describe("Employee: Global search", () => {
     await expect(nav.searchInput).toBeHidden();
   });
 
-  test("TC401: Global search lists only the destinations the role can open: an employee gets five, the manager also gets Dashboards, Projects, Team and Project timesheets", async ({
+  test("TC401: Global search lists only the destinations the role can open: an employee gets four, the manager also gets Dashboards, Projects, Team and Project timesheets", async ({
     browser,
   }) => {
     allure.story("Global & Navigation");
@@ -86,8 +86,8 @@ test.describe("Employee: Global search", () => {
         "Timesheet - Projects",
       ]);
       expect(await found("Allocations")).toEqual([
+        "Allocations - Project",
         "Allocations - Team",
-        "Allocations - project",
       ]);
     } finally {
       await context.close();

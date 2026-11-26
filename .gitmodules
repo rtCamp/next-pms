@@ -1,4 +1,0 @@
-[submodule "frappe-ui-react"]
-	path = frappe-ui-react
-	url = https://github.com/rtCamp/frappe-ui-react.git
-	branch = develop

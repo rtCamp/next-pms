@@ -11,6 +11,9 @@ import {
 import { getFormattedDate } from "../../utils/dateUtils";
 import { readJSONFile } from "../../utils/fileUtils";
 
+// Seeded by global setup; named here so a run of this spec alone seeds it.
+const FIXTURE = "TC299";
+
 // TC299 seeds a milestone (3 to 5 days ahead) and a touchpoint (4 days ahead) on
 // "E2E Prj Detail"; see data/manager/projects.js.
 const MILESTONE = "E2E Prj milestone";
@@ -35,7 +38,7 @@ test.describe("Manager: Project calendar", () => {
 
   test.beforeEach(async ({ page, jsonDir }) => {
     calendar = new ProjectCalendarPage(page);
-    data = (await readJSONFile(path.join(jsonDir, "TC299.json"))).TC299;
+    data = (await readJSONFile(path.join(jsonDir, `${FIXTURE}.json`)))[FIXTURE];
     project = data.payloadDeleteProject5.projectId;
     await updateDocument(ITEM, data.docs.milestone, {
       title: MILESTONE,
@@ -200,9 +203,7 @@ test.describe("Manager: Project calendar", () => {
     const day = daysAhead(7);
     try {
       await calendar.goto(project);
-      await page
-        .getByRole("button", { name: "Touchpoints", exact: true })
-        .click();
+      await calendar.view("Touchpoints").click();
       await calendar.createButton.click();
       await expect(calendar.itemDialog).toContainText("Create touchpoint");
       await calendar.submitItem();

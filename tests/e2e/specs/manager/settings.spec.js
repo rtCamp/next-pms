@@ -141,7 +141,9 @@ test.describe("Settings: personal and system configuration", () => {
 
     const weeks = new TimesheetWeeksPage(page);
     const expanded = () =>
-      weeks.weekHeaders.and(page.locator('[aria-expanded="true"]')).count();
+      weeks.weekHeaders
+        .filter({ has: page.locator('button[aria-expanded="true"]') })
+        .count();
     await weeks.goto();
     await expect.poll(expanded).toBe(own);
 
@@ -249,10 +251,10 @@ test.describe("Settings: personal and system configuration", () => {
     }
   });
 
-  test("TC410: The rejected timesheet window shows with backdated entries off, and a changed value is saved and stored on Timesheet Settings", async () => {
+  test("TC421: The rejected timesheet window shows with backdated entries off, and a changed value is saved and stored on Timesheet Settings", async () => {
     allure.story("Settings");
     const original = (await systemDoc()).allow_rejected_timesheet_edit_till;
-    // Never 0: the rejected-window cases (TC407 to TC409) may run alongside.
+    // Never 0: the rejected-window cases (TC418 to TC420) may run alongside.
     const changed = original === 5 ? 6 : 5;
     try {
       await openOn(SYSTEM, "Timesheets");
