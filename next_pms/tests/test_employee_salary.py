@@ -79,16 +79,17 @@ class TestEmployeeSalary(IntegrationTestCase):
     def test_owner_without_role_gets_no_salary_fields(self):
         with patch(EXCHANGE_RATE_PATH, return_value=0.012):
             employee_salary.update_salary_fields([self.other_employee])
+        self.assertTrue(frappe.db.get_value("Employee", self.other_employee, "custom_monthly_salary"))
         frappe.db.set_value("Employee", self.other_employee, "owner", OWN_USER)
         frappe.set_user(OWN_USER)
 
         # Stored fields are kept from the client by the field-level read check frappe.client.get applies
         doc = frappe.get_doc("Employee", self.other_employee)
         doc.apply_fieldlevel_read_permissions()
-        employee = doc.as_dict()
 
+        # as_dict() puts removed fields back as None or 0, so check the document itself
         for fieldname in SALARY_FIELDS:
-            self.assertNotIn(fieldname, employee)
+            self.assertIsNone(doc.get(fieldname))
         self.assertRaises(frappe.PermissionError, get_own_salary_summary, self.other_employee)
 
     def test_own_record_summary_has_no_hourly_salary_or_conversions(self):
@@ -114,6 +115,7 @@ class TestEmployeeSalary(IntegrationTestCase):
         self.assertRaises(frappe.PermissionError, get_own_salary_summary, self.other_employee)
 
     def test_daily_job_updates_active_employees_in_batches(self):
+        frappe.db.set_value("Employee", self.left_employee, "custom_monthly_salary", 1)
         with (
             patch(EXCHANGE_RATE_PATH, return_value=0.012),
             patch.object(employee_salary, "BATCH_SIZE", 2),
@@ -129,7 +131,8 @@ class TestEmployeeSalary(IntegrationTestCase):
         self.assertIn(self.own_employee, updated)
         self.assertNotIn(self.left_employee, updated)
         self.assertEqual(frappe.db.get_value("Employee", self.own_employee, "custom_monthly_salary_usd"), 1_200)
-        self.assertEqual(frappe.db.get_value("Employee", self.left_employee, "custom_monthly_salary"), 0)
+        # The job leaves employees who aren't Active as they were
+        self.assertEqual(frappe.db.get_value("Employee", self.left_employee, "custom_monthly_salary"), 1)
 
     def test_job_keeps_modified_and_skips_unchanged_rows(self):
         modified = frappe.db.get_value("Employee", self.own_employee, "modified")
