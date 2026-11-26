@@ -6,18 +6,15 @@ import {
 } from "./constants";
 
 interface TabFlags {
-  /** `boot.has_customer_feedback` */
-  hasCustomerFeedback: boolean;
   /** `boot.show_rag_trigger_page` */
   showRagStats: boolean;
   /** The project's `custom_enable_project_report_generation` */
   reportsEnabled: boolean;
 }
 
-/** The tabs this project shows: Feedback, RAG stats and Reports only when enabled. */
+/** The tabs this project shows: RAG stats and Reports only when enabled. */
 export function visibleTabs(flags: TabFlags): ProjectTab[] {
   return PROJECT_TABS.filter((tab) => {
-    if (tab.value === "feedback") return flags.hasCustomerFeedback;
     if (tab.value === "rag-stats") return flags.showRagStats;
     if (tab.value === "reports") return flags.reportsEnabled;
     return true;

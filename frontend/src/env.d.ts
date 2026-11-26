@@ -21,8 +21,6 @@ interface Boot {
   allow_weekend_entries?: boolean;
   /** Whether the user's Google Calendar is connected. */
   is_calendar_setup?: boolean;
-  /** Whether the customer feedback app is installed; shows a project's Feedback tab. */
-  has_customer_feedback?: boolean;
   /** Whether the rtcamp app is installed; shows a project's RAG stats tab. */
   show_rag_trigger_page?: boolean;
   /** Whether the ToDo doctype has the rtcamp title, start and end fields. */

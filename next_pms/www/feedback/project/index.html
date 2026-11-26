@@ -1,0 +1,82 @@
+---
+title: Project Feedback
+metatags:
+  description: Please rate your experience with the projects and help us grow.
+---
+
+{% extends "templates/web.html" %} {% block page_content %}
+<div class="sidebar">
+  <div>
+    <h1 class="title">
+      <div class="logo">
+        <img src="{{ brand_logo }}" alt="{{ brand_title or _('Logo') }}" width="40px" />
+        <p>{{ _("Project Feedback") }}</p>
+      </div>
+    </h1>
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% elif projects %}
+    <ul class="list-group" id="project-list">
+      {% for project in projects %}
+      <li
+        class="list-group-item"
+      >
+        <div class="project">
+          <div class="project-container mr-1">
+            <strong class="w-full truncate">{{ project.project_name }}</strong><br />
+          </div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="alert alert-warning">{{ _("No Projects found") }}</div>
+    {% endif %}
+  </div>
+  <div class="context-info mt-2">
+    <h5 class="mt-1">{{ _("Feedback Details") }}</h5>
+    <ul class="list-unstyled">
+      <div class="feedback-row mt-5">
+        <div class="icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
+        </div>
+        <div class="content">
+          <h2>Feedback Period</h2>
+          <p>{{ feedback_from_date or "N/A" }} - {{ feedback_to_date or "N/A" }}</p>
+        </div>
+      </div>
+      <div class="feedback-row">
+        <div class="icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="content">
+          <h2>Feedback By</h2>
+          <p>{{ feedback_by or "N/A" }}</p>
+        </div>
+      </div>
+      <div class="feedback-row">
+        <div class="icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building-2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+        </div>
+        <div class="content">
+          <h2>Customer</h2>
+          <p>{{ customer or "N/A" }}</p>
+        </div>
+      </div>
+    </ul>
+  </div>
+</div>
+<div class="main-content">
+  <div id="rating_info_button" class="info-content">
+    <p>1 ★: Consistently fails to meet job requirements, frequent errors, missed deadlines, and requires constant supervision.</p>
+    <p>2★: Often falls short of expectations with inconsistent performance and a need for more supervision; improvement is needed.</p>
+    <p>3★: Reliably performs tasks to expected standards with normal supervision and occasional guidance for complex tasks.</p>
+    <p>4★: Exceeds assigned duties, takes on additional responsibilities, assists team members, and shows strong skills and initiative with minimal supervision.</p>
+  </div>
+  <div id="feedback-form-container">
+  {% if not error %}
+      <iframe id="feedback-form" src={{ feedback_link }}></iframe>
+  {% endif %}
+  </div>
+</div>
+{% endblock %}

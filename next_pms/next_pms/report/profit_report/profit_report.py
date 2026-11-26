@@ -12,7 +12,7 @@ from next_pms.utils.employee import (
     convert_currency,
     get_employee_joining_date_based_on_work_history,
     get_employee_leaves_and_holidays,
-    get_employee_salary,
+    get_employees_salary,
 )
 
 
@@ -36,6 +36,7 @@ def get_data(filters=None):
 
     timesheets = get_employees_timesheet_hours(emp_names, start_date, end_date)
     billing_amount = get_employees_billable_amount(emp_names, start_date, end_date)
+    salaries = get_employees_salary(emp_names, "USD")
     for employee in employees:
         emp_timesheet = next(
             (timesheet for timesheet in timesheets if timesheet.employee == employee.employee),
@@ -61,7 +62,7 @@ def get_data(filters=None):
         employee["non_billable_hours"] = emp_timesheet.get("non_billable_hours", 0)
         employee["capacity"] = total_hours
         employee["utilization"] = employee["billable_hours"] + employee["non_billable_hours"]
-        employee["hourly_rate"] = get_employee_salary(employee.employee, "USD", throw=False).get("hourly_salary", 0)
+        employee["hourly_rate"] = salaries.get(employee.employee, {}).get("hourly_salary", 0)
         employee["cost"] = calculate_employee_cost(
             employee,
             start_date=start_date,

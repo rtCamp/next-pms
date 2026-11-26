@@ -192,6 +192,7 @@ extend_doctype_class = {
     "Project": ["next_pms.project_currency.overrides.project.ProjectOverwrite"],
     "Timesheet": ["next_pms.project_currency.overrides.timesheet.TimesheetOverwrite"],
     "Task": ["next_pms.project_currency.overrides.task.TaskOverride"],
+    "Employee": ["next_pms.next_pms.overrides.employee.EmployeeOverride"],
 }
 
 
@@ -322,9 +323,6 @@ doc_events = {
     },
     "Project Status Update": {
         "on_update": "next_pms.next_pms.notifications.project_status_update_on_update",
-    },
-    "Customer Feedback": {
-        "on_submit": "next_pms.next_pms.notifications.customer_feedback_on_submit",
     },
     "ToDo": {
         "validate": "next_pms.next_projects.doc_events.todo.validate",

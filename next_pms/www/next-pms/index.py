@@ -4,7 +4,6 @@ import frappe
 from frappe.utils import cint
 
 from next_pms.api.whats_new import get_whats_new_boot
-from next_pms.next_projects.api.feedback import is_customer_feedback_available
 from next_pms.permissions.capabilities import get_user_capabilities
 from next_pms.timesheet.api.app import has_bu_field, has_industry_field
 from next_pms.timesheet.api.project import get_accessible_project_filter
@@ -43,7 +42,6 @@ def get_context(context):
     boot["has_business_unit"] = has_bu_field()
     boot["has_industry"] = has_industry_field()
     boot["has_repository_connections"] = bool(frappe.db.exists("DocType", "GitHub Repository"))
-    boot["has_customer_feedback"] = is_customer_feedback_available()
     boot["show_rag_trigger_page"] = show_rag_trigger_page()
     boot["has_todo_custom_fields"] = has_todo_custom_fields()
     boot["todo_status_options"] = todo_status_options()
@@ -75,7 +73,6 @@ def get_boot():
     boot["has_business_unit"] = has_bu_field()
     boot["has_industry"] = has_industry_field()
     boot["has_repository_connections"] = bool(frappe.db.exists("DocType", "GitHub Repository"))
-    boot["has_customer_feedback"] = is_customer_feedback_available()
     boot["show_rag_trigger_page"] = show_rag_trigger_page()
     boot["has_todo_custom_fields"] = has_todo_custom_fields()
     boot["todo_status_options"] = todo_status_options()

@@ -78,7 +78,6 @@ const errorType = computed(() =>
 
 const tabs = computed(() =>
   visibleTabs({
-    hasCustomerFeedback: Boolean(window.boot?.has_customer_feedback),
     showRagStats: Boolean(window.boot?.show_rag_trigger_page),
     reportsEnabled: Boolean(doc.value?.custom_enable_project_report_generation),
   }),
